@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+vlog "###"
+vlog "### master_user-data.sh $0 (`whoami`)"
+vlog "###"
+
+# contextualize this node as a MASTER
+export MASTER_NODE=localhost
+
+# store the provided CLUSTER_PRIVATE_KEY into the ssh_key as defined in vappio_config
+echo -e -n '<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>' > $ssh_key
+
+# append the CLUSTER_PUBLIC_KEY to the authorized_keys file
+echo -e '\n<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>' >> /root/.ssh/authorized_keys
+
+touch /tmp/didsomething
+
+vlog "Done w/ master_user-data.sh"

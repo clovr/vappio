@@ -1,0 +1,149 @@
+Ext.onReady(function() {
+    Ext.QuickTips.init();
+    
+    var xg = Ext.grid;
+
+    // shared reader
+    var reader = new Ext.data.ArrayReader({}, [
+       {name: 'publicip'},
+       {name: 'privateip'},
+       {name: 'type'},
+       {name: 'queue'},
+       {name: 'state'},
+       {name: 'uptime'},
+       {name: 'job'},
+       {name: 'load'},
+       {name: 'memory'},
+    ]);
+	var counts = [ [1,'1'],[2,'2'],[3,'3'] ];
+    var store = new Ext.data.SimpleStore({
+		    fields: ['name', 'count'],
+			data : counts 
+  	});
+								
+    var grid = new xg.GridPanel({
+        store: new Ext.data.GroupingStore({
+            reader: reader,
+            data: xg.dummyData2,
+            sortInfo:{field: 'publicip', direction: "ASC"},
+            groupField:'type'
+        }),
+
+        columns: [
+            {id:'publicip',header: "Public IP", width: 60, sortable: true, dataIndex: 'publicip'},
+            {header: "Private IP", width: 20, sortable: true, dataIndex: 'privateip'},
+            {header: "type", width: 20, sortable: true, dataIndex: 'type'},
+            {header: "queue", width: 20, sortable: true, dataIndex: 'queue'},
+            {header: "state", width: 20, sortable: true, dataIndex: 'state'},
+            {header: "uptime", width: 20, sortable: true, dataIndex: 'uptime'},
+            {header: "job", width: 20, sortable: true, dataIndex: 'job'},
+            {header: "load", width: 20, sortable: true, dataIndex: 'load'},
+            {header: "memory", width: 20, sortable: true, dataIndex: 'memory'}
+        ],
+
+        view: new Ext.grid.GroupingView({
+            forceFit:true,
+            groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Types" : "Type"]})'
+        }),
+// inline buttons
+        buttons: [{text:'Save'},{text:'Cancel'}],
+        buttonAlign:'center',
+		// inline toolbars
+        tbar:[{
+            text:'Launch data nodes (1)',
+            tooltip:'1 data nodes running',
+            iconCls:'add'
+        }, '-',{
+		text:'Launch exec nodes (2)',
+        tooltip:'1 exec nodes running',
+        iconCls:'add'},'-'
+
+		],
+        frame:true,
+        width: 800,
+        height: 450,
+        collapsible: true,
+        animCollapse: true,
+        title: 'Vappio Grid V1',
+        iconCls: 'icon-grid',
+        renderTo: 'gridstatus' 
+    });
+
+        
+   var fp = new Ext.FormPanel({
+        frame: true,
+        title:'Vappio launchpad',
+        labelWidth: 110,
+        width: 800,
+        renderTo:'launchpad',
+        bodyStyle: 'padding:0 10px 0;',
+        collapsible: true,
+        animCollapse: true,
+        items: [{
+            layout: 'column',
+            border: false,
+            defaults: {
+                columnWidth: '.5',
+                border: false
+            }, 
+            items: [{
+                bodyStyle: 'padding-right:5px;',
+                items:         {
+                    xtype:'fieldset',
+                    title: 'Modify grid V1',
+                    autoHeight: true,
+         		   items: [
+					{
+					fieldLabel: 'Vappio VM',
+					items: [
+						new Ext.form.ComboBox({
+						tpl: '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>',
+						store: store,
+						displayField:'image',
+						typeAhead: true,
+						mode: 'local',
+						triggerAction: 'all',
+						emptyText:'Number of nodes',
+						selectOnFocus:true})
+					]},
+   	         		{
+	   	             xtype: 'radiogroup',
+    		         fieldLabel: 'Node type',
+    		         itemCls: 'x-check-group-alt',
+       		         columns: 2,
+       		         vertical: true,
+       		         items: [
+       	 	            {boxLabel: 'Data', name: 'node-type', inputValue: 1},
+        	            {boxLabel: 'Exec', name: 'node-type', inputValue: 2, checked: true},
+                	    ]
+       		   	    }]
+        		},
+				}],
+				}],
+        buttons: [{
+            text: 'Launch',
+            handler: function(){
+               if(fp.getForm().isValid()){
+                    Ext.Msg.alert('Submitted Values', 'The following will be sent to the server: <br />'+ 
+                        fp.getForm().getValues(true).replace(/&/g,', '));
+                }
+            }
+        },{
+            text: 'Reset',
+            handler: function(){
+                fp.getForm().reset();
+            }
+        }
+    ]});
+});
+
+Ext.grid.dummyData2 = [
+        ['1.1.1','10.1.1.1','master','staging.q','idle',' ','0','0/0','2:21 hours'],
+        ['1.1.1','10.1.1.1','master','staging.q','idle',' ','0','0/0','2:21 hours'],
+        ['1.1.1','10.1.1.1','master','staging.q','idle',' ','0','0/0','2:21 hours'],
+        ['1.1.1','10.1.1.1','master','staging.q','idle',' ','0','0/0','2:21 hours'],
+        ['1.1.1','10.1.1.1','master','staging.q','idle',' ','0','0/0','2:21 hours'],
+        ['1.1.1','10.1.1.1','master','staging.q','idle',' ','0','0/0','2:21 hours'],
+];
+
+

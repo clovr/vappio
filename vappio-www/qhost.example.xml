@@ -1,0 +1,150 @@
+<?xml version='1.0'?>
+<qhost xmlns="http://gridengine.sunsource.net/61/qhost">
+ <host name='global'>
+   <hostvalue name='arch_string'>-</hostvalue>
+   <hostvalue name='num_proc'>-</hostvalue>
+   <hostvalue name='load_avg'>-</hostvalue>
+   <hostvalue name='mem_total'>-</hostvalue>
+   <hostvalue name='mem_used'>-</hostvalue>
+   <hostvalue name='swap_total'>-</hostvalue>
+   <hostvalue name='swap_used'>-</hostvalue>
+ </host>
+ <host name='domU-12-31-39-00-48-36.compute-1.internal'>
+   <hostvalue name='arch_string'>lx24-x86</hostvalue>
+   <hostvalue name='num_proc'>1</hostvalue>
+   <hostvalue name='load_avg'>2.76</hostvalue>
+   <hostvalue name='mem_total'>1.7G</hostvalue>
+   <hostvalue name='mem_used'>170.6M</hostvalue>
+   <hostvalue name='swap_total'>896.0M</hostvalue>
+   <hostvalue name='swap_used'>36.0K</hostvalue>
+ <queue name='wf.q'>
+   <queuevalue qname='wf.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='wf.q' name='slots_used'>1</queuevalue>
+   <queuevalue qname='wf.q' name='slots'>1</queuevalue>
+   <queuevalue qname='wf.q' name='state_string'></queuevalue>
+ </queue>
+ <job name='1000'>
+   <jobvalue jobid='1000' name='priority'>'0.295455'</jobvalue>
+   <jobvalue jobid='1000' name='qinstance_name'>wf.q@domU-12-31-39-00-48-36.compute-1.internal</jobvalue>
+   <jobvalue jobid='1000' name='job_name'>stagingwf.sh</jobvalue>
+   <jobvalue jobid='1000' name='job_owner'>guest</jobvalue>
+   <jobvalue jobid='1000' name='job_state'>r</jobvalue>
+   <jobvalue jobid='1000' name='start_time'>1219092922</jobvalue>
+   <jobvalue jobid='1000' name='pe_master'>MASTER</jobvalue>
+ </job>
+ <queue name='repository.q'>
+   <queuevalue qname='repository.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='repository.q' name='slots_used'>1</queuevalue>
+   <queuevalue qname='repository.q' name='slots'>1</queuevalue>
+   <queuevalue qname='repository.q' name='state_string'></queuevalue>
+ </queue>
+ <job name='1002'>
+   <jobvalue jobid='1002' name='priority'>'0.250000'</jobvalue>
+   <jobvalue jobid='1002' name='qinstance_name'>repository.q@domU-12-31-39-00-48-36.compute-1.internal</jobvalue>
+   <jobvalue jobid='1002' name='job_name'>syncrepository.sh</jobvalue>
+   <jobvalue jobid='1002' name='job_owner'>guest</jobvalue>
+   <jobvalue jobid='1002' name='job_state'>r</jobvalue>
+   <jobvalue jobid='1002' name='start_time'>1219092922</jobvalue>
+   <jobvalue jobid='1002' name='pe_master'>MASTER</jobvalue>
+ </job>
+ <queue name='staging.q'>
+   <queuevalue qname='staging.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='staging.q' name='slots_used'>1</queuevalue>
+   <queuevalue qname='staging.q' name='slots'>2</queuevalue>
+   <queuevalue qname='staging.q' name='state_string'></queuevalue>
+ </queue>
+ <job name='1001'>
+   <jobvalue jobid='1001' name='priority'>'0.295455'</jobvalue>
+   <jobvalue jobid='1001' name='qinstance_name'>staging.q@domU-12-31-39-00-48-36.compute-1.internal</jobvalue>
+   <jobvalue jobid='1001' name='job_name'>staging.sh</jobvalue>
+   <jobvalue jobid='1001' name='job_owner'>guest</jobvalue>
+   <jobvalue jobid='1001' name='job_state'>r</jobvalue>
+   <jobvalue jobid='1001' name='start_time'>1219092922</jobvalue>
+   <jobvalue jobid='1001' name='pe_master'>MASTER</jobvalue>
+ </job>
+ <queue name='harvesting.q'>
+   <queuevalue qname='harvesting.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='harvesting.q' name='slots_used'>0</queuevalue>
+   <queuevalue qname='harvesting.q' name='slots'>2</queuevalue>
+   <queuevalue qname='harvesting.q' name='state_string'></queuevalue>
+ </queue>
+ <queue name='stagingsub.q'>
+   <queuevalue qname='stagingsub.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='stagingsub.q' name='slots_used'>0</queuevalue>
+   <queuevalue qname='stagingsub.q' name='slots'>1</queuevalue>
+   <queuevalue qname='stagingsub.q' name='state_string'></queuevalue>
+ </queue>
+ </host>
+ <host name='domU-12-31-39-00-C5-97.compute-1.internal'>
+   <hostvalue name='arch_string'>lx24-x86</hostvalue>
+   <hostvalue name='num_proc'>1</hostvalue>
+   <hostvalue name='load_avg'>0.17</hostvalue>
+   <hostvalue name='mem_total'>1.7G</hostvalue>
+   <hostvalue name='mem_used'>71.5M</hostvalue>
+   <hostvalue name='swap_total'>896.0M</hostvalue>
+   <hostvalue name='swap_used'>0.0</hostvalue>
+ <queue name='stagingsub.q'>
+   <queuevalue qname='stagingsub.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='stagingsub.q' name='slots_used'>0</queuevalue>
+   <queuevalue qname='stagingsub.q' name='slots'>1</queuevalue>
+   <queuevalue qname='stagingsub.q' name='state_string'></queuevalue>
+ </queue>
+ <queue name='exec.q'>
+   <queuevalue qname='exec.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='exec.q' name='slots_used'>0</queuevalue>
+   <queuevalue qname='exec.q' name='slots'>1</queuevalue>
+   <queuevalue qname='exec.q' name='state_string'></queuevalue>
+ </queue>
+ </host>
+ <host name='domU-12-31-39-00-E0-D6.compute-1.internal'>
+   <hostvalue name='arch_string'>lx24-x86</hostvalue>
+   <hostvalue name='num_proc'>1</hostvalue>
+   <hostvalue name='load_avg'>0.52</hostvalue>
+   <hostvalue name='mem_total'>1.7G</hostvalue>
+   <hostvalue name='mem_used'>89.7M</hostvalue>
+   <hostvalue name='swap_total'>896.0M</hostvalue>
+   <hostvalue name='swap_used'>0.0</hostvalue>
+ <queue name='stagingsub.q'>
+   <queuevalue qname='stagingsub.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='stagingsub.q' name='slots_used'>0</queuevalue>
+   <queuevalue qname='stagingsub.q' name='slots'>1</queuevalue>
+   <queuevalue qname='stagingsub.q' name='state_string'></queuevalue>
+ </queue>
+ <queue name='exec.q'>
+   <queuevalue qname='exec.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='exec.q' name='slots_used'>0</queuevalue>
+   <queuevalue qname='exec.q' name='slots'>1</queuevalue>
+   <queuevalue qname='exec.q' name='state_string'></queuevalue>
+ </queue>
+ </host>
+ <host name='domU-12-31-39-00-E8-D6.compute-1.internal'>
+   <hostvalue name='arch_string'>lx24-x86</hostvalue>
+   <hostvalue name='num_proc'>1</hostvalue>
+   <hostvalue name='load_avg'>0.07</hostvalue>
+   <hostvalue name='mem_total'>1.7G</hostvalue>
+   <hostvalue name='mem_used'>73.1M</hostvalue>
+   <hostvalue name='swap_total'>896.0M</hostvalue>
+   <hostvalue name='swap_used'>0.0</hostvalue>
+ <queue name='stagingsub.q'>
+   <queuevalue qname='stagingsub.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='stagingsub.q' name='slots_used'>0</queuevalue>
+   <queuevalue qname='stagingsub.q' name='slots'>1</queuevalue>
+   <queuevalue qname='stagingsub.q' name='state_string'></queuevalue>
+ </queue>
+ <queue name='exec.q'>
+   <queuevalue qname='exec.q' name='qtype_string'>BIP</queuevalue>
+   <queuevalue qname='exec.q' name='slots_used'>1</queuevalue>
+   <queuevalue qname='exec.q' name='slots'>1</queuevalue>
+   <queuevalue qname='exec.q' name='state_string'></queuevalue>
+ </queue>
+ <job name='999'>
+   <jobvalue jobid='999' name='priority'>'0.750000'</jobvalue>
+   <jobvalue jobid='999' name='qinstance_name'>exec.q@domU-12-31-39-00-E8-D6.compute-1.internal</jobvalue>
+   <jobvalue jobid='999' name='job_name'>RunWorkflow</jobvalue>
+   <jobvalue jobid='999' name='job_owner'>guest</jobvalue>
+   <jobvalue jobid='999' name='job_state'>r</jobvalue>
+   <jobvalue jobid='999' name='start_time'>1219092907</jobvalue>
+   <jobvalue jobid='999' name='pe_master'>MASTER</jobvalue>
+ </job>
+ </host>
+</qhost>

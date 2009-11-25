@@ -1,0 +1,33 @@
+#!/bin/sh
+# Ubuntu doesn't use /etc/rc.local
+# https://help.ubuntu.com/community/RcLocalHowto
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+vlog "###" 
+vlog "### $0 (`whoami`)" 
+vlog "###" 
+
+# Prep runtime directories
+rm -rf $vappio_runtime
+mkdir -p $vappio_runtime
+chmod 777 $vappio_runtime
+touch $vappio_log
+chmod 777 $vappio_log
+
+# Check if nimbus url exists
+if [ -f "/var/nimbus-metadata-server-url" ]
+then
+  vlog "vappio_cloud_type=NIMBUS"
+  export vappio_cloud_type=NIMBUS
+  echo "NIMBUS" > $vappio_runtime/cloud_type
+  $vappio_scripts/nimbus/start_nimbus.sh
+else
+  vlog "vappio_cloud_type=EC2"
+  export vappio_cloud_type=EC2
+  echo "EC2" > $vappio_runtime/cloud_type
+  $vappio_scripts/amazonec2/start_ec2.sh
+fi
+

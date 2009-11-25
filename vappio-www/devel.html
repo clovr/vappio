@@ -1,0 +1,32 @@
+<html>
+<head>
+    <title>Vappio Dashboard</title>
+    
+    <!-- Include Ext and app-specific scripts: -->
+    <script type="text/javascript" src="/ext-2.2/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="/ext-2.2/ext-all-debug.js"></script>
+    <script type="text/javascript" src="vappio.devel.js"></script>
+    
+    <!-- Include Ext stylesheets here: -->
+    <link rel="stylesheet" type="text/css" href="/ext-2.2/resources/css/ext-all.css">
+    <link rel="stylesheet" type="text/css" href="vappio.css">
+</head>
+<body>
+
+<p><a href='/ergatis' target='_new'>ergatis</a>|<a href='/ganglia' target='_new'>ganglia</a></p>
+    <div id="dashboard"></div>
+	<select name="roles" id="roles" style="display: none;">
+	<option value="datanode">Data</option>
+	<option value="execnode">Exec</option>
+	</select>
+
+	<div id="launch-win" class="x-hidden">
+    <div class="x-window-header">Launch instances</div>
+    </div>
+
+	
+    <div id="progressbar"></div>
+</div>
+</body>
+</html>
+

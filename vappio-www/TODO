@@ -1,0 +1,11 @@
+list inputs, outputs
+all components inputs that are used in an iterator follow the form
+[root@domU-12-31-39-00-48-36 MASTER_NODE vappio]# head /mnt/harvesting/testproject/workflow/runtime/hmmpfam/136_default/i1.list
+$;I_FILE_BASE$; $;I_FILE_NAME$; $;I_FILE_PATH$; $;I_FILE_EXT$;  $;I_DIR$;
+nmpdr_196600.1.peg.1035 nmpdr_196600.1.peg.1035.fsa     /mnt/staging/nmpdr_196600.1.peg.1035.fsa        fsa     /mnt/staging
+nmpdr_196600.1.peg.1045 nmpdr_196600.1.peg.1045.fsa     /mnt/staging/nmpdr_196600.1.peg.1045.fsa        fsa     /mnt/staging
+nmpdr_196600.1.peg.1052 nmpdr_196600.1.peg.1052.fsa     /mnt/staging/nmpdr_196600.1.peg.1052.fsa        fsa     /mnt/staging
+nmpdr_196600.1.peg.1072 nmpdr_196600.1.peg.1072.fsa     /mnt/staging/nmpdr_196600.1.peg.1072.fsa        fsa     /mnt/staging
+nmpdr_196600.1.peg.1107 nmpdr_196600.1.peg.1107.fsa     /mnt/staging/nmpdr_196600.1.peg.1107.fsa        fsa     /mnt/staging
+nmpdr_196600.1.peg.124  nmpdr_196600.1.peg.124.fsa      /mnt/staging/nmpdr_196600.1.peg.124.fsa fsa     /mnt/staging
+

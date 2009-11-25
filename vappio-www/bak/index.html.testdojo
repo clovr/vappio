@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" 
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+    	<title>Vappio dashboard</title>    
+    
+	<!-- load the dojo toolkit base -->
+	<script type="text/javascript" src="/js/dojo1.1.1/dojo/dojo.js"
+	    djConfig="parseOnLoad:true, isDebug:true"></script>
+    
+	<script type="text/javascript">
+	/* our JavaScript will go here */
+	dojo.require("dojo.parser");
+	dojo.require("dijit.form.Button");
+ 	dojo.require("dijit.Dialog");
+ 	dojo.require("dijit.form.TextBox");
+        // a very common method of loading code onLoad
+        var init = function(){
+	var contentNode = dojo.byId("qhostcontent");
+	dojo.xhrGet({
+		url: "/vappio/qhost.txt",
+		handleAs: "text",
+		load: function(data,args){
+			// fade out the node we're modifying
+			dojo.fadeOut({
+				node: contentNode,
+				onEnd: function(){
+				  // set the data, fade it back in
+				  contentNode.innerHTML = data; 
+				  dojo.fadeIn({node: contentNode}).play();    
+				}
+			}).play();
+		},
+		// if any error occurs, it goes here:
+		error: function(error,args){
+			console.warn("error!",error);
+		}
+	});
+	var ec2Node = dojo.byId("ec2status");
+        dojo.xhrGet({
+                url: "/vappio/ec2status.txt",
+                handleAs: "text",
+                load: function(data,args){
+                        // fade out the node we're modifying
+                        dojo.fadeOut({
+                                node: ec2Node,
+                                onEnd: function(){
+                                  // set the data, fade it back in
+                                  ec2Node.innerHTML = data; 
+                                  dojo.fadeIn({node: ec2Node}).play();    
+                                }
+                        }).play();
+                },
+                // if any error occurs, it goes here:
+                error: function(error,args){
+                        console.warn("error!",error);
+                }
+        });
+	var masterinfo = dojo.byId("masterinfo");
+        dojo.xhrGet({
+                url: "/vappio/hostname.txt",
+                handleAs: "text",
+		load : function(data,args){
+		masterinfo.innerHTML = "<a href=/ganglia?c=Grid+V1&h='"+data+"'>"+data+"</a>";
+		}
+	});
+}; 
+dojo.addOnLoad(init);
+
+// and/or pass an anonymous function
+dojo.addOnLoad(function(){
+//    console.log("I also run, but second. ");
+}); 
+// sumbit the form 
+var formSubmit = function(e){
+	// prevent the form from actually submitting
+	e.preventDefault(); 
+	// submit the form in the background	
+	dojo.xhrPost({
+		url: "launch.cgi",
+		form: "mainForm",
+		handleAs: "text",
+		handle: function(data,args){
+			if(typeof data == "error"){
+				console.warn("error!",args);
+			}else{
+				// show our response 
+				console.log(data);
+			}
+		}
+	});
+};
+dojo.addOnLoad(function(){
+	var theForm = dojo.byId("mainForm");
+	// another dojo.connect syntax: call a function directly	
+	dojo.connect(theForm,"onsubmit",formSubmit);
+}); 
+
+	</script>
+    
+	<style type="text/css">
+	@import "/js/dojo1.1.1/dojox/highlight/resources/pygments/trac.css";
+	@import "/js/dojo1.1.1/dijit/themes/tundra/tundra.css";
+        @import "/js/dojo1.1.1/dojo/resources/dojo.css";
+	pre code {
+			display:block;
+			background:#eee;
+			padding:8px;
+			margin:1.25em 0;
+			background:#FEFFF0 none repeat scroll 0%;
+			border:1px solid #ECECEC !important;
+			overflow-x:auto;
+			width:1020px;
+                       font-size: 10px;
+		}
+	#container {
+		border:1px dotted #b7b7b7;
+		background:#ededed;
+		width:75px;
+		height:55px;
+	}
+</style>
+    </head>
+    <body class="tundra"><!-- this is a Typical WebPage starting point ... -->
+<h1 id="testHeading">Vappio dashboard</h1>
+  <div id="launchpad">
+    <div id="masterinfo"> </div>
+    <form id="mainForm" action="launch.cgi" method="post">
+        <input type="text" id="" name="count" value="1" size=2/>
+	<input type="radio" id="" name="type" value="data" />Data
+	<input type="radio" id="" name="type" value="exec" />Exec
+</form>
+
+<button dojoType="dijit.form.Button" onclick="dijit.byId('dialog1').show()">Launch on EC2</button>
+<div dojoType="dijit.Dialog" id="dialog1" title="EC2 launch" execute="">
+<p> Are you sure you want to launch instances?</p>
+<p><button dojoType=dijit.form.Button type="submit">OK</button></p>
+</div>
+<p>
+       <div id="ec2status">
+
+       </div>
+</p>
+<p>
+       <div id="qhostcontent">
+
+       </div>
+</p>
+
+    </body>
+</html>
