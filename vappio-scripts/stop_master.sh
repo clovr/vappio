@@ -34,5 +34,7 @@ rm /var/nimbus-metadata-server-url
 # nuke authorized_keys
 :> /root/.ssh/authorized_keys
 
+rm -rf /root/.svn
+
 echo "OFFLINE" > $vappio_runtime/node_type
 date > /root/last_stop_master

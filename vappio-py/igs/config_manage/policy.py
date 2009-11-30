@@ -42,7 +42,11 @@ def runInDir(dir, f):
     os.chdir(curdir)
 
 def dirExists(dirname):
-    """Ensure a directory exists, create it if not"""
+    """
+    Ensure a directory exists, create it if not
+    Use fileExists if you want to check for existence but not create
+    """
+    dirname = replaceStr(dirname, conf)
     if not os.path.exists(dirname):
         try:
             runSystemEx('mkdir -p ' + dirname)
@@ -50,10 +54,12 @@ def dirExists(dirname):
             raise PolicyError('Could not create directory: ' + dirname)
 
 def fileExists(fname):
+    fname = replaceStr(fname, conf)
     if not os.path.exists(fname):
         raise PolicyError('File does not exist: ' + fname)
         
 def fileOwner(fname, owner, group=None):
+    fname = replaceStr(fname, conf)
     who = owner
     if group:
         who += ':' + group
@@ -62,6 +68,7 @@ def fileOwner(fname, owner, group=None):
         
 def dirOwner(dirname, owner, group=None):
     """Set owners of a directory, recursively. use fileOwner if you do not want recursive"""
+    dirname = replaceStr(dirname, conf)
     who = owner
     if group:
         who += ':' + group
@@ -87,6 +94,7 @@ def uninstallPkg(pkgname):
 
 def pkgFileExists(pkgname, fname):
     """Ensures a file in the package exists"""
+    fname = replaceStr(fname, conf)
     fileExists(os.path.join(conf('stow.dir'), pkgname, fname))
     
 
@@ -103,6 +111,7 @@ def executeTemplate(fname):
     This takes a file that ends in .tmpl and produces a file without the .tmpl with the template
     executed
     """
+    fname = replaceStr(fname, conf)
     if not fname.endswith('.tmpl'):
         raise PolicyError('%s does not end in .tmpl' % fname)
 
