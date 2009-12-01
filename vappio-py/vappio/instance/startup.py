@@ -4,7 +4,7 @@ import os
 
 from igs.utils.commands import runSystemEx
 
-from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE
+from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, configFromStream
 
 
 ##
@@ -29,9 +29,9 @@ def startUp(conf):
     # For those things that need to be started everywhere
     startUpAllNodes(conf)
 
-
-
-
+def startUpFromConfigFile(fname):
+    """Run startup from a config file"""
+    return startUp(configFromStream(open(fname)))
 
 def startUpDevNode(conf):
     """
@@ -41,10 +41,8 @@ def startUpDevNode(conf):
     2 - Check out /usr/local/stow
     3 - Check out /opt/packages
 
-
     Any SVN work is done on trunk (need to add config to specify a branch)
     """
-    
     runSystemEx("""rm -rf /usr/local/stow""")
     runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/stow /usr/local/stow""")
 

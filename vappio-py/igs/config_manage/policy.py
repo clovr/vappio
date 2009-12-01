@@ -11,8 +11,10 @@ from igs.utils.config import configFromMap, configFromStream, replaceStr
 ##
 # These are default config options, these will be moved to a config file eventually
 conf = configFromMap({
-    'stow': {'dir': '/usr/local/stow'},
-    'base': {'dir': '/usr/local'},
+    'stow': {'package_dir': '/usr/local/stow',
+             'base_dir': '/usr/local'},
+    'opt': {'package_dir': '/opt/opt-packages',
+            'base_dir': '/opt'},
     'config': {'filename': '/tmp/machine.conf'}
     })
 
@@ -78,24 +80,24 @@ def dirOwner(dirname, owner, group=None):
 
 def ensurePkg(pkgname):
     """Ensure's a package exists"""
-    path = os.path.join(conf('stow.dir'), pkgname)
+    path = os.path.join(conf('stow.package_dir'), pkgname)
     if not os.path.exists(path):
         raise PolicyError('Package does not exist: ' + path)
 
 
 def installPkg(pkgname):
-    runInDir(conf('stow.dir'),
+    runInDir(conf('stow.package_dir'),
              lambda : runSystemEx('xstow ' + pkgname))
 
 def uninstallPkg(pkgname):
-    runInDir(conf('stow.dir'),
+    runInDir(conf('stow.package_dir'),
              lambda : runSystemEx('xstow -D ' + pkgname))    
 
 
 def pkgFileExists(pkgname, fname):
     """Ensures a file in the package exists"""
     fname = replaceStr(fname, conf)
-    fileExists(os.path.join(conf('stow.dir'), pkgname, fname))
+    fileExists(os.path.join(conf('stow.package_dir'), pkgname, fname))
     
 
 def run(cmd):
@@ -129,5 +131,24 @@ def executeTemplate(fname):
 
 def executePkgTemplate(pkgname, fname):
     """Just a handy wrapper for executing templates in a specific package"""
-    executeTemplate(os.path.join(conf('stow.dir'), pkgname, fname))
+    executeTemplate(os.path.join(conf('stow.package_dir'), pkgname, fname))
     
+
+def installOptPkg(pkgname):
+    """
+    This links an optional package into ${opt.base_dir}/<package-name>
+
+    This cuts off at the last '-' in the pkg name in order to come up with /opt/<package-name>
+
+    For example:
+    hadoop-0.20.1 will become ${opt.base_dir}/hadoop
+    simple-test-thing-1.2 will become ${opt.base_dir}/simple-test-thing
+    """
+    outname = '-'.join(pkgname.split('-')[:-1])
+
+    runSystemEx('ln -s %s %s' % (os.path.join(conf('opt.package_dir'), pkgname),
+                                 os.path.join(conf('opt.base_dir'), outname)))
+    
+def uninstallOptPkg(pkgname):
+    outname = '-'.join(pkgname.split('-')[:-1])    
+    runSystemEx('rm ' + os.path.join(conf('opt.base_dir'), outname))
