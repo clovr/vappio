@@ -16,12 +16,13 @@ class ClusterError(Exception):
     pass
 
 class Cluster:
-    def __init__(self, ctype, config):
+    def __init__(self, name, ctype, config):
         """
         ctype is a reference to an object that implements the cluster interface
         for that type of cluster.  This can be a class or a module.
         """
 
+        self.name = name
         self.ctype = ctype
         self.config = config
 
@@ -42,27 +43,31 @@ class Cluster:
                                               self.config('cluster.master_groups'),
                                               self.config('cluster.availability_zone'),
                                               numExec,
-                                              userDataFile=dataFile)
+                                              userDataFile=dataFile)[0]
 
 
         os.remove(dataFile)
-        dataFile = createDataFile([EXEC_NODE], self.master.publicDNS)
 
-        self.slaves = self.ctype.runInstances(self.config('cluster.ami'),
-                                              self.config('cluster.key'),
-                                              self.config('cluster.exec_type'),
-                                              self.config('cluster.exec_groups'),
-                                              self.config('cluster.availability_zone'),
-                                              numExec,
-                                              userDataFile=dataFile)
+        if numExec:
+            dataFile = createDataFile([EXEC_NODE], self.master.publicDNS)
 
-        os.remove(dataFile)
+            self.slaves = self.ctype.runInstances(self.config('cluster.ami'),
+                                                  self.config('cluster.key'),
+                                                  self.config('cluster.exec_type'),
+                                                  self.config('cluster.exec_groups'),
+                                                  self.config('cluster.availability_zone'),
+                                                  numExec,
+                                                  userDataFile=dataFile)
+
+            os.remove(dataFile)
         
-        try:
-            self.slaves = waitForState(self.ctype, NUM_TRIES, self.slaves, self.ctype.Instance.RUNNING)
-        except TryError:
-            self.terminateCluster()
-            raise ClusterError('Could not start cluster')
+            try:
+                self.slaves = waitForState(self.ctype, NUM_TRIES, self.slaves, self.ctype.Instance.RUNNING)
+            except TryError:
+                self.terminateCluster()
+                raise ClusterError('Could not start cluster')
+        else:
+            self.slaves = []
 
 
     def terminateCluster(self):
@@ -74,6 +79,7 @@ def waitForState(ctype, tries, instances, wantState):
     while tries > 0:
         instances = ctype.updateInstances(instances)
         for i in instances:
+            print str(i)
             if i.state != wantState:
                 tries -= 1
                 time.sleep(10)

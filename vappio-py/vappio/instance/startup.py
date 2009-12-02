@@ -22,12 +22,14 @@ def startUp(conf):
 
     The config must be created through vappio.instance.config.configFrom(Stream|Map)
     """
-    for n in conf('NODE_TYPE'):
-        NODE_TYPE_MAP[n](conf)
-
     ##
     # For those things that need to be started everywhere
     startUpAllNodes(conf)
+    
+    for n in conf('NODE_TYPE'):
+        NODE_TYPE_MAP[n](conf)
+
+
 
 def startUpFromConfigFile(fname):
     """Run startup from a config file"""
@@ -43,6 +45,7 @@ def startUpDevNode(conf):
 
     Any SVN work is done on trunk (need to add config to specify a branch)
     """
+    executePolicyDir('/opt/config_policies/DEV')
     runSystemEx("""rm -rf /usr/local/stow""")
     runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/stow /usr/local/stow""")
 
@@ -51,9 +54,9 @@ def startUpDevNode(conf):
 
 def startUpMasterNode(conf):
     """
-    Not sure what, if anything, needs to be done here
+    1 - Setup hadoop
     """
-    pass
+    executePolicyDir('/opt/config_policies/MASTER')
     
 
 def startUpExecNode(conf):
@@ -61,6 +64,7 @@ def startUpExecNode(conf):
     Just need to run the vappio-script for starting the exec node
     This should eventually replace that script
     """
+    executePolicyDir('/opt/config_policies/EXEC')    
     runSystemEx("""/opt/vappio-scripts/start_exec.sh %s""" % (conf('MASTER_IP'),))
 
 
@@ -71,7 +75,13 @@ def startUpAllNodes(conf):
     1 - List through all .py files in /opt/config_policies and run them (eventually this directory should probably
         be split up by node type)
     """
-    for f in os.listdir('/opt/config_policies'):
-        if f.endswith('.py'):
-            runSystemEx('python ' + os.path.join('/opt/config_policies', f))
+    executePolicyDir('/opt/config_policies')
             
+
+def executePolicyDir(d):
+    """Execute all .py files in a directory, in alphabetical order"""
+    files = [f for f in os.listdir(d) if f.endswith('.py')]
+    files.sort()
+    for f in files:
+        runSystemEx('python ' + os.path.join(d, f))
+        

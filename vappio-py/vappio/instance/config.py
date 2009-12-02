@@ -8,9 +8,9 @@ MASTER_NODE = 'MASTER'
 EXEC_NODE = 'EXEC'
 
 def createDataFile(mode, masterHost):
-    open('/tmp/machine.conf', 'w').writelines(
+    open('/tmp/machine.conf', 'w').write('\n'.join(
         ['MASTER_IP=' + masterHost,
-         'NODE_TYPE=' + ','.join(mode)])
+         'NODE_TYPE=' + ','.join(mode)]) + '\n')
 
     return '/tmp/machine.conf'
 

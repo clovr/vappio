@@ -182,7 +182,7 @@ def updateInstancesA(retInst, instances):
 
 def updateInstances(instances):
     retInst = []
-    runprogramRunnerEx(updateInstacesA(retInst, instances))
+    runProgramRunnerEx(updateInstancesA(retInst, instances))
     return retInst
 
             
