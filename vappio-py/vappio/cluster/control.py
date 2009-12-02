@@ -42,11 +42,12 @@ class Cluster:
                                               self.config('cluster.master_type'),
                                               self.config('cluster.master_groups'),
                                               self.config('cluster.availability_zone'),
-                                              numExec,
+                                              1,
                                               userDataFile=dataFile)[0]
 
 
         os.remove(dataFile)
+        self.master = waitForState(self.ctype, NUM_TRIES, [self.master], self.ctype.Instance.RUNNING)[0]
 
         if numExec:
             dataFile = createDataFile([EXEC_NODE], self.master.publicDNS)
@@ -59,7 +60,7 @@ class Cluster:
                                                   numExec,
                                                   userDataFile=dataFile)
 
-            os.remove(dataFile)
+            #os.remove(dataFile)
         
             try:
                 self.slaves = waitForState(self.ctype, NUM_TRIES, self.slaves, self.ctype.Instance.RUNNING)
@@ -76,16 +77,20 @@ class Cluster:
 
 
 def waitForState(ctype, tries, instances, wantState):
+    def _matchState(instances):
+        for i in instances:
+            if i.state != wantState:
+                return False
+
+        return True
+    
     while tries > 0:
         instances = ctype.updateInstances(instances)
-        for i in instances:
-            print str(i)
-            if i.state != wantState:
-                tries -= 1
-                time.sleep(10)
-                continue
-        else:
+        if _matchState(instances):
             return instances
+        else:
+            tries -= 1
+            time.sleep(30)
 
     
     raise TryError('Not all instances reached state: ' + wantState)
