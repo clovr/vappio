@@ -171,7 +171,10 @@ def replaceVariables(k, value, lookup):
                 else:
                     secVar = var
 
-                value = value.replace('${%s}' % var, lookup(secVar))
+                try:
+                    value = value.replace('${%s}' % var, lookup(secVar))
+                except NoKeyFoundError:
+                    value = value.replace('${%s}' % var, lookup(var))
 
             return replaceVariables(k, value, lookup)
         else:

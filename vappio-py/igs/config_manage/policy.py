@@ -10,13 +10,13 @@ from igs.utils.config import configFromMap, configFromStream, replaceStr
 
 ##
 # These are default config options, these will be moved to a config file eventually
-conf = configFromMap({
+conf = configFromStream(open('/tmp/machine.conf'), configFromMap({
     'stow': {'package_dir': '/usr/local/stow',
              'base_dir': '/usr/local'},
     'opt': {'package_dir': '/opt/opt-packages',
             'base_dir': '/opt'},
-    'config': {'filename': '/tmp/machine.conf'}
-    })
+    'config': {'filename': '/tmp/machine.conf'},
+    }))
 
 
 
@@ -62,8 +62,10 @@ def fileExists(fname):
         
 def fileOwner(fname, owner, group=None):
     fname = replaceStr(fname, conf)
+    owner = replaceStr(owner, conf)
     who = owner
     if group:
+        group = replaceStr(group, conf)
         who += ':' + group
 
     runSystemEx('chown %s %s' % (who, fname))
@@ -71,8 +73,10 @@ def fileOwner(fname, owner, group=None):
 def dirOwner(dirname, owner, group=None):
     """Set owners of a directory, recursively. use fileOwner if you do not want recursive"""
     dirname = replaceStr(dirname, conf)
+    owner = replaceStr(owner, conf)
     who = owner
     if group:
+        group = replaceStr(group, conf)
         who += ':' + group
 
     runSystemEx('chown -R %s %s' % (who, dirname))
@@ -120,10 +124,8 @@ def executeTemplate(fname):
     fout = open(fname[:-5], 'w')
     fin = open(fname)
 
-    configFile = configFromStream(open(conf('config.filename')))
-    
     for line in fin:
-        fout.write(replaceStr(line, configFile))
+        fout.write(replaceStr(line, conf))
 
     fout.close()
     fin.close()
@@ -152,3 +154,9 @@ def installOptPkg(pkgname):
 def uninstallOptPkg(pkgname):
     outname = '-'.join(pkgname.split('-')[:-1])    
     runSystemEx('rm ' + os.path.join(conf('opt.base_dir'), outname))
+
+def ensurePkg(pkgname):
+    """Ensure's a package exists"""
+    path = os.path.join(conf('opt.package_dir'), pkgname)
+    if not os.path.exists(path):
+        raise PolicyError('Package does not exist: ' + path)

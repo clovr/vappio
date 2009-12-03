@@ -4,6 +4,8 @@
 import time
 import os
 
+from igs.utils.commands import runSystemEx
+
 from vappio.instance.config import createDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE
 
 NUM_TRIES = 20
@@ -46,8 +48,10 @@ class Cluster:
                                               userDataFile=dataFile)[0]
 
 
-        os.remove(dataFile)
         self.master = waitForState(self.ctype, NUM_TRIES, [self.master], self.ctype.Instance.RUNNING)[0]
+        runSystemEx("""scp -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -q /tmp/machine.conf root@%s:/tmp""" % self.master.publicDNS)
+        os.remove(dataFile)
+                
 
         if numExec:
             dataFile = createDataFile([EXEC_NODE], self.master.publicDNS)
@@ -64,6 +68,8 @@ class Cluster:
         
             try:
                 self.slaves = waitForState(self.ctype, NUM_TRIES, self.slaves, self.ctype.Instance.RUNNING)
+                for i in self.slaves:
+                    runSystemEx("""scp -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -q /tmp/machine.conf root@%s:/tmp""" % i.publicDNS)
             except TryError:
                 self.terminateCluster()
                 raise ClusterError('Could not start cluster')
