@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##
 # A simple script to wipe SGE queues
 from igs.utils.commands import runSingleProgram

@@ -2,6 +2,13 @@
 # Useful functions for doing things with ssh
 from igs.utils.commands import ProgramRunError, ProgramRunner, runProgramRunnerEx
 
+
+def quoteStr(s):
+    """
+    Simple implementation right now
+    """
+    return "'" + s + "'"
+
 def runSystemSSHA(host, cmd, stdoutf, stderrf, user=None, options=None):
     """
     Asynchornous function for running a command through ssh

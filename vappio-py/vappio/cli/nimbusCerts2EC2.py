@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##
 # A little tool to convert nimbus certs to EC2
 import os

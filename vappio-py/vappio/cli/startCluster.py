@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import optparse
 
 from igs.utils.cli import buildConfig

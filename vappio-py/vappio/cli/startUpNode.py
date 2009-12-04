@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##
 # This runs when a node comes up in order to start it
 from vappio.instance.startup import startUpFromConfigFile

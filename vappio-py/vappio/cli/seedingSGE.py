@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##
 # Simple script to seed SGE
 import sys

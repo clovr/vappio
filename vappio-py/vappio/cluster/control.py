@@ -5,6 +5,7 @@ import time
 import os
 
 from igs.utils.commands import runSystemEx
+from igs.utils.ssh import scpToEx, runSystemSSHEx
 
 from vappio.instance.config import createDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE
 
@@ -49,7 +50,9 @@ class Cluster:
 
 
         self.master = waitForState(self.ctype, NUM_TRIES, [self.master], self.ctype.Instance.RUNNING)[0]
-        runSystemEx("""scp -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -q /tmp/machine.conf root@%s:/tmp""" % self.master.publicDNS)
+        sshTo(self.master.publicDNS, dataFile, '/tmp', options=self.config('ssh.options'))
+        runSystemSSHEx(self.master.publicDNS, '/opt/vappio-py/cli/startUpNode.py')
+        
         os.remove(dataFile)
                 
 
@@ -64,15 +67,18 @@ class Cluster:
                                                   numExec,
                                                   userDataFile=dataFile)
 
-            #os.remove(dataFile)
         
             try:
                 self.slaves = waitForState(self.ctype, NUM_TRIES, self.slaves, self.ctype.Instance.RUNNING)
                 for i in self.slaves:
-                    runSystemEx("""scp -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -q /tmp/machine.conf root@%s:/tmp""" % i.publicDNS)
+                    sshTo(i.publicDNS, dataFile, '/tmp', options=self.config('ssh.options'))
+                    runSystemSSHEx(i.publicDNS, '/opt/vappio-py/cli/startUpNode.py')
             except TryError:
                 self.terminateCluster()
                 raise ClusterError('Could not start cluster')
+            finally:
+                os.remove(dataFile)
+
         else:
             self.slaves = []
 
