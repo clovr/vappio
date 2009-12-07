@@ -1,6 +1,10 @@
 ##
 # Little tools to make working with the CLI easier
 
+
+class MissingOptionError(Exception):
+    pass
+
 def buildConfig(parser, merger):
     """
     parser is an object that is used to parse the command line
