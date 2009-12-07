@@ -62,7 +62,7 @@ def main(options):
     cmd = ['ec2-upload-bundle', '-b ${image}', '-m ${dest}/${image}.manifest.xml', '-a ${access_key}', '-s ${secret_access_key}']
     runSystemEx(replaceStr(' '.join(cmd), options), log=options('debug'))
 
-    cmd = ['ec2-regster', '${image}/${image}.manifest.xml', '-K ${key}', '-C ${cert}']
+    cmd = ['ec2-register', '${image}/${image}.manifest.xml', '-K ${key}', '-C ${cert}']
     runSystemEx(replaceStr(' '.join(cmd), options), log=options('debug'))
 
 
