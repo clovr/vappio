@@ -3,7 +3,7 @@
 # a program/library designed for this, but what I need right now is simple
 import os
 
-from igs.utils.logging import errorPrint
+from igs.utils.logging import errorPrintS
 from igs.utils.commands import runSingleProgram, ProgramRunError
 from igs.utils.config import configFromMap, configFromStream, replaceStr
 
@@ -30,7 +30,7 @@ class PolicyError(Exception):
 # A little helper function
 def runSystemEx(cmd):
     """This just ignores all stdout"""
-    code = runSingleProgram(cmd, None, errorPrint)
+    code = runSingleProgram(cmd, None, errorPrintS)
     if code != 0:
         raise ProgramRunError(cmd, code)
 

@@ -6,7 +6,7 @@ import os
 
 from igs.utils.commands import runSystemEx, runCommandGens
 from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSHA
-from igs.utils.logging import errorPrint
+from igs.utils.logging import errorPrintS
 
 from vappio.instance.config import createDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE
 
@@ -53,7 +53,7 @@ class Cluster:
         self.master = waitForState(self.ctype, NUM_TRIES, [self.master], self.ctype.Instance.RUNNING)[0]
         waitForSSHUp(self.config, NUM_TRIES, [self.master])
         scpToEx(self.master.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-        runSystemSSHEx(self.master.publicDNS, 'startUpNode.py', None, errorPrint, user='root', options=self.config('ssh.options'))
+        runSystemSSHEx(self.master.publicDNS, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'))
         
         os.remove(dataFile)
                 
@@ -75,7 +75,7 @@ class Cluster:
                 waitForSSHUp(self.config, NUM_TRIES, self.slaves)
                 for i in self.slaves:
                     scpToEx(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-                    runSystemSSHEx(i.publicDNS, 'startUpNode.py', None, errorPrint, user='root', options=self.config('ssh.options'))
+                    runSystemSSHEx(i.publicDNS, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'))
             except TryError:
                 self.terminateCluster()
                 os.remove(dataFile)
@@ -131,6 +131,7 @@ def waitForSSHUp(conf, tries, instances):
         if _sshTest(instances):
             return
         else:
+            time.sleep(30)
             tries -= 1
 
     raise TryError('SSH did not come up on all instances')
