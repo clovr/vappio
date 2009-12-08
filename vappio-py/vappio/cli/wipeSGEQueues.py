@@ -3,6 +3,7 @@
 # A simple script to wipe SGE queues
 from igs.utils.commands import runSingleProgram, ProgramRunError
 from igs.utils.config import replaceStr
+from igs.utils.logging import errorPrint
 
 from vappio.instance.config import configFromStream
 
