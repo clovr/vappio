@@ -37,8 +37,8 @@ def timestamp():
 
 ##
 # These version strip off the right white spaces so they can be used in printing output from a program
-errorPrintS = lambda l *args **kwargs : errorPrint(l.rstrip(), *args, **kwargs)
+errorPrintS = lambda l, *args, **kwargs : errorPrint(l.rstrip(), *args, **kwargs)
 
-logPrintS = lambda l *args **kwargs : logPrint(l.rstrip(), *args, **kwargs)
+logPrintS = lambda l, *args, **kwargs : logPrint(l.rstrip(), *args, **kwargs)
 
-debugPrintS = lambda f *args **kwargs : debugPrint(lambda : f().rstrip(), *args, **kwargs)
+debugPrintS = lambda f, *args, **kwargs : debugPrint(lambda : f().rstrip(), *args, **kwargs)
