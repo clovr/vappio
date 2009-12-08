@@ -1,6 +1,7 @@
 ##
 # Useful functions for doing things with ssh
-from igs.utils.commands import ProgramRunError, ProgramRunner, runProgramRunnerEx
+from igs.utils.logging import errorPrint
+from igs.utils.commands import ProgramRunError, ProgramRunner, runProgramRunner
 
 
 def quoteStr(s):
@@ -9,7 +10,7 @@ def quoteStr(s):
     """
     return "'" + s + "'"
 
-def runSystemSSHA(host, cmd, stdoutf, stderrf, user=None, options=None):
+def runSystemSSHA(host, cmd, stdoutf, stderrf, user=None, options=None, log=False):
     """
     Asynchornous function for running a command through ssh
     """
@@ -24,7 +25,7 @@ def runSystemSSHA(host, cmd, stdoutf, stderrf, user=None, options=None):
 
     command.append(quoteStr(cmd))
 
-    return ProgramRunner(' '.join(command), stdoutf, stderrf)
+    return ProgramRunner(' '.join(command), stdoutf, stderrf, log=log)
 
 def runSystemSSH(host, cmd, stdoutf, stderrf, user=None, options=None):
     """
@@ -59,7 +60,7 @@ def scpFromA(host, src, dst, user=None, options=None):
     command.append(host + ':' + src)
     command.append(dst)
 
-    return ProgramRunner(' '.join(command), stdoutf, stderrf)
+    return ProgramRunner(' '.join(command), None, errorPrint)
 
 def scpToA(host, src, dst, user=None, options=None):
     """
@@ -75,7 +76,7 @@ def scpToA(host, src, dst, user=None, options=None):
     command.append(src)
     command.append(host + ':' + dst)
 
-    return ProgramRunner(' '.join(command), stdoutf, stderrf)
+    return ProgramRunner(' '.join(command), None, errorPrint)
 
 def scpFrom(host, src, dst, user=None, options=None):
     """

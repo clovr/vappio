@@ -48,6 +48,7 @@ class ConfigParseError(Exception):
 class NoKeyFoundError(Exception):
     def __init__(self, k):
         self.key = k
+        Exception.__init__(self)
 
     def __str__(self):
         return self.key

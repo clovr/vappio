@@ -21,6 +21,7 @@ class ProgramRunError(Exception):
     def __init__(self, cmd, code):
         self.cmd = cmd
         self.code = code
+        Exception.__init__(self)
 
     def __str__(self):
         return 'Unable to run program %r with exit code %d' % (self.cmd, self.code)

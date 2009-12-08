@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ##
 # A simple script to wipe SGE queues
-from igs.utils.commands import runSingleProgram
+from igs.utils.commands import runSingleProgram, ProgramRunError
 from igs.utils.config import replaceStr
 
 from vappio.instance.config import configFromStream
@@ -14,7 +14,7 @@ def runSingleProgramEx(conf, cmd, stdoutf, stderrf):
         raise ProgramRunError(cmd, exitCode)
 
 
-def runOnElements(query, exc):
+def runOnElements(conf, query, exc):
     outp = []
     runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf ' + query, outp.append, None)
     hosts = ' '.join(outp)
@@ -23,11 +23,11 @@ def runOnElements(query, exc):
     
 def main(options):
     conf = configFromStream('/tmp/machine.conf')
-    runOnElements('-ss', '-ds')
-    runOnElements('-sql', '-dq')
+    runOnElements(conf, '-ss', '-ds')
+    runOnElements(conf, '-sql', '-dq')
     runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf -kej ${MY_IP}', None, None)
-    runOnElements('-sel', '-de')
-    runOnElements('-sh', '-dh')
+    runOnElements(conf, '-sel', '-de')
+    runOnElements(conf, '-sh', '-dh')
     runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf -dprj global', None, None)
     
 

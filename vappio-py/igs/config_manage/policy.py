@@ -155,7 +155,7 @@ def uninstallOptPkg(pkgname):
     outname = '-'.join(pkgname.split('-')[:-1])    
     runSystemEx('rm ' + os.path.join(conf('opt.base_dir'), outname))
 
-def ensurePkg(pkgname):
+def ensureOptPkg(pkgname):
     """Ensure's a package exists"""
     path = os.path.join(conf('opt.package_dir'), pkgname)
     if not os.path.exists(path):

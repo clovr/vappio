@@ -4,8 +4,8 @@
 import time
 import os
 
-from igs.utils.commands import runSystemEx
-from igs.utils.ssh import scpToEx, runSystemSSHEx
+from igs.utils.commands import runSystemEx, runCommandGens
+from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSHA
 
 from vappio.instance.config import createDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE
 
@@ -50,8 +50,9 @@ class Cluster:
 
 
         self.master = waitForState(self.ctype, NUM_TRIES, [self.master], self.ctype.Instance.RUNNING)[0]
-        sshTo(self.master.publicDNS, dataFile, '/tmp', options=self.config('ssh.options'))
-        runSystemSSHEx(self.master.publicDNS, '/opt/vappio-py/cli/startUpNode.py')
+        waitForSSHUp(self.config, NUM_TRIES, [self.master])
+        scpToEx(self.master.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
+        runSystemSSHEx(self.master.publicDNS, 'startUpNode.py', None, None, user='root', options=self.config('ssh.options'))
         
         os.remove(dataFile)
                 
@@ -70,14 +71,16 @@ class Cluster:
         
             try:
                 self.slaves = waitForState(self.ctype, NUM_TRIES, self.slaves, self.ctype.Instance.RUNNING)
+                waitForSSHUp(self.config, NUM_TRIES, self.slaves)
                 for i in self.slaves:
-                    sshTo(i.publicDNS, dataFile, '/tmp', options=self.config('ssh.options'))
-                    runSystemSSHEx(i.publicDNS, '/opt/vappio-py/cli/startUpNode.py')
+                    scpToEx(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
+                    runSystemSSHEx(i.publicDNS, 'startUpNode.py', None, None, user='root', options=self.config('ssh.options'))
             except TryError:
                 self.terminateCluster()
-                raise ClusterError('Could not start cluster')
-            finally:
                 os.remove(dataFile)
+                raise ClusterError('Could not start cluster')
+
+            os.remove(dataFile)
 
         else:
             self.slaves = []
@@ -107,3 +110,26 @@ def waitForState(ctype, tries, instances, wantState):
     
     raise TryError('Not all instances reached state: ' + wantState)
             
+
+def waitForSSHUp(conf, tries, instances):
+    def _gen(pr):
+        yield pr
+        
+    def _sshTest(instances):
+        prs = [runSystemSSHA(i.publicDNS, 'echo hello', None, None, 'root', conf('ssh.options'), log=True)
+               for i in instances]
+        gens = [_gen(pr) for pr in prs]
+        runCommandGens(gens)
+        for pr in prs:
+            if pr.exitCode != 0:
+                return False
+
+        return True
+
+    while tries > 0:
+        if _sshTest(instances):
+            return
+        else:
+            tries -= 1
+
+    raise TryError('SSH did not come up on all instances')
