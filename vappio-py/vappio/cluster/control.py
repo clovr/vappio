@@ -6,6 +6,7 @@ import os
 
 from igs.utils.commands import runSystemEx, runCommandGens
 from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSHA
+from igs.utils.logging import errorPrint
 
 from vappio.instance.config import createDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE
 
@@ -38,7 +39,7 @@ class Cluster:
         mode = [MASTER_NODE]
         if devMode: mode.append(DEV_NODE)
         
-        dataFile = createDataFile(mode, '127.0.0.1')
+        dataFile = createDataFile(self.config, mode, '127.0.0.1')
                                   
         self.master = self.ctype.runInstances(self.config('cluster.ami'),
                                               self.config('cluster.key'),
@@ -52,13 +53,13 @@ class Cluster:
         self.master = waitForState(self.ctype, NUM_TRIES, [self.master], self.ctype.Instance.RUNNING)[0]
         waitForSSHUp(self.config, NUM_TRIES, [self.master])
         scpToEx(self.master.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-        runSystemSSHEx(self.master.publicDNS, 'startUpNode.py', None, None, user='root', options=self.config('ssh.options'))
+        runSystemSSHEx(self.master.publicDNS, 'startUpNode.py', None, errorPrint, user='root', options=self.config('ssh.options'))
         
         os.remove(dataFile)
                 
 
         if numExec:
-            dataFile = createDataFile([EXEC_NODE], self.master.publicDNS)
+            dataFile = createDataFile(self.config, [EXEC_NODE], self.master.publicDNS)
 
             self.slaves = self.ctype.runInstances(self.config('cluster.ami'),
                                                   self.config('cluster.key'),
@@ -74,7 +75,7 @@ class Cluster:
                 waitForSSHUp(self.config, NUM_TRIES, self.slaves)
                 for i in self.slaves:
                     scpToEx(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-                    runSystemSSHEx(i.publicDNS, 'startUpNode.py', None, None, user='root', options=self.config('ssh.options'))
+                    runSystemSSHEx(i.publicDNS, 'startUpNode.py', None, errorPrint, user='root', options=self.config('ssh.options'))
             except TryError:
                 self.terminateCluster()
                 os.remove(dataFile)

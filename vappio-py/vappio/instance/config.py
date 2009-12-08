@@ -7,9 +7,11 @@ DEV_NODE = 'DEV'
 MASTER_NODE = 'MASTER'
 EXEC_NODE = 'EXEC'
 
-def createDataFile(mode, masterHost):
-    open('/tmp/machine.conf', 'w').write('\n'.join(
-        ['MASTER_IP=' + masterHost,
+def createDataFile(conf, mode, masterHost):
+    open('/tmp/machine.conf', 'w').write(open(conf('instance.conf')).read())
+    open('/tmp/machine.conf', 'a').write('\n'.join(
+        ['[]',
+         'MASTER_IP=' + masterHost,
          'NODE_TYPE=' + ','.join(mode)]) + '\n')
 
     return '/tmp/machine.conf'
