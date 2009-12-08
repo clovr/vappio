@@ -22,7 +22,7 @@ def runOnElements(conf, query, exc):
         runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf %s %s' %(exc, h), None, None)    
     
 def main(options):
-    conf = configFromStream('/tmp/machine.conf')
+    conf = configFromStream(open('/tmp/machine.conf'))
     runOnElements(conf, '-ss', '-ds')
     runOnElements(conf, '-sql', '-dq')
     runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf -kej ${MY_IP}', None, None)

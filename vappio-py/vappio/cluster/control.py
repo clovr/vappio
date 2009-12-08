@@ -55,7 +55,7 @@ class Cluster:
         self.master = waitForState(self.ctype, NUM_TRIES, [self.master], self.ctype.Instance.RUNNING)[0]
         waitForSSHUp(self.config, NUM_TRIES, [self.master])
         scpToEx(self.master.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-        runSystemInstanceEx(self.master, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'))
+        runSystemInstanceEx(self.master, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
         
         os.remove(dataFile)
                 
@@ -77,7 +77,7 @@ class Cluster:
                 waitForSSHUp(self.config, NUM_TRIES, self.slaves)
                 for i in self.slaves:
                     scpToEx(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-                    runSystemInstanceEx(i, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'))
+                    runSystemInstanceEx(i, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
             except TryError:
                 self.terminateCluster()
                 os.remove(dataFile)
