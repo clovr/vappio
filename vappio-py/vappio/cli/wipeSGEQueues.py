@@ -15,20 +15,29 @@ def runSingleProgramEx(conf, cmd, stdoutf, stderrf):
 
 
 def runOnElements(conf, query, exc):
-    outp = []
-    runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf ' + query, outp.append, None)
-    hosts = ' '.join(outp)
-    for h in hosts.split():
-        runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf %s %s' %(exc, h), None, None)    
+    try:
+        outp = []
+        runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf ' + query, outp.append, None)
+        hosts = ' '.join(outp)
+        for h in hosts.split():
+            runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf %s %s' %(exc, h), None, None)
+    except ProgramRunError, err:
+        errorPrint(str(err))
     
 def main(options):
     conf = configFromStream(open('/tmp/machine.conf'))
     runOnElements(conf, '-ss', '-ds')
     runOnElements(conf, '-sql', '-dq')
-    runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf -kej ${MY_IP}', None, None)
+    try:
+        runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf -kej ${MY_IP}', None, None)
+    except ProgramRunError, err:
+        errorPrint(str(err))
     runOnElements(conf, '-sel', '-de')
     runOnElements(conf, '-sh', '-dh')
-    runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf -dprj global', None, None)
+    try:
+        runSingleProgramEx(conf, '${sge.root}/bin/${sge.arch}/qconf -dprj global', None, None)
+    except ProgramRunError, err:
+        errorPrint(str(err))
     
 
 if __name__ == '__main__':
