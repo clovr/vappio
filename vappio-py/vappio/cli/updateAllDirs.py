@@ -8,6 +8,8 @@ from igs.utils.commands import runSystemEx
 
 
 def cliParser():
+    parser = optparse.OptionParser()
+    
     parser.add_option('', '--stow', dest='stow', action='store_true', help='Update Stow')
     parser.add_option('', '--opt-packages', dest='opt_packages', action='store_true', help='Update opt-packages')
     parser.add_option('', '--config_policies', dest='config_policies', action='store_true', help='Update config_policies')
