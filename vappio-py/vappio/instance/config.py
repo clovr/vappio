@@ -57,7 +57,7 @@ def createMasterDataFile(conf):
     return outf
 
 
-def createExecDataFile(conf):
+def createExecDataFile(conf, master):
     """
     Creates a exec data file as the perl start_cluster works
 
@@ -74,6 +74,11 @@ def createExecDataFile(conf):
     if exitCode != 0:
         raise ProgramRunError('ssh-keygen -y -f ' + conf('cluster.cluster_private_key'), exitCode)
 
+    if conf('ctype') == 'ec2':
+        template = template.replace('<TMPL_VAR NAME=MASTER_PRIVATE_DNS>', master.privateDNS)
+    else:
+        template = template.replace('<TMPL_VAR NAME=MASTER_PRIVATE_DNS>', master.publicDNS)
+    
     clusterPublicKey = ''.join(outf)
 
     template = template.replace('<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>', clusterPrivateKey)

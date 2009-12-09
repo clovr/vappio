@@ -79,7 +79,7 @@ class Cluster:
 
     def _startExec(self, numExec):
         if numExec:
-            dataFile = createExecDataFile(self.config)
+            dataFile = createExecDataFile(self.config, self.master)
 
             self.slaves = self.ctype.runInstances(self.config('cluster.ami'),
                                                   self.config('cluster.key'),

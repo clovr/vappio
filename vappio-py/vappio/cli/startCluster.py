@@ -4,6 +4,7 @@ import optparse
 
 from igs.utils.cli import buildConfig
 from igs.utils.config import configFromMap, configFromStream
+from igs.utils.logging import logPrint
 
 from vappio.cluster.control import Cluster
 from vappio.ec2 import control as ec2Control
@@ -41,7 +42,7 @@ def cliMerger(cliOptions, _args):
 
 
 def main(options):
-    conf = configFromStream(open(options('conf')))
+    conf = configFromStream(open(options('conf')), options)
     conf = configFromMap(
         {'cluster': {'master_groups': [f.strip() for f in conf('cluster.master_groups').split(',')],
                      'exec_groups': [f.strip() for f in conf('cluster.exec_groups').split(',')]
@@ -50,7 +51,9 @@ def main(options):
     ctype = ec2Control
     cl = Cluster(options('name'), ctype, conf)
     cl.startCluster(options('num'), devMode=options('dev_mode'))
+    logPrint('The master IP is: ' + cl.master.publicDNS)
 
+    
 if __name__ == '__main__':
     options = buildConfig(cliParser(), cliMerger)
     main(options)

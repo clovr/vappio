@@ -55,6 +55,7 @@ def main(options):
         runSystemEx("""chmod +x /opt/vappio-py/vappio/cli/*.py""")
     if options('vappio_scripts'):
         runSystemEx("""svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-scripts /opt/vappio-scripts""")
+        runSystemEx("""chmod -R +x /opt/vappio-scripts""")
 
 
 
