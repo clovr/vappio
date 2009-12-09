@@ -5,6 +5,7 @@ import optparse
 
 from igs.utils.cli import buildConfig
 from igs.utils.commands import runSystemEx
+from igs.utils.config import configFromMap
 
 
 def cliParser():
@@ -25,12 +26,12 @@ def cliMerger(cliOptions, _args):
     if not (cliOptions.stow and
             cliOptions.opt_packages and
             cliOptions.config_policies and
-            cliOptions_vappio_py and
+            cliOptions.vappio_py and
             cliOptions.vappio_scripts):
         cliOptions.stow = True
         cliOptions.opt_packages = True
         cliOptions.config_policies = True
-        cliOptions_vappio_py = True
+        cliOptions.vappio_py = True
         cliOptions.vappio_scripts = True
     
     return configFromMap({
