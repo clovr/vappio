@@ -64,8 +64,10 @@ def startUpExecNode(conf):
     Just need to run the vappio-script for starting the exec node
     This should eventually replace that script
     """
-    executePolicyDir('/opt/config_policies/EXEC')    
-    runSystemEx("""/opt/vappio-scripts/start_exec.sh %s""" % (conf('MASTER_IP'),))
+    executePolicyDir('/opt/config_policies/EXEC')
+    ##
+    # Don't need this now
+    #runSystemEx("""/opt/vappio-scripts/start_exec.sh %s""" % (conf('MASTER_IP'),))
 
 
 def startUpAllNodes(conf):
