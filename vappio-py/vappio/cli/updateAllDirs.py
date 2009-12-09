@@ -23,10 +23,10 @@ def cliParser():
 def cliMerger(cliOptions, _args):
     ##
     # If they are all false, set them all to true because they did not specify any
-    if not (cliOptions.stow and
-            cliOptions.opt_packages and
-            cliOptions.config_policies and
-            cliOptions.vappio_py and
+    if not (cliOptions.stow or
+            cliOptions.opt_packages or
+            cliOptions.config_policies or
+            cliOptions.vappio_py or
             cliOptions.vappio_scripts):
         cliOptions.stow = True
         cliOptions.opt_packages = True
