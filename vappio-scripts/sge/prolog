@@ -85,9 +85,7 @@ if [ -n "$request_cwd" ]; then
     if [ -w "$EVENT_LOG" ] && [ -n "$htc_id" ]; then
         print_eventinfo >> "$EVENT_LOG" 2>&1
     fi
-fi > /dev/null 2>&1
-
-if [ -n "$vappio_data_placement" ]; then 
+    if [ -n "$vappio_data_placement" ]; then 
 
 	#To update status to running back at master
 	#Triggers a ssh connection to the master
@@ -111,6 +109,8 @@ if [ -n "$vappio_data_placement" ]; then
 		rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" ${request_cwd}/event.log root@$master:${request_cwd}/ 1>> $vappio_log 2>> $vappio_log
 	  	vlog "rsync return value: $?"
 	fi
-fi
+    fi
+    
+fi > /dev/null 2>&1
 
 exit 0

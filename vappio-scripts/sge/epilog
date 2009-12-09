@@ -53,19 +53,18 @@ if [ -n "$request_cwd" ]; then
     if [ -w "$EVENT_LOG" ] && [ -n "$htc_id" ]; then
         print_eventinfo >> "$EVENT_LOG" 2>&1
     fi
-fi > /dev/null 2>&1
-
 ##
 ##Import vappio config
-export vappio_root=/opt/vappio-scripts
-vappio_scripts=$vappio_root
-source $vappio_scripts/vappio_config.sh
+    export vappio_root=/opt/vappio-scripts
+    vappio_scripts=$vappio_root
+    source $vappio_scripts/vappio_config.sh
 ##
 ##
-vappio_data_placement=1
-if [ -n "$vappio_data_placement" ]; then
+    vappio_data_placement=1
+    if [ -n "$vappio_data_placement" ]; then
 	vappio_scripts=$vappio_root
 	$vappio_scripts/sge/vappio_epilog.sh $hostname $request_cwd
-fi
+    fi
+fi > /dev/null 2>&1
 
 exit 0
