@@ -104,9 +104,14 @@ def pkgFileExists(pkgname, fname):
     fileExists(os.path.join(conf('stow.package_dir'), pkgname, fname))
     
 
-def run(cmd):
+def run(cmd, ignoreError=False):
     """This runs a command, be sure that the command backgrounds, add & if you need to"""
-    runSystemEx(replaceStr(cmd, conf))
+    try:
+        runSystemEx(replaceStr(cmd, conf))
+    except ProgramRunError:
+        if not ignoreError:
+            raise
+            
     
 
 def executeTemplate(fname):

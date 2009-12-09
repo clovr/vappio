@@ -36,6 +36,7 @@
 #    bar = baz
 #
 #    This is equivalent to moving appending the second general to the first, HOWEVER.
+import os
 import re
 
 ##
@@ -225,6 +226,14 @@ def configFromMap(map, base=None):
     return chained
 
             
+def configFromEnv(base=None):
+    """
+    This constructs a config from the environment variables and puts them in the [env] section.
+    Case is preserved, so it would be ${env.HOME}.  Variables are also replaced.
+    """
+    return configFromMap({'env': os.environ}, base)
+
+
 
 def test():
     c = configFromMap({
