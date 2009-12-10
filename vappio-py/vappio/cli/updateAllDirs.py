@@ -56,6 +56,8 @@ def main(options):
     if options('vappio_scripts'):
         runSystemEx("""svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-scripts /opt/vappio-scripts""")
         runSystemEx("""chmod -R +x /opt/vappio-scripts""")
+        runSystemEx("""cp -f /opt/vappio-scripts/clovrEnv.sh /root""")
+        runSystemEx("""cp -f /opt/vappio-scripts/local /etc/init.d/local""")
 
 
 
