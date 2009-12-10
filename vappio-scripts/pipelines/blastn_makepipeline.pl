@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 
 use lib ( @INC, '/opt/ergatis/lib/perl5');
 use strict;
