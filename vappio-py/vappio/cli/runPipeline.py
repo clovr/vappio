@@ -3,6 +3,8 @@
 import optparse
 
 from igs.utils.cli import buildConfig, MissingOptionError
+from igs.utils.config import configFromMap, configFromStream
+from igs.utils.logging import errorPrintS
 
 from vappio.instance.control import runSystemInstanceEx
 
@@ -47,5 +49,5 @@ def main(options):
     runSystemInstanceEx(mastInst, ' '.join(cmd), None, errorPrintS, user='root', options=options('ssh.options'), log=True)    
         
 
-def __name__ == '__main__':
+if __name__ == '__main__':
     main(buildConfig(cliParser(), cliMerger))    

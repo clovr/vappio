@@ -5,11 +5,11 @@
 # This is meant to be run on the remote side
 import sys
 
-from vappio import pipelines
+from vappio.pipelines import blastn
 
 
 PIPELINES = {
-    'blastn': pipelines.blastn
+    'blastn': blastn
     }
 
 def main(options):
