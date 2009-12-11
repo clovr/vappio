@@ -13,9 +13,9 @@ PIPELINES = {
     }
 
 def main(options):
-    if sys.argv[0] in PIPELINES:
-        pipeline = PIPELINES[sys.argv[0]]
-        sys.argv.pop(0)
+    if sys.argv[1] in PIPELINES:
+        pipeline = PIPELINES[sys.argv[1]]
+        sys.argv.pop(1)
         pipeline.runPipeline()
 
 

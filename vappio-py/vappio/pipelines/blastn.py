@@ -10,9 +10,6 @@ from igs.utils.config import configFromMap, replaceStr
 from igs.utils.commands import runSystemEx
 
 
-from vappio.instance.control import runSystemInstanceEx
-from vappio.ec2 import control as ec2control
-
 
 TEMPLATE_FILE = '/mnt/projects/clovr/workflow/project_saved_templates/blastn_tmpl'
 
