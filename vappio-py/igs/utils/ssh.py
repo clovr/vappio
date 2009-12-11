@@ -46,7 +46,7 @@ def runSystemSSHEx(host, cmd, stdoutf, stderrf, user=None, options=None):
         raise ProgramRunError(pr.cmd, exitCode)
 
 
-def scpFromA(host, src, dst, user=None, options=None):
+def scpFromA(host, src, dst, user=None, options=None, log=False):
     """
     Asynchronous function to copy scp a file from a host
     """
@@ -60,9 +60,9 @@ def scpFromA(host, src, dst, user=None, options=None):
     command.append(host + ':' + src)
     command.append(dst)
 
-    return ProgramRunner(' '.join(command), None, errorPrint)
+    return ProgramRunner(' '.join(command), None, errorPrint, log=log)
 
-def scpToA(host, src, dst, user=None, options=None):
+def scpToA(host, src, dst, user=None, options=None, log=False):
     """
     Asynchronous function to copy scp a file to a host
     """
@@ -76,42 +76,42 @@ def scpToA(host, src, dst, user=None, options=None):
     command.append(src)
     command.append(host + ':' + dst)
 
-    return ProgramRunner(' '.join(command), None, errorPrint)
+    return ProgramRunner(' '.join(command), None, errorPrint, log=log)
 
-def scpFrom(host, src, dst, user=None, options=None):
+def scpFrom(host, src, dst, user=None, options=None, log=False):
     """
     Blocking function to copy scp a file from a host
 
     Returns the exit code
     """
-    return runProgramRunner(scpFromA(host, src, dst, user, options))
+    return runProgramRunner(scpFromA(host, src, dst, user, options, log=log))
 
-def scpFromEx(host, src, dst, user=None, options=None):
+def scpFromEx(host, src, dst, user=None, options=None, log=False):
     """
     Blocking function to copy scp a file from a host
 
     Throws an exception if it fails
     """
-    pr = scpFromA(host, src, dst, user, options)
+    pr = scpFromA(host, src, dst, user, options, log=log)
     exitCode = runProgramRunner(pr)
     if exitCode != 0:
         raise ProgramRunError(pr.cmd, exitCode)
 
-def scpTo(host, src, dst, user=None, options=None):
+def scpTo(host, src, dst, user=None, options=None, log=False):
     """
     Blocking function to copy scp a file to a host
 
     Returns the exit code
     """
-    return runProgramRunner(scpToA(host, src, dst, user, options))
+    return runProgramRunner(scpToA(host, src, dst, user, options, log=log))
 
-def scpToEx(host, src, dst, user=None, options=None):
+def scpToEx(host, src, dst, user=None, options=None, log=False):
     """
     Blocking function to copy scp a file to a host
 
     Throws an exception if it fails
     """
-    pr = scpToA(host, src, dst, user, options)
+    pr = scpToA(host, src, dst, user, options, log=log)
     exitCode = runProgramRunner(pr)
     if exitCode != 0:
         raise ProgramRunError(pr.cmd, exitCode)    
