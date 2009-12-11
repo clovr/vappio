@@ -67,12 +67,15 @@ source $vappio_scripts/vappio_config.sh
 vappio_data_placement=1
 if [ -n "$vappio_data_placement" ]; then
 	vappio_scripts=$vappio_root
+	#$request_cwd $command_str $command_args are already set in the environment by Workflow
+	#For commands submitted outside of workflow, these variables will be empty
 	$vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str "$command_args"
 fi
 
 # Determine if this is an array job
 array_job
 ARRAY=$?
+# Determine if this is being invoked by Ergatis/Workflow
 if [ -n "$request_cwd" ]; then
     if [ "$ARRAY" = "0" ]; then
         # The job is *NOT* an array job
@@ -97,10 +100,8 @@ if [ -n "$request_cwd" ]; then
 	vlog "### $0 (`whoami`)" 
 	vlog "###" 
 
-	# updatestatus=`grep -i "^updatestatus" $vappio_scripts/vappio_config.sh | cut -f 2 -d =`
 	if [ "$updatestatus" = "y" ]
 	then
-		# master=`grep -i "^staging_server" $vappio_scripts/vappio_config.sh | cut -f 2 -d =`
 		if [ -z "$master" ]
 		then
         		master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`

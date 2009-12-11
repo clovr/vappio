@@ -1,4 +1,13 @@
 #!/bin/sh
+
+#vappio_prolog.sh sge_job_dir command command_args
+#
+#Performs staging of data and Ergatis workflow files prior
+#to execution of job "command command_args"
+#
+#This script is invoked from the prolog attached to the exec.q in
+#the vappio framework
+
 ##
 ##Import vappio config
 vappio_scripts=$vappio_root
@@ -16,12 +25,14 @@ vlog "### $0 (`whoami`)"
 vlog "###" 
 
 vlog "Running vappio prolog on host $myhost. Script arguments request_cwd=$request_cwd command_str=$command_str args=$command_args" 
-vlog "Running directory is $request_cwd" 
-mkdir -p $request_cwd
-touch $request_cwd/event.log
 
-if [ $command_str == 'RunWorkflow' ]
+#Only handle RunWorkflow commands submitted by Ergatis
+#All other commands will do nothing
+if [ "$command_str" == "RunWorkflow" ]
 then
+    vlog "This job appears to be submitted by Ergatis. Running directory is $request_cwd" 
+    mkdir -p $request_cwd
+    touch $request_cwd/event.log
         wfxml=`echo -E "$command_args" | perl -ne '$_ =~ s/\s+/ /g;@x=split(/[\s=]/,$_);%args=@x;print $args{"-i"},"\n"'`
         wfdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1$dir2"'`
         wfcomponentdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1"'`
@@ -57,7 +68,7 @@ then
 	vlog "Skipping re-staging of staging_dir@$myhost"
 
         #Previous steps should have completed, so now we should have all our inputs are are ready to run
-	#First read the .final.config file for the output repository 
+	#First read the .final.config file to retrieve the output repository 
         outprefix=`grep OUTPUT_DIRECTORY $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
         outdir=`echo "$outprefix/$wfgroupdir"`
 	if [ -z "$outprefix" ]
@@ -65,6 +76,7 @@ then
 		vlog "Unable to parse output directory from $wfcomponentdir/*.final.config" 
 		exit 1;
 	fi 
+	#Save the output repository name to a file
         echo "$outdir" > $request_cwd/outdir
 fi
 
