@@ -22,12 +22,16 @@ def startUp(conf):
 
     The config must be created through vappio.instance.config.configFrom(Stream|Map)
     """
+
     ##
-    # For those things that need to be started everywhere
-    startUpAllNodes(conf)
+    # If we are just cutting a release, don't do any of this
+    if RELEASE_CUT not in conf('NODE_TYPE'):
+        ##
+        # For those things that need to be started everywhere
+        startUpAllNodes(conf)
     
-    for n in conf('NODE_TYPE'):
-        NODE_TYPE_MAP[n](conf)
+        for n in conf('NODE_TYPE'):
+            NODE_TYPE_MAP[n](conf)
 
 
 

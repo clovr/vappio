@@ -11,11 +11,11 @@ vlog "### $0 (`whoami`)"
 vlog "###" 
 
 # Prep runtime directories
-rm -rf $vappio_runtime
-mkdir -p $vappio_runtime
-chmod 777 $vappio_runtime
-touch $vappio_log
-chmod 777 $vappio_log
+# rm -rf $vappio_runtime
+# mkdir -p $vappio_runtime
+# chmod 777 $vappio_runtime
+# touch $vappio_log
+# chmod 777 $vappio_log
 
 # Check if nimbus url exists
 if [ -f "/var/nimbus-metadata-server-url" ]
@@ -25,9 +25,16 @@ then
   echo "NIMBUS" > $vappio_runtime/cloud_type
   $vappio_scripts/nimbus/start_nimbus.sh
 else
-  vlog "vappio_cloud_type=EC2"
-  export vappio_cloud_type=EC2
-  echo "EC2" > $vappio_runtime/cloud_type
-  $vappio_scripts/amazonec2/start_ec2.sh
+  curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/
+  if [ $? = "0" ]
+  then
+      vlog "vappio_cloud_type=EC2"
+      export vappio_cloud_type=EC2
+      echo "EC2" > $vappio_runtime/cloud_type
+      $vappio_scripts/amazonec2/start_ec2.sh
+  fi
 fi
+
+ifconfig -a
+
 

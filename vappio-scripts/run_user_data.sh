@@ -8,6 +8,15 @@ vlog "###"
 vlog "### $0 (`whoami`)"
 vlog "###"
 
+
+# Prep runtime directories
+rm -rf $vappio_runtime
+mkdir -p $vappio_runtime
+chmod 777 $vappio_runtime
+touch $vappio_log
+chmod 777 $vappio_log
+
+
 # This is based on /etc/init.d/ec2-run-user-data from alestic.com images
 # http://alestic.com/2009/06/ec2-user-data-scripts
 

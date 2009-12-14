@@ -8,7 +8,7 @@ from igs.utils.commands import runSystemEx, runCommandGens
 from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSHA
 from igs.utils.logging import errorPrintS
 
-from vappio.instance.config import createDataFile, createMasterDataFile, createExecDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE
+from vappio.instance.config import createDataFile, createMasterDataFile, createExecDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT
 from vappio.instance.control import runSystemInstanceEx
 
 
@@ -33,12 +33,12 @@ class Cluster:
         self.config = config
 
 
-    def startCluster(self, numExec, devMode=False):
+    def startCluster(self, numExec, devMode=False, releaseCut=False):
         """
         numExec - Number of exec nodes
         """
 
-        self._startMaster(devMode)
+        self._startMaster(devMode, releaseCut)
         self._startExec(numExec)
                 
 
@@ -50,9 +50,10 @@ class Cluster:
 
     ##
     # some private methods
-    def _startMaster(self, devMode):
+    def _startMaster(self, devMode, releaseCut):
         mode = [MASTER_NODE]
         if devMode: mode.append(DEV_NODE)
+        if releaseCut: mode.append(RELEASE_CUT)
         
         dataFile = createMasterDataFile(self.config)
                                   
@@ -97,7 +98,7 @@ class Cluster:
                 dataFile = createDataFile(self.config, [EXEC_NODE], self.master.privateDNS)
                 for i in self.slaves:
                     scpToEx(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-                    runSystemInstanceEx(self.master, 'updateAllDirs.py --vappio-py --config_policies', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)                    
+                    #runSystemInstanceEx(self.master, 'updateAllDirs.py --vappio-py --config_policies', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)                    
                     runSystemInstanceEx(i, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
             except TryError:
                 self.terminateCluster()

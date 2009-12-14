@@ -23,6 +23,8 @@ def cliParser():
                       help='The type of cluster (ec2, nimbus)')
     parser.add_option('-d', '--dev_mode', dest='dev_mode', default=False,
                       action='store_true', help='Development mode or not')
+    parser.add_option('', '--release_cut', dest='release_cut', default=False,
+                      action='store_true', help='Want to cut a release')
     return parser
 
 def cliMerger(cliOptions, _args):
@@ -37,7 +39,8 @@ def cliMerger(cliOptions, _args):
                               name=cliOptions.name,
                               num=cliOptions.num,
                               ctype=cliOptions.ctype,
-                              dev_mode=cliOptions.dev_mode))
+                              dev_mode=cliOptions.dev_mode,
+                              release_cut=cliOptions.release_cut))
 
 
 
@@ -50,7 +53,7 @@ def main(options):
          }, conf)
     ctype = ec2Control
     cl = Cluster(options('name'), ctype, conf)
-    cl.startCluster(options('num'), devMode=options('dev_mode'))
+    cl.startCluster(options('num'), devMode=options('dev_mode'), releaseCut=options('release_cut'))
     logPrint('The master IP is: ' + cl.master.publicDNS)
 
     

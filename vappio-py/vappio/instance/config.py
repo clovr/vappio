@@ -9,6 +9,7 @@ from igs.utils.commands import runSingleProgram, ProgramRunError
 DEV_NODE = 'DEV'
 MASTER_NODE = 'MASTER'
 EXEC_NODE = 'EXEC'
+RELEASE_CUT = 'RELEASE_CUT'
 
 def createDataFile(conf, mode, masterHost):
     open('/tmp/machine.conf', 'w').write(open(conf('instance.conf')).read())
