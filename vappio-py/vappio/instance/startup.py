@@ -4,7 +4,7 @@ import os
 
 from igs.utils.commands import runSystemEx
 
-from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, configFromStream
+from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT, configFromStream
 
 
 ##

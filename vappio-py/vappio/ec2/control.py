@@ -10,7 +10,7 @@ import sets
 
 
 from igs.utils import logging
-from igs.utils.logging import logPrint, debugPrint
+from igs.utils.logging import logPrint, errorPrint, debugPrint
 from igs.utils.commands import runSystemEx, runSingleProgram, runProgramRunnerEx, ProgramRunner
 
 
@@ -68,19 +68,24 @@ def ctorProgramRunner(cmd, stdoutf=logging.OUTSTREAM.write, stderrf=logging.ERRS
 
 def parseInstanceLine(line):
     if line.startswith('INSTANCE'):
-        _, instanceId, amiId, pubDns, privDns, state, key, index, _unsure, t, launch, zone, monitor = line.strip().split('\t')
+        try:
+            sline = line.strip().split('\t')
+            _, instanceId, amiId, pubDns, privDns, state, key, index, _unsure, t, launch, zone, monitor = sline[:13]
 
-        return Instance(instanceId,
-                        amiId,
-                        pubDns,
-                        privDns,
-                        state,
-                        key,
-                        index,
-                        t,
-                        launch,
-                        zone,
-                        monitor)
+            return Instance(instanceId,
+                            amiId,
+                            pubDns,
+                            privDns,
+                            state,
+                            key,
+                            index,
+                            t,
+                            launch,
+                            zone,
+                            monitor)
+        except ValueError:
+            errorPrint('Failed to parse line: ' + line)
+            return None
     else:
         return None
 
