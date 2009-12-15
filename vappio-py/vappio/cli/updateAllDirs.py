@@ -16,6 +16,7 @@ def cliParser():
     parser.add_option('', '--config_policies', dest='config_policies', action='store_true', help='Update config_policies')
     parser.add_option('', '--vappio-py', dest='vappio_py', action='store_true', help='Update vappio-py')
     parser.add_option('', '--vappio-scripts', dest='vappio_scripts', action='store_true', help='Update vappio-scripts')
+    parser.add_option('', '--clovr_pipelines', dest='clovr_pipelines', action='store_true', help='Update clovr_pipelines')
 
     return parser
 
@@ -27,19 +28,22 @@ def cliMerger(cliOptions, _args):
             cliOptions.opt_packages or
             cliOptions.config_policies or
             cliOptions.vappio_py or
-            cliOptions.vappio_scripts):
+            cliOptions.vappio_scripts or
+            cliOptions.clovr_pipelines):
         cliOptions.stow = True
         cliOptions.opt_packages = True
         cliOptions.config_policies = True
         cliOptions.vappio_py = True
         cliOptions.vappio_scripts = True
+        cliOptions.clovr_pipelines = True
     
     return configFromMap({
         'stow': cliOptions.stow,
         'opt_packages': cliOptions.opt_packages,
         'config_policies': cliOptions.config_policies,
         'vappio_py': cliOptions.vappio_py,
-        'vappio_scripts': cliOptions.vappio_scripts})
+        'vappio_scripts': cliOptions.vappio_scripts,
+        'clovr_pipelines': cliOptions.clovr_pipelines})
         
 
 
@@ -58,7 +62,8 @@ def main(options):
         runSystemEx("""chmod -R +x /opt/vappio-scripts""")
         runSystemEx("""cp -f /opt/vappio-scripts/clovrEnv.sh /root""")
         runSystemEx("""cp -f /opt/vappio-scripts/local /etc/init.d/local""")
-
+    if options('clovr_pipelines'):
+        runSystemEx("""svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines /opt/clovr_pipelines""")
 
 
 if __name__ == '__main__':
