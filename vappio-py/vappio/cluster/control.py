@@ -73,7 +73,8 @@ class Cluster:
 
         dataFile = createDataFile(self.config, mode, self.master.privateDNS)
         scpToEx(self.master.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-        #runSystemInstanceEx(self.master, 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
+        runSystemInstanceEx(self.master, 'updateAllDirs.py --vappio-py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
+        runSystemInstanceEx(self.master, 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies --clovr_pipelines', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
         runSystemInstanceEx(self.master, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
         
         os.remove(dataFile)

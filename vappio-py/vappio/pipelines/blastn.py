@@ -10,8 +10,9 @@ from igs.utils.config import configFromMap, replaceStr
 from igs.utils.commands import runSystemEx
 
 
-
-TEMPLATE_FILE = '/mnt/projects/clovr/workflow/project_saved_templates/blastn_tmpl'
+TEMPLATE_DIR = '/opt/clovr_pipelines/workflow/project_saved_templates/blastn_tmpl'
+TEMPLATE_CONFIG = os.path.join(TEMPLATE_DIR, 'blastn.config')
+TEMPLATE_LAYOUT = os.path.join(TEMPLATE_DIR, 'pipeline.layout')
 
 def cliParser():
     parser = optparse.OptionParser()
@@ -38,12 +39,14 @@ def _runPipeline(options):
 
     foutName = os.path.join('/tmp', str(time.time()))
     fout = open(foutName, 'w')
-    for line in open(os.path.join(TEMPLATE_FILE, 'blastn.config')):
+    for line in open(TEMPLATE_CONFIG):
         fout.write(replaceStr(line, conf))
 
     fout.close()
 
-    runSystemEx('blastn_makepipeline.pl --config=' + foutName)
+    runSystemEx('run_pipeline.pl --config=%(config)s --templatelayout=%(templatelayout)s' % dict(
+        config=foutName,
+        templatelayout=TEMPLATE_LAYOUT))
     
 
 def runPipeline():
