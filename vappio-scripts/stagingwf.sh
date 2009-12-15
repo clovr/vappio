@@ -14,7 +14,7 @@ wfxml="$2"
 #Stage workflow files
 wfcomponentdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1"'`
 wfgroupdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.+)\//);print "$dir2"'`
-group=`echo "$wfgroupdir" | perl -ne '($iter,$group) = ($_ =~ /(i\d+)\/(g\d+)/);print "$group"'`
+group=`echo "$wfgroupdir" | perl -ne '($group) = ($_ =~ /(g\d+)/);print "$group"'`
 vlog "wfxml: $wfxml"
 vlog "wfcomponentdir: $wfcomponentdir"
 vlog "wfgroupdir: $wfgroupdir"
