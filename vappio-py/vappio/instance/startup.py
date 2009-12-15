@@ -56,6 +56,12 @@ def startUpDevNode(conf):
     runSystemEx("""rm -rf /opt/packages""")
     runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages /opt/packages""")
 
+    runSystemEx("""rm -rf /opt/clovr_pipelines""")
+    runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines /opt/clovr_pipelines""")
+
+    runSystemEx("""rm -rf /opt/opt-packages""")
+    runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages /opt/opt-packages""")
+
 def startUpMasterNode(conf):
     """
     1 - Setup hadoop
