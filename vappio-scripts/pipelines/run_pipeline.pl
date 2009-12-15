@@ -7,18 +7,21 @@ use Getopt::Long qw(:config no_ignore_case no_auto_abbrev pass_through);
 use Ergatis::SavedPipeline;
 
 
-my $templateLayout = "/mnt/projects/clovr/workflow/project_saved_templates/blastn_tmpl/pipeline.layout";
+#my $templateLayout = "/mnt/projects/clovr/workflow/project_saved_templates/blastn_tmpl/pipeline.layout";
 my $repoRoot = "/mnt/projects/clovr";
 my $idRepo = "/opt/ergatis/global_id_repository";
 
 my %options;
 my $results = GetOptions (\%options, 
-			  'config=s'
+			  'config=s',
+			  'templatelayout=s'
                           );
 
 my $configFile = $options{'config'} if( $options{'config'} );
+my $templateLayout = $options{'templatelayout'} if( $options{'templatelayout'} );
 
 die("Must specify a config file") unless($configFile);
+die("Must specify a template") unless($templateLayout);
 
 my $pipeline_id = &make_pipeline($templateLayout, $repoRoot, $idRepo, $configFile);
 
