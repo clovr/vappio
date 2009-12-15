@@ -32,6 +32,7 @@ else
       export vappio_cloud_type=EC2
       echo "EC2" > $vappio_runtime/cloud_type
       $vappio_scripts/amazonec2/start_ec2.sh
+      $vappio_scripts/create_swap_file.sh
   fi
 fi
 
