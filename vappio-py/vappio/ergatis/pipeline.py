@@ -14,7 +14,7 @@ def buildCliParser(options):
     parser = optparse.OptionParser()
 
     for n, _, desc in options:
-        parser.add_option('', '--' + n, dest=n, desc=desc)
+        parser.add_option('', '--' + n, dest=n, help=desc)
 
     return parser
 
