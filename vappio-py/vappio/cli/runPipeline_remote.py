@@ -5,18 +5,19 @@
 # This is meant to be run on the remote side
 import sys
 
-from vappio.pipelines import blastn
+from twisted.python.reflect import namedAny, ModuleNotFound
 
+from igs.utils.logging import errorPrint
 
-PIPELINES = {
-    'blastn': blastn
-    }
+from vappio.ergatis.pipeline import runPipeline
 
 def main(options):
-    if sys.argv[1] in PIPELINES:
-        pipeline = PIPELINES[sys.argv[1]]
+    try:
+        pipeline = namedAny('vappio.pipelines.' + sys.argv[1])
         sys.argv.pop(1)
-        pipeline.runPipeline()
+        runPipeline(pipeline)
+    except ModuleNotFound:
+        errorPrint('The requested pipeline could not be found')
 
 
 if __name__ == '__main__':

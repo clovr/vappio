@@ -1,61 +1,47 @@
 ##
-# Functions to control a pipeline running on Ergatis somewhere
+# Functions to control creating and running a pipeline through ergatis
+import optparse
 import os
-import sets
 import time
-import urllib
-import httplib
-
-from igs.utils.core import getStrBetween
-
-PIPELINES_BUILDING='/tmp/pipelines_building'
 
 
-def newPipelineFromTemplate(host, repoRoot, workflowDocs, templateDir):
+from igs.utils.config import configFromMap, replaceStr
+
+from igs.utils.commands import runSystemEx
+
+
+def buildCliParser(options):
+    parser = optparse.OptionParser()
+
+    for n, _, desc in options:
+        parser.add_option('', '--' + n, dest=n, desc=desc)
+
+    return parser
+
+def runPipeline(pipeline):
     """
-    Builds a new pipeline given the following information.  Returns the newly built pipeline's id
+    Takes a pipeline which is some sort of object
+    which has:
+
+    TEMPLATE_CONFIG
+    TEMPLATE_LAYOUT
+    OPTIONS
     """
-    #buildDir = buildPipeline(host, repoRoot, templateDir)
     
-    params = urllib.urlencode(dict(repository_root=repoRoot,
-                                   workflowdocs_dir=workflowDocs,
-                                   build_directory='/tmp/blastn_tmpl',
-                                   skip_run=1,
-                                   skip_instantiation=1,
-                                   instantiate=0,
-                                   builder_animations=0,
-                                   autoload_template=templateDir))
+    parser = buildCliParser(pipeline.OPTIONS)
 
-    print params
-    
-    headers = {}
-    conn = httplib.HTTPConnection(host + ':80')
-    conn.request('POST', '/ergatis/cgi/run_pipeline.cgi', params, headers)
+    options, _args = parser.parse_args()
 
-    return conn
+    conf = configFromMap(dict([(n, f(getattr(options, n))) for n, f, _d in pipeline.OPTIONS]))
 
 
-
-def buildPipeline(host, repoRoot, templateDir):
-    """
-    Builds a pipeline and returns the build dir
-
-    """
-
-    params = urllib.urlencode(dict(autoload_template=templateDir,
-                                   repository_root=repoRoot))
-    headers = {}
-    conn = httplib.HTTPConnection(host + ':80')
-    conn.request('GET', '/ergatis/cgi/build_pipeline.cgi?' + params, headers=headers)
-
-    ##
-    # Probably not necessary, i think .request makes the entire call
-    response = conn.getresponse()
-    data = response.read()
-
-    conn.close()
-
-    buildDir = getStrBetween(data, "input name='build_directory' id='build_directory' value='", "'")
-
-    return buildDir
-
+    foutName = os.path.join('/tmp', str(time.time()))
+    fout = open(foutName, 'w')
+    for line in open(pipeline.TEMPLATE_CONFIG):
+        fout.write(replaceStr(line, conf))
+        
+    fout.close()
+        
+    runSystemEx('run_pipeline.pl --config=%(config)s --templatelayout=%(templatelayout)s' % dict(
+        config=foutName,
+        templatelayout=pipeline.TEMPLATE_LAYOUT))

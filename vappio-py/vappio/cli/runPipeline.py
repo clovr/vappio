@@ -15,22 +15,20 @@ def cliParser():
     parser = optparse.OptionParser(usage='usage: %prog --host x --pipeline y [ -- options for pipeline]')
 
     parser.add_option('', '--conf', dest='conf', help='Name of config file to load')
-    parser.add_option('', '--cluster', dest='cluster', help='Name of cluster to upload to (currently not used)')
-    parser.add_option('', '--host', dest='host', help='Host of machine to upload to (will be deprecated once --cluster works')
+    parser.add_option('', '--name', dest='name', help='Name of cluster to upload to (currently the hostname of master)')
     parser.add_option('', '--pipeline', dest='pipeline', help='Name of the pipeline')
 
     return parser
 
 def cliMerger(cliOptions, args):
-    if not cliOptions.host:
-        raise MissingOptionError('Missing host option')
+    if not cliOptions.name:
+        raise MissingOptionError('Missing cluster name')
 
     if not cliOptions.pipeline:
         raise MissingOptionError('Missing pipeline option')
 
     return configFromMap({
-        'cluster': cliOptions.cluster,
-        'host': cliOptions.host,
+        'name': cliOptions.name,
         'pipeline': cliOptions.pipeline,
         'options': args
         }, configFromStream(open(cliOptions.conf)))
@@ -40,7 +38,7 @@ def getInstances(f):
 
 
 def main(options):
-    instances = getInstances(lambda i : i.publicDNS == options('host'))
+    instances = getInstances(lambda i : i.publicDNS == options('name'))
     if not instances:
         raise Exception('Did not provide a valid host')
 
