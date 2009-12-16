@@ -32,6 +32,9 @@ class Cluster:
         self.ctype = ctype
         self.config = config
 
+        self.master = None
+        self.slaves = []
+
 
     def startCluster(self, numExec, devMode=False, releaseCut=False):
         """
@@ -39,14 +42,24 @@ class Cluster:
         """
 
         self._startMaster(devMode, releaseCut)
-        self._startExec(numExec)
-                
-
+        self.createExecs(numExec)
 
 
     def terminateCluster(self):
         self.ctype.terminateInstances([self.master] + self.slaves)
 
+
+    def setMaster(self, master):
+        """
+        Sets the master to an instance
+        """
+        self.master = master
+
+    def addExecs(self, execs):
+        """
+        Adds a list of exec nodes to the list this cluster manages
+        """
+        self.slaves.extend(execs)
 
     ##
     # some private methods
@@ -57,47 +70,70 @@ class Cluster:
         
         dataFile = createMasterDataFile(self.config)
                                   
-        self.master = self.ctype.runInstances(self.config('cluster.ami'),
-                                              self.config('cluster.key'),
-                                              self.config('cluster.master_type'),
-                                              self.config('cluster.master_groups'),
-                                              self.config('cluster.availability_zone'),
-                                              1,
-                                              userDataFile=dataFile)[0]
-
-
-        self.master = waitForState(self.ctype, NUM_TRIES, [self.master], self.ctype.Instance.RUNNING)[0]
-        waitForSSHUp(self.config, NUM_TRIES, [self.master])
-
+        master = self.ctype.runInstances(self.config('cluster.ami'),
+                                         self.config('cluster.key'),
+                                         self.config('cluster.master_type'),
+                                         self.config('cluster.master_groups'),
+                                         self.config('cluster.availability_zone'),
+                                         1,
+                                         userDataFile=dataFile)[0]
+        
+        
+        master = waitForState(self.ctype, NUM_TRIES, [master], self.ctype.Instance.RUNNING)[0]
+        waitForSSHUp(self.config, NUM_TRIES, [master])
+        
         os.remove(dataFile)
-
-        dataFile = createDataFile(self.config, mode, self.master.privateDNS)
-        scpToEx(self.master.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-        runSystemInstanceEx(self.master, 'updateAllDirs.py --vappio-py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
-        runSystemInstanceEx(self.master, 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies --clovr_pipelines', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
-        runSystemInstanceEx(self.master, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
+        
+        dataFile = createDataFile(self.config, mode, master.privateDNS)
+        scpToEx(master.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
+        runSystemInstanceEx(master, 'updateAllDirs.py --vappio-py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
+        runSystemInstanceEx(master, 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies --clovr_pipelines', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
+        runSystemInstanceEx(master, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
         
         os.remove(dataFile)
 
-    def _startExec(self, numExec):
+        self.setMaster(master)
+
+    def createExecs(self, numExec):
+        def _setupInstance(i, dataFile):
+            pr = scpToA(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
+            yield pr
+
+            if pr.exitCode != 0:
+                pr = scpToA(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
+                yield pr
+                if pr.exitCode != 0:
+                    raise ClusterError('Failed to start cluster on instance: ' + i.publicDNS)
+
+            pr = runSystemInstanceA(i, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
+            yield pr
+
+            if pr.exitCode != 0:
+                raise ClusterError('Failed to start cluster on instance: ' + i.publicDNS)
+
+        
         if numExec:
             dataFile = createExecDataFile(self.config, self.master)
 
-            self.slaves = self.ctype.runInstances(self.config('cluster.ami'),
-                                                  self.config('cluster.key'),
-                                                  self.config('cluster.exec_type'),
-                                                  self.config('cluster.exec_groups'),
-                                                  self.config('cluster.availability_zone'),
-                                                  numExec,
-                                                  userDataFile=dataFile)
-
-        
+            slaves = self.ctype.runInstances(self.config('cluster.ami'),
+                                             self.config('cluster.key'),
+                                             self.config('cluster.exec_type'),
+                                             self.config('cluster.exec_groups'),
+                                             self.config('cluster.availability_zone'),
+                                             numExec,
+                                             userDataFile=dataFile)
+            
+            
             try:
-                self.slaves = waitForState(self.ctype, NUM_TRIES, self.slaves, self.ctype.Instance.RUNNING)
-                waitForSSHUp(self.config, NUM_TRIES, self.slaves)
-
+                slaves = waitForState(self.ctype, NUM_TRIES, slaves, self.ctype.Instance.RUNNING)
+                ##
+                # Lets manage these
+                self.addExecs(slaves)
+                
+                waitForSSHUp(self.config, NUM_TRIES, slaves)
+                
                 dataFile = createDataFile(self.config, [EXEC_NODE], self.master.privateDNS)
-                for i in self.slaves:
+                for i in slaves:
                     scpToEx(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
                     #runSystemInstanceEx(i, 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)                    
                     runSystemInstanceEx(i, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
@@ -108,8 +144,6 @@ class Cluster:
 
             os.remove(dataFile)
 
-        else:
-            self.slaves = []
         
 
 
