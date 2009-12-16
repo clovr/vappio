@@ -6,15 +6,10 @@ import os
 from igs.utils.functional import id
 
 
+##
+# Need to know where the template lives
 TEMPLATE_DIR = '/opt/clovr_pipelines/workflow/project_saved_templates/blastn_tmpl'
 
-##
-# Each pipeline needs a config file associated with it
-TEMPLATE_CONFIG = os.path.join(TEMPLATE_DIR, 'blastn.config')
-
-##
-# Each pipeline needs a layout associated with it
-TEMPLATE_LAYOUT = os.path.join(TEMPLATE_DIR, 'pipeline.layout')
 
 ##
 # These are options that will be taken from the command line.  The

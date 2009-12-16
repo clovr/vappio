@@ -13,14 +13,14 @@ DEBUG = False
 def logPrint(msg, stream=None):
     if stream is None:
         stream = OUTSTREAM
-    stream.write('LOG: %s - %s\n' % (timestamp(), msg))
+    stream.write('LOG: %s - %s\n' % (timestamp(), removeRecursiveMsg(msg)))
 
 
 def errorPrint(msg, stream=None):
     if stream is None:
         stream = ERRSTREAM
 
-    stream.write('ERROR: %s - %s\n' % (timestamp(), msg))
+    stream.write('ERROR: %s - %s\n' % (timestamp(), removeRecursiveMsg(msg)))
 
 def debugPrint(fmsg, stream=None):
     """In this case msg is a function, so the work is only done if debugging is one"""
@@ -28,11 +28,24 @@ def debugPrint(fmsg, stream=None):
         if stream is None:
             stream = ERRSTREAM
 
-        stream.write('DEBUG: %s - %s\n' % (timestamp(), fmsg()))
+        stream.write('DEBUG: %s - %s\n' % (timestamp(), removeRecursiveMsg(fmsg())))
 
 
 def timestamp():
     return time.strftime('%Y/%m/%d %H:%M:%S')
+
+
+def removeRecursiveMsg(msg):
+    """
+    This takes a message and if it starts with something that looks like
+    a message generated with these tools it chops it off.  Useful if using
+    one of these logging functions to print output from a program using
+    the same logging functions
+    """
+    if msg.startswith('ERROR: ') or msg.startswith('DEBUG: ') or msg.startswith('LOG: '):
+        return msg.split(' - ', 1)[1]
+    else:
+        return msg
 
 
 ##
