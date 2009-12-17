@@ -5,11 +5,11 @@ import time
 import os
 
 from igs.utils.commands import runSystemEx, runCommandGens
-from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSHA
+from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSHA, scpToA
 from igs.utils.logging import errorPrintS
 
 from vappio.instance.config import createDataFile, createMasterDataFile, createExecDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT
-from vappio.instance.control import runSystemInstanceEx
+from vappio.instance.control import runSystemInstanceEx, runSystemInstanceA
 
 
 NUM_TRIES = 20

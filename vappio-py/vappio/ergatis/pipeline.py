@@ -41,7 +41,7 @@ def runPipeline(pipeline):
     conf = configFromMap(dict([(n, f(getattr(options, n))) for n, f, _d in pipeline.OPTIONS]))
 
     templateConfig = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline_tmpl.config')
-    templateLayoutn = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline.layout')
+    templateLayout = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline.layout')
 
     foutName = os.path.join('/tmp', str(time.time()))
     fout = open(foutName, 'w')
