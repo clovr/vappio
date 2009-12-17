@@ -26,7 +26,7 @@ stagingsubq_conf=$vappio_scripts/sge/stagingsub.q
 wfq_conf=$vappio_scripts/sge/wf.q
 repositoryq_conf=$vappio_scripts/sge/repository.q
 execq=exec.q
-execslots=1
+execslots=2
 
 ##Workflow 
 wfworking_dir=/mnt/wf-working
