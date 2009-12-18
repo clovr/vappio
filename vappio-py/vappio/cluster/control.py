@@ -12,7 +12,7 @@ from vappio.instance.config import createDataFile, createMasterDataFile, createE
 from vappio.instance.control import runSystemInstanceEx, runSystemInstanceA
 
 
-NUM_TRIES = 20
+NUM_TRIES = 30
 
 
 class TryError(Exception):
@@ -94,7 +94,7 @@ class Cluster:
 
         self.setMaster(master)
 
-    def createExecs(self, numExec):
+    def createExecs(self, numExec, terminateOnFailure=True):
         def _setupInstance(i, dataFile):
             pr = scpToA(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
             yield pr
@@ -133,12 +133,14 @@ class Cluster:
                 waitForSSHUp(self.config, NUM_TRIES, slaves)
                 
                 dataFile = createDataFile(self.config, [EXEC_NODE], self.master.privateDNS)
-                for i in slaves:
-                    scpToEx(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
-                    #runSystemInstanceEx(i, 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)                    
-                    runSystemInstanceEx(i, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
+                runCommandGens([_setupInstance(i, dataFile) for i in slaves])
+#                 for i in slaves:
+#                     scpToEx(i.publicDNS, dataFile, '/tmp', user='root', options=self.config('ssh.options'))
+#                     #runSystemInstanceEx(i, 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)                    
+#                     runSystemInstanceEx(i, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
             except TryError:
-                self.terminateCluster()
+                if terminateOnFailure:
+                    self.terminateCluster()
                 os.remove(dataFile)
                 raise ClusterError('Could not start cluster')
 

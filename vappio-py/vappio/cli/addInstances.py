@@ -59,7 +59,7 @@ def main(options):
     ctype = ec2Control
     cl = Cluster(options('name'), ctype, conf)
     cl.setMaster(mastInst)
-    cl.createExecs(options('num'))
+    cl.createExecs(options('num'), False)
 
     logPrint('The master IP is: ' + cl.master.publicDNS)
 
