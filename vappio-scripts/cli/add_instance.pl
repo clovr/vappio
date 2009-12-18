@@ -7,7 +7,7 @@ add_instance.pl - Adds instance to a cluster using the credentials and cloud spe
 =head1 SYNOPSIS
 
 USAGE: add_instance.pl 
-            --master=hostname
+            --master=public_dns
             --user_data=./exec_user-data.tmpl
             --nodes=10
             --instance_type=m1.large
