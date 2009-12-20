@@ -75,7 +75,7 @@ def createExecDataFile(conf, master):
     if exitCode != 0:
         raise ProgramRunError('ssh-keygen -y -f ' + conf('cluster.cluster_private_key'), exitCode)
 
-    if conf('ctype') == 'ec2':
+    if conf('general.ctype') == 'ec2':
         template = template.replace('<TMPL_VAR NAME=MASTER_PRIVATE_DNS>', master.privateDNS)
     else:
         template = template.replace('<TMPL_VAR NAME=MASTER_PRIVATE_DNS>', master.publicDNS)

@@ -18,7 +18,7 @@ from vappio.ec2 import control as ec2control
 OPTIONS = [
     ('conf', '', '--conf', 'Name of config file', notNone),
     ('name', '', '--name', 'Name of cluster (in this case the IP address of the master)', notNone),
-    ('tag', '', '--tag', 'The uploaded files will be put into a file list tagged by this name')
+    ('tag', '', '--tag', 'The uploaded files will be put into a file list tagged by this name', identity)
     ]
 
 

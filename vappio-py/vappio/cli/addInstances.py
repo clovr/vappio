@@ -35,7 +35,7 @@ def main(options, _args):
     mastInst = instances[0]
 
     ctype = ec2Control
-    cl = Cluster(options('general.name'), ctype, conf)
+    cl = Cluster(options('general.name'), ctype, options)
     cl.setMaster(mastInst)
     cl.createExecs(options('general.num'), False)
 
