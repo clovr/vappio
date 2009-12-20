@@ -1,7 +1,7 @@
 ##
 # These are just some simple functions for doing functional style things
 
-def id(x):
+def identity(x):
     """A simple identity function"""
     return x
 
@@ -20,16 +20,3 @@ def applyIfCallable(f, *args, **kwargs):
     else:
         return f
 
-
-def defaultIfNone(v, default):
-    """
-    Takes a value and a default value and returns default
-    if v is None
-    """
-
-    if v is None:
-        return default
-    else:
-        return v
-
-    

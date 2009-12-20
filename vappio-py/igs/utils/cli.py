@@ -72,7 +72,7 @@ def buildConfigN(options, usage=None):
 
     vals = {}
 
-    for n, _s, l, _h, f in options:
+    for n, _s, l, _h, f, _b in _iterBool(options):
         try:
             vals[n] = f(getattr(ops, n))
         except MissingOptionError:
@@ -94,3 +94,16 @@ def notNone(v):
 
     return v
 
+
+def defaultIfNone(d):
+    """
+    Returns a function that returns the value 'd' if the passed
+    value to the function is None
+    """
+    def _(v):
+        if v is None:
+            return d
+        else:
+            return v
+
+    return _
