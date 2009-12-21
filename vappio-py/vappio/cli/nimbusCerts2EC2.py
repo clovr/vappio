@@ -19,7 +19,7 @@ def cliParser():
     parser.add_option('', '--in-key', dest='in_key', default=None,
                       help='Input key')
     parser.add_option('', '--out-key', dest='out_key', default=None,
-                      help='Output key'),
+                      help='Output key')
     parser.add_option('', '--java-cert-dir', dest='java_cert_dir', default=None,
                       help='Directory to put the jssecacerts file')
     parser.add_option('', '--java-cert-host', dest='java_cert_host', default=None,

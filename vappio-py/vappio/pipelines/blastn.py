@@ -22,7 +22,7 @@ TEMPLATE_DIR = '/opt/clovr_pipelines/workflow/project_saved_templates/blastn_tmp
 #        done simply use igs.utils.functional.id
 # description - Just a brief description of the variable, this will be in the --help for the pipeline
 OPTIONS = [
-    ('INPUT_FILE_LIST', identity, 'The input file list of sequences'),
-    ('REF_DB_PATH', identity, 'The reference db for the blast run')
+    ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of sequences', identity),
+    ('REF_DB_PATH', '', '--REF_DB_PATH', 'The reference db for the blast run', identity)
     ]
 

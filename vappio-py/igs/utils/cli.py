@@ -21,7 +21,7 @@ def buildConfig(parser, merger):
     return merger(options, args)
 
 
-def buildConfigN(options, usage=None):
+def buildConfigN(options, usage=None, putInGeneral=True):
     """
     This builds a config from options.  Options is a list of tuples that looks like:
 
@@ -79,7 +79,9 @@ def buildConfigN(options, usage=None):
             raise MissingOptionError('Failed to provide a value for option: ' + l)
             
 
-    return (configFromMap({'general': vals}, baseConf), args)
+    if putInGeneral:
+        vals = {'general': vals}
+    return (configFromMap(vals, baseConf), args)
 
 
 

@@ -35,4 +35,4 @@ def main(options, args):
         
 
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS))
+    main(*buildConfigN(OPTIONS, usage='usage: %prog --name x --pipeline y [ -- options for pipeline]'))

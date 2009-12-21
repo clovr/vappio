@@ -5,18 +5,10 @@ import os
 import time
 
 
-from igs.utils.config import configFromMap, replaceStr
-
+from igs.utils.cli import buildConfigN
+from igs.utils.config import replaceStr
 from igs.utils.commands import runSystemEx
 
-
-def buildCliParser(options):
-    parser = optparse.OptionParser()
-
-    for n, _, desc in options:
-        parser.add_option('', '--' + n, dest=n, help=desc)
-
-    return parser
 
 def runPipeline(pipeline):
     """
@@ -34,11 +26,7 @@ def runPipeline(pipeline):
     description - Just a brief description of the variable, this will be in the --help for the pipeline
     """
     
-    parser = buildCliParser(pipeline.OPTIONS)
-
-    options, _args = parser.parse_args()
-
-    conf = configFromMap(dict([(n, f(getattr(options, n))) for n, f, _d in pipeline.OPTIONS]))
+    conf, _args = buildConfigN(pipeline.OPTIONS, putInGeneral=False)
 
     templateConfig = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline_tmpl.config')
     templateLayout = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline.layout')

@@ -11,7 +11,7 @@ from igs.utils.logging import errorPrint
 
 from vappio.ergatis.pipeline import runPipeline
 
-def main(options):
+def main(_options):
     try:
         pipeline = namedAny('vappio.pipelines.' + sys.argv[1])
         sys.argv.pop(1)
