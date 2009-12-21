@@ -20,3 +20,19 @@ def applyIfCallable(f, *args, **kwargs):
     else:
         return f
 
+
+def compose(*funcs):
+    """
+    Takes a list of functions which takes 1 parameter and composes them.
+    compose(f, g)(x) == f(g(x))
+    """
+    funcs = list(funcs)
+    funcs.reverse()
+    def _(x):
+        v = x
+        for f in funcs:
+            v = f(v)
+
+        return v
+
+    return _
