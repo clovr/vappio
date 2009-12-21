@@ -36,5 +36,7 @@ rm /var/nimbus-metadata-server-url
 
 rm -rf /root/.svn
 
+rm -rf /root/.subversion
+
 echo "OFFLINE" > $vappio_runtime/node_type
 date > /root/last_stop_master

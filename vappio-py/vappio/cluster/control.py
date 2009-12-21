@@ -105,6 +105,21 @@ class Cluster:
                 if pr.exitCode != 0:
                     raise ClusterError('Failed to start cluster on instance: ' + i.publicDNS)
 
+
+            pr = runSystemInstanceA(i, 'updateAllDirs.py --vappio-py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
+            yield pr
+
+            if pr.exitCode != 0:
+                raise ClusterError('Failed to start cluster on instance: ' + i.publicDNS)
+
+            pr = runSystemInstanceA(i, 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies --clovr_pipelines', None, errorPrintS,
+                                    user='root', options=self.config('ssh.options'), log=True)
+            yield pr
+
+            if pr.exitCode != 0:
+                raise ClusterError('Failed to start cluster on instance: ' + i.publicDNS)
+            
+                
             pr = runSystemInstanceA(i, 'startUpNode.py', None, errorPrintS, user='root', options=self.config('ssh.options'), log=True)
             yield pr
 

@@ -6,7 +6,7 @@ import optparse
 from igs.utils.cli import buildConfigN, MissingOptionError, notNone
 
 from igs.utils.config import configFromMap, configFromStream
-from igs.utils.logging import errorPrintS
+from igs.utils.logging import errorPrintS, logPrintS
 
 from vappio.instance.control import runSystemInstanceEx
 
@@ -15,7 +15,7 @@ from vappio.ec2 import control as ec2control
 OPTIONS = [
     ('conf', '', '--conf', 'Name of config file', notNone),
     ('name', '', '--name', 'Name of cluster (host name of master)', notNone),
-    ('pipeline', '', '--pipeline', 'Name of pipelien', notNone),
+    ('pipeline', '', '--pipeline', 'Name of pipeline', notNone),
     ]
 
 def getInstances(f):
@@ -31,7 +31,7 @@ def main(options, args):
 
     mastInst = instances[0]
     cmd = ['runPipeline_remote.py', options('general.pipeline')] + options('general.options')
-    runSystemInstanceEx(mastInst, ' '.join(cmd), None, errorPrintS, user='root', options=options('ssh.options'), log=True)    
+    runSystemInstanceEx(mastInst, ' '.join(cmd), logPrintS, errorPrintS, user='root', options=options('ssh.options'), log=True)    
         
 
 if __name__ == '__main__':
