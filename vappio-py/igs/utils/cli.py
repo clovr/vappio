@@ -2,7 +2,7 @@
 # Little tools to make working with the CLI easier
 import optparse
 
-from igs.utils.config import configFromStream, configFromMap, configFromEnv
+from igs.utils.config import configFromStream, configFromMap, configFromEnv, replaceStr
 
 class MissingOptionError(Exception):
     pass
@@ -74,7 +74,11 @@ def buildConfigN(options, usage=None, putInGeneral=True):
 
     for n, _s, l, _h, f, _b in _iterBool(options):
         try:
-            vals[n] = f(getattr(ops, n))
+            ##
+            # We want to apply any replacements on the options
+            # The question is if baseConf is really the config file
+            # we should be applying these from...
+            vals[n] = replaceStr(f(getattr(ops, n)), baseConf)
         except MissingOptionError:
             raise MissingOptionError('Failed to provide a value for option: ' + l)
             

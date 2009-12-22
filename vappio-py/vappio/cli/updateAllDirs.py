@@ -1,71 +1,59 @@
 #!/usr/bin/env python
 ##
 # This updates every directory with the latest from SVN.
-import optparse
-
-from igs.utils.cli import buildConfig
+from igs.utils.cli import buildConfigN, defaultIfNone
 from igs.utils.commands import runSystemEx
-from igs.utils.config import configFromMap
 
 
-def cliParser():
-    parser = optparse.OptionParser()
-    
-    parser.add_option('', '--stow', dest='stow', action='store_true', help='Update Stow')
-    parser.add_option('', '--opt-packages', dest='opt_packages', action='store_true', help='Update opt-packages')
-    parser.add_option('', '--config_policies', dest='config_policies', action='store_true', help='Update config_policies')
-    parser.add_option('', '--vappio-py', dest='vappio_py', action='store_true', help='Update vappio-py')
-    parser.add_option('', '--vappio-scripts', dest='vappio_scripts', action='store_true', help='Update vappio-scripts')
-    parser.add_option('', '--clovr_pipelines', dest='clovr_pipelines', action='store_true', help='Update clovr_pipelines')
-
-    return parser
+OPTIONS = [
+    ('stow', '', '--stow', 'Update stow', defaultIfNone(False), True),
+    ('opt_packages', '', '--opt-packages', 'Update opt-packages', defaultIfNone(False), True),
+    ('config_policies', '', '--config_policies', 'Update config_policies', defaultIfNone(False), True),
+    ('vappio_py', '', '--vappio-py', 'Update vappio-py', defaultIfNone(False), True),
+    ('vappio_scripts', '', '--vappio-scripts', 'Update vappio-scripts', defaultIfNone(False), True),
+    ('clovr_pipelines', '', '--clovr_pipelines', 'Update clovr_pipelines', defaultIfNone(False), True),
+    ('co', '', '--co', 'Check out rather than export', defaultIfNone(False), True),
+    ]
 
 
-def cliMerger(cliOptions, _args):
-    ##
-    # If they are all false, set them all to true because they did not specify any
-    if not (cliOptions.stow or
-            cliOptions.opt_packages or
-            cliOptions.config_policies or
-            cliOptions.vappio_py or
-            cliOptions.vappio_scripts or
-            cliOptions.clovr_pipelines):
-        cliOptions.stow = True
-        cliOptions.opt_packages = True
-        cliOptions.config_policies = True
-        cliOptions.vappio_py = True
-        cliOptions.vappio_scripts = True
-        cliOptions.clovr_pipelines = True
-    
-    return configFromMap({
-        'stow': cliOptions.stow,
-        'opt_packages': cliOptions.opt_packages,
-        'config_policies': cliOptions.config_policies,
-        'vappio_py': cliOptions.vappio_py,
-        'vappio_scripts': cliOptions.vappio_scripts,
-        'clovr_pipelines': cliOptions.clovr_pipelines})
+
+def grabFromSVN(options, srcUrl, dstDir):
+    cmd = ['svn']
+    if options('general.co'):
+        cmd += ['co']
+    else:
+        cmd += ['export', '--force']
+
+    cmd += [srcUrl, dstDir]
+
+    runSystemEx('rm -rf ' + dstDir, log=True)
+    runSystemEx(' '.join(cmd), log=True)
+
+def main(options, _args):
+    updateAll = False
+    for o in OPTIONS:
+        if options('general.' + o[0]):
+            break
+    else:
+        updateAll = True
         
-
-
-def main(options):
-    if options('stow'):
-        runSystemEx("""svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/stow /usr/local/stow""")
-    if options('opt_packages'):
-        runSystemEx("""svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages /opt/opt-packages""")
-    if options('config_policies'):
-        runSystemEx("""svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/config_policies /opt/config_policies""")
-    if options('vappio_py'):
-        runSystemEx("""svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py /opt/vappio-py""")
+    if options('general.stow') or updateAll:
+        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/stow', '/usr/local/stow')
+    if options('general.opt_packages') or updateAll:
+        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages', '/opt/opt-packages')
+    if options('general.config_policies') or updateAll:
+        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/config_policies', '/opt/config_policies')
+    if options('general.vappio_py') or updateAll:
+        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py', '/opt/vappio-py')
         runSystemEx("""chmod +x /opt/vappio-py/vappio/cli/*.py""")
-    if options('vappio_scripts'):
-        runSystemEx("""svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-scripts /opt/vappio-scripts""")
+    if options('general.vappio_scripts') or updateAll:
+        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-scripts', '/opt/vappio-scripts')
         runSystemEx("""chmod -R +x /opt/vappio-scripts""")
         runSystemEx("""cp -f /opt/vappio-scripts/clovrEnv.sh /root""")
         runSystemEx("""cp -f /opt/vappio-scripts/local /etc/init.d/local""")
-    if options('clovr_pipelines'):
-        runSystemEx("""svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines /opt/clovr_pipelines""")
+    if options('general.clovr_pipelines') or updateAll:
+        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines', '/opt/clovr_pipelines')
 
 
 if __name__ == '__main__':
-    options = buildConfig(cliParser(), cliMerger)
-    main(options)
+    main(*buildConfigN(OPTIONS))
