@@ -23,13 +23,13 @@ OPTIONS = [
 
 
 def main(options, _args):
-    conf = configFromMap(
+    options = configFromMap(
         {'cluster': {'master_groups': [f.strip() for f in options('cluster.master_groups').split(',')],
                      'exec_groups': [f.strip() for f in options('cluster.exec_groups').split(',')]
                      }
          }, options)
     ctype = ec2Control
-    cl = Cluster(options('general.name'), ctype, conf)
+    cl = Cluster(options('general.name'), ctype, options)
     cl.startCluster(options('general.num'), devMode=options('general.dev_mode'), releaseCut=options('general.release_cut'))
     logPrint('The master IP is: ' + cl.master.publicDNS)
 
