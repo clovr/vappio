@@ -2,8 +2,8 @@
 
 import optparse
 
-from igs.utils.cli import MissingOptionError, buildConfigN, notNone
-from igs.utils.config import configFromMap, configFromStream
+from igs.utils.cli import MissingOptionError, buildConfigN, notNone, defaultIfNone
+from igs.utils.config import configFromMap
 from igs.utils.logging import logPrint
 
 from vappio.cluster.control import Cluster
@@ -15,6 +15,7 @@ OPTIONS = [
     ('name', '', '--name', 'Name of cluster (in this case public host name of master)', notNone),
     ('num', '', '--num', 'Number of nodes to create', int),
     ('ctype', '', '--ctype', 'Type of cluster', notNone),
+    ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
     ]
 
 

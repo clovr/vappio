@@ -25,6 +25,11 @@ def runPipeline(pipeline):
            done simply use igs.utils.functional.id
     description - Just a brief description of the variable, this will be in the --help for the pipeline
     """
+
+    ##
+    # Mocheezmo way to have it load a conf file.  This will be removed in the future
+    options = pipeline.OPTIONS
+    options.append(('conf', '', '--conf', 'Conf file', lambda _ : '/tmp/machine.conf'))
     
     conf, _args = buildConfigN(pipeline.OPTIONS, putInGeneral=False)
 

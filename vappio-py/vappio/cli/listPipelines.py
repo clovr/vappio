@@ -17,6 +17,7 @@ def main(options, _args):
                                                   'vappio',
                                                   'pipelines'))
                  if f.endswith('.py') and f != '__init__.py']
+    pipelines.sort()
     print 'Available pipelines:'
     print '\n'.join(['\t' + f for f in pipelines])
 
