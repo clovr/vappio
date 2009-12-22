@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ##
-# This just hands the work off to a remote machine
 import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone

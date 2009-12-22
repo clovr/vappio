@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 ##
-# This just hands the work off to a remote machine
 import sys
 
 from twisted.python.reflect import namedAny, ModuleNotFound
 
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils.cli import buildConfigN, notNone
 from igs.utils.logging import errorPrint
 
 from vappio.ergatis.pipeline import runPipeline
