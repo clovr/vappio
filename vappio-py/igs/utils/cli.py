@@ -78,7 +78,11 @@ def buildConfigN(options, usage=None, putInGeneral=True):
             # We want to apply any replacements on the options
             # The question is if baseConf is really the config file
             # we should be applying these from...
-            vals[n] = replaceStr(f(getattr(ops, n)), baseConf)
+            v = f(getattr(ops, n))
+            try:
+                vals[n] = replaceStr(v, baseConf)
+            except TypeError:
+                vals[n] = v
         except MissingOptionError:
             raise MissingOptionError('Failed to provide a value for option: ' + l)
             
