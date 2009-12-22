@@ -58,7 +58,14 @@ def buildConfigN(options, usage=None, putInGeneral=True):
     
     parser = optparse.OptionParser(usage=usage)
 
-    for n, s, l, h, _f, b in _iterBool(options):
+    ##
+    # keep track of the function to apply to conf
+    confFunc = None
+    
+    for n, s, l, h, f, b in _iterBool(options):
+        if n == 'conf':
+            confFunc = f
+            
         if b:
             parser.add_option(s, l, dest=n, help=h, action='store_true')
         else:
@@ -68,7 +75,7 @@ def buildConfigN(options, usage=None, putInGeneral=True):
 
     baseConf = configFromEnv()
     if hasattr(ops, 'conf'):
-        baseConf = configFromStream(open(ops.conf), baseConf)
+        baseConf = configFromStream(confFunc(open(ops.conf)), baseConf)
 
     vals = {}
 

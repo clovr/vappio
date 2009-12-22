@@ -31,7 +31,7 @@ def runPipeline(pipeline):
     options = pipeline.OPTIONS
     options.append(('conf', '', '--conf', 'Conf file', lambda _ : '/tmp/machine.conf'))
     
-    conf, _args = buildConfigN(pipeline.OPTIONS, putInGeneral=False)
+    conf, _args = buildConfigN(options, putInGeneral=False)
 
     templateConfig = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline_tmpl.config')
     templateLayout = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline.layout')
