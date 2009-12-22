@@ -75,7 +75,7 @@ def buildConfigN(options, usage=None, putInGeneral=True):
 
     baseConf = configFromEnv()
     if hasattr(ops, 'conf'):
-        baseConf = configFromStream(confFunc(open(ops.conf)), baseConf)
+        baseConf = configFromStream(open(confFunc(ops.conf)), baseConf)
 
     vals = {}
 
