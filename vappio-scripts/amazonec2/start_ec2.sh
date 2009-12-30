@@ -12,8 +12,8 @@ vlog "###"
 source $vappio_scripts/amazonec2/ec2_config.sh
 
 # modify vappio_config.sh with the ec2-specific variables recorded in ec2_config.sh
-mod_config harvesting_dir $ec2_harvesting_dir
-mod_config staging_dir $ec2_staging_dir 
+#mod_config harvesting_dir $ec2_harvesting_dir
+#mod_config staging_dir $ec2_staging_dir 
 
 # append public key to authorized_keys
 # instructions from http://docs.amazonwebservices.com/AWSEC2/latest/DeveloperGuide/index.html?building-shared-amis.html
