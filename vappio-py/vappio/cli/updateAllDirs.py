@@ -51,6 +51,7 @@ def main(options, _args):
         runSystemEx("""chmod -R +x /opt/vappio-scripts""")
         runSystemEx("""cp -f /opt/vappio-scripts/clovrEnv.sh /root""")
         runSystemEx("""cp -f /opt/vappio-scripts/local /etc/init.d/local""")
+        runSystemEx("""cp -f /opt/vappio-scripts/rc.local /etc/init.d/rc.local""")
     if options('general.clovr_pipelines') or updateAll:
         grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines', '/opt/clovr_pipelines')
 

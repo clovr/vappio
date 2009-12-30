@@ -1,0 +1,102 @@
+#!/bin/sh
+# Ubuntu doesn't use /etc/rc.local
+# https://help.ubuntu.com/community/RcLocalHowto
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+vlog "###" 
+vlog "### $0 (`whoami`)" 
+vlog "###" 
+
+
+do_start() {
+    echo "CloVR VM beta-v1r2b2-sybil" > /etc/issue
+    echo "Powered by Ubuntu Linux 9.04 \n \l" >> /etc/issue
+    echo " " >> /etc/issue
+    netcount=$(/sbin/ifconfig | grep -o "inet")
+    if [[ $netcount > 1 ]]
+	then
+	
+	##
+	# THIS SHOULD INDICATE THE URL OF YOUR APPLICATION IF APPLICABLE.  IF THERE IS NO WEB INTERFACE,
+	# THIS SECTION SHOULD BE COMMENTED OUT.
+	echo "To use this appliance, please use a web browser" >> /etc/issue
+	echo "from another system to navigate to " >> /etc/issue
+	echo " " >> /etc/issue
+	/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print "http://"$2"/" }' >> /etc/issue
+	echo " " >> /etc/issue
+	
+	
+	echo "To login and manage the appliance use" >> /etc/issue
+	echo "Username:  Admin" >> /etc/issue
+	echo "Password:  Password" >> /etc/issue
+    else
+	echo "This appliance does not have networking configured.  Please log in to configure networking" >> /etc/issue
+    fi
+    
+    ##
+    # Input a link to an external website to reference
+    echo "For more information regarding this appliance, please visit" >> /etc/issue
+    echo "http://clovr.sf.net" >> /etc/issue
+    echo " " >> /etc/issue
+    
+    if [ -f "/var/nimbus-metadata-server-url" ]
+	then
+	vlog "vappio_cloud_type=NIMBUS"
+	export vappio_cloud_type=NIMBUS
+	echo "NIMBUS" > $vappio_runtime/cloud_type
+	$vappio_scripts/nimbus/start_nimbus.sh
+    else
+	##
+	# If this curl fails it means we are not on EC2 (hopefully)
+	curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
+	if [ $? = "0" ]
+	    then
+	    vlog "vappio_cloud_type=EC2"
+	    export vappio_cloud_type=EC2
+	    echo "EC2" > $vappio_runtime/cloud_type
+	    $vappio_scripts/amazonec2/start_ec2.sh
+	    $vappio_scripts/create_swap_file.sh
+	fi
+    fi
+}
+
+do_stop() {
+    ##
+    # Delete this if we are a nimbus node, won't exist if we aren't
+    rm /var/nimbus-metadata-server-url
+
+    ##
+    # Remove any subversions tuff
+    rm -rf /root/.svn
+    rm -rf /root/.subversion
+
+    ##
+    # Don't want people having our SSH keys
+    rm -f /root/.ssh/authorized_keys
+
+    ##
+    # Logs just take up space and are not helpful
+    rm -f /var/log/*.log
+    rm -f /var/log/*.gz
+    rm -f /var/log/dmesg.*
+    rm -f /var/log/apache2/*
+    rm -f /var/log/lastlog
+
+}
+
+case "$1" in
+    start)
+	do_start
+	;;
+    stop)
+	do_stop
+	;;
+    *)
+	echo $"Usage: $0 {start|stop}"
+	exit 1
+esac
+
+exit $?
