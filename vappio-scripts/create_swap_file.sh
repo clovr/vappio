@@ -21,8 +21,9 @@ if [ $((SWAP_SIZE_MEGABYTES % 2)) != 0 ]; then
 fi           
 
 vlog "Creating /swapfile of $SWAP_SIZE_MEGABYTES Megabytes"
-dd if=/dev/zero of=/mnt/.swapfile.1 bs=1024k count=$(($SWAP_SIZE_MEGABYTES*1024)) 1>>$vappio_log 2>>$vappio_log   
-mkswap /mnt/.swapfile.1 1>>$vappio_log 2>>$vappio_log
-swapon /mnt/.swapfile.1 1>>$vappio_log 2>>$vappio_log
+dd of=/mnt/.swapfile.1 bs=1 count=0 seek=$(($SWAP_SIZE_MEGABYTES*1024))M 1>>$vappio_log 2>>$vappio_log   
+losetup /dev/loop0 /mnt/.swapfile.1 
+mkswap /dev/loop0 1>>$vappio_log 2>>$vappio_log
+swapon /dev/loop0 1>>$vappio_log 2>>$vappio_log
 vlog "Swap Status:"    
 swapon -s 1>>$vappio_log 2>>$vappio_log
