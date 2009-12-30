@@ -22,6 +22,9 @@ fi
 
 vlog "Creating /swapfile of $SWAP_SIZE_MEGABYTES Megabytes"
 dd of=/mnt/.swapfile.1 bs=1 count=0 seek=$(($SWAP_SIZE_MEGABYTES*1024))M 1>>$vappio_log 2>>$vappio_log   
+#Make sure loop module is loaded
+modprobe loop
+#Setup loop back device
 losetup /dev/loop0 /mnt/.swapfile.1 
 mkswap /dev/loop0 1>>$vappio_log 2>>$vappio_log
 swapon /dev/loop0 1>>$vappio_log 2>>$vappio_log
