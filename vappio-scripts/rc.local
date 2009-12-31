@@ -2,16 +2,22 @@
 # Ubuntu doesn't use /etc/rc.local
 # https://help.ubuntu.com/community/RcLocalHowto
 
-# Import vappio config
-vappio_scripts=/opt/vappio-scripts
-source $vappio_scripts/vappio_config.sh
+### BEGIN INIT INFO
+# Provides:             rc.local
+# Required-Start:       
+# Required-Stop:        
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 6
+# Short-Description:    Locals tartup
+### END INIT INFO
 
-vlog "###" 
-vlog "### $0 (`whoami`)" 
-vlog "###" 
 
 
 do_start() {
+    # Import vappio config
+    vappio_scripts=/opt/vappio-scripts
+    source $vappio_scripts/vappio_config.sh
+
     echo "CloVR VM beta-v1r2b2-sybil" > /etc/issue
     echo "Powered by Ubuntu Linux 9.04 \n \l" >> /etc/issue
     echo " " >> /etc/issue
