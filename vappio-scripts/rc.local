@@ -91,6 +91,10 @@ do_stop() {
     rm -f /var/log/apache2/*
     rm -f /var/log/lastlog
 
+    ##
+    # Remove ergatis logs
+    rm -rf /opt/ergatis/global_id_repository/logs/*
+
 }
 
 case "$1" in
