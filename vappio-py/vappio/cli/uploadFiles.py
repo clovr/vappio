@@ -3,7 +3,6 @@
 # Uploads files to a cluster
 import os
 import time
-import optparse
 
 from igs.utils.cli import buildConfig, MissingOptionError, buildConfigN, notNone
 from igs.utils.config import configFromMap, configFromStream
