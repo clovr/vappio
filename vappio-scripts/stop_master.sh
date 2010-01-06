@@ -28,6 +28,10 @@ for p in $harvesting_dir $staging_dir $wfworking_dir $scratch_dir /var/spool/sge
   rm -rf $p
 done
 
+##
+# Cleaning up some files specific to the master
+rm -f /opt/sge/default/spool/qmaster/messages
+
 
 echo "OFFLINE" > $vappio_runtime/node_type
 date > /root/last_stop_master
