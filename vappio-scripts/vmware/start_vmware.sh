@@ -26,7 +26,9 @@ if [ -e $postgres_data_dir_mp/postmaster.opts ]; then
     # Start the postgres server
     /etc/init.d/postgresql-8.3 start
 else
-    echo 'Did not find the required postgres files. Server will not start'
+    tar xzf $postgres_data_dir_tarball --no-same-owner -C $postgres_data_dir_mp
+    echo 'Copied in an empty postgres data directory'
+    /etc/init.d/postgresql-8.3 start
 fi
 
 # modify vappio_config.sh with the vmware-specific variables recorded in vmware_config.sh
