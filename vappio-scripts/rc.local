@@ -65,8 +65,17 @@ do_start() {
 	    echo "EC2" > $vappio_runtime/cloud_type
 	    $vappio_scripts/amazonec2/start_ec2.sh
 	    $vappio_scripts/create_swap_file.sh
-	fi
+    else
+    vmware-checkvm
+    if [ $? = "0" ]
+    then
+        vlog "vappio_cloud_type=vmware"
+        export vappio_cloud_type=vmware
+        echo "VMware" > $vappio_runtime/cloud_type
+        $vappio_scripts/vmware/start_vmware.sh
     fi
+  fi
+fi
 }
 
 do_stop() {
