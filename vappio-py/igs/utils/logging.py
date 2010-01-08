@@ -14,6 +14,7 @@ def logPrint(msg, stream=None):
     if stream is None:
         stream = OUTSTREAM
     stream.write('LOG: %s - %s\n' % (timestamp(), removeRecursiveMsg(msg)))
+    stream.flush()
 
 
 def errorPrint(msg, stream=None):
@@ -21,6 +22,7 @@ def errorPrint(msg, stream=None):
         stream = ERRSTREAM
 
     stream.write('ERROR: %s - %s\n' % (timestamp(), removeRecursiveMsg(msg)))
+    stream.flush()
 
 def debugPrint(fmsg, stream=None):
     """In this case msg is a function, so the work is only done if debugging is one"""
@@ -29,6 +31,7 @@ def debugPrint(fmsg, stream=None):
             stream = ERRSTREAM
 
         stream.write('DEBUG: %s - %s\n' % (timestamp(), removeRecursiveMsg(fmsg())))
+        stream.flush()
 
 
 def timestamp():
