@@ -55,7 +55,17 @@ do_start() {
 	echo "NIMBUS" > $vappio_runtime/cloud_type
 	$vappio_scripts/nimbus/start_nimbus.sh
     else
-	##
+    ##
+    # If vmware-checkvm returns 1 we know we are not on VMware
+    vmware-checkvm
+    if [ $? = "0" ]
+    then
+        vlog "vappio_cloud_type=vmware"
+        export vappio_cloud_type=vmware
+        echo "VMware" > $vappio_runtime/cloud_type
+        $vappio_scripts/vmware/start_vmware.sh
+    
+	else
 	# If this curl fails it means we are not on EC2 (hopefully)
 	curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
 	if [ $? = "0" ]
@@ -65,14 +75,6 @@ do_start() {
 	    echo "EC2" > $vappio_runtime/cloud_type
 	    $vappio_scripts/amazonec2/start_ec2.sh
 	    $vappio_scripts/create_swap_file.sh
-    else
-    vmware-checkvm
-    if [ $? = "0" ]
-    then
-        vlog "vappio_cloud_type=vmware"
-        export vappio_cloud_type=vmware
-        echo "VMware" > $vappio_runtime/cloud_type
-        $vappio_scripts/vmware/start_vmware.sh
     fi
   fi
 fi
