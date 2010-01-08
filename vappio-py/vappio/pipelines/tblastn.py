@@ -8,21 +8,19 @@ from igs.utils.cli import notNone, defaultIfNone
 
 
 
+def restrictValues(values):
+    def _(v):
+        if v not in values:
+            raise Exception('Value must be one of: %s' % ', '.join([str(x) for x in values]))
+        return v
+
+    return _
+
 ##
 # Need to know where the template lives
 TEMPLATE_DIR = '/opt/clovr_pipelines/workflow/project_saved_templates/tblastn_tmpl'
 
 
-##
-# These are options that will be taken from the command line.  The
-# format is (name, func, description)
-#
-# Where
-# name - the name they will pass on the command line, this also matches the name of the variable in
-#        the config file
-# func - A functiont hat is applied to the option from the command line, if nothing needs to be
-#        done simply use igs.utils.functional.id
-# description - Just a brief description of the variable, this will be in the --help for the pipeline
 OPTIONS = [
     ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of sequences', compose(lambda x : '${dirs.upload_dir}/tags/' + x, notNone)),
     ('REF_DB_PATH', '', '--REF_DB_PATH', 'The reference db for the blast run', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
@@ -32,6 +30,7 @@ OPTIONS = [
     # str . int
     ('SEQS_PER_FILE', '', '--SEQS_PER_FILE', 'Number of sequences per file, defaults to 1000', compose(str, int, defaultIfNone('1000'))),
     ('EXPECT', '', '--EXPECT', 'e-value cutoff, default is 1e-5', defaultIfNone('1e-5')),
-    ('OTHER_OPTS', '', '--OTHER_OPTS', 'Other options to pass to blast', defaultIfNone(''))
+    ('OTHER_OPTS', '', '--OTHER_OPTS', 'Other options to pass to blast', defaultIfNone('')),
+    ('FILTER', '', '--FILTER', 'Filter query, default is T', compose(restrictValues(['T', 'F']), defaultIfNone('T')))
     ]
 
