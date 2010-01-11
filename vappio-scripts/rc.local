@@ -62,8 +62,8 @@ do_start() {
     then
         vlog "vappio_cloud_type=vmware"
         export vappio_cloud_type=vmware
-        echo "VMware" > $vappio_runtime/cloud_type
         $vappio_scripts/vmware/start_vmware.sh
+        echo "VMware" > $vappio_runtime/cloud_type
     
 	else
 	# If this curl fails it means we are not on EC2 (hopefully)
@@ -72,11 +72,29 @@ do_start() {
 	    then
 	    vlog "vappio_cloud_type=EC2"
 	    export vappio_cloud_type=EC2
-	    echo "EC2" > $vappio_runtime/cloud_type
 	    $vappio_scripts/amazonec2/start_ec2.sh
+	    echo "EC2" > $vappio_runtime/cloud_type
 	    $vappio_scripts/create_swap_file.sh
+        nodetype=`cat $vappio_runtime/node_type`
+        if [ "$nodetype" == "EXEC_NODE" ]
+        then
+            #add autoshutdown cron for exec node types
+            #add cron job to shutdown at 60 mins if idle
+            min=`date +"%-M"`
+            shutdownmin=$(($min-10))
+            if [ $shutdownmin -lt 0 ]
+            then
+            shutdownmin=$((60 + $shutdownmin));
+            fi
+            echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > $vappio_runtime/shutdown.crontab
+            crontab -u root $vappio_runtime/shutdown.crontab
+        fi 
     fi
-  fi
+    vappio_node_type=`cat $vappio_runtime/node_type`
+    vappio_cloud_type=`cat $vappio_runtime/cloud_type`
+    gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
+    gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
+  fi 
 fi
 }
 
