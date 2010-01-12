@@ -3,7 +3,7 @@
 # Get Sun Grid Engine (SGE) settings
 source /opt/sge/default/common/settings.sh
  
-expoort VAPPIO_HOME=/opt
+export VAPPIO_HOME=/opt
 export PYTHONPATH=/opt/vappio-py
 export JAVA_HOME=/usr
   
