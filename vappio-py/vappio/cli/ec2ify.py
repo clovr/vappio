@@ -43,7 +43,10 @@ def main(options, _args):
     runSystemEx(replaceStr(' '.join(cmd), options), log=options('general.debug'))
 
     cmd = ['ec2-register', '${general.image}/${general.image}.manifest.xml', '-K ${general.key}', '-C ${general.cert}']
-    runSystemEx(replaceStr(' '.join(cmd), options), log=options('general.debug'))
+
+    ##
+    # We want to output the AMI regardless
+    runSystemEx(replaceStr(' '.join(cmd), options), log=True)
 
 
 if __name__ == '__main__':
