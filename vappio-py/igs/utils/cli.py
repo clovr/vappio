@@ -7,19 +7,16 @@ from igs.utils.config import configFromStream, configFromMap, configFromEnv, rep
 class MissingOptionError(Exception):
     pass
 
+class InvalidOptionError(Exception):
+    pass
 
-def buildConfig(parser, merger):
-    """
-    parser is an object that is used to parse the command line
-    merger is a functiont hat is called with the results of parsing the command line
+class CLIError(Exception):
+    def __init__(self, option, original):
+        self.msg = str(original)
+        self.option = option
 
-    The result is expected to be a config option
-    """
-
-    options, args = parser.parse_args()
-
-    return merger(options, args)
-
+    def __str__(self):
+        return 'Error handling option: %s, failed with message: %s' % (self.option, self.msg)
 
 def buildConfigN(options, usage=None, putInGeneral=True):
     """
@@ -90,8 +87,8 @@ def buildConfigN(options, usage=None, putInGeneral=True):
                 vals[n] = replaceStr(v, baseConf)
             except TypeError:
                 vals[n] = v
-        except MissingOptionError:
-            raise MissingOptionError('Failed to provide a value for option: ' + l)
+        except Exception, err:
+            raise CLIError(l, err)
             
 
     if putInGeneral:
@@ -107,7 +104,7 @@ def notNone(v):
     Throws MissingOptionError if v is None, otherwise returns v
     """
     if v is None:
-        raise MissingOptionError('Must provide a value for opion')
+        raise MissingOptionError('Must provide a value for option')
 
     return v
 
@@ -122,5 +119,13 @@ def defaultIfNone(d):
             return d
         else:
             return v
+
+    return _
+
+def restrictValues(values):
+    def _(v):
+        if v not in values:
+            raise InvalidOptionError('Value must be one of: %s' % ', '.join([str(x) for x in values]))
+        return v
 
     return _

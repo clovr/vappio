@@ -1,20 +1,9 @@
 ##
-# This handles running a blastn pipeline
 # THIS SHOULD BE RUN ON THE REMOTE SIDE
 import os
 
 from igs.utils.functional import identity, compose
-from igs.utils.cli import notNone, defaultIfNone
-
-
-
-def restrictValues(values):
-    def _(v):
-        if v not in values:
-            raise Exception('Value must be one of: %s' % ', '.join([str(x) for x in values]))
-        return v
-
-    return _
+from igs.utils.cli import notNone, defaultIfNone, restrictValues
 
 ##
 # Need to know where the template lives
