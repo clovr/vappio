@@ -28,6 +28,9 @@ repositoryq_conf=$vappio_scripts/sge/repository.q
 execq=exec.q
 execslots=2
 
+##Time in minutes to poll activity before automatic shutdown
+idleshutdown=3
+
 ##Workflow 
 wfworking_dir=/mnt/wf-working
 scratch_dir=/mnt/scratch
