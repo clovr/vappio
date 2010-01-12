@@ -4,7 +4,7 @@
 import os
 import time
 
-from igs.utils.cli import buildConfig, MissingOptionError, buildConfigN, notNone
+from igs.utils.cli import buildConfigN, notNone, MissingOptionError
 from igs.utils.config import configFromMap, configFromStream
 from igs.utils.ssh import scpToEx
 from igs.utils.logging import errorPrintS

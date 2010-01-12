@@ -2,10 +2,10 @@
 
 import optparse
 
-from igs.utils.cli import buildConfig, buildConfigN, notNone
+from igs.utils.cli import buildConfigN, notNone, restrictValues
 from igs.utils.config import configFromMap, configFromStream
 from igs.utils.logging import logPrint
-from igs.utils.functional import identity
+from igs.utils.functional import identity, compose
 
 from vappio.cluster.control import Cluster
 from vappio.ec2 import control as ec2Control
@@ -15,7 +15,7 @@ OPTIONS = [
     ('conf', '', '--conf', 'Config file name', notNone),
     ('name', '', '--name', 'Name of cluster', notNone),
     ('num', '', '--num', 'Number of exec nodes to start', int),
-    ('ctype', '', '--ctype', 'Type of cluster', notNone),
+    ('ctype', '', '--ctype', 'Type of cluster', compose(restrictValues(['ec2', 'nimbus']), notNone)),
     ('dev_mode', '-d', '--dev_mode', 'Dev mode or not', identity, True),
     ('release_cut', '', '--release_cut', 'Want to cut a release', identity, True),
     ('update_dirs', '', '--update_dirs', 'Want to update scripts dirs once instance is up', identity, True),
