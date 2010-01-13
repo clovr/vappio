@@ -23,8 +23,7 @@ do_start() {
     echo " " >> /etc/issue
     netcount=$(/sbin/ifconfig | grep -o "inet")
     if [[ $netcount > 1 ]]
-	then
-	
+    then
 	##
 	# THIS SHOULD INDICATE THE URL OF YOUR APPLICATION IF APPLICABLE.  IF THERE IS NO WEB INTERFACE,
 	# THIS SECTION SHOULD BE COMMENTED OUT.
@@ -49,7 +48,7 @@ do_start() {
     echo " " >> /etc/issue
     
     if [ -f "/var/nimbus-metadata-server-url" ]
-	then
+    then
 	vlog "vappio_cloud_type=NIMBUS"
 	export vappio_cloud_type=NIMBUS
 	echo "NIMBUS" > $vappio_runtime/cloud_type
@@ -57,45 +56,47 @@ do_start() {
     else
     ##
     # If vmware-checkvm returns 1 we know we are not on VMware
-    vmware-checkvm
-    if [ $? = "0" ]
-    then
-        vlog "vappio_cloud_type=vmware"
-        export vappio_cloud_type=vmware
-        $vappio_scripts/vmware/start_vmware.sh
-        echo "VMware" > $vappio_runtime/cloud_type
-    
-	else
-	# If this curl fails it means we are not on EC2 (hopefully)
-	curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
+	vmware-checkvm
 	if [ $? = "0" ]
+	then
+        #In vmware
+            vlog "vappio_cloud_type=vmware"
+            export vappio_cloud_type=vmware
+            $vappio_scripts/vmware/start_vmware.sh
+            echo "VMware" > $vappio_runtime/cloud_type
+	else
+        # If this curl fails it means we are not on EC2 (hopefully)
+	    curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
+	    if [ $? = "0" ]
 	    then
-	    vlog "vappio_cloud_type=EC2"
-	    export vappio_cloud_type=EC2
-	    $vappio_scripts/amazonec2/start_ec2.sh
-	    echo "EC2" > $vappio_runtime/cloud_type
-	    $vappio_scripts/create_swap_file.sh
-        nodetype=`cat $vappio_runtime/node_type`
-        if [ "$nodetype" == "EXEC_NODE" ]
-        then
-            #add autoshutdown cron for exec node types
-            #add cron job to shutdown at 60 mins if idle
-            min=`date +"%-M"`
-            shutdownmin=$(($min-10))
-            if [ $shutdownmin -lt 0 ]
-            then
-            shutdownmin=$((60 + $shutdownmin));
+		vlog "vappio_cloud_type=EC2"
+		export vappio_cloud_type=EC2
+		$vappio_scripts/amazonec2/start_ec2.sh
+		echo "EC2" > $vappio_runtime/cloud_type
+		$vappio_scripts/create_swap_file.sh
+            else
+		vlog "vappio_cloud_type=XEN"
+		export vappio_cloud_type=XEN
+		echo "XEN" > $vappio_runtime/cloud_type
             fi
-            echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > $vappio_runtime/shutdown.crontab
-            crontab -u root $vappio_runtime/shutdown.crontab
-        fi 
+	fi
     fi
-    vappio_node_type=`cat $vappio_runtime/node_type`
-    vappio_cloud_type=`cat $vappio_runtime/cloud_type`
-    gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
-    gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
-  fi 
-fi
+
+    #This needs to move till after ganglia is configured
+    #vappio_node_type=`cat $vappio_runtime/node_type`
+    #vappio_cloud_type=`cat $vappio_runtime/cloud_type`
+    #gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
+    #gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
+    
+    #Set up hostname if we don't have one
+    #This is required so that SGE can run locally without problems
+    hostname -f
+    if [ $? != "0" ]
+    then
+	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	hostname clovr-$ipaddr
+	echo "$ipaddr clovr-$ipaddr clovr-$ipaddr" >> /etc/hosts
+    fi
 }
 
 do_stop() {
@@ -123,6 +124,9 @@ do_stop() {
     ##
     # Remove ergatis logs
     rm -rf /opt/ergatis/global_id_repository/logs/*
+
+    #Recover a naked hosts file
+    cp /etc/hosts.orig /etc/hosts
 
 }
 

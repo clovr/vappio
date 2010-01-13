@@ -52,3 +52,17 @@ $qsubcmd 1>> $vappio_log 2>> $vappio_log
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq 
 
 echo "EXEC_NODE" > $vappio_runtime/node_type
+
+cloudtype=`cat $vappio_runtime/cloud_type`
+if [ "$cloudtype" == "EC2" ]
+    #add autoshutdown cron for exec node types
+    #add cron job to shutdown at 60 mins if idle
+    min=`date +"%-M"`
+    shutdownmin=$(($min-10))
+    if [ $shutdownmin -lt 0 ]
+    then
+	shutdownmin=$((60 + $shutdownmin));
+    fi
+    echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > $vappio_runtime/shutdown.crontab
+    crontab -u root $vappio_runtime/shutdown.crontab
+fi

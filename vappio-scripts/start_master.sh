@@ -68,6 +68,12 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue slots $stagingsubslots $stagingsubq
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue slots $harvestingslots $harvestingq
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue slots $execslots $execq
 
+#Limit slots to 1 on the master
+#Can also set to zero (slots=0) to "hold" work in the exec.q until
+#there are additional hosts
+$SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq 
+$SGE_ROOT/bin/$ARCH/qconf -mattr exechost complex_values slots=1 $myhostname
+
 
 # CURRENTLY DISABLED
 #Temp to set up staging and test project
@@ -82,3 +88,4 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue slots $execslots $execq
 #popd
 
 echo "MASTER_NODE" > $vappio_runtime/node_type
+
