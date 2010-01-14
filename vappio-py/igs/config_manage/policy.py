@@ -5,7 +5,7 @@ import os
 
 from igs.utils.logging import errorPrintS
 from igs.utils.commands import runSingleProgram, ProgramRunError
-from igs.utils.config import configFromMap, configFromStream, replaceStr
+from igs.utils.config import configFromMap, configFromStream, configFromEnv, replaceStr
 
 
 ##
@@ -16,7 +16,7 @@ conf = configFromStream(open('/tmp/machine.conf'), configFromMap({
     'opt': {'package_dir': '/opt/opt-packages',
             'base_dir': '/opt'},
     'config': {'filename': '/tmp/machine.conf'},
-    }))
+    }, configFromEnv()))
 
 
 
