@@ -3,6 +3,8 @@
 import os
 
 from igs.utils.commands import runSystemEx
+from igs.utils.config import configFromEnv
+
 
 from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT, configFromStream
 
@@ -37,7 +39,7 @@ def startUp(conf):
 
 def startUpFromConfigFile(fname):
     """Run startup from a config file"""
-    return startUp(configFromStream(open(fname)))
+    return startUp(configFromStream(open(fname)), configFromEnv())
 
 def startUpDevNode(conf):
     """
