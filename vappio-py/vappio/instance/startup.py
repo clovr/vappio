@@ -39,7 +39,7 @@ def startUp(conf):
 
 def startUpFromConfigFile(fname):
     """Run startup from a config file"""
-    return startUp(configFromStream(open(fname)), configFromEnv())
+    return startUp(configFromStream(open(fname)))
 
 def startUpDevNode(conf):
     """
@@ -65,9 +65,6 @@ def startUpDevNode(conf):
     runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages /opt/opt-packages""")
 
 def startUpMasterNode(conf):
-    """
-    1 - Setup hadoop
-    """
     executePolicyDir('/opt/config_policies/MASTER')
     
 
