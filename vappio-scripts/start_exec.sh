@@ -28,12 +28,35 @@ rm -rf /var/spool/sge
 mkdir /var/spool/sge
 chown $sgeadmin_user:$sgeadmin_user /var/spool/sge
 
-#start sgeexecd
-sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
+#start sgeexecd here or after add_host?
 myhostname=`hostname -f`
 
 #add this host as an administrative host
-curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname"
+#if there is no DNS, we need to add master to our hosts file
+#and master will add us 
+if [ -f $vappio_runtime/no_dns ]
+then
+    #should check here that $MASTER_NODE is an ipddr
+    masterip=$MASTER_NODE
+    o1='1[0-9]{0,2}|2([6-9]|[0-4][0-9]?|5[0-4]?)?|[3-9][0-9]?'
+    o0='0|255|'"$o1"
+    if echo "$masterip" | egrep -v "^($o1)(\.($o0)){2}\.($o1)$" >/dev/null; then
+	echo "valid hostname $MASTER_NODE"
+	#parse IP
+	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname"
+    else
+	MASTER_NODE=`echo $masterip | sed 's/\./\-/g'`
+	MASTER_NODE="clovr-$MASTER_NODE"
+	echo "Found $masterip, assuming hostname $MASTER_NODE"
+	echo "$masterip $MASTER_NODE $MASTER_NODE" >> /etc/hosts
+	echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
+	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname&ipaddr=$ipaddr"
+    fi
+fi
+
+sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
+
 #start execd
 $SGE_ROOT/$SGE_CELL/common/sgeexecd
 
@@ -55,6 +78,7 @@ echo "EXEC_NODE" > $vappio_runtime/node_type
 
 cloudtype=`cat $vappio_runtime/cloud_type`
 if [ "$cloudtype" == "EC2" ]
+then
     #add autoshutdown cron for exec node types
     #add cron job to shutdown at 60 mins if idle
     min=`date +"%-M"`

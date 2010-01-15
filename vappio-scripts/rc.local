@@ -12,31 +12,25 @@
 ### END INIT INFO
 
 
-
 do_start() {
     # Import vappio config
     vappio_scripts=/opt/vappio-scripts
     source $vappio_scripts/vappio_config.sh
-
-    echo "CloVR VM beta-v1r2b2-sybil" > /etc/issue
-    echo "Powered by Ubuntu Linux 9.04 \n \l" >> /etc/issue
+    echo -n "CloVR VM " > /etc/issue
+    cat /opt/CLOVR-RELEASE >> /etc/issue
+    echo "Running on Ubuntu Linux 9.04 \n \l" >> /etc/issue
     echo " " >> /etc/issue
     netcount=$(/sbin/ifconfig | grep -o "inet")
     if [[ $netcount > 1 ]]
     then
-	##
-	# THIS SHOULD INDICATE THE URL OF YOUR APPLICATION IF APPLICABLE.  IF THERE IS NO WEB INTERFACE,
-	# THIS SECTION SHOULD BE COMMENTED OUT.
 	echo "To use this appliance, please use a web browser" >> /etc/issue
 	echo "from another system to navigate to " >> /etc/issue
 	echo " " >> /etc/issue
 	/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print "http://"$2"/" }' >> /etc/issue
-	echo " " >> /etc/issue
-	
-	
-	echo "To login and manage the appliance use" >> /etc/issue
-	echo "Username:  Admin" >> /etc/issue
-	echo "Password:  Password" >> /etc/issue
+	echo " " >> /etc/issue       
+	#echo "To login and manage the appliance use" >> /etc/issue
+	#echo "Username:  Admin" >> /etc/issue
+	#echo "Password:  Password" >> /etc/issue
     else
 	echo "This appliance does not have networking configured.  Please log in to configure networking" >> /etc/issue
     fi
@@ -96,6 +90,7 @@ do_start() {
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 	hostname clovr-$ipaddr
 	echo "$ipaddr clovr-$ipaddr clovr-$ipaddr" >> /etc/hosts
+	touch $vappio_runtime/no_dns
     fi
 }
 
