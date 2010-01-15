@@ -122,7 +122,7 @@ do_stop() {
 
     #Recover a naked hosts file
     cp /etc/hosts.orig /etc/hosts
-
+    cp /etc/udev/rules.d/70-persistent-net.rules.orig /etc/udev/rules.d/70-persistent-net.rules
 }
 
 case "$1" in
