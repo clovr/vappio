@@ -50,6 +50,7 @@ $SGE_ROOT/bin/$ARCH/qconf -as $myhostname
 $SGE_ROOT/bin/$ARCH/qconf -Aprj $sge_project
 ## add a queue from file
 $SGE_ROOT/bin/$ARCH/qconf -Aq $execq_conf
+$SGE_ROOT/bin/$ARCH/qconf -Aq $pipelineq_conf
 $SGE_ROOT/bin/$ARCH/qconf -Aq $stagingq_conf 
 $SGE_ROOT/bin/$ARCH/qconf -Aq $stagingsubq_conf 
 $SGE_ROOT/bin/$ARCH/qconf -Aq $wfq_conf 
@@ -74,6 +75,7 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue slots $execslots $execq
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq 
 $SGE_ROOT/bin/$ARCH/qconf -mattr exechost complex_values slots=1 $myhostname
 
+$SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
 
 # CURRENTLY DISABLED
 #Temp to set up staging and test project

@@ -20,6 +20,7 @@ sge_project=$vappio_scripts/sge/global.project
 
 #SGE queues
 execq_conf=$vappio_scripts/sge/exec.q
+pipelineq_conf=$vappio_scripts/sge/pipeline.q
 harvestingq_conf=$vappio_scripts/sge/harvesting.q
 stagingq_conf=$vappio_scripts/sge/staging.q
 stagingsubq_conf=$vappio_scripts/sge/stagingsub.q
@@ -34,6 +35,7 @@ idleshutdown=3
 ##Workflow 
 wfworking_dir=/mnt/wf-working
 scratch_dir=/mnt/scratch
+
 
 ##SSH KEY CONFIG
 #ssh_key=/home/guest/.ssh/guest
@@ -57,6 +59,8 @@ stagingsubq=stagingsub.q
 stagingsubslots=1
 #Dedicated queue for syncing wf XML
 wfq=wf.q
+
+pipelineq=pipeline.q
 
 staging_script=$vappio_scripts/staging.sh
 seeding_script=$vappio_scripts/seeding.sh
