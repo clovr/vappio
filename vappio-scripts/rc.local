@@ -88,10 +88,14 @@ do_start() {
     if [ $? != "0" ]
     then
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
-	hostname clovr-$ipaddr
-	echo "$ipaddr clovr-$ipaddr clovr-$ipaddr" >> /etc/hosts
+	ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
+	hostname clovr-$ipalias
+	cp /etc/hosts.orig /etc/hosts
+	echo "$ipaddr clovr-$ipalias clovr-$ipalias" >> /etc/hosts
 	touch $vappio_runtime/no_dns
     fi
+    touch $vappio_log  
+    chmod 666 $vappio_log
 }
 
 do_stop() {
@@ -106,8 +110,9 @@ do_stop() {
 
     ##
     # Don't want people having our SSH keys
-    rm -f /root/.ssh/authorized_keys
-
+    #KEEPING THESE FOR NOW,NEEDED FOR VMWARE CLUSTERS
+#rm -f /root/.ssh/authorized_keys
+#rm /mnt/devel1.pem
     ##
     # Logs just take up space and are not helpful
     rm -f /var/log/*.log

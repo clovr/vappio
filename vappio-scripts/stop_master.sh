@@ -4,10 +4,14 @@ vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 ##
 
+# Force remove all running jobs
+$SGE_ROOT/bin/$ARCH/qdel -f -u '*'
+
+#Should probably wait here for all jobs to finish
+
 # Remove all hosts and queues
 $vappio_scripts/sge/wipe_queues.sh
 
-#/etc/init.d/sgemaster stop
 $SGE_ROOT/$SGE_CELL/common/sgemaster stop
 
 echo "" > $SGE_ROOT/$SGE_CELL/common/act_qmaster
@@ -31,7 +35,6 @@ done
 ##
 # Cleaning up some files specific to the master
 rm -f /opt/sge/default/spool/qmaster/messages
-
 
 echo "OFFLINE" > $vappio_runtime/node_type
 date > /root/last_stop_master

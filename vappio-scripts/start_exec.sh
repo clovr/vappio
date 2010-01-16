@@ -48,7 +48,11 @@ then
 	MASTER_NODE=`echo $masterip | sed 's/\./\-/g'`
 	MASTER_NODE="clovr-$MASTER_NODE"
 	echo "Found $masterip, assuming hostname $MASTER_NODE"
-	echo "$masterip $MASTER_NODE $MASTER_NODE" >> /etc/hosts
+	if grep $masterip /etc/hosts ; then
+	    echo "hostname already found, skipping"
+	else
+	    echo "$masterip $MASTER_NODE $MASTER_NODE" >> /etc/hosts
+	fi
 	echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname&ipaddr=$ipaddr"
