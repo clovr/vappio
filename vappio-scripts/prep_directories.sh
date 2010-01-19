@@ -10,7 +10,7 @@ vlog "### $0 (`whoami`)"
 vlog "###"
 
 #create local directories for workflows
-for i in $harvesting_dir $staging_dir $wfworking_dir $scratch_dir $scratch_dir/ergatis;
+for i in $harvesting_dir $staging_dir $wfworking_dir $scratch_dir $scratch_dir/ergatis $vappio_runtime;
 do
   mkdir -p $i
   chmod 777 $i
