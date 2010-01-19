@@ -43,6 +43,16 @@ else
     $vappio_scripts/prep_directories.sh 1> /dev/null 2> /dev/null
 fi
 
+#Check for devel1.pem
+if [ -f "$ssh_key" ] 
+then
+    echo "Found ssh key"
+    chmod 600 $ssh_key
+    chown www-data:www-data $ssh_key
+else
+    echo "WARNING: SSH key $ssh_key not found. Ad-hoc clustering will not work"
+fi
+
 # know /var/nimbus-metadata-server-url has to exist
 #curl -f -s $vappio_url_user_data
 #curl http://128.135.125.124:8081/2008-08-08/user-data
