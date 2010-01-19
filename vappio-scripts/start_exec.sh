@@ -6,12 +6,35 @@ source $vappio_scripts/vappio_config.sh
 
 # Expected to be run as
 # start_exec.sh $MASTER_NODE
+USAGE="USAGE:$0 <master_node hostname or IP>\n
+Enter a valid hostname of a master node\n
+If you are running a CloVR VMware cluster with no DNS,\n
+you can also enter the IP address of a master node"
 
 vlog "###"
 vlog "### $0 (`whoami`)"
 vlog "###"
 
 MASTER_NODE=$1
+
+if [ "$MASTER_NODE" == "" ]
+then 
+    echo -e $USAGE
+#    echo "USAGE:$0 <master_node hostname or IP>"
+#    echo "Enter a valid hostname of a master node";
+#    echo "If you are running a CloVR VMware cluster with no DNS, you can also enter the IP address of a master node"
+    exit;
+else
+    ping $MASTER_NODE -c 1
+    if [ $? == 0 ]
+    then
+	echo "Master node $MASTER_NODE found. Adding this node to the cluster"
+    else
+	echo "ERROR Master node $MASTER_NODE not found."
+	echo -e $USAGE
+	exit;
+    fi
+fi
 
 # create local directories for workflows
 $vappio_scripts/prep_directories.sh
