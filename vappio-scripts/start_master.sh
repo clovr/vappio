@@ -73,7 +73,8 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue slots $execslots $execq
 #Can also set to zero (slots=0) to "hold" work in the exec.q until
 #there are additional hosts
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq 
-$SGE_ROOT/bin/$ARCH/qconf -mattr exechost complex_values slots=1 $myhostname
+#This will prevent more than 1 job from running across any queue
+#$SGE_ROOT/bin/$ARCH/qconf -mattr exechost complex_values slots=1 $myhostname
 
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
 
