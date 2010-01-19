@@ -8,7 +8,8 @@ from igs.utils.ssh import scpFromEx
 from igs.utils.logging import errorPrintS, errorPrint
 from igs.utils.functional import compose
 
-from vappio.instance.control import runSystemInstanceEx
+from vappio.instance.transfer import downloadPipeline
+from vappio.instance.misc import getInstances
 
 from vappio.ec2 import control as ec2control
 
@@ -22,12 +23,9 @@ OPTIONS = [
     ('overwrite', '', '--overwrite', 'Do you want to overwrite a local file if it already exists?', defaultIfNone(False), True),
     ]
 
-def getInstances(f):
-    return [i for i in ec2control.listInstances() if f(i)]
-
 
 def main(options, _args):
-    instances = getInstances(lambda i : i.publicDNS == options('general.name'))
+    instances = getInstances(lambda i : i.publicDNS == options('general.name'), ec2control)
     if not instances:
         raise MissingOptionError('Did not provide a valid host')
 

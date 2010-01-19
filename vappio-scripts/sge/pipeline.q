@@ -1,4 +1,4 @@
-qname                 pipline.q
+qname                 pipeline.q
 hostlist              NONE 
 seq_no                0
 load_thresholds       NONE 
