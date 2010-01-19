@@ -8,7 +8,7 @@ from igs.utils.ssh import scpFromEx
 from igs.utils.logging import errorPrintS, errorPrint
 from igs.utils.functional import compose
 
-from vappio.instance.transfer import downloadPipeline
+from vappio.instance.transfer import downloadPipeline, DownloadPipelineOverwriteError
 from vappio.instance.misc import getInstances
 
 from vappio.ec2 import control as ec2control
@@ -24,6 +24,7 @@ OPTIONS = [
     ]
 
 
+
 def main(options, _args):
     instances = getInstances(lambda i : i.publicDNS == options('general.name'), ec2control)
     if not instances:
@@ -31,22 +32,12 @@ def main(options, _args):
 
     mastInst = instances[0]
 
-    outF = '/mnt/%s_output.tar.gz' % options('general.pipeline')
-    
-    cmd = ['cd /mnt/projects/clovr;',
-           'tar',
-           '-zcf',
-           outF,
-           'output_repository/*/%s_default' % options('general.pipeline')]
-    
-    runSystemInstanceEx(mastInst, ' '.join(cmd), None, errorPrintS, user='root', options=options('ssh.options'), log=True)
-    fileExists = os.path.exists(os.path.join(options('general.output_dir'), os.path.basename(outF)))
-    if fileExists and options('general.overwrite') or not fileExists:
-        scpFromEx(mastInst.publicDNS, outF, options('general.output_dir'), user='root', options=options('ssh.options'), log=True)
-    else:
+    try:
+        downloadPipeline(mastInst, options, options('general.pipeline'), options('general.output_dir'), options('general.overwrite'), log=True)
+    except DownloadPipelineOverwriteError, err:
         errorPrint('')
         errorPrint('FAILING, File already exists and you have chosen not to overwrite')
         errorPrint('')
-
+        
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))
