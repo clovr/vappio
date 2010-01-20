@@ -9,7 +9,8 @@ from igs.utils.cli import buildConfigN, notNone, MissingOptionError
 from vappio.ec2 import control as ec2control
 
 from vappio.instance.transfer import uploadAndTag
-from vappio.instance.misc import getInstances
+
+from vappio.cluster.misc import getInstances
 
 OPTIONS = [
     ('conf', '', '--conf', 'Name of config file', notNone),

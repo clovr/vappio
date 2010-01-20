@@ -9,7 +9,8 @@ from igs.utils.logging import errorPrintS, errorPrint
 from igs.utils.functional import compose
 
 from vappio.instance.transfer import downloadPipeline, DownloadPipelineOverwriteError
-from vappio.instance.misc import getInstances
+
+from vappio.cluster.misc import getInstances
 
 from vappio.ec2 import control as ec2control
 
