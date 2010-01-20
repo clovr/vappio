@@ -14,12 +14,13 @@ RELEASE_CUT = 'RELEASE_CUT'
 def createDataFile(conf, mode, masterHost):
     ##
     # We want everything from the clovr config in here for now
-    open('/tmp/machine.conf', 'w').write(open(conf('general.conf')).read())
-    open('/tmp/machine.conf', 'a').write(open(conf('instance.config_file')).read())
-    open('/tmp/machine.conf', 'a').write('\n'.join(
-        ['[]',
-         'MASTER_IP=' + masterHost,
-         'NODE_TYPE=' + ','.join(mode)]) + '\n')
+    fout = open('/tmp/machine.conf', 'w')
+    fout.write(open(conf('general.conf')).read())
+    fout.write(open(conf('instance.config_file')).read())
+    fout.write('\n'.join(
+            ['[]',
+             'MASTER_IP=' + masterHost,
+             'NODE_TYPE=' + ','.join(mode)]) + '\n')
 
     return '/tmp/machine.conf'
 
