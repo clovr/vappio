@@ -17,7 +17,7 @@ OPTIONS = [
     ('conf', '', '--conf', 'Name of config file', notNone),
     ('name', '', '--name', 'Name of cluster (in this case the IP address of the master)', notNone),
     ##
-    # Want to make sure this is an int but we want it as a string later int he program
+    # Want to make sure this is an int but we want it as a string later in the program
     ('pipeline', '-p', '--pipeline_id', 'ID # for the pipeline', compose(str, int, notNone)),
     ('output_dir', '-o', '--output_dir', 'Directory the output file should go to', notNone),
     ('overwrite', '', '--overwrite', 'Do you want to overwrite a local file if it already exists?', defaultIfNone(False), True),
