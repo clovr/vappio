@@ -34,8 +34,10 @@ def generatePage(cgiPage):
     Takes an instance of CGIPage and generates a page from it,
     sending the proper headers and all that
     """
+    cgitb.enable()
     print cgiPage.contentType
-    print '\n'.join([h + ': ' + v for h, v in cgiPage.headers.iteritems()])
+    if cgiPage.headers:
+        print '\n'.join([h + ': ' + v for h, v in cgiPage.headers.iteritems()])
     print
     print cgiPage.body()
     
