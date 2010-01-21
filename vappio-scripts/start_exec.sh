@@ -80,6 +80,8 @@ then
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname&ipaddr=$ipaddr"
     fi
+else
+    curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname"
 fi
 
 sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
