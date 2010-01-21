@@ -4,6 +4,8 @@ import optparse
 
 from igs.utils.config import configFromStream, configFromMap, configFromEnv, replaceStr
 
+from igs.utils.functional import applyIfCallable
+
 class MissingOptionError(Exception):
     pass
 
