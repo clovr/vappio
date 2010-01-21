@@ -40,6 +40,9 @@ def buildConfigN(options, usage=None, putInGeneral=True):
     where args is whatever is left over from parsing
 
     This also implicitly loads the current environment into the env section
+
+    If, when evaluated, 'func' returns a function, it is called with the baseConf.  This is to allow more complex replacements to
+    happen.
     """
     def _iterBool(v):
         """
@@ -83,6 +86,11 @@ def buildConfigN(options, usage=None, putInGeneral=True):
             # The question is if baseConf is really the config file
             # we should be applying these from...
             v = f(getattr(ops, n))
+
+            ##
+            # Now v might still be a function at this point because we want to give
+            # them the ability to access baseConf is they need it to do more replacements
+            v = applyIfCallable(v, baseConf)
             try:
                 vals[n] = replaceStr(v, baseConf)
             except TypeError:

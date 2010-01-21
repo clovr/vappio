@@ -54,38 +54,67 @@ class NoKeyFoundError(Exception):
     def __str__(self):
         return self.key
 
-def configToFun(conf):
-    def _(k, *args, **kwargs):
-        try:
-            return conf[k]
-        except KeyError:
-            if args:
-                return args[0]
-            elif 'default' in kwargs:
-                return kwargs['default']
-            else:
-                raise NoKeyFoundError(k)
+###
+# New config style, more flexible
+class Config:
+    """
+    This represents a config, it's basically a linked list, each
+    config pointing to its parent and parent being None if there is none
 
-    return _
+    You'll notice there are no methods to modify this, Configs are meant to be
+    immutable
+    """
 
-def chainConfigFuns(cfs):
-    def _(k, *args, **kwargs):
-        for c in cfs:
-            try:
-                return c(k)
-            except NoKeyFoundError:
-                pass
+    def __init__(self, m, base):
+        self.conf = flattenMap(m)
+        self.base = base
 
-        if args:
-            return args[0]
-        elif 'default' in kwargs:
+        for k in self.conf.keys():
+            v = self.conf[k]
+            newV = replaceVariables(k, v, self)
+            if newV != v:
+                self.conf[k] = newV
+
+
+    def __call__(self, key, **kwargs):
+        """
+        We want this to match the current API which looks like function calls
+        """
+        return self.get(key, **kwargs)
+
+    def get(self, key, **kwargs):
+        """
+        If the key does not exist in this config and there is no base then raise
+        NoKeyFoundError
+
+        If the key does not exist and 'default' is in kwargs and there is no base
+        then return 'default'
+
+        If the key does not exist and there is a base then ask the base
+
+        Otherwise, return the key
+        """
+        if key not in self.conf and not self.base and 'default' not in kwargs:
+            raise NoKeyFoundError(key)
+        elif key not in self.conf and not self.base and 'default' in kwargs:
             return kwargs['default']
+        elif key not in self.conf:
+            return self.base.get(key, **kwargs)
         else:
-            raise NoKeyFoundError(k)
-
-    return _
+            return self.conf[key]
 
 
+    def keys(self):
+        """
+        Return a set of all the keys
+        """
+        s = set(self.conf.keys())
+        if self.base:
+            s = s | self.base.keys()
+
+        return s
+    
+        
 def configFromStream(stream, base=None):
     """
     Constructs a config function from a stream.
@@ -122,8 +151,6 @@ def configFromStream(stream, base=None):
             cfg[section][key] = value[:-1]
 
     return configFromMap(cfg, base)
-
-        
 
 
 def flattenMap(map):
@@ -194,36 +221,8 @@ def replaceStr(str, lookup):
 
     return str
 
-    
-        
-
 def configFromMap(map, base=None):
-    """
-    Constructs a config function from a map.  Values can be any type however
-    if they are a string they will be processed for variable substitution.
-
-    base is used if you want to make this on top of base (for example this references variables in base.
-
-    The returned value will be a composite of base with stream.    
-    """
-
-    ##
-    # First, flatten it:
-    conf = flattenMap(map)
-
-    if base:
-        chained = chainConfigFuns([configToFun(conf), base])
-    else:
-        chained = configToFun(conf)
-
-    for k in conf.keys():
-        v = conf[k]
-        newV = replaceVariables(k, v, chained)
-        if newV != v:
-            conf[k] = newV
-
-
-    return chained
+    return Config(map, base)
 
             
 def configFromEnv(base=None):
@@ -258,5 +257,5 @@ def test():
 
     print c1('general.zoom')
     print c1('testing.zoom')
-    
+    print c1.keys()
     

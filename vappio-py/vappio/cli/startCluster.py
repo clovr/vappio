@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import optparse
+import os
 
 from igs.utils.cli import buildConfigN, notNone, restrictValues
 from igs.utils.config import configFromMap, configFromStream
@@ -8,6 +8,7 @@ from igs.utils.logging import logPrint
 from igs.utils.functional import identity, compose
 
 from vappio.cluster.control import Cluster
+from vappio.cluster.persist import dump
 from vappio.ec2 import control as ec2Control
 
 
@@ -31,6 +32,7 @@ def main(options, _args):
     ctype = ec2Control
     cl = Cluster(options('general.name'), ctype, options)
     cl.startCluster(options('general.num'), devMode=options('general.dev_mode'), releaseCut=options('general.release_cut'))
+    dump(os.path.join(options('env.VAPPIO_HOME'), 'db'), cl)
     logPrint('The master IP is: ' + cl.master.publicDNS)
 
     

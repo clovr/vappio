@@ -10,12 +10,9 @@ from igs.utils.functional import compose
 
 from vappio.instance.transfer import downloadPipeline, DownloadPipelineOverwriteError
 
-from vappio.cluster.misc import getInstances
-
-from vappio.ec2 import control as ec2control
+from vappio.cluster.persist import load, dump
 
 OPTIONS = [
-    ('conf', '', '--conf', 'Name of config file', notNone),
     ('name', '', '--name', 'Name of cluster (in this case the IP address of the master)', notNone),
     ##
     # Want to make sure this is an int but we want it as a string later in the program
@@ -27,14 +24,10 @@ OPTIONS = [
 
 
 def main(options, _args):
-    instances = getInstances(lambda i : i.publicDNS == options('general.name'), ec2control)
-    if not instances:
-        raise MissingOptionError('Did not provide a valid host')
-
-    mastInst = instances[0]
+    cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))    
 
     try:
-        downloadPipeline(mastInst, options, options('general.pipeline'), options('general.output_dir'), options('general.overwrite'), log=True)
+        downloadPipeline(cluster.master, cluster.config, options('general.pipeline'), options('general.output_dir'), options('general.overwrite'), log=True)
     except DownloadPipelineOverwriteError, err:
         errorPrint('')
         errorPrint('FAILING, File already exists and you have chosen not to overwrite')
