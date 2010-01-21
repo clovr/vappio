@@ -20,7 +20,7 @@ def main(options, args):
     if len(args) < 1:
         raise MissingOptionError('Must provide input files')
     
-    srcFiles = args[:-1]
+    srcFiles = args
 
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
     
