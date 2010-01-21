@@ -33,8 +33,9 @@ def runPipeline(pipeline):
     
     conf, _args = buildConfigN(options, putInGeneral=False)
 
-    templateConfig = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline_tmpl.config')
-    templateLayout = os.path.join(pipeline.TEMPLATE_DIR, 'pipeline.layout')
+    templateDir = os.path.join(conf('dirs.clovr_pipelines_template_dir'), pipeline.TEMPLATE_NAME)
+    templateConfig = os.path.join(templateDir, 'pipeline_tmpl.config')
+    templateLayout = os.path.join(templateDir, 'pipeline.layout')
 
     foutName = os.path.join('/tmp', str(time.time()))
     fout = open(foutName, 'w')
