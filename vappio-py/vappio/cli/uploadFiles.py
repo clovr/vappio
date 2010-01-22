@@ -2,7 +2,6 @@
 ##
 # Uploads files to a cluster
 import os
-import time
 
 from igs.utils.cli import buildConfigN, notNone, MissingOptionError
 
