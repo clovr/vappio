@@ -17,7 +17,6 @@ verror() {
     master_node=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
     if [ "$master_node" != "" ]
     then
-	echo $master_node
 	stamp=`date +'%T %D'`
 	myhostname=`hostname -f`
     #Get latest log messages
