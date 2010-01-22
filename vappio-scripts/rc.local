@@ -13,9 +13,6 @@
 
 
 do_start() {
-    # Import vappio config
-    vappio_scripts=/opt/vappio-scripts
-    source $vappio_scripts/vappio_config.sh
     echo -n "CloVR VM " > /etc/issue
     cat /opt/CLOVR-RELEASE >> /etc/issue
     echo "Running on Ubuntu Linux 9.04 \n \l" >> /etc/issue
@@ -28,9 +25,6 @@ do_start() {
 	echo " " >> /etc/issue
 	/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print "http://"$2"/" }' >> /etc/issue
 	echo " " >> /etc/issue       
-	#echo "To login and manage the appliance use" >> /etc/issue
-	#echo "Username:  Admin" >> /etc/issue
-	#echo "Password:  Password" >> /etc/issue
     else
 	echo "This appliance does not have networking configured.  Please log in to configure networking" >> /etc/issue
     fi
@@ -45,8 +39,8 @@ do_start() {
     then
 	vlog "vappio_cloud_type=NIMBUS"
 	export vappio_cloud_type=NIMBUS
-	echo "NIMBUS" > $vappio_runtime/cloud_type
 	$vappio_scripts/nimbus/start_nimbus.sh
+	echo "NIMBUS" > $vappio_runtime/cloud_type
     else
     ##
     # If vmware-checkvm returns 1 we know we are not on VMware
@@ -81,8 +75,20 @@ do_start() {
     #vappio_cloud_type=`cat $vappio_runtime/cloud_type`
     #gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
     #gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
-    
-    #Set up hostname if we don't have one
+
+    #Check for devel1.pem
+    if [ -f "$ssh_key" ] 
+    then
+	echo "Found ssh key"
+	chmod 600 $ssh_key
+	chown www-data:www-data $ssh_key
+    else
+	echo "WARNING: SSH key $ssh_key not found. Grid may not work properly."
+    fi
+
+    ##
+    #To support ad-hoc virtual clusters, 
+    #set up mock hostname if we don't have one, using the clovr-IPADDR naming convention
     #This is required so that SGE can run locally without problems
     hostname -f
     if [ $? != "0" ]
@@ -100,6 +106,26 @@ do_start() {
 
 do_stop() {
     ##
+    #Stop node services if still running
+    case `cat $vappio_runtime/node_type` in
+	MASTER_NODE) 
+	    echo "Node is MASTER_NODE. Shutting down"
+	    $vappio_scripts/stop_master.sh
+	    ;;
+	EXEC_NODE) 
+	    echo "Node is EXEC_NODE. Shutting down"
+	    $vappio_scripts/stop_exec.sh
+	    ;;
+	DATA_NODE) 
+	    echo "Node is DATA_NODE. Shutting down"
+	    $vappio_scripts/stop_data.sh
+	    ;;
+	OFFLINE) 
+	    echo "Node is OFFLINE. Shutting down"
+	    ;;
+    esac
+	
+    ##
     # Delete this if we are a nimbus node, won't exist if we aren't
     rm /var/nimbus-metadata-server-url
 
@@ -110,25 +136,52 @@ do_stop() {
 
     ##
     # Don't want people having our SSH keys
-    #KEEPING THESE FOR NOW,NEEDED FOR VMWARE CLUSTERS
+#KEEPING THESE FOR NOW,NEEDED FOR VMWARE CLUSTERS
 #rm -f /root/.ssh/authorized_keys
 #rm /mnt/devel1.pem
+    rm -f /root/.ssh/known_hosts
     ##
-    # Logs just take up space and are not helpful
+    # Logs just take up space and are not needed 
     rm -f /var/log/*.log
     rm -f /var/log/*.gz
     rm -f /var/log/dmesg.*
     rm -f /var/log/apache2/*
     rm -f /var/log/lastlog
 
+    rm -rf /root/.cpan
+    rm -f /root/.bash_history
+    rm -f /root/.lesshst
+    rm -f /root/.Xauthority
+    rm -rf /root/.aptitude
+    rm -rf /root/.debtags
+    rm -f /root/.vimrc
+    rm -f /root/.viminfo
+    rm -f /root/.viminfo
+    rm -f /root/.gnupg
+
     ##
     # Remove ergatis logs
     rm -rf /opt/ergatis/global_id_repository/logs/*
 
+    ##
     #Recover a naked hosts file
     cp /etc/hosts.orig /etc/hosts
+    
+    #Recover a naked udev rules file for VMware.  VMware will continue to
+    #add new network cards if this file is saved between runs.
     cp /etc/udev/rules.d/70-persistent-net.rules.orig /etc/udev/rules.d/70-persistent-net.rules
+
+    #TODO, save data if running under vmware
+    #for p in $harvesting_dir $staging_dir $wfworking_dir $scratch_dir /var/spool/sge /mnt/projects/clovr
+    #do
+    #echo "Removing directory $p"
+    #rm -rf $p
+    #done
 }
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
 
 case "$1" in
     start)

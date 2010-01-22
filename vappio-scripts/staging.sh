@@ -20,12 +20,48 @@ vlog "###"
 vlog "### $0 (`whoami`) on `hostname`" 
 vlog "###" 
 
+#The remotehost has been sucessfully staged 
+#and is ready to seed peers
 remotehost="$1"
 
+ping $remotehost -c 1
+if [ $? == 0 ]
+then
+    vlog "ping succeeded to $remotehost"
+else
+    vlog "ping failed to $remotehost"
+    vlog "attempting to derive IP address"
+    o1='1[0-9]{0,2}|2([6-9]|[0-4][0-9]?|5[0-4]?)?|[3-9][0-9]?'
+    o0='0|255|'"$o1"
+    if echo "$remotehost" | egrep -v "^($o1)(\.($o0)){2}\.($o1)$" 
+    then
+	remotehostipaddr=`echo $remotehost | perl -ne '/^\w+\-([\d\-]+)/;$x=$1;$x =~ s/\-/\./g;print $x'`
+	vlog "parsed ip address $remotehostipaddr from $remotehost"
+	#we have the IP
+	ping $remotehostipaddr -c 1
+	if [ $? == 0 ]
+	then	    
+	    echo "$remotehostipaddr $remotehost $remotehost" >> /etc/hosts
+	else
+	    vlog "ERROR. Invalid ip ($remotehostipaddr) from host $remotehost"
+	    exit 1;
+	fi
+    else
+	vlog "ping $remotehost failed and unable to parse ip address from $remotehost"
+	#fail
+	exit 1;
+    fi
+fi
 #copy staging area
 vlog "Start staging from $staging_dir/ to $remotehost:$staging_dir"
-#rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ $remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
-#cmd="rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $staging_dir/ root@$remotehost:$staging_dir"
 vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $staging_dir/ root@$remotehost:$staging_dir"
 rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
-vlog "rsync return value: $?"
+if [ $? == 0 ]
+then
+    vlog "rsync success. return value: $?"
+else
+    vlog "ERROR: $0 rsync fail. return value $1"
+    verror "STAGING FAILURE";
+    exit 1;
+fi
+

@@ -1,15 +1,15 @@
 #/bin/bash
-##Import vappio config
-vappio_scripts=/opt/vappio-scripts
-source $vappio_scripts/vappio_config.sh
-##
-
 # Expected to be run as
 # start_exec.sh $MASTER_NODE
 USAGE="USAGE:$0 <master_node hostname or IP>\n
 Enter a valid hostname of a master node\n
 If you are running a CloVR VMware cluster with no DNS,\n
 you can also enter the IP address of a master node"
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+##
 
 vlog "###"
 vlog "### $0 (`whoami`)"
@@ -20,32 +20,27 @@ MASTER_NODE=$1
 if [ "$MASTER_NODE" == "" ]
 then 
     echo -e $USAGE
-#    echo "USAGE:$0 <master_node hostname or IP>"
-#    echo "Enter a valid hostname of a master node";
-#    echo "If you are running a CloVR VMware cluster with no DNS, you can also enter the IP address of a master node"
-    exit;
+    exit 1;
 else
     ping $MASTER_NODE -c 1
     if [ $? == 0 ]
     then
-	echo "Master node $MASTER_NODE found. Adding this node to the cluster"
+	echo "Master node $MASTER_NODE found. Attempting to add this node to the cluster"
     else
 	echo "ERROR Master node $MASTER_NODE not found."
 	echo -e $USAGE
-	exit;
+	exit 1;
     fi
 fi
 
 # create local directories for workflows
 $vappio_scripts/prep_directories.sh
 
-# CURRENTLY DISABLED
-chmod 600 /mnt/devel1.pem
-#should be changed to sge user
-chown $apache_user:$apache_user /mnt/devel1.pem
-
 #conf sgemaster
 echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
+
+##
+#TODO, determine if this is stil necessary. I think the SGE spool directory has changed
 #remove local execd spool dir
 rm -rf /var/spool/sge
 mkdir /var/spool/sge
@@ -93,8 +88,15 @@ $SGE_ROOT/$SGE_CELL/common/sgeexecd
 $SGE_ROOT/bin/$ARCH/qconf -as $myhostname
 
 # stage the default staging data
-qsubcmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
 vlog "Running $qsubcmd"
+qsubcmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
+if [ $? == 0 ]
+then
+    echo "Successfully seeded node $myhostname"
+else
+    echo "ERROR: Failed to seed node $myhostname. See error log /mnt/scratch"
+fi
+
 #su -p guest -c "$qsubcmd"
 # Above will fail if run as guest with  error: can't chdir to /home/guest: No such file or directory"
 # $SGE_ROOT/bin/$ARCH/qsub -b y -sync n -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingq
@@ -105,11 +107,12 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq
 
 echo "EXEC_NODE" > $vappio_runtime/node_type
 
+##
+#For EC2 only, add autoshutdown cron for exec node types
+#add cron job to shutdown at 60 mins if idle
 cloudtype=`cat $vappio_runtime/cloud_type`
 if [ "$cloudtype" == "EC2" ]
 then
-    #add autoshutdown cron for exec node types
-    #add cron job to shutdown at 60 mins if idle
     min=`date +"%-M"`
     shutdownmin=$(($min-10))
     if [ $shutdownmin -lt 0 ]

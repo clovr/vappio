@@ -1,4 +1,7 @@
 #/bin/bash
+#stop_master.sh
+#Stops a Vappio master node
+
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
@@ -26,15 +29,9 @@ then
     kill $execpid
 fi
 
-# rm dirs in /mnt (otherwise they will be saved on Nimbus)
-for p in $harvesting_dir $staging_dir $wfworking_dir $scratch_dir /var/spool/sge /mnt/projects/clovr
-  do
-  rm -rf $p
-done
-
 ##
 # Cleaning up some files specific to the master
 rm -f /opt/sge/default/spool/qmaster/messages
 
 echo "OFFLINE" > $vappio_runtime/node_type
-date > /root/last_stop_master
+date > $vappio_runtime/last_stop_master

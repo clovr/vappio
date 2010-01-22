@@ -1,11 +1,14 @@
 #!/bin/sh
 #Copies harvesting directory from an EXEC_NODE to a DATA_NODE, or the MASTER
 #
-#Invoked by SGE epilog. 
-#Scheduled through SGE running from harvesting.q(MASTER_NODE,DATA_NODE)
-#Note, the rsync is invoked so that the MASTER,DATA pulls data from the EXEC_NODE
-#This allows for coordination of harvesting so that a configurable number of harvesting steps
-#run concurrently as determined by the number of slots in the harvesting.q.
+
+#Invoked by SGE epilog and runs on a MASTER_NODE or DATA_NODE as
+#scheduled through SGE harvesting.q.  The rsync is invoked so that the
+#MASTER_NODE/DATA_NODE pulls data from the EXEC_NODE
+
+#This allows for coordination of harvesting so that a configurable
+#number of harvesting steps run concurrently as determined by the
+#number of slots in the harvesting.q.
 
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
@@ -27,4 +30,11 @@ vlog "Harvesting output from $exechost:$dir to $parentdir"
 mkdir -p $parentdir
 vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" root@$exechost:$dir $parentdir"
 rsync -av -e "$ssh_client -i $ssh_key $ssh_options" root@$exechost:$dir $parentdir 1>> $vappio_log 2>> $vappio_log
-vlog "rsync return value: $?"
+if [ $? == 0 ]
+then
+    vlog "rsync success. return value: $?"
+else
+    vlog "ERROR: $0 rsync fail. return value: $?"
+    verror "HARVESTING FAILURE"
+    exit 1;
+fi

@@ -1,7 +1,33 @@
 vappio_scripts=/opt/vappio-scripts
 vappio_runtime=/mnt/clovr/runtime/
 vappio_log=/tmp/vappio.log
+
+##
+#Debugging and error reporting functions
+#Report errors to the error log
 vlog() { echo [`date +'%T %D'`] $1 >> $vappio_log; }
+#Report an error back to the master nodes
+#Simplies debugging by keeping all error messages in one spot
+if [ -f "$vappio_log" ]
+then
+    logcount=`wc -l < $vappio_log`
+fi
+verror() { 
+    msg=$1
+    master_node=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
+    if [ "$master_node" != "" ]
+    then
+	echo $master_node
+	stamp=`date +'%T %D'`
+	myhostname=`hostname -f`
+    #Get latest log messages
+	newlogcount=`wc -l < $vappio_log`
+	newloglines=`expr $newlogcount - $logcount`
+	logmsg=`tail -n $newloglines $vappio_log`
+	reportstr=`echo -e "[$myhostname $stamp]\n$msg\n$logmsg"`
+	curl --retry 2 --silent --show-error --fail -d "msg=$reportstr" "http://$master_node:8080/announce.cgi"
+    fi
+}
 
 # This is used to make changes to the configuration at boot time
 mod_config() { perl -pi -e "s/^$1=.*/$1=$2/" $vappio_scripts/vappio_config.sh; }
@@ -35,7 +61,6 @@ idleshutdown=3
 ##Workflow 
 wfworking_dir=/mnt/wf-working
 scratch_dir=/mnt/scratch
-
 
 ##SSH KEY CONFIG
 #ssh_key=/home/guest/.ssh/guest

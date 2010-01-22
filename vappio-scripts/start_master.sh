@@ -1,4 +1,7 @@
 #/bin/bash
+#start_master.sh
+#Starts a Vappio master host
+
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
@@ -13,15 +16,12 @@ vlog "###"
 # create local directories for workflows
 $vappio_scripts/prep_directories.sh
 
-# CURRENTLY DISABLED
-#put ssh key in expected place for remote logins
-chmod 600 /mnt/devel1.pem
-#should be changed to sge user
-chown $apache_user:$apache_user /mnt/devel1.pem
-
 #conf sgemaster
 myhostname=`hostname -f`
 echo "$myhostname" > $SGE_ROOT/$SGE_CELL/common/act_qmaster
+
+##
+#TODO, determine if this is stil necessary. I think the SGE spool directory has changed
 #remove local execd spool dir
 rm -rf /var/spool/sge
 mkdir /var/spool/sge
@@ -77,18 +77,6 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq
 #$SGE_ROOT/bin/$ARCH/qconf -mattr exechost complex_values slots=1 $myhostname
 
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
-
-# CURRENTLY DISABLED
-#Temp to set up staging and test project
-#Should pull staing from S3
-#cp /root/staging.tgz $staging_dir
-#pushd $staging_dir
-#tar xvzf staging.tgz
-#popd
-#cp /root/testproject.tgz $harvesting_dir
-#pushd $harvesting_dir
-#tar xvzf testproject.tgz
-#popd
 
 echo "MASTER_NODE" > $vappio_runtime/node_type
 
