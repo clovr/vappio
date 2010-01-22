@@ -47,6 +47,7 @@ do
     do
 	runningjobs=`$SGE_ROOT/bin/$ARCH/qstat -j $job | grep sge_o_host | grep $myhostname`
 	if [ "$runningjobs" != "" ]
+	then
 	    echo "Job $job submitted from $myhostname is still running"
 	    isrunning=1
 	fi
