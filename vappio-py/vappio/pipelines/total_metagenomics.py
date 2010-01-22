@@ -6,15 +6,17 @@ import os
 from igs.utils.functional import identity, compose
 from igs.utils.cli import notNone, defaultIfNone, restrictValues
 
+from vappio.pipeline_tools.blast import tagToRefDBPath
+
 ##
 # Need to know where the template lives
-TEMPLATE_DIR = '/opt/clovr_pipelines/workflow/project_saved_templates/total_metagenomics'
+TEMPLATE_NAME = 'total_metagenomics'
 
 
 OPTIONS = [
-    ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of SFF files', compose(lambda x : '${dirs.upload_dir}/tags/' + x, notNone)),
-    ('BLASTN_DB_PATH', '', '--BLASTN_DB_PATH', 'The reference db for the blastn step', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
-    ('BLASTP_DB_PATH', '', '--BLASTP_DB_PATH', 'The reference db for the blastp step', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
+    ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of SFF files', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('BLASTN_DB_PATH', '', '--BLASTN_DB_PATH', 'The reference db for the blastn step', compose(tagToRefDBPath, lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('BLASTP_DB_PATH', '', '--BLASTP_DB_PATH', 'The reference db for the blastp step', compose(tagToRefDBPath, lambda x : '${dirs.tag_dir}/' + x, notNone)),
     ##
     # For SEQS_PER_FILE the function at the end may seem odd, but really this is just validating that they give us an int
     # we actually want it as a string in order to do the replacement in the config file, which is why we do
