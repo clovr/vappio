@@ -32,10 +32,25 @@ for f in `cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v '^\\$' | perl -n
 #	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" $f $remotehost:$f;
 	vlog "CMD: rsync -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" $f root@$remotehost:/"
 	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $f root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
-	vlog "rsync return value: $?"
+	if [ $? == 0 ]
+	then
+	    vlog "rsync success. return value: $?"
+	else
+	    vlog "ERROR: $0 rsync fail. return value: $?"
+	    verror "STAGING WF GROUP $wfcomponentdir/$wfgroupdir/$group.iter FAILURE"
+	    exit 1;
+	fi
 done 
 cd $wfcomponentdir
 vlog "Start transfer of workflow xml from $wfcomponentdir/$wfgroupdir to $remotehost:$wfcomponentdir" 
 vlog "CMD: rsync -av -R -e \"$ssh_client -i $ssh_key $ssh_options\" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir" 
 rsync -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir 1>> $vappio_log 2>> $vappio_log
-vlog "rsync return value: $?"
+if [ $? == 0 ]
+then
+    vlog "rsync success. return value: $?"
+else
+    vlog "ERROR: $0 rsync fail. return value: $?"
+    verror "STAGING WF XML,CONFIG FAILURE"
+    exit 1;
+fi
+
