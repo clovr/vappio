@@ -26,24 +26,25 @@ vlog "###"
 #This script should be run on the master
 stagingnodes=`$vappio_scripts/printqueuehosts.pl $stagingq`
 stagingsubnodes=`$vappio_scripts/printqueuehosts.pl $stagingsubq`
+execnodes=`$vappio_scripts/printqueuehosts.pl $execq`
 
 master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
-#Always keep master in the queue so we have something to start staging
 
+#Always keep master in the queue so we have something to start staging
 for node in $stagingnodes
- do
-if [ "$node" != "$master" ]; then
-vlog "Deleting $node from $stagingq";
-$SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $node $stagingq 1>> $vappio_log 2>> $vappio_log
-fi
+do
+    if [ "$node" != "$master" ]; then
+	vlog "Deleting $node from $stagingq";
+	$SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $node $stagingq 1>> $vappio_log 2>> $vappio_log
+    fi
 done
 
 for node in $stagingsubnodes
- do
-if [ "$node" != "$master" ]; then
-vlog "Deleting $node from $stagingsubq";
-$SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $node $stagingsubq 1>> $vappio_log 2>> $vappio_log
-fi
+do
+    if [ "$node" != "$master" ]; then
+	vlog "Deleting $node from $stagingsubq";
+	$SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $node $stagingsubq 1>> $vappio_log 2>> $vappio_log
+    fi
 done
 
 
@@ -52,17 +53,21 @@ done
 #idle in stagingq and/or stagingsubq
 
 for node in $stagingnodes
- do
-if [ "$node" != "$master" ]; then
-vlog "Reseeding $node in $stagingq"
-$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync $sync -q $stagingq $seeding_script $node $stagingq 1>> $vappio_log 2>> $vappio_log
-fi
+do
+    if [ "$node" != "$master" ]; then
+	vlog "Reseeding $node in $stagingq"
+	$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync $sync -q $stagingq $seeding_script $node $stagingq 1>> $vappio_log 2>> $vappio_log
+    fi
 done
 
-for node in $stagingsubnodes
- do
-if [ "$node" != "$master" ]; then 
-vlog "Reseeding $node in $stagingsubq"
-$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync $sync -q $stagingq,$stagingsubq $seeding_script $node $stagingsubq 1>> $vappio_log 2>> $vappio_log
-fi
+##
+#Consider set of nodes reported in the stagingsub.q and exec.q
+#This recovers from the case where staging fails and exec nodes
+#are not added to the stagingsub.q
+for node in `echo $stagingsubnodes $execnodes | sort -u`
+do
+    if [ "$node" != "$master" ]; then 
+	vlog "Reseeding $node in $stagingsubq"
+	$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync $sync -q $stagingq,$stagingsubq $seeding_script $node $stagingsubq 1>> $vappio_log 2>> $vappio_log
+    fi
 done
