@@ -22,7 +22,7 @@ then
     $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $remotehost $queue 
 else
     vlog "ERROR: $0 staging fail. return value $?"
-    verror("SEEDING FAILURE");
+    verror "SEEDING FAILURE";
     exit 1
 fi
 
