@@ -150,9 +150,9 @@ def listInstancesA(instances):
         if instance:
             instances.append(instance)
 
-    return ctorProgramRunner('ec2-describe-instances', _instanceParse, log=True)
+    return ctorProgramRunner('ec2-describe-instances', _instanceParse, log=False)
 
-def listInstances():
+def listInstances(log=False):
     """Blocking version, returns list of instances"""
     instances = []
     runProgramRunnerEx(listInstancesA(instances))

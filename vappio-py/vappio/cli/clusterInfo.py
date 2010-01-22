@@ -30,7 +30,7 @@ def main(options, _args):
     print 'Useful URLs'
     print 'Ganglia: http://%s/ganglia' % masterIP
     print 'Ergatis: http://%s/ergatis' % masterIP
-    print 'SSH: ssh %s %s:%s' % (cluster.config('ssh.options'), cluster.config('ssh.user'), masterIP)
+    print 'SSH: ssh %s %s@%s' % (cluster.config('ssh.options'), cluster.config('ssh.user'), masterIP)
 
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

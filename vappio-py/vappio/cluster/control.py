@@ -192,7 +192,7 @@ def waitForSSHUp(conf, tries, instances):
         yield pr
         
     def _sshTest(instances):
-        prs = [runSystemSSHA(i.publicDNS, 'echo hello', None, None, 'root', conf('ssh.options'), log=True)
+        prs = [runSystemSSHA(i.publicDNS, 'echo hello', None, None, conf('ssh.user'), conf('ssh.options'), log=True)
                for i in instances]
         gens = [_gen(pr) for pr in prs]
         runCommandGens(gens)
@@ -210,3 +210,23 @@ def waitForSSHUp(conf, tries, instances):
             tries -= 1
 
     raise TryError('SSH did not come up on all instances')
+
+def runCommandOnCluster(cluster, command, justMaster=False):
+    """
+    Runs a command on the cluster.  If justMaster is True (False by default), command
+    is just run on the master
+    """
+    def runCommandOnInstance(i, command):
+        pr = runSystemInstanceA(i, command, None, errorPrintS,
+                                user=cluster.config('ssh.user'), options=cluster.config('ssh.options'), log=True)
+        yield pr
+
+        if pr.exitCode != 0:
+            raise ClusterError('Failed to run command on instance: ' + i.publicDNS)
+
+    instances = [cluster.master]
+    if not justMaster:
+        instances += cluster.slaves
+        
+    runCommandGens([runCommandOnInstance(i, command) for i in instances])
+    
