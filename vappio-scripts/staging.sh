@@ -24,32 +24,35 @@ vlog "###"
 #and is ready to seed peers
 remotehost="$1"
 
-ping $remotehost -c 1
-if [ $? == 0 ]
+if [ -f $vappio_runtime/no_dns ]
 then
-    vlog "ping succeeded to $remotehost"
-else
-    vlog "ping failed to $remotehost"
-    vlog "attempting to derive IP address"
-    o1='1[0-9]{0,2}|2([6-9]|[0-4][0-9]?|5[0-4]?)?|[3-9][0-9]?'
-    o0='0|255|'"$o1"
-    if echo "$remotehost" | egrep -v "^($o1)(\.($o0)){2}\.($o1)$" 
+    ping $remotehost -c 1
+    if [ $? == 0 ]
     then
-	remotehostipaddr=`echo $remotehost | perl -ne '/^\w+\-([\d\-]+)/;$x=$1;$x =~ s/\-/\./g;print $x'`
-	vlog "parsed ip address $remotehostipaddr from $remotehost"
+	vlog "ping succeeded to $remotehost. assuming hostname"
+    else
+	vlog "ping failed to $remotehost"
+	vlog "attempting to derive IP address"
+	o1='1[0-9]{0,2}|2([6-9]|[0-4][0-9]?|5[0-4]?)?|[3-9][0-9]?'
+	o0='0|255|'"$o1"
+	if echo "$remotehost" | egrep -v "^($o1)(\.($o0)){2}\.($o1)$" 
+	then
+	    remotehostipaddr=`echo $remotehost | perl -ne '/^\w+\-([\d\-]+)/;$x=$1;$x =~ s/\-/\./g;print $x'`
+	    vlog "parsed ip address $remotehostipaddr from $remotehost"
 	#we have the IP
-	ping $remotehostipaddr -c 1
-	if [ $? == 0 ]
-	then	    
-	    echo "$remotehostipaddr $remotehost $remotehost" >> /etc/hosts
+	    ping $remotehostipaddr -c 1
+	    if [ $? == 0 ]
+	    then	    
+		echo "$remotehostipaddr $remotehost $remotehost" >> /etc/hosts
+	    else
+		vlog "ERROR. Invalid ip ($remotehostipaddr) from host $remotehost"
+		exit 1;
+	    fi
 	else
-	    vlog "ERROR. Invalid ip ($remotehostipaddr) from host $remotehost"
+	    vlog "ping $remotehost failed and unable to parse ip address from $remotehost"
+	#fail
 	    exit 1;
 	fi
-    else
-	vlog "ping $remotehost failed and unable to parse ip address from $remotehost"
-	#fail
-	exit 1;
     fi
 fi
 #copy staging area
