@@ -9,5 +9,7 @@ export JAVA_HOME=/usr
   
 export PATH=$PATH:/usr/local/bin:/usr/local/sbin:/opt/vappio-py/vappio/cli:/opt/vappio-scripts:/opt/vappio-scripts/pipelines:/opt/crossbow/ec2-local:/opt/crossbow/local
 
+export EC2_HOME=/usr
+
 ulimit -n 8192
 
