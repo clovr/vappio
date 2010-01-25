@@ -9,10 +9,9 @@ vlog "###"
 vlog "### $0 (`whoami`) on `hostname`"
 vlog "###"
 
-# Exec host is passed in as $1
-exechost=$1
-dir=$2
+dir=$1
 masterhost=`cat /mnt/clovr/runtime/master_node`
+exechost=`hostname`
 
 # Harvest output
 vlog "Harvesting output from $exechost:$dir to $masterhost:$dir"
