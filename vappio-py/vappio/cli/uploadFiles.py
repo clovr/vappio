@@ -10,7 +10,7 @@ from vappio.instance.transfer import uploadAndTag
 from vappio.cluster.persist import load, dump
 
 OPTIONS = [
-    ('name', '', '--name', 'Name of cluster (in this case the IP address of the master)', notNone),
+    ('name', '', '--name', 'Name of cluster', notNone),
     ('tag', '', '--tag', 'The uploaded files will be put into a file list tagged by this name', notNone)
     ]
 

@@ -13,7 +13,7 @@ from vappio.instance.control import runSystemInstanceEx
 from vappio.cluster.persist import load, dump
 
 OPTIONS = [
-    ('name', '', '--name', 'Name of cluster (host name of master)', notNone),
+    ('name', '', '--name', 'Name of cluster', notNone),
     ('pipeline', '', '--pipeline', 'Name of pipeline', notNone),
     ]
 

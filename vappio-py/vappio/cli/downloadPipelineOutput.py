@@ -13,7 +13,7 @@ from vappio.instance.transfer import downloadPipeline, DownloadPipelineOverwrite
 from vappio.cluster.persist import load, dump
 
 OPTIONS = [
-    ('name', '', '--name', 'Name of cluster (in this case the IP address of the master)', notNone),
+    ('name', '', '--name', 'Name of cluster', notNone),
     ##
     # Want to make sure this is an int but we want it as a string later in the program
     ('pipeline', '-p', '--pipeline_id', 'ID # for the pipeline', compose(str, int, notNone)),

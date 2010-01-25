@@ -13,7 +13,7 @@ from vappio.instance.control import runSystemInstanceA
 from vappio.cluster.persist import load
 
 OPTIONS = [
-    ('name', '', '--name', 'Name of cluster (in this case the IP address of the master)', notNone),
+    ('name', '', '--name', 'Name of cluster', notNone),
     ]
 
 

@@ -10,7 +10,7 @@ from vappio.cluster.control import runCommandOnCluster
 from vappio.cluster.persist import load
 
 OPTIONS = [
-    ('name', '', '--name', 'Name of cluster (in this case the IP address of the master)', notNone),
+    ('name', '', '--name', 'Name of cluster', notNone),
     ('just_master', '-m', '--just_master', 'Just run the command on the master', defaultIfNone(False), True),
     ('command', '', '--cmd', 'Command to run', notNone)
     ]
