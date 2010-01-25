@@ -26,7 +26,9 @@ die("Must specify a template") unless($templateLayout);
 
 my $pipeline_id = &make_pipeline($templateLayout, $repoRoot, $idRepo, $configFile);
 
-print "Pipeline ID: $pipeline_id\n";
+##
+# Pring the pipeline
+print "$pipeline_id\n";
 
 sub make_pipeline {
     my ($pipeline_layout, $repository_root, $id_repo, $config) = @_;

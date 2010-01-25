@@ -20,7 +20,7 @@ class CLIError(Exception):
     def __str__(self):
         return 'Error handling option: %s, failed with message: %s' % (self.option, self.msg)
 
-def buildConfigN(options, usage=None, putInGeneral=True):
+def buildConfigN(options, args=None, usage=None, putInGeneral=True):
     """
     This builds a config from options.  Options is a list of tuples that looks like:
 
@@ -73,7 +73,7 @@ def buildConfigN(options, usage=None, putInGeneral=True):
         else:
             parser.add_option(s, l, dest=n, help=h)
 
-    ops, args = parser.parse_args()
+    ops, args = parser.parse_args(args=args)
 
     baseConf = configFromEnv()
     if hasattr(ops, 'conf'):

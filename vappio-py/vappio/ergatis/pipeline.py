@@ -7,11 +7,16 @@ import time
 
 from igs.utils.cli import buildConfigN
 from igs.utils.config import replaceStr
-from igs.utils.commands import runSystemEx
+from igs.utils.commands import runSingleProgram, ProgramRunError
 
 
-def runPipeline(pipeline):
+def runPipeline(pipeline, args=None):
     """
+    args are any CLI arguments you want to use instead of
+    whatever is in sys.argv
+
+    This should be refactored to not rely on args in this way
+    
     Takes a pipeline which is some sort of object
     which has:
 
@@ -31,7 +36,7 @@ def runPipeline(pipeline):
     options = pipeline.OPTIONS
     options.append(('conf', '', '--conf', 'Conf file', lambda _ : '/tmp/machine.conf'))
     
-    conf, _args = buildConfigN(options, putInGeneral=False)
+    conf, _args = buildConfigN(options, args, putInGeneral=False)
 
     templateDir = os.path.join(conf('dirs.clovr_pipelines_template_dir'), pipeline.TEMPLATE_NAME)
     templateConfig = os.path.join(templateDir, 'pipeline_tmpl.config')
@@ -43,7 +48,21 @@ def runPipeline(pipeline):
         fout.write(replaceStr(line, conf))
         
     fout.close()
-        
-    runSystemEx('run_pipeline.pl --config=%(config)s --templatelayout=%(templatelayout)s' % dict(
+
+    cmd = 'run_pipeline.pl --config=%(config)s --templatelayout=%(templatelayout)s' % dict(
         config=foutName,
-        templatelayout=templateLayout))
+        templatelayout=templateLayout)
+
+    res = []
+    exitCode = runSingleProgram(cmd, res.append)
+
+    ##
+    # If we got a weird exit code or more than one line was print or nothing was printed
+    # then something bad happened
+    if exitCode != 0 or len(res) > 1 or not res:
+        raise ProgramRunError(cmd, exitCode)
+
+    ##
+    # This should be the pipeline ID
+    return res[0].strip()
+        

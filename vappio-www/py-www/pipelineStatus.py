@@ -19,17 +19,10 @@ class PipelineStatus(CGIPage):
 
     def body(self):
         form = cgi.FieldStorage()
-        pipelines = form.getlist('pipeline')
+        pipelines = form.getlist('pipeline_id')
 
         ##
         # No pipelines means return empty
-        if not pipelines:
-            return json.dumps({})
-        else:
-            ret = {}
-            for p in pipelines:
-                ret[p] = getPipelineStatus(p)
-
-            return json.dumps(ret)
+        return json.dumps(dict([(p, getPipelineStatus(p)) for p in pipelines]))
 
 generatePage(PipelineStatus())
