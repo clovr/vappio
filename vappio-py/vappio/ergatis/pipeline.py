@@ -54,7 +54,7 @@ def runPipeline(pipeline, args=None):
         templatelayout=templateLayout)
 
     res = []
-    exitCode = runSingleProgram(cmd, res.append)
+    exitCode = runSingleProgram(cmd, res.append, None)
 
     ##
     # If we got a weird exit code or more than one line was print or nothing was printed
