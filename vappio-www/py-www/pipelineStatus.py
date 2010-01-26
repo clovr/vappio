@@ -6,12 +6,11 @@ import json
 from igs.utils.core import getStrBetween
 from igs.utils.config import configFromEnv
 from igs.cgi.handler import CGIPage, generatePage
+from igs.cgi.request import readRequest
 
-from vappio.pipeline_tools.persist import load
+from vappio.pipeline_tools.persist import load, loadAll
 
 def getPipelineStatus(pipeline):
-    conf = configFromEnv()
-    p = load(os.path.join(conf('env.VAPPIO_HOME')), pipeline)
     try:
         return [True, p.state()]
     except Exception, err:
@@ -20,9 +19,13 @@ def getPipelineStatus(pipeline):
 class PipelineStatus(CGIPage):
 
     def body(self):
-        form = cgi.FieldStorage()
-        pipelines = json.loads(form['pipeline'].value)
-
+        conf = configFromEnv()
+        request = readRequest()
+        if request['pipelines']:
+            pipelines = [load(conf('env.VAPPIO_HOME'), p) for p in request['pipelines']]
+        else:
+            pipelines = loadAll(conf('env.VAPPIO_HOME'))
+            
         try:
             return json.dumps([True, dict([(p, getPipelineStatus(p)) for p in pipelines])])
         except Exception, err:

@@ -48,3 +48,17 @@ def load(baseDir, name):
     conf = configFromMap(json.loads(open(os.path.join(pipelineDir, 'conf')).read()))
 
     return Pipeline(name, pid, ptype, conf)
+
+
+def loadAll(baseDir):
+    """
+    Loads all of the pipelines
+    """
+    pipelineDir = os.path.join(baseDir, 'db', 'pipeline')
+    if not os.path.exists(pipelineDir):
+        raise PipelineDoesNotExist('No pipelines exist')
+
+    pipelines = os.listdir(pipelineDir)
+    return [load(baseDir, p) for p in pipelines]
+
+    
