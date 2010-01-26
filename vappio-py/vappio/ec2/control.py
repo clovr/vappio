@@ -6,8 +6,6 @@
 # with EC2 (the nimbus stuff can just call this).  For that reason, the ec2-bins are wrapped
 # otherwise we could get into a situationw here Boto implements one version of the tools and
 # it does not work on NIMBUS but on ec2 or vice versa.
-import sets
-
 
 from igs.utils import logging
 from igs.utils.logging import logPrint, errorPrint, debugPrint
@@ -174,7 +172,7 @@ def updateInstancesA(retInst, instances):
     instances - List of instances that should be updated
     """
 
-    instanceSet = sets.Set([i.instanceId for i in instances])
+    instanceSet = set([i.instanceId for i in instances])
 
     def _instanceParse(line):
         instance = parseInstanceLine(line)

@@ -18,7 +18,7 @@ OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
     ]
 
-URL = '/vappio/runPipeline.py'
+URL = '/vappio/pipelineStatus.py'
 
 def main(options, args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
