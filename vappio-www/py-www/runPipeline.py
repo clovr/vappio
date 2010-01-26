@@ -11,11 +11,11 @@ class RunPipeline(CGIPage):
 
     def body(self):
         form = cgi.FieldStorage()
-        pipelineName = form.get['pipeline'].value
+        pipelineName = form['pipeline'].value
 
         try:
             pipeline = namedAny('vappio.pipelines.' + pipelineName)
-            pipelineId = runPipeline(pipeline, json.loads(form.get['args'].value))
+            pipelineId = runPipeline(pipeline, json.loads(form['args'].value))
             return json.dumps([True, pipelineId])
         except ModuleNotFound:
             return json.dumps([False, 'The requested pipeline could not be found'])
