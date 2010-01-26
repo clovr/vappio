@@ -29,7 +29,7 @@ def dump(baseDir, pipeline):
         runSystemEx('mkdir -p ' + pipelineDir)
 
 
-    writeFile(os.path.join(pipelineDir, 'ptype'), pipeline.ptype)
+    writeFile(os.path.join(pipelineDir, 'ptype'), fullyQualifiedName(pipeline.ptype))
     writeFile(os.path.join(pipelineDir, 'pid'), pipeline.pid)
     ##
     # let's let json serialize this for us
@@ -43,7 +43,7 @@ def load(baseDir, name):
     if not os.path.exists(pipelineDir):
         raise PipelineDoesNotExist('Could not find pipeline: ' + name)
 
-    ptype = open(os.path.join(pipelineDir, 'ptype')).read().strip()
+    ptype = namedAny(open(os.path.join(pipelineDir, 'ptype')).read().strip())
     pid = open(os.path.join(pipelineDir, 'pid')).read().strip()
     conf = configFromMap(json.loads(open(os.path.join(pipelineDir, 'conf')).read()))
 
