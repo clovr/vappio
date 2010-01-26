@@ -4,25 +4,28 @@ import cgi
 import json
 
 from igs.utils.core import getStrBetween
-
+from igs.utils.config import configFromEnv
 from igs.cgi.handler import CGIPage, generatePage
 
+from vappio.pipeline_tools.persist import load
 
 def getPipelineStatus(pipeline):
-    for line in open('/mnt/projects/clovr/workflow/runtime/pipeline/%s/pipeline.xml' % pipeline):
-        if '<state>' in line:
-            return getStrBetween(line, '<state>', '</state>')
-
-    return 'Unknown'
+    conf = configFromEnv()
+    p = load(os.path.join(conf('env.VAPPIO_HOME')), name)
+    try:
+        return [True, p.state()]
+    except Exception, err:
+        return [False, str(err)]
 
 class PipelineStatus(CGIPage):
 
     def body(self):
         form = cgi.FieldStorage()
-        pipelines = form.getlist('pipeline_id')
+        pipelines = json.loads(form['pipeline'].value)
 
-        ##
-        # No pipelines means return empty
-        return json.dumps(dict([(p, getPipelineStatus(p)) for p in pipelines]))
+        try:
+            return json.dumps([True, dict([(p, getPipelineStatus(p)) for p in pipelines])])
+        except Exception, err:
+            return json.dumps([False, str(err)])
 
 generatePage(PipelineStatus())

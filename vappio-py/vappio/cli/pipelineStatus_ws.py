@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ##
-# Runs a pipeline throuhg the webservice call
+# Checks the status of a pipeline
 import os
 import httplib
 import urllib
@@ -16,33 +16,26 @@ from vappio.cluster.persist import load, dump
 
 OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
-    ('pipeline', '', '--pipeline', 'Type of pipeline', notNone),
-    ('pipeline_name', '', '--pipeline-name', 'Name to give the pipeline', notNone)
     ]
 
 URL = '/vappio/runPipeline.py'
 
 def main(options, args):
-    #options = configFromMap({'general': {'options': args}}, options)
-    
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
-    params = urllib.urlencode('request': json.dumps({'pipeline': options('general.pipeline'),
-                                                     'pipeline_name': options('general.pipeline_name'),
-                                                     'args': json.dumps(args)
-                                                     }))
+    params = urllib.urlencode({'pipeline': json.dumps(args)})
     conn = httplib.HTTPConnection(cluster.master.publicDNS)
     conn.request('POST', URL, params)
     data = conn.getresponse().read()
     try:
         ok, res = json.loads(data)
         if ok:
-            logPrint('Pipeline Id: ' + str(res))
+            print '\n'.join([name + ': ' + state for name, state in res.iteritems()])
         else:
-            errorPrint('Failed: ' + str(res))
+            print 'Failed: ' + res
     except:
         errorPrint('Unknown result: ' + data)
 
     
 
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS, usage='usage: %prog --name x --pipeline y [ -- options for pipeline]'))
+    main(*buildConfigN(OPTIONS))

@@ -16,11 +16,12 @@ class RunPipeline(CGIPage):
 
     def body(self):
         form = cgi.FieldStorage()
-        pipelineName = form['pipeline'].value
+        request = json.loads(form['request'].value)
+        pipelineName = request['pipeline']
 
         try:
             pipeline = namedModule('vappio.pipelines.' + pipelineName)
-            pipelineObj = runPipeline(pipeline, json.loads(form['args'].value))
+            pipelineObj = runPipeline(pipeline, json.loads(request['args']))
             return json.dumps([True, pipelineObj.pid])
         except CLIError, err:
             return json.dumps([False, str(err)])

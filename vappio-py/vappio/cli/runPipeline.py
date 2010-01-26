@@ -14,7 +14,8 @@ from vappio.cluster.persist import load, dump
 
 OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
-    ('pipeline', '', '--pipeline', 'Name of pipeline', notNone),
+    ('pipeline', '', '--pipeline', 'Type of pipeline', notNone),
+    ('pipeline_name', '', '--pipeline-name', 'Name of pipeline', notNone),
     ]
 
 def main(options, args):
@@ -22,7 +23,7 @@ def main(options, args):
     
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
         
-    cmd = ['runPipeline_remote.py', options('general.pipeline')] + options('general.options')
+    cmd = ['runPipeline_remote.py', options('general.pipeline'), options('general.pipeline_name')] + options('general.options')
     runSystemInstanceEx(cluster.master, ' '.join(cmd), logPrintS, errorPrintS, user='root', options=cluster.config('ssh.options'), log=True)    
         
 
