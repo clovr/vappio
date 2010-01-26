@@ -24,7 +24,7 @@ def dump(baseDir, pipeline):
     """
     Dumps pipeline info to a directory structure
     """
-    pipelineDir = os.path.join(baseDir, 'pipeline', pipeline.name)
+    pipelineDir = os.path.join(baseDir, 'db', 'pipeline', pipeline.name)
     if not os.path.exists(pipelineDir):
         runSystemEx('mkdir -p ' + pipelineDir)
 
@@ -39,7 +39,7 @@ def load(baseDir, name):
     """
     Loads a pipeline by name and returns a Pipeline object
     """
-    pipelineDir = os.path.join(baseDir, 'pipeline', name)
+    pipelineDir = os.path.join(baseDir, 'db', 'pipeline', name)
     if not os.path.exists(pipelineDir):
         raise PipelineDoesNotExist('Could not find pipeline: ' + name)
 

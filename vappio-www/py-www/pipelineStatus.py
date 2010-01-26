@@ -11,7 +11,7 @@ from vappio.pipeline_tools.persist import load
 
 def getPipelineStatus(pipeline):
     conf = configFromEnv()
-    p = load(os.path.join(conf('env.VAPPIO_HOME')), name)
+    p = load(os.path.join(conf('env.VAPPIO_HOME')), pipeline)
     try:
         return [True, p.state()]
     except Exception, err:

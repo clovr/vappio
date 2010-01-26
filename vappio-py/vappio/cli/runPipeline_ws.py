@@ -26,10 +26,10 @@ def main(options, args):
     #options = configFromMap({'general': {'options': args}}, options)
     
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
-    params = urllib.urlencode('request': json.dumps({'pipeline': options('general.pipeline'),
-                                                     'pipeline_name': options('general.pipeline_name'),
-                                                     'args': json.dumps(args)
-                                                     }))
+    params = urllib.urlencode({'request': json.dumps({'pipeline': options('general.pipeline'),
+                                                      'pipeline_name': options('general.pipeline_name'),
+                                                      'args': json.dumps(args)
+                                                      })})
     conn = httplib.HTTPConnection(cluster.master.publicDNS)
     conn.request('POST', URL, params)
     data = conn.getresponse().read()
