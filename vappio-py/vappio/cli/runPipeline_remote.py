@@ -5,7 +5,7 @@
 # This is meant to be run on the remote side
 import sys
 
-from twisted.python.reflect import namedModule, ModuleNotFound
+from twisted.python.reflect import namedModule
 
 from igs.utils.logging import errorPrint, logPrint
 
@@ -17,7 +17,7 @@ def main(_options):
         sys.argv.pop(1)
         pipelineId = runPipeline(pipeline)
         logPrint('Pipeline ID is: ' + pipelineId)
-    except ModuleNotFound:
+    except ImportError:
         errorPrint('The requested pipeline could not be found')
 
 

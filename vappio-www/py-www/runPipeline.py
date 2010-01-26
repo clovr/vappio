@@ -3,7 +3,7 @@
 import cgi
 import json
 
-from twisted.python.reflect import namedModule, ModuleNotFound
+from twisted.python.reflect import namedModule
 
 from igs.utils.cli import CLIError
 from igs.cgi.handler import CGIPage, generatePage
@@ -26,7 +26,7 @@ class RunPipeline(CGIPage):
             return json.dumps([True, pipelineId])
         except CLIError, err:
             return json.dumps([False, str(err)])
-        except ModuleNotFound:
+        except ImportError:
             return json.dumps([False, 'The requested pipeline could not be found'])
 
 generatePage(RunPipeline())
