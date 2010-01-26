@@ -5,6 +5,8 @@ import json
 
 from twisted.python.reflect import namedAny, ModuleNotFound
 
+from vappio.ergatis.pipeline import runPipeline
+
 from igs.cgi.handler import CGIPage, generatePage
 
 class RunPipeline(CGIPage):

@@ -31,7 +31,7 @@ def main(options, args):
                                'args': json.dumps(args)
                                })
     conn = httplib.HTTPConnection(cluster.master.publicDNS)
-    conn.request('GET', URL, params)
+    conn.request('POST', URL, params)
     data = conn.getresponse().read()
     try:
         ok, res = json.loads(data)
