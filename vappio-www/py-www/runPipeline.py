@@ -3,6 +3,8 @@
 import cgi
 import json
 
+from twisted.python.reflect import namedAny, ModuleNotFound
+
 from igs.cgi.handler import CGIPage, generatePage
 
 class RunPipeline(CGIPage):
