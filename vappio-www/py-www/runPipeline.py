@@ -8,8 +8,6 @@ from twisted.python.reflect import namedModule
 from igs.utils.cli import CLIError
 from igs.cgi.handler import CGIPage, generatePage
 
-
-
 from vappio.ergatis.pipeline import runPipeline
 
 
@@ -22,8 +20,8 @@ class RunPipeline(CGIPage):
 
         try:
             pipeline = namedModule('vappio.pipelines.' + pipelineName)
-            pipelineId = runPipeline(pipeline, json.loads(form['args'].value))
-            return json.dumps([True, pipelineId])
+            pipelineObj = runPipeline(pipeline, json.loads(form['args'].value))
+            return json.dumps([True, pipelineObj.pid])
         except CLIError, err:
             return json.dumps([False, str(err)])
         except ImportError:

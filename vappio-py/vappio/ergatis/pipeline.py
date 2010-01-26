@@ -10,6 +10,21 @@ from igs.utils.config import replaceStr
 from igs.utils.commands import runSingleProgram, ProgramRunError
 
 
+class Pipeline:
+    """
+    Represents a pipeline
+    """
+
+    def __init__(self, pid, ptype, conf):
+        """
+        pid is the Id of the pipeline this is preresenting
+        ptype is the module/object that was used to make this pipeline
+        conf is the config
+        """
+        self.pid = pid
+        self.ptype = ptype
+        self.conf = conf
+
 def runPipeline(pipeline, args=None):
     """
     args are any CLI arguments you want to use instead of
@@ -64,5 +79,5 @@ def runPipeline(pipeline, args=None):
 
     ##
     # This should be the pipeline ID
-    return res[0].strip()
+    return Pipeline(res[0].strip(), pipeline, conf)
         

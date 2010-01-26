@@ -15,8 +15,8 @@ def main(_options):
     try:
         pipeline = namedModule('vappio.pipelines.' + sys.argv[1])
         sys.argv.pop(1)
-        pipelineId = runPipeline(pipeline)
-        logPrint('Pipeline ID is: ' + pipelineId)
+        pipelineObj = runPipeline(pipeline)
+        logPrint('Pipeline ID is: ' + pipelineObj.pid)
     except ImportError:
         errorPrint('The requested pipeline could not be found')
 
