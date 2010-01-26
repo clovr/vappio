@@ -3,7 +3,7 @@
 import cgi
 import json
 
-from twisted.python.reflect import namedAny, ModuleNotFound
+from twisted.python.reflect import namedModule, ModuleNotFound
 
 from igs.utils.cli import CLIError
 from igs.cgi.handler import CGIPage, generatePage
@@ -21,7 +21,7 @@ class RunPipeline(CGIPage):
         pipelineName = form['pipeline'].value
 
         try:
-            pipeline = namedAny('vappio.pipelines.' + pipelineName)
+            pipeline = namedModule('vappio.pipelines.' + pipelineName)
             pipelineId = runPipeline(pipeline, json.loads(form['args'].value))
             return json.dumps([True, pipelineId])
         except CLIError, err:

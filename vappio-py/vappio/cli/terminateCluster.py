@@ -6,7 +6,7 @@ from igs.utils.cli import MissingOptionError, buildConfigN, notNone, defaultIfNo
 from igs.utils.config import configFromMap
 from igs.utils.logging import logPrint
 
-from vappio.cluster.persist import load, dump
+from vappio.cluster.persist import load, dump, cleanup
 
 
 OPTIONS = [
@@ -18,6 +18,8 @@ def main(options, _args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
     
     cluster.terminateCluster()
+
+    cleanup(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
     
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

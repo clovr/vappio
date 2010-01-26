@@ -4,10 +4,12 @@
 # $BASEDIR/$CLUSTER_NAME/[master, slaves, conf]
 
 import os
+import json
 
-from twisted.python.reflect import qual, namedAny
+from twisted.python.reflect import fullyQualifiedName, namedAny
 
-from igs.utils.config import configFromStream
+from igs.utils.config import configFromMap
+from igs.utils.commands import runSystemEx
 
 from vappio.cluster.control import Cluster
 from vappio.cluster.misc import getInstances
@@ -15,18 +17,6 @@ from vappio.cluster.misc import getInstances
 class ClusterDoesNotExist(Exception):
     pass
 
-
-def typeToStr(s):
-    """
-    If something is a list converts it to a ',' seperated string
-    Also removes '\n' to ' '
-    """
-    if hasattr(s, 'extend'):
-        s = ','.join([str(i) for i in s])
-    if hasattr(s, 'replace'):
-        s = s.replace('\n', ' ')
-
-    return s
 
 def writeFile(fname, data):
     fout = open(fname, 'w')
@@ -38,33 +28,31 @@ def dump(baseDir, cluster):
     """
     Dumps the cluster information to directory structure
     """
-    if not os.path.exists(baseDir):
-        os.mkdir(baseDir)
-        
-    clusterDir = os.path.join(baseDir, cluster.name)
+    clusterDir = os.path.join(baseDir, 'cluster', cluster.name)
     if not os.path.exists(clusterDir):
-        os.mkdir(clusterDir)
+        runSystemEx('mkdir -p ' + clusterDir)
 
     writeFile(os.path.join(clusterDir, 'master'), cluster.master.publicDNS)
     writeFile(os.path.join(clusterDir, 'slaves'), ((cluster.slaves or '') and
                                                    '\n'.join([s.publicDNS for s in cluster.slaves])))
-    writeFile(os.path.join(clusterDir, 'conf'), ('[]\n' +
-                                                 '\n'.join(['%s=%s' % (k, str(typeToStr(cluster.config(k)))) for k in cluster.config.keys()])))
-    #writeFile(os.path.join(clusterDir, 'ctype'), qual(cluster.ctype))
-    writeFile(os.path.join(clusterDir, 'ctype'), 'vappio.ec2.control')
 
+    ##
+    # let's let json serialize this for us
+    writeFile(os.path.join(clusterDir, 'conf'), json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()])))
+    writeFile(os.path.join(clusterDir, 'ctype'), fullyQualifiedName(cluster.ctype))
+    
 
 def load(baseDir, name):
     """
     Loads a cluster by name and returns a Cluster object
     """
-    clusterDir = os.path.join(baseDir, name)
+    clusterDir = os.path.join(baseDir, 'cluster', name)
     if not os.path.exists(clusterDir):
         raise ClusterDoesNotExist()
 
     masterIp = open(os.path.join(clusterDir, 'master')).read().strip()
     slaveIps = [l.rstrip('\n') for l in open(os.path.join(clusterDir, 'slaves')).readlines()]
-    conf = configFromStream(open(os.path.join(clusterDir, 'conf')))
+    conf = configFromMap(json.loads(open(os.path.join(clusterDir, 'conf')).read()))
     ctype = namedAny(open(os.path.join(clusterDir, 'ctype')).read().strip())
 
     instances = getInstances(lambda i : i.publicDNS == masterIp, ctype)
@@ -82,3 +70,8 @@ def load(baseDir, name):
     cluster.addExecs(slaves)
 
     return cluster
+
+def cleanup(baseDir, name):
+    clusterDir = os.path.join(baseDir, 'cluster', name)
+    runSystemEx('rm -rf ' + clusterDir)
+    

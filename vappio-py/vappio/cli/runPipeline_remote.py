@@ -5,7 +5,7 @@
 # This is meant to be run on the remote side
 import sys
 
-from twisted.python.reflect import namedAny, ModuleNotFound
+from twisted.python.reflect import namedModule, ModuleNotFound
 
 from igs.utils.logging import errorPrint, logPrint
 
@@ -13,7 +13,7 @@ from vappio.ergatis.pipeline import runPipeline
 
 def main(_options):
     try:
-        pipeline = namedAny('vappio.pipelines.' + sys.argv[1])
+        pipeline = namedModule('vappio.pipelines.' + sys.argv[1])
         sys.argv.pop(1)
         pipelineId = runPipeline(pipeline)
         logPrint('Pipeline ID is: ' + pipelineId)
