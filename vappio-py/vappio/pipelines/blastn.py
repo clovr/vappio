@@ -22,6 +22,7 @@ OPTIONS = [
     ('SEQS_PER_FILE', '', '--SEQS_PER_FILE', 'Number of sequences per file, defaults to 1000', compose(str, int, defaultIfNone('1000'))),
     ('EXPECT', '', '--EXPECT', 'e-value cutoff, default is 1e-5', defaultIfNone('1e-5')),
     ('OTHER_OPTS', '', '--OTHER_OPTS', 'Other options to pass to blast', defaultIfNone('')),
-    ('FILTER', '', '--FILTER', 'Filter query, default is T', compose(restrictValues(['T', 'F']), defaultIfNone('T')))
+    ('FILTER', '', '--FILTER', 'Filter query, default is T', compose(restrictValues(['T', 'F']), defaultIfNone('T'))),
+    ('DATABASE_MATCHES', '', '--DATABASE_MATCHES', 'How many database matches to return, default is 150', defaultIfNone('150'))
     ]
 

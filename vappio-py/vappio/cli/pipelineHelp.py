@@ -2,7 +2,7 @@
 ##
 import sys
 
-from twisted.python.reflect import namedAny, ModuleNotFound
+from twisted.python.reflect import namedModule
 
 from igs.utils.cli import buildConfigN, notNone
 from igs.utils.logging import errorPrint
@@ -20,9 +20,9 @@ def main(options, _args):
     # Incredible hack right now
     sys.argv = [sys.argv[0]] + ['--help']
     try:
-        pipeline = namedAny('vappio.pipelines.' + options('general.pipeline'))
-        runPipeline(pipeline)
-    except ModuleNotFound:
+        pipeline = namedModule('vappio.pipelines.' + options('general.pipeline'))
+        runPipeline(None, pipeline)
+    except ImportError:
         errorPrint('The requested pipeline could not be found')
 
     
