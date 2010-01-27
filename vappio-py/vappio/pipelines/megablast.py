@@ -7,7 +7,7 @@ from igs.utils.cli import notNone, defaultIfNone, restrictValues
 
 from vappio.pipeline_tools.blast import tagToRefDBPath
 
-from vappio.ergatis.pipelines import blastn
+from vappio.pipelines import blastn
 
 ##
 # Need to know where the template lives
