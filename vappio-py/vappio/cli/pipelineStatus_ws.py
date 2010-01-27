@@ -29,11 +29,11 @@ def main(options, args):
             keys = res.keys()
             keys.sort()
             print '%20s %10s %20s' % ('Name', 'Status', 'Type')
-            print '\n'.join(['%20s %10s %20s' % (name, res[name]['state'], res[name]['ptype']) for name in keys])
+            print '\n'.join(['%20s %10s %20s' % (name, res[name][1]['state'], res[name][1]['ptype']) for name in keys])
         else:
             print 'Failed: ' + res
     except:
-        errorPrint('Unknown result: ' + data)
+        errorPrint('Unknown result: ' + str(result))
 
     
 
