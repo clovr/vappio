@@ -28,7 +28,7 @@ class RunPipeline(CGIPage):
             return json.dumps([True, pipelineObj.pid])
         except CLIError, err:
             return json.dumps([False, str(err)])
-        except ImportError:
-            return json.dumps([False, 'The requested pipeline could not be found'])
+        except ImportError, err:
+            return json.dumps([False, 'The requested pipeline could not be found: ' + str(err)])
 
 generatePage(RunPipeline())
