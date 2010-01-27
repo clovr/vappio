@@ -28,8 +28,8 @@ def main(options, args):
         if ok:
             keys = res.keys()
             keys.sort()
-            print '%20s %10s %20s' % ('Name', 'Status', 'Type')
-            print '\n'.join(['%20s %10s %20s' % (name, res[name][1]['state'], res[name][1]['ptype']) for name in keys])
+            print '%40s %10s %20s' % ('Name', 'Status', 'Type')
+            print '\n'.join(['%40s %10s %20s' % (name, res[name][1]['state'], res[name][1]['ptype']) for name in keys])
         else:
             print 'Failed: ' + res
     except:
