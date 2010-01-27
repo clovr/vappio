@@ -26,7 +26,10 @@ def main(options, args):
     try:
         ok, res = result
         if ok:
-            print '\n'.join([name + ': ' + state[1] for name, state in res.iteritems()])
+            keys = res.keys()
+            keys.sort()
+            print '%20s %10s %20s' % ('Name', 'Status', 'Type')
+            print '\n'.join(['%20s %10s %20s' % (name, res[name]['state'], res[name]['ptype']) for name in keys])
         else:
             print 'Failed: ' + res
     except:

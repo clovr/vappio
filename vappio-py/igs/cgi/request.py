@@ -5,14 +5,18 @@ import json
 import urllib
 import httplib
 
-def performQuery(host, url, params):
+def performQuery(host, url, var):
     """
     params is a dict on of values to pass to server
     """
-    params = urllib.urlencode({'request': json.dumps(params)})
+    params = urllib.urlencode({'request': json.dumps(var)})
     conn = httplib.HTTPConnection(host)
     conn.request('POST', url, params)
-    return json.loads(conn.getresponse().read())
+    data = conn.getresponse().read()
+    try:
+        return json.loads(data)
+    except:
+        raise ValueError('Unknown data: ' + data)
 
 def readQuery():
     form = cgi.FieldStorage()

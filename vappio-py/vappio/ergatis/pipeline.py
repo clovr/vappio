@@ -9,6 +9,8 @@ from igs.utils.cli import buildConfigN
 from igs.utils.config import replaceStr
 from igs.utils.commands import runSingleProgram, ProgramRunError
 
+from twisted.python.reflect import fullyQualifiedName
+
 
 class PipelineError(Exception):
     pass
@@ -40,6 +42,12 @@ class Pipeline:
                 return getStrBetween(line, '<state>', '</state>')
 
         raise PipelineError('Could not find <state> in the pipeline.xml')
+
+    def ptypeStr(self):
+        """
+        A string representing the ptype
+        """
+        return fullyQualifiedName(self.ptype).split('.')[-1]
 
 def runPipeline(name, pipeline, args=None):
     """
