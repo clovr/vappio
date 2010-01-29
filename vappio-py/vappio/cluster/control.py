@@ -69,14 +69,15 @@ class Cluster:
         if releaseCut: mode.append(RELEASE_CUT)
         
         dataFile = createMasterDataFile(self.config)
-                                  
-        master = self.ctype.runInstances(self.config('cluster.ami'),
-                                         self.config('cluster.key'),
-                                         self.config('cluster.master_type'),
-                                         self.config('cluster.master_groups'),
-                                         self.config('cluster.availability_zone'),
-                                         1,
-                                         userDataFile=dataFile)[0]
+
+        master = runInstancesWithRetry(self.ctype,
+                                       self.config('cluster.ami'),
+                                       self.config('cluster.key'),
+                                       self.config('cluster.master_type'),
+                                       self.config('cluster.master_groups'),
+                                       self.config('cluster.availability_zone'),
+                                       1,
+                                       dataFile)[0]
         
         
         master = waitForState(self.ctype, NUM_TRIES, [master], self.ctype.Instance.RUNNING)[0]
@@ -132,13 +133,14 @@ class Cluster:
         if numExec:
             dataFile = createExecDataFile(self.config, self.master)
 
-            slaves = self.ctype.runInstances(self.config('cluster.ami'),
-                                             self.config('cluster.key'),
-                                             self.config('cluster.exec_type'),
-                                             self.config('cluster.exec_groups'),
-                                             self.config('cluster.availability_zone'),
-                                             numExec,
-                                             userDataFile=dataFile)
+            slaves = runInstancesWithRetry(self.ctype,
+                                           self.config('cluster.ami'),
+                                           self.config('cluster.key'),
+                                           self.config('cluster.exec_type'),
+                                           self.config('cluster.exec_groups'),
+                                           self.config('cluster.availability_zone'),
+                                           numExec,
+                                           dataFile)
             
             
             try:
@@ -230,3 +232,27 @@ def runCommandOnCluster(cluster, command, justMaster=False):
         
     runCommandGens([runCommandOnInstance(i, command) for i in instances])
     
+
+def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, num, dataFile):
+    """
+    Tries to start up N instances, will try to run more if it cannot bring up all
+    """
+    instances = ctype.runInstances(ami,
+                                   key,
+                                   itype,
+                                   groups,
+                                   availzone,
+                                   num,
+                                   userDataFile=dataFile)
+    if len(instances) < num:
+        instances += runInstancesWithRetry(ctype,
+                                           ami,
+                                           key,
+                                           itype,
+                                           groups,
+                                           availzone,
+                                           num - len(instances),
+                                           dataFile)
+
+    return instances
+        
