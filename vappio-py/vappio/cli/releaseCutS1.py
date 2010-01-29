@@ -17,7 +17,7 @@ COMMANDS = [
 
 def main():
     for c in COMMANDS:
-        runSystemEx(c)
+        runSystemEx(c, log=True)
 
 
 if __name__ == '__main__':
