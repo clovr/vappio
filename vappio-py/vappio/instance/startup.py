@@ -8,6 +8,8 @@ from igs.utils.config import configFromEnv
 
 from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT, configFromStream
 
+from igs.config_manage.policy import installPkg, installOptPkg
+
 
 ##
 # I'm using lambdas here just because I want to define the functions lower in the file
@@ -52,17 +54,7 @@ def startUpDevNode(conf):
     Any SVN work is done on trunk (need to add config to specify a branch)
     """
     executePolicyDir('/opt/config_policies/DEV')
-    runSystemEx("""rm -rf /usr/local/stow""")
-    runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/stow /usr/local/stow""")
-
-    runSystemEx("""rm -rf /opt/packages""")
-    runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages /opt/packages""")
-
-    runSystemEx("""rm -rf /opt/clovr_pipelines""")
-    runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines /opt/clovr_pipelines""")
-
-    runSystemEx("""rm -rf /opt/opt-packages""")
-    runSystemEx("""svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages /opt/opt-packages""")
+    runSystemEx("""updateAllDirs.py --co""")
 
 def startUpMasterNode(conf):
     executePolicyDir('/opt/config_policies/MASTER')
@@ -83,11 +75,13 @@ def startUpAllNodes(conf):
     """
     Things that need to be done for all nodes:
 
-    1 - List through all .py files in /opt/config_policies and run them (eventually this directory should probably
+    1 - Go through /usr/local/stow and /opt/opt-packages installing all packages
+    2 - List through all .py files in /opt/config_policies and run them (eventually this directory should probably
         be split up by node type)
     """
+    installAllStow()
+    installAllOptPackages()            
     executePolicyDir('/opt/config_policies')
-            
 
 def executePolicyDir(d):
     """Execute all .py files in a directory, in alphabetical order"""
@@ -95,4 +89,14 @@ def executePolicyDir(d):
     files.sort()
     for f in files:
         runSystemEx('python ' + os.path.join(d, f))
+        
+
+def installAllStow():
+    for p in os.listdir('/usr/local/stow'):
+        installPkg(p)
+        
+
+def installOptPackages():
+    for p in os.listdir('/opt/opt-packages'):
+        installOptPkg(p)
         
