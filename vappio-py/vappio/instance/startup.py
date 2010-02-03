@@ -96,7 +96,7 @@ def installAllStow():
         installPkg(p)
         
 
-def installOptPackages():
+def installAllOptPackages():
     for p in os.listdir('/opt/opt-packages'):
         installOptPkg(p)
         
