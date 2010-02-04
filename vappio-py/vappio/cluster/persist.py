@@ -33,12 +33,11 @@ def dump(baseDir, cluster):
         runSystemEx('mkdir -p ' + clusterDir)
 
     writeFile(os.path.join(clusterDir, 'master'), cluster.master.publicDNS)
-    writeFile(os.path.join(clusterDir, 'slaves'), ((cluster.slaves or '') and
-                                                   '\n'.join([s.publicDNS for s in cluster.slaves])))
-
+    writeFile(os.path.join(clusterDir, 'slaves'), json.dumps({'execNodes': [i.publicDNS for i in cluster.execNodes],
+                                                              'dataNodes': [i.publicDNS for i in cluster.dataNodes]}))
     ##
     # let's let json serialize this for us
-    writeFile(os.path.join(clusterDir, 'conf'), json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()])))
+    writeFile(os.path.join(clusterDir, 'conf'), json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()]), indent=4))
     writeFile(os.path.join(clusterDir, 'ctype'), fullyQualifiedName(cluster.ctype))
     
 
@@ -51,7 +50,7 @@ def load(baseDir, name):
         raise ClusterDoesNotExist()
 
     masterIp = open(os.path.join(clusterDir, 'master')).read().strip()
-    slaveIps = [l.rstrip('\n') for l in open(os.path.join(clusterDir, 'slaves')).readlines()]
+    slaves = json.loads(open(os.path.join(clusterDir, 'slaves')).read())
     conf = configFromMap(json.loads(open(os.path.join(clusterDir, 'conf')).read()))
     ctype = namedAny(open(os.path.join(clusterDir, 'ctype')).read().strip())
 
@@ -61,13 +60,13 @@ def load(baseDir, name):
 
     mastInst = instances[0]
 
-    instances = getInstances(lambda i : i.publicDNS in slaveIps, ctype)
+    execNodes = getInstances(lambda i : i.publicDNS in slaves['execNodes'], ctype)
+    dataNodes = getInstances(lambda i : i.publicDNS in slaves['dataNodes'], ctype)
 
-    slaves = instances
-    
     cluster = Cluster(name, ctype, conf)
     cluster.setMaster(mastInst)
-    cluster.addExecs(slaves)
+    cluster.addExecNodes(execNodes)
+    cluster.addDataNodes(dataNodes)
 
     return cluster
 

@@ -1,7 +1,9 @@
 ##
-# Tools for persisting pipeline data to disk
+# Tools for persisting pipeline data to MongoDB
 import os
 import json
+
+import pymongo
 
 from twisted.python.reflect import fullyQualifiedName, namedAny
 
@@ -10,55 +12,45 @@ from igs.utils.commands import runSystemEx
 
 from vappio.ergatis.pipeline import Pipeline
 
+
 class PipelineDoesNotExist(Exception):
     pass
 
 
-def writeFile(fname, data):
-    fout = open(fname, 'w')
-    fout.write(data)
-    fout.close()
-
-
 def dump(baseDir, pipeline):
     """
-    Dumps pipeline info to a directory structure
+    Dumps pipeline info to mongodb, baseDir will be removed in future
     """
-    pipelineDir = os.path.join(baseDir, 'db', 'pipeline', pipeline.name)
-    if not os.path.exists(pipelineDir):
-        runSystemEx('mkdir -p ' + pipelineDir)
+    pipelines = pymongo.Connection().clovr.pipelines
 
-
-    writeFile(os.path.join(pipelineDir, 'ptype'), fullyQualifiedName(pipeline.ptype))
-    writeFile(os.path.join(pipelineDir, 'pid'), pipeline.pid)
-    ##
-    # let's let json serialize this for us
-    writeFile(os.path.join(pipelineDir, 'conf'), json.dumps(dict([(k, pipeline.config(k)) for k in pipeline.config.keys()])))
-
+    pipelines.insert(dict(_id=pipeline.name,
+                          name=pipeline.name,
+                          ptype=fullyQualifiedName(pipeline.ptype),
+                          pid=pipeline.pid,
+                          conf=dict([(k, pipeline.config(k)) for k in pipeline.config.keys()])))
+    
 def load(baseDir, name):
     """
-    Loads a pipeline by name and returns a Pipeline object
+    Loads a pipeline by name, returning a Pipeline.  baseDir will be removed soon
     """
-    pipelineDir = os.path.join(baseDir, 'db', 'pipeline', name)
-    if not os.path.exists(pipelineDir):
+    pipelines = pymongo.Connection().clovr.pipelines
+    pipeline = pipelines.find_one({'name': name})
+    if pipeline is None:
         raise PipelineDoesNotExist('Could not find pipeline: ' + name)
 
-    ptype = namedAny(open(os.path.join(pipelineDir, 'ptype')).read().strip())
-    pid = open(os.path.join(pipelineDir, 'pid')).read().strip()
-    conf = configFromMap(json.loads(open(os.path.join(pipelineDir, 'conf')).read()))
-
+    ptype = namedAny(pipeline['ptype'])
+    pid = pipeline['pid']
+    conf = configFromMap(pipeline['conf'])
+    
     return Pipeline(name, pid, ptype, conf)
+    
 
 
 def loadAll(baseDir):
     """
     Loads all of the pipelines
     """
-    pipelineDir = os.path.join(baseDir, 'db', 'pipeline')
-    if not os.path.exists(pipelineDir):
-        raise PipelineDoesNotExist('No pipelines exist')
-
-    pipelines = os.listdir(pipelineDir)
-    return [load(baseDir, p) for p in pipelines]
+    pipelines = pymongo.Connection().clovr.pipelines
+    return [load(baseDir, p['name']) for p in pipelines.find()]
 
     

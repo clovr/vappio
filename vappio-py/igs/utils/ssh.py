@@ -27,20 +27,20 @@ def runSystemSSHA(host, cmd, stdoutf, stderrf, user=None, options=None, log=Fals
 
     return ProgramRunner(' '.join(command), stdoutf, stderrf, log=log)
 
-def runSystemSSH(host, cmd, stdoutf, stderrf, user=None, options=None):
+def runSystemSSH(host, cmd, stdoutf, stderrf, user=None, options=None, log=False):
     """
     Blocking version of runSystemSSHA
 
     Returns the exit code
     """
-    return runProgramRunner(runSystemSSHA(host, cmd, stdoutf, stderrf, user, options))
+    return runProgramRunner(runSystemSSHA(host, cmd, stdoutf, stderrf, user, options, log=log))
 
 
-def runSystemSSHEx(host, cmd, stdoutf, stderrf, user=None, options=None):
+def runSystemSSHEx(host, cmd, stdoutf, stderrf, user=None, options=None, log=False):
     """
     Blocking version of runSystemSSHA, throws an exception on failure though
     """
-    pr = runSystemSSHA(host, cmd, stdoutf, stderrf, user, options)
+    pr = runSystemSSHA(host, cmd, stdoutf, stderrf, user, options, log=log)
     exitCode = runProgramRunner(pr)
     if exitCode != 0:
         raise ProgramRunError(pr.cmd, exitCode)

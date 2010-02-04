@@ -59,6 +59,11 @@ def startUpDevNode(conf):
 def startUpMasterNode(conf):
     executePolicyDir('/opt/config_policies/MASTER')
     
+    ##
+    # Run anything for internal record keeping in a database
+    ##
+    # I don't think I need this yet
+    #setupDatabase(conf)
 
 def startUpExecNode(conf):
     """
@@ -82,6 +87,7 @@ def startUpAllNodes(conf):
     installAllStow()
     installAllOptPackages()            
     executePolicyDir('/opt/config_policies')
+
 
 def executePolicyDir(d):
     """Execute all .py files in a directory, in alphabetical order"""

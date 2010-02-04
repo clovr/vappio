@@ -5,11 +5,6 @@ import os
 
 from igs.utils.cli import buildConfigN, notNone
 
-from igs.utils.commands import runCommandGens
-from igs.utils.logging import errorPrintS
-
-from vappio.instance.control import runSystemInstanceA
-
 from vappio.cluster.persist import load
 
 OPTIONS = [
@@ -25,7 +20,8 @@ def main(options, _args):
 
     print '*** Cluster info ***'
     print 'Master IP: %s' % masterIP
-    print 'There are %d slaves up' % len(cluster.slaves)
+    print 'There are %3d exec nodes up' % len(cluster.execNodes)
+    print 'There are %3d data nodes up' % len(cluster.dataNodes)
     print
     print 'Useful URLs'
     print 'Ganglia: http://%s/ganglia' % masterIP
