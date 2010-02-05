@@ -6,7 +6,7 @@
 from igs.utils.commands import runSystemEx
 
 COMMANDS = [
-    """apt-get upgrade""",
+    """apt-get update""",
     """svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages /opt/packages""",
     """dpkg --get-selections > /opt/packages/packages.latest""",
     """perl -e 'use ExtUtils::Installed;$inst = ExtUtils::Installed->new(); foreach my $mod ($inst->modules()){print "$mod ",$inst->version($mod),"\n"};' > /opt/packages/cpan.packages""",
