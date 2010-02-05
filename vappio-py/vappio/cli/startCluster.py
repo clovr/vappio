@@ -31,7 +31,7 @@ def main(options, _args):
     ctype = ec2Control
     cl = Cluster(options('general.name'), ctype, options)
     try:
-        startMaster(cl, options('general.num'), devMode=options('general.dev_mode'), releaseCut=options('general.release_cut'))
+        startCluster(cl, options('general.num'), devMode=options('general.dev_mode'), releaseCut=options('general.release_cut'))
     except TryError, err:
         errorPrint('There was an error bringing up the cluster: ' + str(err.msg))
         
