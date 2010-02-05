@@ -7,8 +7,8 @@ import urllib
 import json
 
 from igs.utils.cli import buildConfigN, MissingOptionError, notNone
-
 from igs.utils.logging import logPrint, errorPrint
+from igs.cgi.request import performQuery
 
 from vappio.instance.control import runSystemInstanceEx
 
@@ -23,24 +23,19 @@ OPTIONS = [
 URL = '/vappio/runPipeline.py'
 
 def main(options, args):
-    #options = configFromMap({'general': {'options': args}}, options)
-    
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
-    params = urllib.urlencode({'request': json.dumps({'pipeline': options('general.pipeline'),
-                                                      'pipeline_name': options('general.pipeline_name'),
-                                                      'args': json.dumps(args)
-                                                      })})
-    conn = httplib.HTTPConnection(cluster.master.publicDNS)
-    conn.request('POST', URL, params)
-    data = conn.getresponse().read()
+    result = performQuery(cluster.master.publicDNS, URL, {'pipeline': options('general.pipeline'),
+                                                          'pipeline_name': options('general.pipeline_name'),
+                                                          'args': args
+                                                          })
     try:
-        ok, res = json.loads(data)
+        ok, res = result
         if ok:
             logPrint('Pipeline Id: ' + str(res))
         else:
             errorPrint('Failed: ' + str(res))
     except:
-        errorPrint('Unknown result: ' + data)
+        errorPrint('Unknown result: ' + str(result))
 
     
 
