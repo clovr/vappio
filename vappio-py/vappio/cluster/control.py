@@ -165,13 +165,13 @@ def startExecNodes(cluster, numExec, reporter=None):
         try:
             try:
                 scpToEx(i.publicDNS,
-                        dataFile,
+                        '/tmp/machine.conf',
                         '/tmp',
                         user=cluster.config('ssh.user'),
                         options=cluster.config('ssh.options'))
             except:
                 scpToEx(i.publicDNS,
-                        dataFile,
+                        '/tmp/machine.conf',
                         '/tmp',
                         user=cluster.config('ssh.user'),
                         options=cluster.config('ssh.options'))
@@ -246,9 +246,6 @@ def startExecNodes(cluster, numExec, reporter=None):
                 slaves, bad = err.result
                 cluster.ctype.terminateInstances(bad)
                 
-            dataFile = createDataFile(cluster.config,
-                                      [EXEC_NODE],
-                                      cluster.master.privateDNS)
 
             chans = [runThreadWithChannel(_setupInstance)[1].sendWithChannel(i)
                      for i in slaves]
@@ -272,7 +269,8 @@ def startExecNodes(cluster, numExec, reporter=None):
                 
             return cluster
         finally:
-            os.remove(dataFile)
+            #os.remove(dataFile)
+            pass
 
         
 

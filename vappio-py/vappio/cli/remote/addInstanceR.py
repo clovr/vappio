@@ -28,7 +28,7 @@ def main(options, _args):
     except ClusterDoesNotExist:
         options = configFromMap({'general': {'ctype': 'ec2'}},
                                 configFromStream(open('/tmp/machine.conf'),
-                                                 configFromEnv()))
+                                                 configFromEnv(options)))
         options = configFromMap(
             {'cluster': {'master_groups': [f.strip() for f in options('cluster.master_groups').split(',')],
                          'exec_groups': [f.strip() for f in options('cluster.exec_groups').split(',')]
