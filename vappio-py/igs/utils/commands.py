@@ -90,6 +90,21 @@ def runSingleProgram(cmd, stdoutf, stderrf, log=False):
 
     return pr.exitCode
 
+def runSingleProgramEx(cmd, stdoutf, stderrf, log=False):
+    """Gives you control over where the stream data goes"""
+    pr = ProgramRunner(cmd, stdoutf, stderrf, log=log)
+
+    def _():
+        yield pr
+
+    runCommandGens([_()])
+
+    if pr.exitCode != 0:
+        raise ProgramRunError(pr.cmd, exitcode)
+    
+    return pr.exitCode
+
+
 def runSystem(cmd, log=False):
     """Simpler wrapper, looks more like os.system"""
     return runSingleProgram(cmd, sys.stdout.write, sys.stderr.write, log=log)
