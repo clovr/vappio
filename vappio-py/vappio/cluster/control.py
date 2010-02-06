@@ -30,7 +30,7 @@ class TryError(Exception):
         self.result = result
 
     def __str__(self):
-        return str(msg)
+        return str(self.msg)
 
 class ClusterError(Exception):
     pass
@@ -117,6 +117,20 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
             user=cluster.config('ssh.user'),
             options=cluster.config('ssh.options'))
 
+    ##
+    # Copy up EC2 stuff
+    scpToEx(master.publicDNS,
+            os.getenv('EC2_CERT'),
+            '/root/ec2-cert.pem',
+            user=cluster.config('ssh.user'),
+            options=cluster.config('ssh.options'))    
+
+    scpToEx(master.publicDNS,
+            os.getenv('EC2_PRIVATE_KEY'),
+            '/root/ec2-pk.pem',
+            user=cluster.config('ssh.user'),
+            options=cluster.config('ssh.options'))    
+    
     if cluster.config('general.update_dirs'):
         updateDirs(cluster, [master])
 
@@ -163,7 +177,7 @@ def startExecNodes(cluster, numExec, reporter=None):
                         options=cluster.config('ssh.options'))
 
             if cluster.config('general.update_dirs'):
-                updateDirs(cluster, i)
+                updateDirs(cluster, [i])
 
             runSystemInstanceEx(i,
                                 'startUpNode.py',
@@ -246,8 +260,8 @@ def startExecNodes(cluster, numExec, reporter=None):
                 try:
                     c.receive()
                     res.append(i)
-                except:
-                    pass
+                except Exception, err:
+                    errorPrint('Exception here?: ' + str(err))
 
             slaves = res
 
@@ -275,7 +289,14 @@ def waitForState(ctype, tries, instances, wantState, reporter):
         return True
     
     while tries > 0:
-        instances = ctype.updateInstances(instances)
+        ##
+        # EC2 has been doing this annoying thing where you run an instance
+        # but it doesn't show up in ec2-describe-images for a few minutes
+        # We will handle this by making sure the length of previous instance and
+        # this instance match, and if not
+        instancesPrime = ctype.updateInstances(instances)
+        if len(instancesPrime) == len(instances):
+            instances = instancesPrime
         applyIfCallable(reporter, instances)
         if _matchState(instances):
             return instances
@@ -294,6 +315,7 @@ def waitForSSHUp(conf, tries, instances):
         try:
             rchan.send(_checkSSHUp(instance))
         except Exception, err:
+            errorPrint("Exception thrown: " + str(err))
             rchan.sendError(err)
             
     def _checkSSHUp(i):

@@ -19,11 +19,14 @@ OPTIONS = [
 
 def main(options, _args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
-    
-    startExecNodes(cluster, options('general.num'))
-    
-    dump(os.path.join(options('env.VAPPIO_HOME'), 'db'), cluster)
 
+    try:        
+        startExecNodes(cluster, options('general.num'))
+    except TryError, err:
+        errorPrint('There was an error bringing up the cluster: ' + str(err.msg))
+
+
+    dump(os.path.join(options('env.VAPPIO_HOME'), 'db'), cluster)
     logPrint('The master IP is: ' + cluster.master.publicDNS)
 
     

@@ -141,19 +141,19 @@ def runInstances(*args, **kwargs):
     runProgramRunnerEx(runInstancesA(instances, *args, **kwargs))
     return instances
 
-def listInstancesA(instances):
+def listInstancesA(instances, log=False):
     """List all currently running instances"""
     def _instanceParse(line):
         instance = parseInstanceLine(line)
         if instance:
             instances.append(instance)
 
-    return ctorProgramRunner('ec2-describe-instances', _instanceParse, log=False)
+    return ctorProgramRunner('ec2-describe-instances', _instanceParse, log=log)
 
 def listInstances(log=False):
     """Blocking version, returns list of instances"""
     instances = []
-    runProgramRunnerEx(listInstancesA(instances))
+    runProgramRunnerEx(listInstancesA(instances, log=log))
     return instances
                  
 def terminateInstancesA(instances):

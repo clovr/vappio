@@ -6,7 +6,7 @@ from igs.utils.config import configFromMap, configFromStream
 from igs.utils.logging import logPrint, errorPrint
 from igs.utils.functional import identity, compose
 
-from vappio.cluster.control import Cluster, startMaster
+from vappio.cluster.control import Cluster, startCluster, TryError
 from vappio.cluster.persist import dump
 from vappio.ec2 import control as ec2Control
 
