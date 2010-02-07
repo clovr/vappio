@@ -117,6 +117,21 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
             user=cluster.config('ssh.user'),
             options=cluster.config('ssh.options'))
 
+
+    ##
+    # Create and copy exec data file
+    os.remove(dataFile)
+    dataFile = createDataFile(cluster.config,
+                              [EXEC_NODE],
+                              master.privateDNS)
+    
+    scpToEx(master.publicDNS,
+            dataFile,
+            '/tmp/exec.machine.conf',
+            user=cluster.config('ssh.user'),
+            options=cluster.config('ssh.options'))
+
+    os.remove(dataFile)
     ##
     # Copy up EC2 stuff
     scpToEx(master.publicDNS,
@@ -146,8 +161,6 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
                             log=True)
     except Exception, err:
         raise TryError(err, cluster)
-    finally:
-        os.remove(dataFile)
 
     return cluster
     
@@ -165,14 +178,14 @@ def startExecNodes(cluster, numExec, reporter=None):
         try:
             try:
                 scpToEx(i.publicDNS,
+                        '/tmp/exec.machine.conf',
                         '/tmp/machine.conf',
-                        '/tmp',
                         user=cluster.config('ssh.user'),
                         options=cluster.config('ssh.options'))
             except:
                 scpToEx(i.publicDNS,
+                        '/tmp/exec.machine.conf',
                         '/tmp/machine.conf',
-                        '/tmp',
                         user=cluster.config('ssh.user'),
                         options=cluster.config('ssh.options'))
 
