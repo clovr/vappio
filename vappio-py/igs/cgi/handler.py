@@ -2,7 +2,7 @@
 # This is a little framework to make it easier and less error prone to write CGI scripts.
 # This defines an object which should be implemented by anyone writing an CGI script.  The object
 # is then used to construct the response.
-
+import json
 import cgitb
 
 
@@ -39,5 +39,8 @@ def generatePage(cgiPage):
     if cgiPage.headers:
         print '\n'.join([h + ': ' + v for h, v in cgiPage.headers.iteritems()])
     print
-    print cgiPage.body()
+    try:
+        print cgiPage.body()
+    except Exception, err:
+        print json.dumps([False, str(err)])
     
