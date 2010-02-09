@@ -4,6 +4,8 @@
 # is then used to construct the response.
 import json
 import cgitb
+import traceback
+from StringIO import StringIO
 
 
 class CGIPage:
@@ -41,6 +43,8 @@ def generatePage(cgiPage):
     print
     try:
         print cgiPage.body()
-    except Exception, err:
-        print json.dumps([False, str(err)])
+    except:
+        stream = StringIO()
+        traceback.print_exc(file=stream)
+        print json.dumps([False, stream.getvalue()])
     

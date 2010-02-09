@@ -390,7 +390,7 @@ def updateDirs(cluster, instances):
                                 options=cluster.config('ssh.options'),
                                 log=True)
             runSystemInstanceEx(i,
-                                'updateAllDirs.py --vappio-py --vappio-scripts --config_policies --clovr_pipelines',
+                                'updateAllDirs.py --vappio-py --vappio-scripts --config_policies --clovr_pipelines --vappio-py-www',
                                 None,
                                 errorPrintS,
                                 user=cluster.config('ssh.user'),
@@ -431,8 +431,8 @@ def runCommandOnCluster(cluster, command, justMaster=False):
             rchan.sendError(err)
             
     instances = [cluster.master]
-    if not justMaster:
-        instances += cluster.slaves
+    #if not justMaster:
+    #    instances += cluster.slaves
 
 
     chans = [runThreadWithChannel(_runCommandOnInstance)[1].sendWithChannel(i)

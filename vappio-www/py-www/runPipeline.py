@@ -21,14 +21,9 @@ class RunPipeline(CGIPage):
         pipelineName = request['pipeline']
         conf = configFromEnv()
         
-        try:
-            pipeline = namedModule('vappio.pipelines.' + pipelineName)
-            pipelineObj = runPipeline(request['pipeline_name'], pipeline, request['args'])
-            dump(conf('env.VAPPIO_HOME'), pipelineObj)
-            return json.dumps([True, pipelineObj.pid])
-        except CLIError, err:
-            return json.dumps([False, str(err)])
-        except ImportError, err:
-            return json.dumps([False, 'The requested pipeline could not be found: ' + str(err)])
+        pipeline = namedModule('vappio.pipelines.' + pipelineName)
+        pipelineObj = runPipeline(request['pipeline_name'], pipeline, request['args'])
+        dump(conf('env.VAPPIO_HOME'), pipelineObj)
+        return json.dumps([True, pipelineObj.pid])
 
 generatePage(RunPipeline())
