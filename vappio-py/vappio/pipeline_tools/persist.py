@@ -40,7 +40,7 @@ def load(baseDir, name):
 
     ptype = namedAny(pipeline['ptype'])
     pid = pipeline['pid']
-    conf = configFromMap([(k.replace('|', '.'), v) for k, v in pipeline['conf'].iteritems()])
+    conf = configFromMap(dict([(k.replace('|', '.'), v) for k, v in pipeline['conf'].iteritems()]))
     
     return Pipeline(name, pid, ptype, conf)
     
