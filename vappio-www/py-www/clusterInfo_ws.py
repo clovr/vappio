@@ -15,13 +15,13 @@ class ClusterInfo(CGIPage):
         try:
             cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), 'local')
         except ClusterDoesNotExist:
+            options = configFromStream(open('/tmp/machine.conf'), options)
             options = configFromMap({'general': {'ctype': 'ec2'},
                                      'cluster': {'master_groups': [f.strip() for f in options('cluster.master_groups').split(',')],
                                                  'exec_groups': [f.strip() for f in options('cluster.exec_groups').split(',')]
                                                  }
                                      },
-                                    configFromStream(open('/tmp/machine.conf'),
-                                                     options))
+                                    options)
             cluster = Cluster('local', ec2control, options)
             cluster.setMaster(getInstances(lambda i : i.privateDNS == cluster.config('MASTER_IP'), ec2control)[0])
 
