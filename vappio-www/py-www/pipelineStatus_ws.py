@@ -11,7 +11,7 @@ from vappio.pipeline_tools.persist import load, loadAll
 
 def getPipelineStatus(pipeline):
     try:
-        return [True, {'state': pipeline.state(), 'ptype': pipeline.ptypeStr()}]
+        return [True, {'state': pipeline.state(), 'ptype': pipeline.ptypeStr(), 'pid': pipeline.pid}]
     except Exception, err:
         return [False, str(err)]
 
