@@ -6,7 +6,11 @@ from igs.utils.core import getStrBetween
 from igs.utils.config import configFromEnv, configFromMap, configFromStream
 from igs.cgi.handler import CGIPage, generatePage
 
+from vappio.cluster.control import Cluster
+from vappio.cluster.misc import getInstances
 from vappio.cluster.persist import load, dump, ClusterDoesNotExist
+
+from vappio.ec2 import control as ec2control
 
 class ClusterInfo(CGIPage):
 

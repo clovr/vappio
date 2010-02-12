@@ -294,7 +294,8 @@ def startExecNodes(cluster, numExec, reporter=None):
             pass
 
         
-
+def terminateCluster(cluster):
+    cluster.ctype.terminateInstances([cluster.master] + cluster.execNodes + cluster.dataNodes)
 
 def waitForState(ctype, tries, instances, wantState, reporter):
     """
