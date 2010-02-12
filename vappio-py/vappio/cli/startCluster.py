@@ -6,9 +6,12 @@ from igs.utils.config import configFromMap, configFromStream
 from igs.utils.logging import logPrint, errorPrint
 from igs.utils.functional import identity, compose
 
-from vappio.cluster.control import Cluster, startCluster, TryError
+from vappio.cluster.control import Cluster, startMaster, TryError
 from vappio.cluster.persist import dump
+
 from vappio.ec2 import control as ec2Control
+
+from vappio.cli import addInstances
 
 
 OPTIONS = [
@@ -22,7 +25,7 @@ OPTIONS = [
     ]
 
 
-def main(options, _args):
+def main(options, args):
     options = configFromMap(
         {'cluster': {'master_groups': [f.strip() for f in options('cluster.master_groups').split(',')],
                      'exec_groups': [f.strip() for f in options('cluster.exec_groups').split(',')]
@@ -31,11 +34,15 @@ def main(options, _args):
     ctype = ec2Control
     cl = Cluster(options('general.name'), ctype, options)
     try:
-        startCluster(cl, options('general.num'), devMode=options('general.dev_mode'), releaseCut=options('general.release_cut'))
+        startMaster(cl, options('general.num'), devMode=options('general.dev_mode'), releaseCut=options('general.release_cut'))
     except TryError, err:
         errorPrint('There was an error bringing up the cluster: ' + str(err.msg))
         
     dump(os.path.join(options('env.VAPPIO_HOME'), 'db'), cl)
+
+    ##
+    # A bit nasty, until addInstances gets moved into a library
+    addInstances.main(options, args)
     logPrint('The master IP is: ' + cl.master.publicDNS)
 
     
