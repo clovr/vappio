@@ -136,15 +136,23 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
     # Copy up EC2 stuff
     scpToEx(master.publicDNS,
             os.getenv('EC2_CERT'),
-            '/root/ec2-cert.pem',
+            '/tmp/ec2-cert.pem',
             user=cluster.config('ssh.user'),
             options=cluster.config('ssh.options'))    
 
     scpToEx(master.publicDNS,
             os.getenv('EC2_PRIVATE_KEY'),
-            '/root/ec2-pk.pem',
+            '/tmp/ec2-pk.pem',
             user=cluster.config('ssh.user'),
             options=cluster.config('ssh.options'))    
+
+    runSystemInstanceEx(master,
+                        'chmod a+r /tmp/*.pem',
+                        None,
+                        errorPrintS,
+                        user=cluster.config('ssh.user'),
+                        options=cluster.config('ssh.options'),
+                        log=True)
     
     if cluster.config('general.update_dirs'):
         updateDirs(cluster, [master])

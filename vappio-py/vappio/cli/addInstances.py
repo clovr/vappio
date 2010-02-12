@@ -16,7 +16,7 @@ OPTIONS = [
     ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
     ]
 
-URL = '/vappio/addInstances.py'
+URL = '/vappio/addInstances_ws.py'
 
 def main(options, _args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))

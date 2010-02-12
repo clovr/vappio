@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import os
-import cgi
 import json
 
 from igs.utils.core import getStrBetween

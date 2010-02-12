@@ -20,7 +20,7 @@ OPTIONS = [
     ('pipeline_name', '', '--pipeline-name', 'Name to give the pipeline', notNone)
     ]
 
-URL = '/vappio/runPipeline.py'
+URL = '/vappio/runPipeline_ws.py'
 
 def main(options, args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))

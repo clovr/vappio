@@ -15,7 +15,7 @@ OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
     ]
 
-URL = '/vappio/pipelineStatus.py'
+URL = '/vappio/pipelineStatus_ws.py'
 
 
 

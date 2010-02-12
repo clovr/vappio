@@ -2,7 +2,6 @@
 ##
 # This adds instances to the current cluster.  This should run on the master node of
 # whatever cluster instances are being added to
-
 import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
@@ -21,6 +20,7 @@ OPTIONS = [
     ('num', '', '--num', 'Number of nodes to create', compose(int, notNone)),
     ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
     ]
+
 
 def main(options, _args):
     try:
