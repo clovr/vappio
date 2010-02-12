@@ -26,8 +26,8 @@ def dump(baseDir, pipeline):
     pipelines.insert(dict(_id=pipeline.name,
                           name=pipeline.name,
                           ptype=fullyQualifiedName(pipeline.ptype),
-                          pid=pipeline.pid,
-                          conf=dict([(k, pipeline.config(k)) for k in pipeline.config.keys()])))
+                          pid=pipeline.pid))
+                          conf=dict([(k.replace('.', '|'), pipeline.config(k)) for k in pipeline.config.keys()])))
     
 def load(baseDir, name):
     """
@@ -40,7 +40,7 @@ def load(baseDir, name):
 
     ptype = namedAny(pipeline['ptype'])
     pid = pipeline['pid']
-    conf = configFromMap(pipeline['conf'])
+    conf = configFromMap([(k.replace('|', '.'), v) for k, v in pipeline['conf'].iteritems()])
     
     return Pipeline(name, pid, ptype, conf)
     
