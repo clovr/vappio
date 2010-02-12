@@ -11,6 +11,9 @@ export PATH=$PATH:/usr/local/bin:/usr/local/sbin
 export PATH=$PATH:/opt/vappio-py/vappio/cli:/opt/vappio-py/vappio/cli/remote:/opt/vappio-scripts:/opt/vappio-scripts/pipelines
 export PATH=$PATH:/opt/crossbow/ec2-local:/opt/crossbow/local:/opt/samtools
 
+##
+# Something weird for mongodb
+export PYTHON_EGG_CACHE=/tmp/python-eggs
 
 ##
 # These are temporary right now, trying to figure out the best way to 

@@ -13,12 +13,13 @@ from vappio.cluster.persist import load, dump, ClusterDoesNotExist
 class ClusterInfo(CGIPage):
 
     def body(self):
+        options = configFromEnv()
         try:
             cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), 'local')
         except ClusterDoesNotExist:
             options = configFromMap({'general': {'ctype': 'ec2'}},
                                     configFromStream(open('/tmp/machine.conf'),
-                                                     configFromEnv()))
+                                                     options))
             cluster = Cluster('local', ec2control, options)
             cluster.setMaster(getInstances(lambda i : i.privateDNS == cluster.config('MASTER_IP'), ec2control)[0])
 
