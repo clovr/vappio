@@ -3,10 +3,8 @@ import os
 import json
 
 from igs.utils.core import getStrBetween
-from igs.utils.config import configFromEnv
+from igs.utils.config import configFromEnv, configFromMap, configFromStream
 from igs.cgi.handler import CGIPage, generatePage
-
-from vappio.pipeline_tools.persist import load, loadAll
 
 from vappio.cluster.persist import load, dump, ClusterDoesNotExist
 
@@ -17,7 +15,11 @@ class ClusterInfo(CGIPage):
         try:
             cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), 'local')
         except ClusterDoesNotExist:
-            options = configFromMap({'general': {'ctype': 'ec2'}},
+            options = configFromMap({'general': {'ctype': 'ec2'},
+                                     'cluster': {'master_groups': [f.strip() for f in options('cluster.master_groups').split(',')],
+                                                 'exec_groups': [f.strip() for f in options('cluster.exec_groups').split(',')]
+                                                 }
+                                     },
                                     configFromStream(open('/tmp/machine.conf'),
                                                      options))
             cluster = Cluster('local', ec2control, options)
