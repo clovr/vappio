@@ -5,26 +5,27 @@ import os
 
 from igs.utils.cli import buildConfigN, MissingOptionError, notNone
 from igs.utils.logging import logPrint, errorPrint
-from igs.cgi.request import performQuery
 
-from vappio.instance.control import runSystemInstanceEx
+from vappio.cluster.persist import load
 
-from vappio.cluster.persist import load, dump
+from vappio.pipeline_tools.utils import pipelineStatus
 
 OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
     ]
 
-URL = '/vappio/pipelineStatus_ws.py'
 
 def main(options, args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
 
-    res = performQuery(cluster.master.publicDNS, URL, {'pipelines': args})
-    keys = res.keys()
-    keys.sort()
+    ##
+    # Return all those pipelines that match the lambda.  Either args is nothing in which
+    # case return all or args contains a list of names so return only those pipelines in that
+    # list of names
+    pipelines = pipelineStatus(cluster, lambda p : not args or p['name'] in args)
+    pipelines.sort(lambda p1, p2 : cmp(p1['name'], p2['name']))
     print '%40s %10s %20s' % ('Name', 'Status', 'Type')
-    print '\n'.join(['%40s %10s %20s' % (name, res[name][1]['state'], res[name][1]['ptype']) for name in keys])
+    print '\n'.join(['%40s %10s %20s' % (p['name'], p['state'], p['ptype']) for p in pipelines])
         
 
 if __name__ == '__main__':
