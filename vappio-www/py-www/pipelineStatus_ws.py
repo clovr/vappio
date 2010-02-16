@@ -29,6 +29,6 @@ class PipelineStatus(CGIPage):
         else:
             pipelines = loadAll(conf('env.VAPPIO_HOME'))
         
-        return json.dumps([(True, getPipelineStatus(p)) for p in pipelines])
+        return json.dumps([True, [(True, getPipelineStatus(p)) for p in pipelines]])
         
 generatePage(PipelineStatus())
