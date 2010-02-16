@@ -15,9 +15,6 @@ OPTIONS = [
     ('command', '', '--cmd', 'Command to run', notNone)
     ]
 
-
-
-
 def main(options, _args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
 

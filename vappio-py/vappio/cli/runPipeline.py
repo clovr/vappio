@@ -24,18 +24,12 @@ URL = '/vappio/runPipeline_ws.py'
 
 def main(options, args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
-    result = performQuery(cluster.master.publicDNS, URL, {'pipeline': options('general.pipeline'),
-                                                          'pipeline_name': options('general.pipeline_name'),
-                                                          'args': args
-                                                          })
-    try:
-        ok, res = result
-        if ok:
-            logPrint('Pipeline Id: ' + str(res))
-        else:
-            errorPrint('Failed: ' + str(res))
-    except:
-        errorPrint('Unknown result: ' + str(result))
+
+    res = performQuery(cluster.master.publicDNS, URL, {'pipeline': options('general.pipeline'),
+                                                       'pipeline_name': options('general.pipeline_name'),
+                                                       'args': args
+                                                       })
+    logPrint('Pipeline Id: ' + str(res))
 
     
 

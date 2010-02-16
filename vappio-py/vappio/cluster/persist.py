@@ -10,11 +10,18 @@ from twisted.python.reflect import fullyQualifiedName, namedAny
 
 from igs.utils.config import configFromMap
 from igs.utils.commands import runSystemEx
+from igs.cgi.request import performQuery
 
 from vappio.cluster.control import Cluster
 from vappio.cluster.misc import getInstances
 
+
+URL = '/vappio/clusterInfo_ws.py'
+
 class ClusterDoesNotExist(Exception):
+    pass
+
+class ClusterError(Exception):
     pass
 
 
@@ -33,8 +40,10 @@ def dump(baseDir, cluster):
         runSystemEx('mkdir -p ' + clusterDir)
 
     writeFile(os.path.join(clusterDir, 'master'), cluster.master.publicDNS)
-    writeFile(os.path.join(clusterDir, 'slaves'), json.dumps({'execNodes': [i.publicDNS for i in cluster.execNodes],
-                                                              'dataNodes': [i.publicDNS for i in cluster.dataNodes]}))
+    ##
+    # Not storing this anymore
+    #writeFile(os.path.join(clusterDir, 'slaves'), json.dumps({'execNodes': [i.publicDNS for i in cluster.execNodes],
+    #                                                          'dataNodes': [i.publicDNS for i in cluster.dataNodes]}))
     ##
     # let's let json serialize this for us
     writeFile(os.path.join(clusterDir, 'conf'), json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()]), indent=4))
@@ -50,7 +59,7 @@ def load(baseDir, name):
         raise ClusterDoesNotExist()
 
     masterIp = open(os.path.join(clusterDir, 'master')).read().strip()
-    slaves = json.loads(open(os.path.join(clusterDir, 'slaves')).read())
+
     conf = configFromMap(json.loads(open(os.path.join(clusterDir, 'conf')).read()))
     ctype = namedAny(open(os.path.join(clusterDir, 'ctype')).read().strip())
 
@@ -60,8 +69,11 @@ def load(baseDir, name):
 
     mastInst = instances[0]
 
-    execNodes = getInstances(lambda i : i.publicDNS in slaves['execNodes'], ctype)
-    dataNodes = getInstances(lambda i : i.publicDNS in slaves['dataNodes'], ctype)
+
+    result = performQuery(mastInst.publicDNS, URL, {})
+    
+    execNodes = getInstances(lambda i : i.publicDNS in result['execNodes'], ctype)
+    dataNodes = getInstances(lambda i : i.publicDNS in result['dataNodes'], ctype)
 
     cluster = Cluster(name, ctype, conf)
     cluster.setMaster(mastInst)

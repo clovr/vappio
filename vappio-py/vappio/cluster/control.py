@@ -8,6 +8,7 @@ from igs.utils.commands import runSystemEx, runCommandGens
 from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSH
 from igs.utils.logging import errorPrintS, errorPrint
 from igs.utils.functional import applyIfCallable
+from igs.utils.errors import TryError
 
 from igs.threading.threads import runThreadWithChannel
 
@@ -16,21 +17,6 @@ from vappio.instance.control import runSystemInstanceEx
 
 
 NUM_TRIES = 30
-
-class TryError(Exception):
-    """
-    Used when you want to try something but it fails but you want to return
-    a partial result.  
-
-    .result contains this result
-    .msg contains whatever message the caller put in there
-    """
-    def __init__(self, msg, result):
-        self.msg = msg
-        self.result = result
-
-    def __str__(self):
-        return str(self.msg)
 
 class ClusterError(Exception):
     pass
@@ -440,8 +426,8 @@ def runCommandOnCluster(cluster, command, justMaster=False):
             rchan.sendError(err)
             
     instances = [cluster.master]
-    #if not justMaster:
-    #    instances += cluster.slaves
+    if not justMaster:
+       instances += cluster.execNodes + cluster.dataNodes
 
 
     chans = [runThreadWithChannel(_runCommandOnInstance)[1].sendWithChannel(i)

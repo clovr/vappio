@@ -21,16 +21,9 @@ URL = '/vappio/addInstances_ws.py'
 def main(options, _args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
 
-    result = performQuery(cluster.master.publicDNS, URL, {'num': options('general.num'),
-                                                          'update_dirs': options('general.update_dirs')})
-    try:        
-        ok, res = result
-        if ok:
-            logPrint('Launching %d instances' % options('general.num'))
-        else:
-            errorPrint('Failed: ' + str(res))
-    except Exception, err:
-        errorPrint('Failed: ' + str(err))
-    
+    res = performQuery(cluster.master.publicDNS, URL, {'num': options('general.num'),
+                                                       'update_dirs': options('general.update_dirs')})
+    logPrint('Launching %d instances' % options('general.num'))
+        
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

@@ -17,25 +17,15 @@ OPTIONS = [
 
 URL = '/vappio/pipelineStatus_ws.py'
 
-
-
 def main(options, args):
     cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
 
-    result = performQuery(cluster.master.publicDNS, URL, {'pipelines': args})
-    try:
-        ok, res = result
-        if ok:
-            keys = res.keys()
-            keys.sort()
-            print '%40s %10s %20s' % ('Name', 'Status', 'Type')
-            print '\n'.join(['%40s %10s %20s' % (name, res[name][1]['state'], res[name][1]['ptype']) for name in keys])
-        else:
-            print 'Failed: ' + res
-    except:
-        errorPrint('Unknown result: ' + str(result))
-
-    
+    res = performQuery(cluster.master.publicDNS, URL, {'pipelines': args})
+    keys = res.keys()
+    keys.sort()
+    print '%40s %10s %20s' % ('Name', 'Status', 'Type')
+    print '\n'.join(['%40s %10s %20s' % (name, res[name][1]['state'], res[name][1]['ptype']) for name in keys])
+        
 
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))
