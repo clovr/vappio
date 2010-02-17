@@ -46,6 +46,7 @@ def generatePage(cgiPage):
         print cgiPage.contentType
         if cgiPage.headers:
             print '\n'.join([h + ': ' + v for h, v in cgiPage.headers.iteritems()])
+        print
         print body
     except:
         print cgiPage.contentType
