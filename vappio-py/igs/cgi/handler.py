@@ -37,13 +37,18 @@ def generatePage(cgiPage):
     sending the proper headers and all that
     """
     cgitb.enable()
-    print cgiPage.contentType
-    if cgiPage.headers:
-        print '\n'.join([h + ': ' + v for h, v in cgiPage.headers.iteritems()])
-    print
+
     try:
-        print cgiPage.body()
+        ##
+        # Execute the body first, it may want to add to headers or modify them in soem way as
+        # well as contentType
+        body = cgiPage.body()
+        print cgiPage.contentType
+        if cgiPage.headers:
+            print '\n'.join([h + ': ' + v for h, v in cgiPage.headers.iteritems()])
+        print body
     except:
+        print cgiPage.contentType
         stream = StringIO()
         traceback.print_exc(file=stream)
         print json.dumps([False, stream.getvalue()])

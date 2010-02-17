@@ -12,7 +12,7 @@ from igs.utils.commands import runSingleProgramEx
 
 from vappio.cluster.misc import getInstances
 from vappio.cluster.control import Cluster, startExecNodes
-from vappio.cluster.persist import load, dump, ClusterDoesNotExist
+from vappio.cluster.persist_mongo import load, dump, ClusterDoesNotExist
 
 from vappio.ec2 import control as ec2control
 
@@ -24,7 +24,7 @@ OPTIONS = [
 
 def main(options, _args):
     try:
-        cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), 'local')
+        cluster = load('local')
     except ClusterDoesNotExist:
         options = configFromMap({'general': {'ctype': 'ec2'}},
                                 configFromStream(open('/tmp/machine.conf'),
@@ -39,7 +39,7 @@ def main(options, _args):
 
     startExecNodes(cluster, options('general.num'))
     
-    dump(os.path.join(options('env.VAPPIO_HOME'), 'db'), cluster)
+    dump(cluster)
 
     
 if __name__ == '__main__':

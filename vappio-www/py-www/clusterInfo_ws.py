@@ -8,7 +8,7 @@ from igs.cgi.handler import CGIPage, generatePage
 
 from vappio.cluster.control import Cluster
 from vappio.cluster.misc import getInstances
-from vappio.cluster.persist import load, dump, ClusterDoesNotExist
+from vappio.cluster.persist_mongo import load, dump, ClusterDoesNotExist
 
 from vappio.ec2 import control as ec2control
 
@@ -17,7 +17,7 @@ class ClusterInfo(CGIPage):
     def body(self):
         options = configFromEnv()
         try:
-            cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), 'local')
+            cluster = load('local')
         except ClusterDoesNotExist:
             options = configFromStream(open('/tmp/machine.conf'), options)
             options = configFromMap({'general': {'ctype': 'ec2'},

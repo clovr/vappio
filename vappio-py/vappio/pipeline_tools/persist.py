@@ -1,6 +1,5 @@
 ##
 # Tools for persisting pipeline data to MongoDB
-import os
 import json
 
 import pymongo
@@ -8,7 +7,6 @@ import pymongo
 from twisted.python.reflect import fullyQualifiedName, namedAny
 
 from igs.utils.config import configFromMap
-from igs.utils.commands import runSystemEx
 
 from vappio.ergatis.pipeline import Pipeline
 
@@ -27,7 +25,7 @@ def dump(baseDir, pipeline):
                           name=pipeline.name,
                           ptype=fullyQualifiedName(pipeline.ptype),
                           pid=pipeline.pid,
-                          conf=dict([(k.replace('.', '|'), pipeline.config(k)) for k in pipeline.config.keys()])))
+                          conf=json.dumps(dict([(k, pipeline.config(k)) for k in pipeline.config.keys()]))))
     
 def load(baseDir, name):
     """
@@ -40,7 +38,7 @@ def load(baseDir, name):
 
     ptype = namedAny(pipeline['ptype'])
     pid = pipeline['pid']
-    conf = configFromMap(dict([(k.replace('|', '.'), v) for k, v in pipeline['conf'].iteritems()]))
+    conf = configFromMap(json.loads(pipeline['conf']))
     
     return Pipeline(name, pid, ptype, conf)
     
