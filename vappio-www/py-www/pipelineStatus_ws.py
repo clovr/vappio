@@ -11,13 +11,16 @@ from vappio.pipeline_tools.persist import load, loadAll
 
 def getPipelineStatus(pipeline):
     try:
+        complete, total = pipeline.progress()
         return [True, {'name': pipeline.name,
                        'state': pipeline.state(),
                        'ptype': pipeline.ptypeStr(),
-                       'pid': pipeline.pid}]
-    except Exception, err:
-        return [False, str(err)]
-
+                       'pid': pipeline.pid.
+                       'complete': complete,
+                       'total': total}]
+    except Exeption, err:
+        return [False, str(err)
+                
 class PipelineStatus(CGIPage):
 
     def body(self):
@@ -29,6 +32,6 @@ class PipelineStatus(CGIPage):
         else:
             pipelines = loadAll(conf('env.VAPPIO_HOME'))
         
-        return json.dumps([True, [(True, getPipelineStatus(p)) for p in pipelines]])
+        return json.dumps([True, [getPipelineStatus(p) for p in pipelines]])
         
 generatePage(PipelineStatus())

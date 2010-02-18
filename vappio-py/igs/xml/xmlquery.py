@@ -24,11 +24,11 @@ def execQuery(query, doc):
     ##
     # Determine if dealing with a Document or Element
     if hasattr(doc, 'doctype'):
-        return execQuery_(query, doc.childNodes)
+        return _execQuery(query, doc.childNodes)
     else:
-        return execQuery_(query, [doc])
+        return _execQuery(query, [doc])
 
-def execQuery_(query, elems):
+def _execQuery(query, elems):
     nodes = list(elems)
     noncall = []
     for q in query:
@@ -41,7 +41,7 @@ def execQuery_(query, elems):
     for n in nodes:
         res.extend(n.childNodes)
     if noncall:
-        return execQuery_(noncall, res)
+        return _execQuery(noncall, res)
     else:
         return res
 
@@ -69,5 +69,5 @@ def test():
              [name('slide')]
              ]
 
-    print execQuery(query, doc)
+    return execQuery(query, doc)
     

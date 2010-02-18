@@ -3,11 +3,14 @@
 import optparse
 import os
 import time
+from xml.dom import minidom
 
 from igs.utils.core import getStrBetween
 from igs.utils.cli import buildConfigN
 from igs.utils.config import replaceStr
 from igs.utils.commands import runSingleProgram, ProgramRunError
+
+from igs.xml.xmlquery import execQuery, name
 
 from twisted.python.reflect import fullyQualifiedName
 
@@ -43,6 +46,22 @@ class Pipeline:
 
         raise PipelineError('Could not find <state> in the pipeline.xml')
 
+    def progress(self):
+        """
+        Returns a tuple of (number of completed tasks, total tasks)
+        """
+        doc = minidom.parse(os.path.join(self.config('dirs.pipeline_runtime'), str(self.pid), 'pipeline.xml'))
+        query = [name('commandSetRoot'),
+                 [name('commandSet'),
+                  [name('status')]]]
+
+        res = execQuery(query, doc)
+        total = sum([int(r.childNodes[0].data) for r in res if r.localName == 'total'])
+        complete = sum([int(r.childNodes[0].data) for r in res if r.localName == 'complete'])
+
+        return (complete, total)
+
+        
     def ptypeStr(self):
         """
         A string representing the ptype
