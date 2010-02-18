@@ -81,7 +81,7 @@ def uploadAndTag(instance, conf, tagName, srcFiles, outDir, log=False):
     
 
 
-def downloadPipeline(instance, conf, pipelineId, outDir, overwrite=False, log=False):
+def downloadPipeline(instance, conf, pipelineId, outDir, outBaseName, overwrite=False, log=False):
     """
     Downloads a pipeline from an instance.
     conf - contains various config data, the following options need to be present:
@@ -90,9 +90,10 @@ def downloadPipeline(instance, conf, pipelineId, outDir, overwrite=False, log=Fa
            dirs.clovr_project - the directory on the imave clovr project is expected to live
     pipelineId - the id of the pipeline to download
     outDir - local directory to download to
+    outBaseName - The basename for the output file
     overwrite - if the downloaded file exists locally already, should it be downloaded (default No)
     """
-    outF = '/mnt/%s_output.tar.gz' % pipelineId
+    outF = '/mnt/%s.tar.gz' % outBaseName
     
     cmd = ['cd %s;' % conf('dirs.clovr_project'),
            'tar',
