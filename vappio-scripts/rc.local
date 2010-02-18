@@ -39,8 +39,8 @@ do_start() {
     then
 	vlog "vappio_cloud_type=NIMBUS"
 	export vappio_cloud_type=NIMBUS
-	$vappio_scripts/nimbus/start_nimbus.sh
 	echo "NIMBUS" > $vappio_runtime/cloud_type
+	$vappio_scripts/nimbus/start_nimbus.sh
     else
     ##
     # If vmware-checkvm returns 1 we know we are not on VMware
@@ -50,8 +50,8 @@ do_start() {
         #In vmware
             vlog "vappio_cloud_type=vmware"
             export vappio_cloud_type=vmware
-            $vappio_scripts/vmware/start_vmware.sh
             echo "VMware" > $vappio_runtime/cloud_type
+            $vappio_scripts/vmware/start_vmware.sh
 	else
         # If this curl fails it means we are not on EC2 (hopefully)
 	    curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
@@ -59,8 +59,8 @@ do_start() {
 	    then
 		vlog "vappio_cloud_type=EC2"
 		export vappio_cloud_type=EC2
-		$vappio_scripts/amazonec2/start_ec2.sh
 		echo "EC2" > $vappio_runtime/cloud_type
+		$vappio_scripts/amazonec2/start_ec2.sh
 		$vappio_scripts/create_swap_file.sh
             else
 		vlog "vappio_cloud_type=XEN"
