@@ -15,7 +15,7 @@ def getPipelineStatus(pipeline):
         return [True, {'name': pipeline.name,
                        'state': pipeline.state(),
                        'ptype': pipeline.ptypeStr(),
-                       'pid': pipeline.pid.
+                       'pid': pipeline.pid,
                        'complete': complete,
                        'total': total}]
     except Exeption, err:
