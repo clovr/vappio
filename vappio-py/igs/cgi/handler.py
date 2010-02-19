@@ -50,6 +50,7 @@ def generatePage(cgiPage):
         print body
     except:
         print cgiPage.contentType
+        print
         stream = StringIO()
         traceback.print_exc(file=stream)
         print json.dumps([False, stream.getvalue()])
