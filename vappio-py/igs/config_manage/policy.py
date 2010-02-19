@@ -147,15 +147,22 @@ def installOptPkg(pkgname):
 
     This cuts off at the last '-' in the pkg name in order to come up with /opt/<package-name>
 
+    If the link already exists, it deletes it and then tries to relink
+
     For example:
     hadoop-0.20.1 will become ${opt.base_dir}/hadoop
     simple-test-thing-1.2 will become ${opt.base_dir}/simple-test-thing
     """
     outname = '-'.join(pkgname.split('-')[:-1])
 
-    runSystemEx('ln -s %s %s' % (os.path.join(conf('opt.package_dir'), pkgname),
-                                 os.path.join(conf('opt.base_dir'), outname)))
-    
+    try:
+        runSystemEx('ln -s %s %s' % (os.path.join(conf('opt.package_dir'), pkgname),
+                                     os.path.join(conf('opt.base_dir'), outname)))
+    except:
+        uninstallOptPkg(pkgname)
+        runSystemEx('ln -s %s %s' % (os.path.join(conf('opt.package_dir'), pkgname),
+                                     os.path.join(conf('opt.base_dir'), outname)))
+        
 def uninstallOptPkg(pkgname):
     outname = '-'.join(pkgname.split('-')[:-1])    
     runSystemEx('rm ' + os.path.join(conf('opt.base_dir'), outname))

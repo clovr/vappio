@@ -2,6 +2,8 @@
 # This is a series of functions for controlling the startup of an instance
 import os
 
+from twisted.python.reflect import namedModule
+
 from igs.utils.commands import runSystemEx
 from igs.utils.config import configFromEnv
 
@@ -91,10 +93,19 @@ def startUpAllNodes(conf):
 
 def executePolicyDir(d):
     """Execute all .py files in a directory, in alphabetical order"""
-    files = [f for f in os.listdir(d) if f.endswith('.py')]
+    ##
+    # a bit cheap but we want to temporarily make this direcotry in our path if it isn't already
+    # so safe out sys.path, add d to it, and put it back when done
+    oldpath = sys.path
+    sys.path = [d] + sys.path
+    files = [f[:-3] for f in os.listdir(d) if f.endswith('.py')]
     files.sort()
-    for f in files:
-        runSystemEx('python ' + os.path.join(d, f))
+    try:
+        for f in files:
+            m = namedModule(f)
+            m.startup()
+    finally:
+        sys.path = oldpath
         
 
 def installAllStow():
