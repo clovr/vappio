@@ -99,7 +99,7 @@ def executePolicyDir(d):
     # so safe out sys.path, add d to it, and put it back when done
     oldpath = sys.path
     sys.path = [d] + sys.path
-    files = [f[:-3] for f in os.listdir(d) if f.endswith('.py')]
+    files = [f[:-3] for f in os.listdir(d) if f.endswith('.py') and f != '__init__.py']
     files.sort()
     try:
         for f in files:
