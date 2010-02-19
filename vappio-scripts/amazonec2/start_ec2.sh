@@ -39,5 +39,6 @@ chmod 777 $ec2_staging_dir
 chmod 777 $ec2_harvesting_dir
 
 # check for supplied user-data and potentially run it
+echo "EC2" > $vappio_runtime/cloud_type
 $vappio_scripts/run_user_data.sh
 

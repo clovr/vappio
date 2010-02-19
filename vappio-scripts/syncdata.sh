@@ -72,7 +72,7 @@ done
 #Consider set of nodes reported in the stagingsub.q and exec.q
 #This recovers from the case where staging fails and exec nodes
 #are not added to the stagingsub.q
-for node in `echo $stagingsubnodes $execnodes | sort -u`
+for node in `for h in $stagingsubnodes $execnodes; do echo $h; done | sort -u`
 do
     if [ "$node" != "$master" ]; then 
 	vlog "Reseeding $node in $stagingsubq"
