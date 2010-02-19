@@ -6,6 +6,7 @@
 from igs.utils.commands import runSystemEx
 
 COMMANDS = [
+    """apt-get clean""",
     """apt-get update""",
     """svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages /opt/packages""",
     """dpkg --get-selections > /opt/packages/packages.latest""",
