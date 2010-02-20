@@ -13,6 +13,10 @@
 
 
 do_start() {
+    mkdir -p $vappio_runtime
+    chmod 777 $vappio_runtime
+    touch $vappio_log
+    chmod 777 $vappio_log
     echo -n "CloVR VM " > /etc/issue
     cat /opt/CLOVR-RELEASE >> /etc/issue
     echo "Running on Ubuntu Linux 9.04 \n \l" >> /etc/issue
