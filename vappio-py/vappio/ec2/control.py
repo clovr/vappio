@@ -94,7 +94,7 @@ def runInstancesA(instances,
                   key,
                   instanceType,
                   groups,
-                  availabilityZone,
+                  availabilityZone=None,
                   number=None,
                   userData=None,
                   userDataFile=None):
@@ -117,23 +117,29 @@ def runInstancesA(instances,
     
     ##
     # make base command
-    cmd = 'ec2-run-instances %s -k %s -t %s -z %s ' % (amiId, key, instanceType, availabilityZone)
+    cmd = ['ec2-run-instances',
+           amiId,
+           '-k ' + key,
+           '-t ' + instanceType]
+
+    if availabilityZone:
+        cmd.append('-z %s' % availabilityZone)
 
     ##
     # add groups
     for g in groups:
-        cmd += '-g %s ' % g
+        cmd.append('-g ' +  g)
 
     if number:
-        cmd += '-n %d ' % number
+        cmd.append('-n %d ' % number)
 
     if userData:
-        cmd += '-d %s ' % userData
+        cmd.append('-d ' + userData)
 
     if userDataFile:
-        cmd += '-f %s ' % userDataFile
+        cmd.append('-f ' + userDataFile)
 
-    return ctorProgramRunner(cmd, _instanceParse, log=True)
+    return ctorProgramRunner(' '.join(cmd), _instanceParse, log=True)
 
 def runInstances(*args, **kwargs):
     """Blocking version of runInstancesA, this returns a list of instances"""
