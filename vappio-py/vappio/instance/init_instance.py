@@ -3,6 +3,7 @@
 # You simply give it a map of (node-type, function) and it executes
 # them with a config file
 import sys
+import os
 
 from twisted.python.reflect import namedModule
 
