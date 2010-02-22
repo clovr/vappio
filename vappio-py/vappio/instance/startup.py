@@ -20,7 +20,7 @@ from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT
 # I'm using lambdas here just because I want to define the functions lower in the file
 # and they need to exist before I can reference them, unless I wrap them in a lambda
 NODE_TYPE_MAP = {
-    'pre': lambda c : startUpAllNodes,
+    'pre': lambda c : startUpAllNodes(c),
     DEV_NODE: lambda c : startUpDevNode(c),
     MASTER_NODE: lambda c : startUpMasterNode(c),
     EXEC_NODE: lambda c : startUpExecNode(c),
