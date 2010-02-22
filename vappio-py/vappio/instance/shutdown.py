@@ -36,7 +36,14 @@ def shutdownFromConfigFile(fname):
     """Run startup from a config file"""
     return shutdown(configFromStream(open(fname)))
 
-    
+
+def shutdownPolicy(m):
+    """
+    Calls startup on the policy
+    """
+    m.shutdown()
+
+
 def shutdownAllNodes(conf):
     """
     Goes through all of stow and
