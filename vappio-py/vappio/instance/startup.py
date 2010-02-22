@@ -6,40 +6,29 @@ import os
 from twisted.python.reflect import namedModule
 
 from igs.utils.commands import runSystemEx
-from igs.utils.config import configFromEnv
-
-
-from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT, configFromStream
+from igs.utils.functional import const
 
 from igs.config_manage.policy import installPkg, installOptPkg
+
+from vappio.instance.init_instance import runInit
+from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT, configFromStream
+
+
 
 
 ##
 # I'm using lambdas here just because I want to define the functions lower in the file
 # and they need to exist before I can reference them, unless I wrap them in a lambda
 NODE_TYPE_MAP = {
+    'pre': lambda c : startUpAllNodes,
     DEV_NODE: lambda c : startUpDevNode(c),
     MASTER_NODE: lambda c : startUpMasterNode(c),
-    EXEC_NODE: lambda c : startUpExecNode(c)
+    EXEC_NODE: lambda c : startUpExecNode(c),
+    'post': const(None)
     }
 
 def startUp(conf):
-    """
-    Runs all necessary steps to properly start a machine up based on the config given
-
-    The config must be created through vappio.instance.config.configFrom(Stream|Map)
-    """
-
-    ##
-    # If we are just cutting a release, don't do any of this
-    if RELEASE_CUT not in conf('NODE_TYPE'):
-        ##
-        # For those things that need to be started everywhere
-        startUpAllNodes(conf)
-    
-        for n in conf('NODE_TYPE'):
-            NODE_TYPE_MAP[n](conf)
-
+    runInit(conf, NODE_TYPE_MAP)
 
 
 def startUpFromConfigFile(fname):

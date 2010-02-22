@@ -76,7 +76,7 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
                                    cluster.config('cluster.key'),
                                    cluster.config('cluster.master_type'),
                                    cluster.config('cluster.master_groups'),
-                                   cluster.config('cluster.availability_zone'),
+                                   cluster.config('cluster.availability_zone', default=None),
                                    1,
                                    dataFile)[0]
 
@@ -210,7 +210,7 @@ def startExecNodes(cluster, numExec, reporter=None):
                                            cluster.config('cluster.key'),
                                            cluster.config('cluster.exec_type'),
                                            cluster.config('cluster.exec_groups'),
-                                           cluster.config('cluster.availability_zone'),
+                                           cluster.config('cluster.availability_zone', default=None),
                                            numExec,
                                            dataFile)
         except TryError, err:
