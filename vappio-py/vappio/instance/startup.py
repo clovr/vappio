@@ -92,7 +92,7 @@ def executePolicyDir(d, prefix=None):
     if prefix:
         path = os.path.join(path, prefix)
     files = [f[:-3]
-             for f in path
+             for f in os.listdir(path)
              if f.endswith('.py') and f != '__init__.py']
     files.sort()
     try:
