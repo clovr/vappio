@@ -46,15 +46,15 @@ def shutdownAllNodes(conf):
 
 
 def shutdownDevNode(conf):
-    executePolicyDir('/opt/config_policies/DEV')
+    executePolicyDir('/opt/config_policies', 'DEV')
 
 
 def shutdownMasterNode(conf):
-    executePolicyDir('/opt/config_policies/MASTER')
+    executePolicyDir('/opt/config_policies', 'MASTER')
 
 
 def shutdownExecNode(conf):
-    executePolicyDir('/opt/config_policies/EXEC')
+    executePolicyDir('/opt/config_policies', 'EXEC')
 
 
 
@@ -62,7 +62,7 @@ def shutdownExecNode(conf):
 ##
 # TODO: Refactor this so startup and shutdown us eteh same one, only diff is
 # in calling m.shutdown
-def executePolicyDir(d):
+def executePolicyDir(d, prefix=None):
     """Execute all .py files in a directory, in alphabetical order"""
     ##
     # a bit cheap but we want to temporarily make this direcotry in our path if it isn't already
@@ -73,13 +73,13 @@ def executePolicyDir(d):
     files.sort()
     try:
         for f in files:
+            if prefix:
+                f = prefix + '.' + f
             m = namedModule(f)
             m.shutdown()
     finally:
         sys.path = oldpath
         
-
-
 def uninstallAllStow():
     for p in os.listdir('/usr/local/stow'):
         uninstallPkg(p)

@@ -45,11 +45,11 @@ def startUpDevNode(conf):
 
     Any SVN work is done on trunk (need to add config to specify a branch)
     """
-    executePolicyDir('/opt/config_policies/DEV')
+    executePolicyDir('/opt/config_policies', 'DEV')
     runSystemEx("""updateAllDirs.py --co""")
 
 def startUpMasterNode(conf):
-    executePolicyDir('/opt/config_policies/MASTER')
+    executePolicyDir('/opt/config_policies', 'MASTER')
     
     ##
     # Run anything for internal record keeping in a database
@@ -62,7 +62,7 @@ def startUpExecNode(conf):
     Just need to run the vappio-script for starting the exec node
     This should eventually replace that script
     """
-    executePolicyDir('/opt/config_policies/EXEC')
+    executePolicyDir('/opt/config_policies', 'EXEC')
     ##
     # Don't need this now
     #runSystemEx("""/opt/vappio-scripts/start_exec.sh %s""" % (conf('MASTER_IP'),))
@@ -81,7 +81,7 @@ def startUpAllNodes(conf):
     executePolicyDir('/opt/config_policies')
 
 
-def executePolicyDir(d):
+def executePolicyDir(d, prefix=None):
     """Execute all .py files in a directory, in alphabetical order"""
     ##
     # a bit cheap but we want to temporarily make this direcotry in our path if it isn't already
@@ -92,6 +92,8 @@ def executePolicyDir(d):
     files.sort()
     try:
         for f in files:
+            if prefix:
+                f = prefix + '.' + f
             m = namedModule(f)
             m.startup()
     finally:
