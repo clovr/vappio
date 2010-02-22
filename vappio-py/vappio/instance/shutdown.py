@@ -1,9 +1,6 @@
 ##
 # How we want to bring down the node
-import sys
 import os
-
-from twisted.python.reflect import namedModule
 
 from igs.utils.errors import TryError
 from igs.utils.functional import const

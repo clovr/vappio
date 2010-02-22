@@ -2,6 +2,9 @@
 # This is a script for doing init.d-like things in Python.
 # You simply give it a map of (node-type, function) and it executes
 # them with a config file
+import sys
+
+from twisted.python.reflect import namedModule
 
 from igs.utils.errors import TryError
 from igs.utils.logging import errorPrint

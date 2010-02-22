@@ -1,9 +1,6 @@
 ##
 # This is a series of functions for controlling the startup of an instance
-import sys
 import os
-
-from twisted.python.reflect import namedModule
 
 from igs.utils.errors import TryError
 from igs.utils.commands import runSystemEx
