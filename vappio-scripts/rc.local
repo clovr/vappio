@@ -11,6 +11,7 @@
 # Short-Description:    Locals tartup
 ### END INIT INFO
 
+source /root/clovrEnv.sh
 
 do_start() {
     mkdir -p $vappio_runtime
@@ -128,7 +129,11 @@ do_stop() {
 	    echo "Node is OFFLINE. Shutting down"
 	    ;;
     esac
-	
+
+    ##
+    # Run node shutdown script
+    shutdownNode.py
+
     ##
     # Delete this if we are a nimbus node, won't exist if we aren't
     rm /var/nimbus-metadata-server-url
