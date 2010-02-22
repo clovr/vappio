@@ -5,11 +5,12 @@ import os
 
 from twisted.python.reflect import namedModule
 
+from igs.utils.errors import TryError
 from igs.utils.functional import const
 
 from igs.config_manage.policy import uninstallPkg, uninstallOptPkg
 
-from vappio.instance.init_instance import runInit
+from vappio.instance.init_instance import runInit, executePolicyDirWEx
 from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT, configFromStream
 
 ##
@@ -40,50 +41,22 @@ def shutdownAllNodes(conf):
     """
     Goes through all of stow and
     """
-    executePolicyDir('/opt/config_policies')
+    executePolicyDirWEx(shutdownPolicy, '/opt/config_policies')
     uninstallAllStow()
     uninstallAllOptPackages()
 
 
 def shutdownDevNode(conf):
-    executePolicyDir('/opt/config_policies', 'DEV')
+    executePolicyDirWEx(shutdownPolicy, '/opt/config_policies', 'DEV')
 
 
 def shutdownMasterNode(conf):
-    executePolicyDir('/opt/config_policies', 'MASTER')
+    executePolicyDirWEx(shutdownPolicy, '/opt/config_policies', 'MASTER')
 
 
 def shutdownExecNode(conf):
-    executePolicyDir('/opt/config_policies', 'EXEC')
+    executePolicyDirWEx(shutdownPolicy, '/opt/config_policies', 'EXEC')
 
-
-
-
-##
-# TODO: Refactor this so startup and shutdown us eteh same one, only diff is
-# in calling m.shutdown
-def executePolicyDir(d, prefix=None):
-    """Execute all .py files in a directory, in alphabetical order"""
-    ##
-    # a bit cheap but we want to temporarily make this direcotry in our path if it isn't already
-    # so safe out sys.path, add d to it, and put it back when done
-    oldpath = sys.path
-    sys.path = [d] + sys.path
-    path = d
-    if prefix:
-        path = os.path.join(path, prefix)    
-    files = [f[:-3]
-             for f in os.listdir(path)
-             if f.endswith('.py') and f != '__init__.py']
-    files.sort()
-    try:
-        for f in files:
-            if prefix:
-                f = prefix + '.' + f
-            m = namedModule(f)
-            m.shutdown()
-    finally:
-        sys.path = oldpath
         
 def uninstallAllStow():
     for p in os.listdir('/usr/local/stow'):
