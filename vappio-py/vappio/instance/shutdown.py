@@ -84,6 +84,6 @@ def uninstallAllStow():
     for p in os.listdir('/usr/local/stow'):
         uninstallPkg(p)
 
-def installAllOptPackages():
+def uninstallAllOptPackages():
     for p in os.listdir('/opt/opt-packages'):
         uninstallOptPkg(p)
