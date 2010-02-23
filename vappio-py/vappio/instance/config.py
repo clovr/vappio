@@ -11,10 +11,10 @@ MASTER_NODE = 'MASTER'
 EXEC_NODE = 'EXEC'
 RELEASE_CUT = 'RELEASE_CUT'
 
-def createDataFile(conf, mode, masterHost):
+def createDataFile(conf, mode, masterHost, outFile='/tmp/machine.conf'):
     ##
     # We want everything from the clovr config in here for now
-    fout = open('/tmp/machine.conf', 'w')
+    fout = open(outFile, 'w')
     fout.write(open(conf('general.conf')).read())
     fout.write(open(conf('instance.config_file')).read())
     fout.write('\n'.join(
@@ -22,7 +22,7 @@ def createDataFile(conf, mode, masterHost):
              'MASTER_IP=' + masterHost,
              'NODE_TYPE=' + ','.join(mode)]) + '\n')
 
-    return '/tmp/machine.conf'
+    return outFile
 
 
 def configFromStream(stream):
