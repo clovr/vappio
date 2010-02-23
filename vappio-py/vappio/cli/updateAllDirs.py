@@ -13,7 +13,7 @@ OPTIONS = [
     ('vappio_scripts', '', '--vappio-scripts', 'Update vappio-scripts', defaultIfNone(False), True),
     ('clovr_pipelines', '', '--clovr_pipelines', 'Update clovr_pipelines', defaultIfNone(False), True),
     ('vappio_py_www', '', '--vappio-py-www', 'Update vappio-www/py-ww', defaultIfNone(False), True),
-    ('vappio_conf', '', '--vappio-conf', 'Update vappio/conf', defaultifNone(False), True),
+    ('vappio_conf', '', '--vappio-conf', 'Update vappio/conf', defaultIfNone(False), True),
     ('co', '', '--co', 'Check out rather than export', defaultIfNone(False), True),
     ]
 
