@@ -13,6 +13,7 @@ OPTIONS = [
     ('vappio_scripts', '', '--vappio-scripts', 'Update vappio-scripts', defaultIfNone(False), True),
     ('clovr_pipelines', '', '--clovr_pipelines', 'Update clovr_pipelines', defaultIfNone(False), True),
     ('vappio_py_www', '', '--vappio-py-www', 'Update vappio-www/py-ww', defaultIfNone(False), True),
+    ('vappio_conf', '', '--vappio-conf', 'Update vappio/conf', defaultifNone(False), True),
     ('co', '', '--co', 'Check out rather than export', defaultIfNone(False), True),
     ]
 
@@ -57,6 +58,8 @@ def main(options, _args):
         grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines', '/opt/clovr_pipelines')
     if options('general.vappio_py_www') or updateAll:
         grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-www/py-www', '/var/www/vappio')
+    if options('general.vappio_conf') or updateAll:
+        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/conf', '/opt/vappio-conf')
 
 
 if __name__ == '__main__':
