@@ -59,7 +59,7 @@ def main(options, _args):
     if options('general.vappio_py_www') or updateAll:
         grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-www/py-www', '/var/www/vappio')
     if options('general.vappio_conf') or updateAll:
-        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/conf', '/opt/vappio-conf')
+        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/conf', '/opt/conf')
 
 
 if __name__ == '__main__':
