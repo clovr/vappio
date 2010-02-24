@@ -57,6 +57,8 @@ do_start() {
             export vappio_cloud_type=vmware
             echo "VMware" > $vappio_runtime/cloud_type
             $vappio_scripts/vmware/start_vmware.sh
+	    createLocalMachineConf.py --conf=$VAPPIO_HOME/conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
+	    startUpNode.py >> /tmp/startUpNode.log 2>&1
 	else
         # If this curl fails it means we are not on EC2 (hopefully)
 	    curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
