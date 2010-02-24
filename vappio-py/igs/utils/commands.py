@@ -100,7 +100,7 @@ def runSingleProgramEx(cmd, stdoutf, stderrf, log=False):
     runCommandGens([_()])
 
     if pr.exitCode != 0:
-        raise ProgramRunError(pr.cmd, exitCode)
+        raise ProgramRunError(pr.cmd, pr.exitCode)
     
     return pr.exitCode
 

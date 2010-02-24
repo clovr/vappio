@@ -7,6 +7,7 @@ import sys
 from igs.utils.cli import buildConfigN, defaultIfNone, notNone
 from igs.utils.functional import compose
 from igs.utils.commands import runSingleProgramEx
+from igs.utils.logging import errorPrintS
 
 from vappio.instance.config import createDataFile
 
@@ -23,7 +24,7 @@ OPTIONS = [
 
 def main(options, _args):
     res = []
-    runSingleProgramEx('hostname -f', res.append, None)
+    runSingleProgramEx('hostname -f', res.append, errorPrintS)
     localHost = ''.join(res).strip()
     createDataFile(options, [options('general.mode')], localHost, options('general.output'))
 
