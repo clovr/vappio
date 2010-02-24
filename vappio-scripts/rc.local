@@ -57,6 +57,7 @@ do_start() {
             export vappio_cloud_type=vmware
             echo "VMware" > $vappio_runtime/cloud_type
             $vappio_scripts/vmware/start_vmware.sh
+	    export HOME=/root
 	    createLocalMachineConf.py --conf=$VAPPIO_HOME/conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
 	    startUpNode.py >> /tmp/startUpNode.log 2>&1
 	else
