@@ -96,10 +96,11 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
 
     dataFile = createDataFile(cluster.config,
                               mode,
-                              master.privateDNS)
+                              master.privateDNS,
+                              outFile='/tmp/machine.tmp.conf')
     scpToEx(master.publicDNS,
             dataFile,
-            '/tmp',
+            '/tmp/machine.conf',
             user=cluster.config('ssh.user'),
             options=cluster.config('ssh.options'))
 
@@ -109,7 +110,8 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
     os.remove(dataFile)
     dataFile = createDataFile(cluster.config,
                               [EXEC_NODE],
-                              master.privateDNS)
+                              master.privateDNS,
+                              outFile='/tmp/machine.tmp.conf')
     
     scpToEx(master.publicDNS,
             dataFile,

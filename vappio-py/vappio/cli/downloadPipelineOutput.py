@@ -18,7 +18,7 @@ OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
     ##
     # Want to make sure this is an int but we want it as a string later in the program
-    ('pipeline', '-p', '--pipeline_name', 'Name of pipeline', notNone),
+    ('pipeline', '-p', '--pipeline-name', 'Name of pipeline', notNone),
     ('output_dir', '-o', '--output_dir', 'Directory the output file should go to', notNone),
     ('overwrite', '', '--overwrite', 'Do you want to overwrite a local file if it already exists?', defaultIfNone(False), True),
     ]

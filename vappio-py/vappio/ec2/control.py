@@ -59,6 +59,34 @@ class Instance:
                                 self.launch,
                                 self.availabilityZone,
                                 self.monitor),)
+
+
+def instanceToDict(instance):
+    return dict(instanceId=instance.instanceId,
+                amiId=instance.amiId,
+                publicDNS=instance.publicDNS,
+                privateDNS=instance.privateDNS,
+                state=instance.state,
+                key=instance.key,
+                index=instance.index,
+                instanceType=instance.instanceType,
+                launch=instance.launch,
+                availabilityZone=instance.availabilityZone,
+                monitor=instance.monitor)
+
+def instanaceFromDict(d):
+    return Instance(d['instanceId'],
+                    d['amiId'],
+                    d['publicDNS'],
+                    d['privateDNS'],
+                    d['state'],
+                    d['key'],
+                    d['index'],
+                    d['instanceType'],
+                    d['launch'],
+                    d['availabilityZone'],
+                    d['monitor'])
+
     
 def ctorProgramRunner(cmd, stdoutf=logging.OUTSTREAM.write, stderrf=logging.ERRSTREAM.write, log=False):
     return ProgramRunner(cmd, stdoutf, stderrf, log=log)
