@@ -117,6 +117,7 @@ do_start() {
 	export HOME=/root
 	createLocalMachineConf.py --conf=$VAPPIO_HOME/vappio-conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
 	startUpNode.py >> /tmp/startUpNode.log 2>&1
+	start_master.sh
     fi
 
 }
