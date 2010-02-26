@@ -87,6 +87,6 @@ def load(name):
     
     clust.setMaster(mastInst)
     clust.addExecNodes(execNodes)
-    clust.addDataNodes(execNodes)
+    clust.addDataNodes(dataNodes)
 
     return clust
