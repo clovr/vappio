@@ -37,12 +37,6 @@ def main(options, _args):
         cluster = Cluster('local', ec2control, options)
         cluster.setMaster(getInstances(lambda i : i.privateDNS == cluster.config('MASTER_IP'), ec2control)[0])
 
-    cluster.config = configFromMap(
-        {'cluster': {'master_groups': [f.strip() for f in cluster.config('cluster.master_groups').split(',')],
-                     'exec_groups': [f.strip() for f in cluster.config('cluster.exec_groups').split(',')]
-                    },
-	'general': {'ctype': 'ec2'}}, cluster.config)
-
     startExecNodes(cluster, options('general.num'))
     
     dump(cluster)
