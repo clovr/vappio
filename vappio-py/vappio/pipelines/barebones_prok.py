@@ -17,6 +17,7 @@ OPTIONS = [
     ('TRIM', '', '--TRIM', 'Can be either none, soft, hard, chop', compose(restrictValues(['none', 'soft', 'hard', 'chop']), defaultIfNone('none'))),
     ('SPEC_FILE', '', '--SPEC_FILE', 'Spec file for celera assembler run', defaultIfNone('/dev/null')),
     ('ORGANISM', '', '--ORGANISM', 'Organism name', defaultIfNone('/dev/null')),
-    ('GROUP_COUNT', '', '--GROUP_COUNT', 'Corresponds to number of groups to split data into (Ergatis)', defaultIfNone('50'))
+    ('GROUP_COUNT', '', '--GROUP_COUNT', 'Corresponds to number of groups to split data into (Ergatis)', defaultIfNone('50')),
+    ('DATABASE_PATH', '', '--DATABASE_PATH', 'The tag for the uploaded reference database set', compose(lambda x : '${dirs.upload_dir}/' + x, notNone))
     ]
 
