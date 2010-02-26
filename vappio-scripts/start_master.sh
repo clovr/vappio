@@ -13,6 +13,9 @@ vlog "###"
 vlog "### $0 (`whoami`)"
 vlog "###"
 
+#stop node if already running
+$vappio_scripts/stop_node.sh
+
 # create local directories for workflows
 $vappio_scripts/prep_directories.sh
 

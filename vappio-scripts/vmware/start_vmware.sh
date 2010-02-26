@@ -21,6 +21,7 @@ fi
 
 # Generic Shared area
 mount -o ttl=3 -t vmhgfs .host:$shared_dir $shared_mp -o uid=33 -o gid=33
+mount -o ttl=3 -t vmhgfs .host:$userdata_dir $userdata_mp -o uid=33 -o gid=33
 
 # Postgres specific shared area
 mount -o ttl=3 -t vmhgfs .host:$postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid
@@ -54,5 +55,4 @@ else
     echo "Creating new project areas"
     $vappio_scripts/prep_directories.sh 1> /dev/null 2> /dev/null
 fi
-
 

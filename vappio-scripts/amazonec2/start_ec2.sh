@@ -42,3 +42,4 @@ chmod 777 $ec2_harvesting_dir
 echo "EC2" > $vappio_runtime/cloud_type
 $vappio_scripts/run_user_data.sh
 
+$vappio_scripts/create_swap_file.sh

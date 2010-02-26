@@ -111,3 +111,7 @@ harvestingwf_script=$vappio_scripts/harvestingwf.sh
 #if 'n', the workflow will continue after a distributed job and harvesting will run concurrently in the background
 waitonharvest=y
 
+#Boot flags stored in a mounted area can change behavior at boot time. The flags are simply files and can be created with touch
+#Supported flags (all optional)
+#$vappio_bootflags/skip_vmwarestartnodes  - bypass setup_node.sh and start_master.sh when under vmware
+vappio_bootflagsdir=/mnt/config

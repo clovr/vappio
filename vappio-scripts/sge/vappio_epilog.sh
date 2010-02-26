@@ -36,23 +36,25 @@ vlog "Submitting harvesting of output $exechost:$outdir to $harvestingq"
 cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync $waitonharvest -q $harvestingq $harvesting_script $exechost $outdir"
 vlog "CMD: $cmd"
 $cmd 1>> $vappio_log 2>> $vappio_log
-vlog "rsync return value: $?"
+ret1=$?
+vlog "rsync return value: $ret"
+if [ $ret1 -ne 0 ]
+then
+ vlog "Error during harvesting data qsub return code: $ret1"
+ exit $ret1
+fi
 
 #Harvest wf xml
 vlog "Submitting harvesting of workflow xml on $exechost:$wfdir to $wfq" 
 cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $wfq $harvestingwf_script $exechost $wfdir ${request_cwd}"
 vlog "CMD: $cmd" 
 $cmd 1>> $vappio_log 2>> $vappio_log
-vlog "rsync return value: $?"
+ret2=$?
+vlog "rsync return value: $ret2"
+f [ $ret2 -ne 0 ]
+then
+ vlog "Error during harvesting workflow qsub return code: $ret2"
+ exit $ret2
+fi
 
-#master=`grep -i "^staging_server" $vappio_scripts/vappio_config.sh | cut -f 2 -d =`
-#if [ -z "$master" ]
-#then
-#        master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
-#fi
-#This copies back event.log(s) to signal job completions in WF
-#This should probably be added to the workflow harvesting script above
-#echo "Copying event.log from ${request_cwd}/event.log to $master:${request_cwd}/"
-#date
-#rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" ${request_cwd}/event.log $master:${request_cwd}/
-#date
+exit

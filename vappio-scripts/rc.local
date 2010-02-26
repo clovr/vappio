@@ -56,7 +56,11 @@ do_start() {
             vlog "vappio_cloud_type=vmware"
             export vappio_cloud_type=vmware
             echo "VMware" > $vappio_runtime/cloud_type
+	    #wait for networking
+	    #sleep 3
             $vappio_scripts/vmware/start_vmware.sh
+            #write again in case of new mount
+            echo "VMware" > $vappio_runtime/cloud_type
 	else
         # If this curl fails it means we are not on EC2 (hopefully)
 	    curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
@@ -66,7 +70,8 @@ do_start() {
 		export vappio_cloud_type=EC2
 		echo "EC2" > $vappio_runtime/cloud_type
 		$vappio_scripts/amazonec2/start_ec2.sh
-		$vappio_scripts/create_swap_file.sh
+		#write again in case of new mount
+		echo "EC2" > $vappio_runtime/cloud_type
             else
 		vlog "vappio_cloud_type=XEN"
 		export vappio_cloud_type=XEN
@@ -110,6 +115,7 @@ do_start() {
 
     ##
     # This is temporary, we just want to run this if we are in VMWare right now
+    # Cannot be moved to start_vmware.sh at the moment because proper networking is needed
     vmware-checkvm
     if [ $? = "0" ]
     then
@@ -117,7 +123,17 @@ do_start() {
 	export HOME=/root
 	createLocalMachineConf.py --conf=$VAPPIO_HOME/vappio-conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
 	startUpNode.py >> /tmp/startUpNode.log 2>&1
-	start_master.sh
+        #Mimic functions called in run_user_data on cloud platforms
+        #Allow for bypass using config
+	if [ ! -e $vappio_bootflagsdir/skip_vmwarestartnodes ]
+	    then
+	    echo "Starting as MASTER_NODE"
+	    export MASTER_NODE=$default_master_node
+	    $vappio_scripts/setup_node.sh
+	    ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	    #update home page
+	    cat /mnt/clovr_home.html.tmpl | sed -e 's/\$\;IPADDR\$\;/'"$ipaddr"'/g' > /mnt/clovr_home.html
+	fi
     fi
 
 }
@@ -125,23 +141,7 @@ do_start() {
 do_stop() {
     ##
     #Stop node services if still running
-    case `cat $vappio_runtime/node_type` in
-	MASTER_NODE) 
-	    echo "Node is MASTER_NODE. Shutting down"
-	    $vappio_scripts/stop_master.sh
-	    ;;
-	EXEC_NODE) 
-	    echo "Node is EXEC_NODE. Shutting down"
-	    $vappio_scripts/stop_exec.sh
-	    ;;
-	DATA_NODE) 
-	    echo "Node is DATA_NODE. Shutting down"
-	    $vappio_scripts/stop_data.sh
-	    ;;
-	OFFLINE) 
-	    echo "Node is OFFLINE. Shutting down"
-	    ;;
-    esac
+    $vappio_scripts/stop_node.sh
 
     ##
     # Run node shutdown script
@@ -199,6 +199,10 @@ do_stop() {
     #echo "Removing directory $p"
     #rm -rf $p
     #done
+
+    #Remove swap device
+    swapoff /dev/loop0
+    losetup -d /dev/loop0
 }
 
 # Import vappio config

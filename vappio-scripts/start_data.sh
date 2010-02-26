@@ -13,6 +13,9 @@ vlog "###"
 
 MASTER_NODE=$1
 
+#stop node if already running
+$vappio_scripts/stop_node.sh
+
 # create local directories for workflows
 $vappio_scripts/prep_directories.sh
 

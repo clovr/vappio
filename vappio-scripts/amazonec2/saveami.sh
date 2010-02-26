@@ -34,13 +34,14 @@ usage="./saveami.sh [s3bucketname] [accesskey] [secretkey] [accountid]. See scri
 #######################
 #Shutdown image and restart with new AMI
 #Alternatively, you can revive this VM with /etc/init.d/rc.local start
+#
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 source $vappio_scripts/amazonec2/ec2_config.sh
 ##
 # Make sure node is out of SGE before backing up
-case `cat /mnt/clovr/runtime/node_type` in
+case `cat $vappio_runtime/node_type` in
   OFFLINE) # do nothing
   ;;
   *)

@@ -65,11 +65,22 @@ source $vappio_scripts/vappio_config.sh
 ##
 ##
 vappio_data_placement=1
+vlog "###" 
+vlog "### $0 (`whoami`)" 
+vlog "###" 
+
 if [ -n "$vappio_data_placement" ]; then
 	vappio_scripts=$vappio_root
 	#$request_cwd $command_str $command_args are already set in the environment by Workflow
 	#For commands submitted outside of workflow, these variables will be empty
-	$vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str "$command_args"
+	vlog "Running $vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str \"$command_args\""
+	$vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str "$command_args" 1>> $vappio_log 2>> $vappio_log
+	ret1=$?
+	vlog "vappio_prolog return code: $ret1"
+	if [ $ret1 -ne 0 ] 
+	then
+	  exit $ret1
+	fi 
 fi
 
 # Determine if this is an array job
@@ -93,13 +104,6 @@ if [ -n "$request_cwd" ]; then
 	#To update status to running back at master
 	#Triggers a ssh connection to the master
 	#consider throttling using transferq
-	vappio_scripts=$vappio_root
-	source $vappio_scripts/vappio_config.sh
-
-	vlog "###" 
-	vlog "### $0 (`whoami`)" 
-	vlog "###" 
-
 	if [ "$updatestatus" = "y" ]
 	then
 		if [ -z "$master" ]
@@ -108,10 +112,16 @@ if [ -n "$request_cwd" ]; then
 		fi
 		vlog "CMD: rsync -rlDvh -e \"$ssh_client -i $ssh_key $ssh_options\" ${request_cwd}/event.log root@$master:${request_cwd}/"
 		rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" ${request_cwd}/event.log root@$master:${request_cwd}/ 1>> $vappio_log 2>> $vappio_log
+	        ret2=$?
 	  	vlog "rsync return value: $?"
+		if [ $ret1 -ne 0 ]
+		then
+		 exit $ret1
+		fi
+
 	fi
     fi
     
 fi > /dev/null 2>&1
 
-exit 0
+exit  
