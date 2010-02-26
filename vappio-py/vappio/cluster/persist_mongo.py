@@ -18,7 +18,7 @@ class ClusterDoesNotExist(Exception):
     pass
 
 
-def upateDict(d, nd):
+def updateDict(d, nd):
     """
     Adds the key/values in nd to d and returns d
     """
