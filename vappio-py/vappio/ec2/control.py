@@ -74,7 +74,7 @@ def instanceToDict(instance):
                 availabilityZone=instance.availabilityZone,
                 monitor=instance.monitor)
 
-def instanaceFromDict(d):
+def instanceFromDict(d):
     return Instance(d['instanceId'],
                     d['amiId'],
                     d['publicDNS'],
