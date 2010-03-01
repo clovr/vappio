@@ -5,9 +5,9 @@
 import json
 
 from igs.cgi.handler import CGIPage, generatePage
-from igs.cgi.request import readQuery, performQueryNoParse
+from igs.cgi.request import readQuery, performQuery
 
-from vappio.cluster.control import clusterToDict
+from vappio.cluster.control import clusterToDict, clusterFromDict
 from vappio.cluster.persist_mongo import load
 
 
@@ -25,8 +25,12 @@ class ClusterInfo(CGIPage):
             ##
             # Forward the request onto the appropriate machine
             cluster = load(request['name'])
-            request['name'] = 'local'
-            return performQueryNoParse(cluster.master.publicDNS, URL, request)
+            if cluster.master.state == cluster.ctype.Instance.RUNNING:
+                request['name'] = 'local'
+                cl = clusterFromDict(performQuery(cluster.master.publicDNS, URL, request))
+                cluster.addExecNodes(cl.execNodes)
+                cluster.addDataNodes(cl.dataNodes)
+            return json.dumps([True, clusterToDict(cluster)])
                            
         
         
