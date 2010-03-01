@@ -17,7 +17,7 @@ OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
     ('num', '', '--num', 'Number of exec nodes to start', int),
     ('ctype', '', '--ctype', 'Type of cluster', compose(restrictValues(['ec2', 'nimbus']), notNone)),
-    ('block', '', '--block', 'Block until cluster is up', identity, True),
+    ('block', '-b', '--block', 'Block until cluster is up', identity, True),
     ('dev_mode', '-d', '--dev_mode', 'Dev mode or not', identity, True),
     ('release_cut', '', '--release_cut', 'Want to cut a release', identity, True),
     ('update_dirs', '', '--update_dirs', 'Want to update scripts dirs once instance is up', identity, True),

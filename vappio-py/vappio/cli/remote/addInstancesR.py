@@ -38,7 +38,7 @@ def updateExecCluster(cluster, instances):
 def main(options, _args):
     cluster = load('local')
 
-    startExecNodes(cluster, options('general.num'))
+    startExecNodes(cluster, options('general.num'), lambda i : updateExecCluster(cluster, i))
     
     dump(cluster)
 
