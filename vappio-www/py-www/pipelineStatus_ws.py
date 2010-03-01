@@ -3,11 +3,12 @@ import os
 import json
 
 from igs.utils.core import getStrBetween
-from igs.utils.config import configFromEnv
 from igs.cgi.handler import CGIPage, generatePage
-from igs.cgi.request import readQuery
+from igs.cgi.request import readQuery, performQueryNoParse
 
 from vappio.pipeline_tools.persist import load, loadAll
+
+URL = '/vappio/pipelineStatus_ws.py'
 
 def getPipelineStatus(pipeline):
     try:
@@ -24,14 +25,21 @@ def getPipelineStatus(pipeline):
 class PipelineStatus(CGIPage):
 
     def body(self):
-        conf = configFromEnv()
         request = readQuery()
-    
-        if request['pipelines']:
-            pipelines = [load(conf('env.VAPPIO_HOME'), p) for p in request['pipelines']]
-        else:
-            pipelines = loadAll(conf('env.VAPPIO_HOME'))
+
+        if request['name'] == 'local':
+            if request['pipelines']:
+                pipelines = [load(p) for p in request['pipelines']]
+            else:
+                pipelines = loadAll()
         
-        return json.dumps([True, [getPipelineStatus(p) for p in pipelines]])
+            return json.dumps([True, [getPipelineStatus(p) for p in pipelines]])
+        else:
+            ##
+            # Forward the request onto the appropriate machine
+            cluster = load(request['name'])
+            request['name'] = 'local'
+            return performQueryNoParse(cluster.master.publicDNS, URL, request)
+
         
 generatePage(PipelineStatus())
