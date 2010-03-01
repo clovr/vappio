@@ -20,7 +20,10 @@ def createDataFile(conf, mode, masterHost, outFile='/tmp/machine.conf'):
     fout.write('\n'.join(
             ['[]',
              'MASTER_IP=' + masterHost,
-             'NODE_TYPE=' + ','.join(mode)]) + '\n')
+             'NODE_TYPE=' + ','.join(mode),
+             ##
+             # The cluster needs to know this
+             'general.ctype=' + conf('general.ctype')]) + '\n')
 
     return outFile
 

@@ -80,7 +80,7 @@ def load(name):
         execNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='execNode'))]
         dataNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='dataNode'))]
     elif mastInst.state == clust.ctype.Instance.RUNNING:
-        result = performQuery(mastInst.publicDNS, CLUSTERINFO_URL, {})
+        result = performQuery(mastInst.publicDNS, CLUSTERINFO_URL, dict(name='local'))
         execNodes = [clust.ctype.instanceFromDict(i) for i in result['execNodes']]
         dataNodes = [clust.ctype.instanceFromDict(i) for i in result['dataNodes']]
     else:

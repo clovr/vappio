@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-
-import os
+import time
 
 from igs.utils.cli import MissingOptionError, buildConfigN, notNone, defaultIfNone
 from igs.utils.logging import logPrint, errorPrint
-from igs.utils.functional import compose
+from igs.utils.functional import compose, identity
 from igs.cgi.request import performQuery
 
 from vappio.webservice.cluster import addInstances

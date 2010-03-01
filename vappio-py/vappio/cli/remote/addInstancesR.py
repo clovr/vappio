@@ -6,7 +6,7 @@ import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils.config import configFromEnv, configFromStream, configFromMap
-from igs.utils.logging import logPrint
+from igs.utils.logging import logPrint, debugPrint
 from igs.utils.functional import compose
 from igs.utils.commands import runSingleProgramEx
 
