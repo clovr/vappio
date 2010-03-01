@@ -24,7 +24,7 @@ class StartCluster(CGIPage):
         if request['update_dirs']:
             cmd.append('--update_dirs')
 
-        cmd.append('> /tmp/startCluster.log 2>&1 &')
+        cmd.append('>> /tmp/startCluster.log 2>&1 &')
 
         runSystemEx(' '.join(cmd))
 

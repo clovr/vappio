@@ -20,7 +20,7 @@ class AddInstances(CGIPage):
         if updateDirs:
             cmd.append('--update_dirs')
 
-        cmd.append('> /dev/null 2>&1 &')
+        cmd.append('>> /tmp/addInstances.log 2>&1 &')
 
         runSystemEx(' '.join(cmd))
 
