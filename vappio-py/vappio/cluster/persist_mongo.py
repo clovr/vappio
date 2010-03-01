@@ -8,9 +8,10 @@ from twisted.python.reflect import fullyQualifiedName, namedAny
 
 from igs.utils.config import configFromMap
 
+from igs.cgi.request import performQuery
+
 from vappio.cluster.control import Cluster
 from vappio.cluster.misc import getInstances
-
 
 CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
 
@@ -33,28 +34,28 @@ def dump(cluster):
     clovr = pymongo.Connection().clovr
     clusters = clovr.clusters
 
-    clusters.insert(dict(_id=cluster.name,
-                         name=cluster.name,
-                         ctype=fullyQualifiedName(cluster.ctype),
-                         master=cluster.ctype.instanceToDict(cluster.master),
-                         config=json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()]))))
+    clusters.save(dict(_id=cluster.name,
+                       name=cluster.name,
+                       ctype=fullyQualifiedName(cluster.ctype),
+                       master=cluster.ctype.instanceToDict(cluster.master),
+                       config=json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()]))))
 
     instances = clovr.instances
 
     ##
     # Save exec and data nodes
-    instances.insert([updateDict(cluster.ctype.instanceToDict(i),
-                                 dict(_id=i.instanceId,
-                                      cluster=cluster.name,
-                                      itype='execNode'))
-                      for i in cluster.execNodes])
+    saveIds = [instances.save(updateDict(cluster.ctype.instanceToDict(i),
+                                         dict(_id=i.instanceId,
+                                              cluster=cluster.name,
+                                              itype='execNode')))
+               for i in cluster.execNodes]
     
-
-    instances.insert([updateDict(cluster.ctype.instanceToDict(i),
-                                 dict(_id=i.instanceId,
-                                      cluster=cluster.name,
-                                      itype='dataNode'))
-                      for i in cluster.dataNodes])
+    
+    saveIds = [instance.save(updateDict(cluster.ctype.instanceToDict(i),
+                                        dict(_id=i.instanceId,
+                                             cluster=cluster.name,
+                                             itype='dataNode')))
+               for i in cluster.dataNodes]
 
 
 
@@ -72,18 +73,19 @@ def load(name):
         raise ClusterDoesNotExist(name)
 
     clust = Cluster(name, namedAny(cluster['ctype']), configFromMap(json.loads(cluster['config'])))
-    
-    ##
-    # Not right
+
     mastInst = clust.ctype.instanceFromDict(cluster['master'])
     
     if name == 'local':
         execNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='execNode'))]
         dataNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='dataNode'))]
-    else:
+    elif mastInst.state == clust.ctype.Instance.RUNNING:
         result = performQuery(mastInst.publicDNS, CLUSTERINFO_URL, {})
         execNodes = [clust.ctype.instanceFromDict(i) for i in result['execNodes']]
         dataNodes = [clust.ctype.instanceFromDict(i) for i in result['dataNodes']]
+    else:
+        execNodes = []
+        dataNodes = []
     
     clust.setMaster(mastInst)
     clust.addExecNodes(execNodes)

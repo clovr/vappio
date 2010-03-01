@@ -3,12 +3,16 @@
 # A lot of the functionality is wrapped in a Cluster object
 import time
 import os
+import json
+
+from twisted.python.reflect import fullyQualifiedName, namedAny
 
 from igs.utils.commands import runSystemEx, runCommandGens
 from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSH
 from igs.utils.logging import errorPrintS, errorPrint
 from igs.utils.functional import applyIfCallable
 from igs.utils.errors import TryError
+from igs.utils.config import configFromMap
 
 from igs.threading.threads import runThreadWithChannel
 
@@ -47,6 +51,27 @@ class Cluster:
         self.dataNodes.extend(datas)
 
 
+def clusterToDict(cluster):
+    """
+    Converts a cluster to a dict
+    """
+    return dict(name=cluster.name,
+                ctype=fullyQualifiedName(cluster.ctype),
+                config=json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()])),
+                master=cluster.ctype.instanceToDict(cluster.master),
+                execNodes=[cluster.ctype.instanceToDict(i) for i in cluster.execNodes],
+                dataNodes=[cluster.ctype.instanceToDict(i) for i in cluster.dataNodes])
+
+def clusterFromDict(d):
+    """
+    Loads a cluster from a dict
+    """
+    cluster = Cluster(d['name'], namedAny(d['ctype']), configFromMap(json.loads(d['config'])))
+    cluster.setMaster(cluster.ctype.instanceFromDict(d['master']))
+    cluster.addExecNodes([cluster.ctype.instanceFromDict(i) for i in d['execNodes']])
+    cluster.addDataNodes([cluster.ctype.instanceFromDict(i) for i in d['dataNodes']])
+
+    return cluster
 
 def startCluster(cluster, numExec, reporter=None, devMode=False, releaseCut=False):
     startMaster(cluster, reporter, devMode, releaseCut)

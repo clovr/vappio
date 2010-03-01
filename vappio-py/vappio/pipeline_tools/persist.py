@@ -15,9 +15,9 @@ class PipelineDoesNotExist(Exception):
     pass
 
 
-def dump(baseDir, pipeline):
+def dump(pipeline):
     """
-    Dumps pipeline info to mongodb, baseDir will be removed in future
+    Dumps pipeline info to mongodb
     """
     pipelines = pymongo.Connection().clovr.pipelines
 
@@ -27,9 +27,9 @@ def dump(baseDir, pipeline):
                           pid=pipeline.pid,
                           conf=json.dumps(dict([(k, pipeline.config(k)) for k in pipeline.config.keys()]))))
     
-def load(baseDir, name):
+def load(name):
     """
-    Loads a pipeline by name, returning a Pipeline.  baseDir will be removed soon
+    Loads a pipeline by name, returning a Pipeline.
     """
     pipelines = pymongo.Connection().clovr.pipelines
     pipeline = pipelines.find_one({'name': name})
@@ -44,7 +44,7 @@ def load(baseDir, name):
     
 
 
-def loadAll(baseDir):
+def loadAll():
     """
     Loads all of the pipelines
     """

@@ -6,6 +6,8 @@
 from igs.utils.commands import runSystemEx
 
 COMMANDS = [
+    """shutdownNode.py""",
+    """rm -rf /opt/db/*""",
     """apt-get clean""",
     """apt-get update""",
     """svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages /opt/packages""",

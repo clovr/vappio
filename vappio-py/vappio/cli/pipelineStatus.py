@@ -5,7 +5,7 @@ import os
 
 from igs.utils.cli import buildConfigN, notNone
 
-from vappio.cluster.persist import load
+from vappio.cluster.persist_mongo import load
 
 from vappio.pipeline_tools.utils import pipelineStatus
 
@@ -15,7 +15,7 @@ OPTIONS = [
 
 
 def main(options, args):
-    cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
+    cluster = load(options('general.name'))
 
     ##
     # Return all those pipelines that match the lambda.  Either args is nothing in which

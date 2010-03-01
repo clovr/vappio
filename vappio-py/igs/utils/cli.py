@@ -65,6 +65,10 @@ def buildConfigN(options, args=None, usage=None, putInGeneral=True):
     confFunc = None
     
     for n, s, l, h, f, b in _iterBool(options):
+        ##
+        # We could have a function we want to apply to the conf variable.  We want to store it
+        # so when we use it in the next block we don't have to loop over options looking for it again
+        # This is a minor optimization and probably not even necessary...
         if n == 'conf':
             confFunc = f
             
@@ -77,7 +81,7 @@ def buildConfigN(options, args=None, usage=None, putInGeneral=True):
 
     baseConf = configFromEnv()
     if hasattr(ops, 'conf'):
-        baseConf = configFromStream(open(confFunc(ops.conf)), baseConf)
+        baseConf = configFromStream(open(replaceStr(confFunc(ops.conf), baseConf)), baseConf)
 
     vals = {}
 

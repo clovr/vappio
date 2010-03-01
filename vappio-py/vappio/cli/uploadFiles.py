@@ -7,7 +7,7 @@ from igs.utils.cli import buildConfigN, notNone, MissingOptionError
 
 from vappio.instance.transfer import uploadAndTag
 
-from vappio.cluster.persist import load, dump
+from vappio.cluster.persist_mongo import load
 
 OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
@@ -21,7 +21,7 @@ def main(options, args):
     
     srcFiles = args
 
-    cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
+    cluster = load(options('general.name'))
     
     uploadAndTag(cluster.master, cluster.config, options('general.tag'), srcFiles, options('general.tag'), log=True)
 

@@ -22,20 +22,21 @@ OPTIONS = [
     ]
 
 
+
+def updateExecCluster(cluster, instances):
+    """
+    This keeps on setting the cluster master to the new value and
+    dumping it to the database
+    """
+    debugPrint(lambda : 'Updating cluster: %s %s' % (master.publicDNS, master.state))
+    insts = dict([(i.instanceId, i) for i in cluster.execNodes])
+    insts.update(dict([(i.instanceId, i) for i in instances]))
+    cluster.execNodes = insts.values()
+    dump(cluster)
+
+
 def main(options, _args):
-    try:
-        cluster = load('local')
-    except ClusterDoesNotExist:
-        options = configFromMap({'general': {'ctype': 'ec2'}},
-                                configFromStream(open('/tmp/machine.conf'),
-                                                 configFromEnv(options)))
-        options = configFromMap(
-            {'cluster': {'master_groups': [f.strip() for f in options('cluster.master_groups').split(',')],
-                         'exec_groups': [f.strip() for f in options('cluster.exec_groups').split(',')]
-                         }
-             }, options)
-        cluster = Cluster('local', ec2control, options)
-        cluster.setMaster(getInstances(lambda i : i.privateDNS == cluster.config('MASTER_IP'), ec2control)[0])
+    cluster = load('local')
 
     startExecNodes(cluster, options('general.num'))
     

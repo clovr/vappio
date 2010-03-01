@@ -7,23 +7,41 @@ from igs.utils.logging import logPrint, errorPrint
 from igs.utils.functional import compose
 from igs.cgi.request import performQuery
 
-from vappio.cluster.persist import load, dump
-from vappio.cluster.control import startExecNodes
+from vappio.webservice.cluster import addInstances
 
 OPTIONS = [
+    ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),    
     ('name', '', '--name', 'Name of cluster (in this case public host name of master)', notNone),
     ('num', '', '--num', 'Number of nodes to create', compose(int, notNone)),
+    ('block', '', '--block', 'Block until cluster is up', identity, True),
     ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
     ]
 
-URL = '/vappio/addInstances_ws.py'
 
 def main(options, _args):
-    cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
+    if options('general.name') == 'local':
+        raise Exception('Cannot add instance to local cluster')
 
-    res = performQuery(cluster.master.publicDNS, URL, {'num': options('general.num'),
-                                                       'update_dirs': options('general.update_dirs')})
+    addInstances(options('general.host'),
+                 options('general.name'),
+                 options('general.num'),
+                 options('general.update_dirs'))
+    
     logPrint('Launching %d instances' % options('general.num'))
+
+    if options('general.block'):
+        time.sleep(30)
+        cluster = loadCluster(options('general.host'), options('general.name'))
+        while any([i.state != cluster.ctype.Instance.RUNNING
+                   for i in cluster.execNodes + cluster.dataNodes]):
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            time.sleep(30)
+            cluster = loadCluster(options('general.host'), options('general.name'))
+
+        print
+        
+    
         
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

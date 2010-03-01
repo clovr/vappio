@@ -12,7 +12,7 @@ from igs.cgi.request import performQuery
 
 from vappio.instance.control import runSystemInstanceEx
 
-from vappio.cluster.persist import load, dump
+from vappio.cluster.persist_mongo import load
 
 OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
@@ -23,7 +23,7 @@ OPTIONS = [
 URL = '/vappio/runPipeline_ws.py'
 
 def main(options, args):
-    cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))
+    cluster = load(options('general.name'))
 
     res = performQuery(cluster.master.publicDNS, URL, {'pipeline': options('general.pipeline'),
                                                        'pipeline_name': options('general.pipeline_name'),
