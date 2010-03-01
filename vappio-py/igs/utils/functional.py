@@ -1,3 +1,5 @@
+from igs.utils.errors import TryError
+
 ##
 # These are just some simple functions for doing functional style things
 
@@ -38,3 +40,17 @@ def compose(*funcs):
     return _
 
 
+def tryUntil(count, what, cond):
+    """
+    Try what until cond returns true or count runs out.
+    If count runs it a TryError will be thrown otherwise
+    the return value of what is returned
+    """
+    while count > 0:
+        r = what()
+        if cond():
+            return r
+
+        count -= 1
+
+    raise TryError('Failed', None)

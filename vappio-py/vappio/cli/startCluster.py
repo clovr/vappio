@@ -4,8 +4,8 @@ import time
 
 from igs.utils.cli import buildConfigN, notNone, restrictValues, defaultIfNone
 from igs.utils.config import configFromMap, configFromStream
-from igs.utils.logging import logPrint, errorPrint
-from igs.utils.functional import identity, compose
+from igs.utils.logging import logPrint, errorPrint, debugPrint
+from igs.utils.functional import identity, compose, tryUntil
 
 from vappio.webservice.cluster import startCluster, loadCluster
 
@@ -24,7 +24,22 @@ OPTIONS = [
     ]
 
 
-URL = '/vappio/startCluster_ws.py'
+def testClusterUp(options):
+    def _():
+        try:
+            cluster = loadCluster(options('general.host'), options('general.name'))
+            return cluster.master.state == cluster.ctype.Instance.RUNNING
+        except Exception, err:
+            debugPrint(lambda : 'Unknown error checking master state: ' + str(err))
+
+    return _
+        
+
+def progress():
+    sys.stdout.write('.')
+    sys.stdout.flush()
+    time.sleep(30)
+
 
 def main(options, args):
     startCluster(options('general.host'),
@@ -35,14 +50,7 @@ def main(options, args):
                  options('general.update_dirs'))
 
     if options('general.block'):
-        time.sleep(30)
-        cluster = loadCluster(options('general.host'), options('general.name'))
-        while cluster.master.state != cluster.ctype.Instance.RUNNING:
-            sys.stdout.write('.')
-            sys.stdout.flush()
-            time.sleep(30)
-            cluster = loadCluster(options('general.host'), options('general.name'))
-
+        tryUntil(30, progress, testClusterUp(options))
         print
     
 if __name__ == '__main__':

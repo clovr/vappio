@@ -45,10 +45,20 @@ class Cluster:
         self.master = master
 
     def addExecNodes(self, execs):
-        self.execNodes.extend(execs)
+        self.execNodes = updateDict(dict([(i.instanceId, i) for i in self.execNodes]),
+                                    dict([(i.instanceId, i) for i in execs])).values()
 
     def addDataNodes(self, datas):
-        self.dataNodes.extend(datas)
+        self.dataNodes = updateDict(dict([(i.instanceId, i) for i in self.dataNodes]),
+                                    dict([(i.instanceId, i) for i in datas])).values()                                        
+        
+
+def updateDict(d, nd):
+    """
+    Adds the key/values in nd to d and returns d
+    """
+    d.update(nd)
+    return d
 
 
 def clusterToDict(cluster):
