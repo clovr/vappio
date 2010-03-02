@@ -10,6 +10,7 @@ from igs.utils.logging import logPrint, debugPrint
 from igs.utils.functional import compose
 from igs.utils.commands import runSingleProgramEx
 
+from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.cluster.misc import getInstances
 from vappio.cluster.control import Cluster, startExecNodes
 from vappio.cluster.persist_mongo import load, dump, ClusterDoesNotExist
@@ -32,6 +33,7 @@ def updateExecCluster(cluster, instances):
     insts = dict([(i.instanceId, i) for i in cluster.execNodes])
     insts.update(dict([(i.instanceId, i) for i in instances]))
     cluster.execNodes = insts.values()
+    cluster.addExecNodes(instances)
     dump(cluster)
 
 
@@ -44,4 +46,5 @@ def main(options, _args):
 
     
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS))
+    runCatchError(lambda : main(*buildConfigN(OPTIONS)),
+                  mongoFail(dict(action='addInstances')))

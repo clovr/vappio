@@ -1,13 +1,14 @@
-##
-# Little utilites for working with pipelines
 from igs.cgi.request import performQuery
 
+from vappio.webservice.cluster import loadCluster
 
 PIPELINESTATUS_URL = '/vappio/pipelineStatus_ws.py'
 
 
-def pipelineStatus(cluster, pred=lambda _ : True):
+def pipelineStatus(host, name, pred=lambda _ : True):
     """
+    name is the name of the cluster, not pipeline
+    
     This performs a query to the cluster returning a list dicts containing
     pipeline status information.
 
@@ -15,6 +16,8 @@ def pipelineStatus(cluster, pred=lambda _ : True):
     is included, otherwise it is not
     """
 
+    cluster = loadCluster(host, name)
+    
     ##
     # This query actually returns a list of tuples (True, PipelineInfo).  For now
     # we are ignoring the True part, although it may be used in the future

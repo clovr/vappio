@@ -11,15 +11,11 @@ from igs.utils.functional import compose
 from igs.utils.commands import runSingleProgramEx
 from igs.utils.errors import TryError
 
+from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.cluster.control import Cluster, startMaster
-from vappio.cluster.persist_mongo import load, dump, ClusterDoesNotExist
+from vappio.cluster.persist_mongo import dump
 
 from vappio.ec2 import control as ec2control
-
-##
-# Turn debugging on for right now
-from igs.utils import logging
-logging.DEBUG = True
 
 OPTIONS = [
     ('conf', '', '--conf', 'Name of config file to use', compose(lambda x : '${env.VAPPIO_HOME}/vappio-conf/' + x, notNone)),
@@ -61,4 +57,5 @@ def main(options, _args):
 
     
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS))
+    runCatchError(lambda : main(*buildConfigN(OPTIONS)),
+                  mongoFail(dict(action='startCluster')))

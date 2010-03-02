@@ -12,9 +12,11 @@ from vappio.instance.transfer import downloadPipeline, DownloadPipelineOverwrite
 
 from vappio.cluster.persist import load, dump
 
-from vappio.pipeline_tools.utils import pipelineStatus
+from vappio.webservice.cluster import loadCluster
+from vappio.webservice.pipeline import pipelineStatus
 
 OPTIONS = [
+    ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),    
     ('name', '', '--name', 'Name of cluster', notNone),
     ##
     # Want to make sure this is an int but we want it as a string later in the program
@@ -26,13 +28,14 @@ OPTIONS = [
 
 
 def main(options, _args):
-    cluster = load(os.path.join(options('env.VAPPIO_HOME'), 'db'), options('general.name'))    
-
-    pipelines = pipelineStatus(cluster, lambda p : p['name'] == options('general.pipeline'))
+    
+    pipelines = pipelineStatus(options('general.host'), options('general.name'), lambda p : p['name'] == options('general.pipeline'))
     if not pipelines:
         raise Exception('No pipeline found by name: ' + options('general.pipeline'))
 
     pid = pipelines[0]['pid']
+
+    cluster = loadCluster(options('general.host'), options('general.name'))
     
     try:
         downloadPipeline(cluster.master,
