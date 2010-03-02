@@ -15,10 +15,9 @@ def runCatchError(func, fail):
     """
     try:
         func()
-        return True
     except Exception, err:
         fail(err)
-        return False
+        raise
 
 
 def mongoFail(runInfo):
@@ -33,3 +32,5 @@ def mongoFail(runInfo):
         runInfo['error_msg'] = str(err)
         runInfo['timestamp'] = int(time.time())
         errors.insert(runInfo)
+
+    return _

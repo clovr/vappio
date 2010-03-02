@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 ##
 # Provides useful URLs and other information about the cluster
-import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 

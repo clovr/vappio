@@ -2,6 +2,7 @@
 # Contains functions for dealing with tag files
 import os
 
+from igs.utils.commands import runSystemEx
 
 def isArchive(fname):
     """
@@ -48,6 +49,9 @@ def tagFiles(tagsDir, tagName, files, recursive, expand, append, overwrite, filt
     filterF - if you want to filter any of the files as they are added to the file list provide a filter
     function that will be called on each individual file name.  The file will be added if filter returns True
     """
+    if not os.path.exists(tagsDir):
+        runSystemEx('mkdir -p ' + tagsDir)
+    
     outName = os.path.join(tagsDir, tagName)
     if os.path.exists(outName) and not append and not overwrite:
         raise Exception('Tag already exists')
