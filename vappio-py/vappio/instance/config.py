@@ -23,7 +23,7 @@ def createDataFile(conf, mode, masterHost, outFile='/tmp/machine.conf'):
              'NODE_TYPE=' + ','.join(mode),
              ##
              # The cluster needs to know this
-             'general.ctype=' + conf('general.ctype')]) + '\n')
+             'general.ctype=' + conf('general.ctype', default='UNKNOWN')]) + '\n')
 
     return outFile
 

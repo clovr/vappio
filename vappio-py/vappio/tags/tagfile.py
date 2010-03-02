@@ -2,22 +2,39 @@
 # Contains functions for dealing with tag files
 import os
 
-from igs.utils.commands import runSystemEx
+from igs.utils.commands import runSystemEx, runSingleProgramEx
 
+
+def untargzFile(fname):
+    stdout = []
+    runSingleProgramEx('tar -C %s -zxvf %s' % (os.path.dirname(fname), fname), stdout.append, None)
+    return (os.path.join(os.path.dirname(fname), i.strip()) for i in stdout)
+
+
+def bunzip2File(fname):
+    stdout = []
+    runSingleProgramEx('bzcat %s | tar -C %s -xv' % (fname, os.path.dirname(fname)), stdout.append, None)
+    return (os.path.join(os.path.dirname(fname), i.strip()) for i in stdout)
+
+                       
 def isArchive(fname):
     """
     Returns true if fname ends in:
-    .bz2
+    .tar.bz2
     .tar.gz
     .tgz
     """
-    return False
+    return any([fname.endswith(i) for i in ['.tar.bz2', '.tar.gz', '.tgz']])
 
 def expandArchive(fname):
     """
     This expands an archive in the directory the archive lives in and returns the sequence of file names
     """
-    raise Exception('Not implemented yet')
+    if fname.endswith('.tar.gz') or fname.endswith('.tgz'):
+        return untargzFile(fname)
+    elif fname.endswith('.tar.bz2'):
+        return bunzip2File(fname)
+    
 
 def generateFileList(files, recursive, expand):
     """
@@ -26,7 +43,7 @@ def generateFileList(files, recursive, expand):
     """
     for f in files:
         if expand and isArchive(f):
-            for i in expandArchive():
+            for i in expandArchive(f):
                 yield i
         elif recursive and os.path.isdir(f):
             for i in generateFileList([os.path.join(f, fn) for fn in os.listdir(f)],
@@ -37,7 +54,7 @@ def generateFileList(files, recursive, expand):
             yield f
                 
 
-def tagFiles(tagsDir, tagName, files, recursive, expand, append, overwrite, filterF=None):
+def tagData(tagsDir, tagName, files, recursive, expand, append, overwrite, filterF=None):
     """
     Tag a list of files with the name.  The files can contain direcotires, and if recursive
     is set the contends of the directories will become part of the tag rather than just the name

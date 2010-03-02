@@ -6,6 +6,8 @@ from igs.utils.functional import identity
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.cluster.persist_mongo import load
+from vappio.tags.tagfile import tagData
+
 
 OPTIONS = [
     ('tag_name', '', '--tag-name', 'Name of the tag', identity),
@@ -22,14 +24,14 @@ def main(options, files):
     cluster = load('local')
     if not options('general.tag_name'):
         raise Exception('Failed to provide a tag name')
-        
-    tagFiles(cluster.config('dirs.tag_dir'),
-             options('general.tag_name'),
-             files,
-             recursive=options('general.recursive'),
-             expand=options('general.expand'),
-             append=options('general.append'),
-             overwrite=options('general.overwrite'))
+
+    tagData(cluster.config('dirs.tag_dir'),
+            options('general.tag_name'),
+            files,
+            recursive=options('general.recursive'),
+            expand=options('general.expand'),
+            append=options('general.append'),
+            overwrite=options('general.overwrite'))
 
 
 if __name__ == '__main__':

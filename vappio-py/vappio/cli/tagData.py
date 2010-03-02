@@ -10,8 +10,8 @@ OPTIONS = [
     ('tag_name', '', '--tag-name', 'Name of tag', notNone),
     ('recursive', '-r', '--recursive', 'Recursively include directories', defaultIfNone(False), True),
     ('expand', '-e', '--expand', 'Expand archives', defaultIfNone(False), True),
-    ('append', '-a', '--append', 'Append listed files to tag name, ignoring duplicate files', defaultIfNone(True), True),
-    ('overwrite', '-o', '--overwrite', 'Overwrite file list if it exists', defaultIfNone(True), True)
+    ('append', '-a', '--append', 'Append listed files to tag name, ignoring duplicate files', defaultIfNone(False), True),
+    ('overwrite', '-o', '--overwrite', 'Overwrite file list if it exists', defaultIfNone(False), True)
     ]
 
 def main(options, files):
