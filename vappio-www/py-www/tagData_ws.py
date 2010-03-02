@@ -26,7 +26,7 @@ class TagData(CGIPage):
         request = readQuery()
 
         if request['name'] == 'local':
-            cmd = ['tagDataR.py', '--tag-name=' + request['tag-name']]
+            cmd = ['tagDataR.py', '--tag-name=' + request['tag_name']]
 
             for i in ['recursive', 'expand', 'append', 'overwrite']:
                 if request[i]:
