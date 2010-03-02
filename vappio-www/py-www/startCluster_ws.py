@@ -3,8 +3,6 @@ import os
 import cgi
 import json
 
-from igs.utils.core import getStrBetween
-from igs.utils.config import configFromEnv
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery
 from igs.utils.commands import runSystemEx
@@ -12,7 +10,6 @@ from igs.utils.commands import runSystemEx
 
 class StartCluster(CGIPage):
     def body(self):
-        conf = configFromEnv()
         request = readQuery()
 
         cmd = ['startClusterR.py',
