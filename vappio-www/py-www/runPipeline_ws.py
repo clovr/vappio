@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-
-import cgi
 import json
 
 from twisted.python.reflect import namedModule
