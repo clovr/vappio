@@ -3,7 +3,7 @@ from igs.cgi.request import performQuery
 from vappio.webservice.cluster import loadCluster
 
 PIPELINESTATUS_URL = '/vappio/pipelineStatus_ws.py'
-
+RUNPIPELINE_URL = '/vappio/runPipeline_ws.py'
 
 def pipelineStatus(host, name, pred=lambda _ : True):
     """
@@ -16,8 +16,6 @@ def pipelineStatus(host, name, pred=lambda _ : True):
     is included, otherwise it is not
     """
 
-    cluster = loadCluster(host, name)
-    
     ##
     # This query actually returns a list of tuples (True, PipelineInfo).  For now
     # we are ignoring the True part, although it may be used in the future
@@ -25,5 +23,16 @@ def pipelineStatus(host, name, pred=lambda _ : True):
     # We are also passing None for pipelines because the webservice API can take a list of pipeline
     # names to limit itself to.  We just aren't using that here right now
     return [p
-            for _ret, p in performQuery(cluster.master.publicDNS, PIPELINESTATUS_URL, {'pipelines': None})
+            for _ret, p in performQuery(host, PIPELINESTATUS_URL, dict(name=name, pipelines=None))
             if pred(p)]
+
+
+def runPipeline(host, name, pipeline, pipelineName, args):
+    """
+    pipeline is the type of pipeline (blastx, tblastn, ..)
+    """
+    return performQuery(host, RUNPIPELINE_URL, dict(name=name,
+                                                    pipeline=pipeline,
+                                                    pipeline_name=pipelineName,
+                                                    args=args))
+    

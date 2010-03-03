@@ -26,7 +26,7 @@ def main(options, _args):
             False,
             options('general.expand'),
             False,
-            False)
+            True)
 
 
 if __name__ == '__main__':

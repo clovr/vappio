@@ -24,7 +24,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
     tagDir - the local base directory in the tag files, this will be removed from the beginning of
              each tag file if present.  Default sto srcCluster.config('dirs.tag_dir')
 
-    Tags are upload into dstCluster.config('dirs.tag_dir')
+    Tags are upload into dstCluster.config('dirs.upload_dir')
 
     This returns a list of file names that were uploaded
     """
@@ -34,7 +34,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
     # First step is to create a list of directorys that we should make on
     # the destination cluster.  We also want to strip off our local dirs.tag_dir
     # from the dir names and add teh dstCluster's
-    dirNames = set([os.path.join(dstCluster.config('dirs.tag_dir'),
+    dirNames = set([os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
                                  makePathRelative(os.path.dirname(f).replace(srcCluster.config('dirs.tag_dir'), '')))
                     for f in tagData('files')])
 
@@ -42,7 +42,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
     # Next we want to take the list of local files, remove the dirs.tag_dir and replace it
     # with the destination clusters.  We maek a list of tuples so we know the local file
     # and destinatio file name which we will then loop over and upload
-    dstFileNames = [(f, os.path.join(dstCluster.config('dirs.tag_dir'),
+    dstFileNames = [(f, os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
                                      makePathRelative(f.replace(srcCluster.config('dirs.tag_dir'), ''))))
                     for f in tagData('files')]
 
@@ -64,6 +64,6 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
 
     ##
     # return the list of uploaded filenames
-    return [d for l, d in dstFilesNames
+    return [d for l, d in dstFileNames]
 
     
