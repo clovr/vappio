@@ -49,6 +49,6 @@ def loadAll():
     Loads all of the pipelines
     """
     pipelines = pymongo.Connection().clovr.pipelines
-    return [load(baseDir, p['name']) for p in pipelines.find()]
+    return [load(p['name']) for p in pipelines.find()]
 
     
