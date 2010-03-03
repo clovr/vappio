@@ -4,6 +4,9 @@
 import os
 import json
 
+from igs.cgi.handler import CGIPage, generatePage
+from igs.cgi.request import readQuery
+
 from vappio.tags.tagfile import loadTagFile
 
 from vappio.webservice.cluster import loadCluster
