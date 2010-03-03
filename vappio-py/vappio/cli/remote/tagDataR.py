@@ -5,12 +5,12 @@ from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
 from igs.utils.functional import identity
 
 from vappio.core.error_handler import runCatchError, mongoFail
-from vappio.cluster.persist_mongo import load
+from vappio.webservice.cluster import loadCluster
 from vappio.tags.tagfile import tagData
 
 
 OPTIONS = [
-    ('tag_name', '', '--tag-name', 'Name of the tag', identity),
+    ('tag_name', '', '--tag-name', 'Name of the tag', notNone),
     ('recursive', '', '--recursive', 'If file is a direcotry, recursively add files', defaultIfNone(False), True),
     ('expand', '', '--expand', 'If file is an archive (.bz2, .tar.gz, .tgz), expand it', defaultIfNone(False), True),
     ('append', '', '--append', 'Append files to the current file list, this will not add duplicates. The overwrite option supercedes this.', defaultIfNone(False), True),
@@ -21,10 +21,7 @@ OPTIONS = [
     
 
 def main(options, files):
-    cluster = load('local')
-    if not options('general.tag_name'):
-        raise Exception('Failed to provide a tag name')
-
+    cluster = loadCluster('localhost', 'local')
     tagData(cluster.config('dirs.tag_dir'),
             options('general.tag_name'),
             files,

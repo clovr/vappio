@@ -2,6 +2,7 @@
 # Contains functions for dealing with tag files
 import os
 
+from igs.utils.config import configFromMap
 from igs.utils.commands import runSystemEx, runSingleProgramEx
 
 
@@ -44,13 +45,14 @@ def generateFileList(files, recursive, expand):
     for f in files:
         if expand and isArchive(f):
             for i in expandArchive(f):
-                yield i
+                if os.path.isfile(i):
+                    yield i
         elif recursive and os.path.isdir(f):
             for i in generateFileList([os.path.join(f, fn) for fn in os.listdir(f)],
                                       recursive,
                                       expand):
                 yield i
-        else:
+        elif os.path.isfile(f):
             yield f
                 
 
@@ -98,4 +100,14 @@ def tagData(tagsDir, tagName, files, recursive, expand, append, overwrite, filte
                 outFile.write(f + '\n')
 
     outFile.close()
+    
+
+def loadTagFile(fname):
+    """
+    Loads a tagfile, returns a config object of attributes
+
+    TODO - make this look at .metadata file
+    """
+    return configFromMap({'files': [f.strip() for f in open(fname)]})
+
     
