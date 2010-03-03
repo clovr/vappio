@@ -234,7 +234,7 @@ def configFromEnv(base=None):
 
 
 def configToDict(config):
-    return dict([(k, cluster.config(k)) for k in cluster.config.keys()])
+    return dict([(k, config(k)) for k in config.keys()])
 
 def test():
     c = configFromMap({
