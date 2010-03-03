@@ -5,7 +5,7 @@ import os
 import json
 
 from igs.cgi.handler import CGIPage, generatePage
-from igs.cgi.request import readQuery
+from igs.cgi.request import readQuery, performQueryNoParse
 
 from vappio.tags.tagfile import loadTagFile
 
