@@ -233,6 +233,8 @@ def configFromEnv(base=None):
     return configFromMap({'env': os.environ}, base)
 
 
+def configToDict(config):
+    return dict([(k, cluster.config(k)) for k in cluster.config.keys()])
 
 def test():
     c = configFromMap({
