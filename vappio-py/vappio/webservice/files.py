@@ -1,6 +1,7 @@
 ##
 # Web services dealing with files such as uploading and tagging
 
+from igs.utils.config import configFromMap
 from igs.cgi.request import performQuery
 
 TAGDATA_URL = '/vappio/tagData_ws.py'
@@ -26,4 +27,4 @@ def uploadTag(host, name, tagName, srcCluster, dstCluster, expand):
     
 
 def queryTag(host, name, tagName):
-    return performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName))
+    return configFromMap(performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName)))

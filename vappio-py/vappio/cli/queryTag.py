@@ -11,9 +11,11 @@ OPTIONS = [
     ]
 
 def main(options, files):
-    queryTag(options('general.host'),
-             options('general.name'),
-             options('general.tag_name'))
+    tagData = queryTag(options('general.host'),
+                       options('general.name'),
+                       options('general.tag_name'))
+    for f in tagData('files'):
+        print f
     
 
 if __name__ == '__main__':
