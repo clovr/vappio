@@ -19,6 +19,8 @@ from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
 
+from vappio.cluster.persist_mongo import load
+
 URL = '/vappio/tagData_ws.py'
 
 class TagData(CGIPage):

@@ -12,6 +12,8 @@ from vappio.ergatis.pipeline import runPipeline
 
 from vappio.pipeline_tools.persist import dump
 
+from vappio.webservice.cluster import loadCluster
+
 URL = '/vappio/runPipeline_ws.py'
 
 class RunPipeline(CGIPage):
@@ -29,7 +31,7 @@ class RunPipeline(CGIPage):
         else:
             ##
             # Forward the request onto the appropriate machine
-            cluster = load(request['name'])
+            cluster = loadCluster('localhost', request['name'])
             request['name'] = 'local'
             return performQueryNoParse(cluster.master.publicDNS, URL, request)
 

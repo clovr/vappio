@@ -8,6 +8,8 @@ from igs.cgi.request import readQuery, performQueryNoParse
 
 from vappio.pipeline_tools.persist import load, loadAll
 
+from vappio.webservice.cluster import loadCluster
+
 URL = '/vappio/pipelineStatus_ws.py'
 
 def getPipelineStatus(pipeline):
@@ -37,7 +39,7 @@ class PipelineStatus(CGIPage):
         else:
             ##
             # Forward the request onto the appropriate machine
-            cluster = load(request['name'])
+            cluster = loadCluster('localhost', request['name'])
             request['name'] = 'local'
             return performQueryNoParse(cluster.master.publicDNS, URL, request)
 

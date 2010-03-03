@@ -17,14 +17,14 @@ class UploadTag(CGIPage):
 
         if request['name'] == 'local':
             cmd = ['uploadTagR.py',
-                   '--tag-name=' + request['tag_name'].
+                   '--tag-name=' + request['tag_name'],
                    '--src-cluster=' + request['src_cluster'],
                    '--dst-cluster=' + request['dst_cluster']]
 
             if request['expand']:
                 cmd.append('--expand')
 
-            cmd.append('>> /tmp/uploadData.log 2>&1 &')
+            cmd.append('>> /tmp/uploadTag.log 2>&1 &')
 
             runSystemEx(' '.join(cmd))
 
