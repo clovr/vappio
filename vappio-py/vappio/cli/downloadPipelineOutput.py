@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-##
-# Uploads files to a cluster
-import os
-
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 
 from vappio.webservice.pipeline import downloadPipelineOutput
