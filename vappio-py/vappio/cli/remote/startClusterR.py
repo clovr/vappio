@@ -12,8 +12,11 @@ from igs.utils.commands import runSingleProgramEx
 from igs.utils.errors import TryError
 
 from vappio.core.error_handler import runCatchError, mongoFail
+
 from vappio.cluster.control import Cluster, startMaster
 from vappio.cluster.persist_mongo import dump
+
+from vappio.webservice.cluster import addInstances
 
 from vappio.ec2 import control as ec2control
 
@@ -47,6 +50,8 @@ def main(options, _args):
     cl = Cluster(options('general.name'), ctype, options)
     try:
         startMaster(cl, lambda m : updateCluster(cl, m), devMode=False, releaseCut=False)
+        if options('general.num'):
+            addInstances('localhost', options('general.name'), options('general.num'), options('general.update_dirs'))
     except TryError, err:
         if cl.master:
             cl.master.state = 'Error'
