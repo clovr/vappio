@@ -9,16 +9,18 @@ from vappio.cluster.control import clusterFromDict
 STARTCLUSTER_URL = '/vappio/startCluster_ws.py'
 CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
 ADDINSTANCES_URL = '/vappio/addInstances_ws.py'
+TERMINATECLUSTER_URL = '/vappio/terminateCluster_ws.py'
+
 
 def startCluster(host, name, conf, num, ctype, updateDirs):
     """
     Start a cluster
     """
-    performQuery(host, STARTCLUSTER_URL, dict(name=name,
-                                              conf=conf,
-                                              num=num,
-                                              ctype=ctype,
-                                              update_dirs=updateDirs))
+    return performQuery(host, STARTCLUSTER_URL, dict(name=name,
+                                                     conf=conf,
+                                                     num=num,
+                                                     ctype=ctype,
+                                                     update_dirs=updateDirs))
 
 def loadCluster(host, name):
     """
@@ -33,5 +35,9 @@ def addInstances(host, name, num, updateDirs):
     Add instance to a cluster
     """
     cluster = loadCluster(host, name)
-    performQuery(cluster.master.publicDNS, ADDINSTANCES_URL, dict(num=num,
-                                                                  update_dirs=updateDirs))
+    return performQuery(cluster.master.publicDNS, ADDINSTANCES_URL, dict(num=num,
+                                                                         update_dirs=updateDirs))
+
+def terminateCluster(host, name):
+    return performQuery(host, TERMINATECLUSTER_URL, dict(name=name))
+    

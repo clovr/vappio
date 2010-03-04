@@ -8,7 +8,7 @@ import sys
 import subprocess
 from select import select
 
-from igs.utils.logging import logPrint
+from igs.utils.logging import debugPrint
 
 ##
 # How to run a process with subprocess
@@ -48,7 +48,7 @@ class ProgramRunner:
         and stream1 is a stream and func1 is the function to call upon data coming in for that stream
         """
         if self.log:
-            logPrint(self.cmd)
+            debugPrint(lambda : self.cmd)
         pipe = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 shell=True)
         self.pipe = pipe

@@ -125,7 +125,8 @@ def runInstancesA(instances,
                   availabilityZone=None,
                   number=None,
                   userData=None,
-                  userDataFile=None):
+                  userDataFile=None,
+                  log=False):
     """
     This returns a ProgramRunner that can be used asychronously
 
@@ -167,7 +168,7 @@ def runInstancesA(instances,
     if userDataFile:
         cmd.append('-f ' + userDataFile)
 
-    return ctorProgramRunner(' '.join(cmd), _instanceParse, log=True)
+    return ctorProgramRunner(' '.join(cmd), _instanceParse, log=log)
 
 def runInstances(*args, **kwargs):
     """Blocking version of runInstancesA, this returns a list of instances"""
@@ -190,15 +191,15 @@ def listInstances(log=False):
     runProgramRunnerEx(listInstancesA(instances, log=log))
     return instances
                  
-def terminateInstancesA(instances):
+def terminateInstancesA(instances, log=False):
     """Asynchronous, terminate all instances that match the filter function"""
-    return ctorProgramRunner('ec2-terminate-instances ' + ' '.join([i.instanceId for i in instances]), log=True)
+    return ctorProgramRunner('ec2-terminate-instances ' + ' '.join([i.instanceId for i in instances]), log=log)
 
-def terminateInstances(instances):
-    runProgramRunnerEx(terminateInstancesA(instances))
+def terminateInstances(instances, log=False):
+    runProgramRunnerEx(terminateInstancesA(instances, log=log))
     
     
-def updateInstancesA(retInst, instances):
+def updateInstancesA(retInst, instances, log=False):
     """
     Updates the list of states of the instances given.
 
@@ -214,12 +215,12 @@ def updateInstancesA(retInst, instances):
             retInst.append(instance)
 
 
-    return ctorProgramRunner('ec2-describe-instances', _instanceParse, log=True)
+    return ctorProgramRunner('ec2-describe-instances', _instanceParse, log=log)
 
 
-def updateInstances(instances):
+def updateInstances(instances, log=False):
     retInst = []
-    runProgramRunnerEx(updateInstancesA(retInst, instances))
+    runProgramRunnerEx(updateInstancesA(retInst, instances, log=log))
     return retInst
 
             

@@ -9,7 +9,7 @@ from twisted.python.reflect import fullyQualifiedName, namedAny
 
 from igs.utils.commands import runSystemEx, runCommandGens
 from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSH
-from igs.utils.logging import errorPrintS, errorPrint
+from igs.utils.logging import errorPrintS, errorPrint, DEBUG
 from igs.utils.functional import applyIfCallable
 from igs.utils.errors import TryError
 from igs.utils.config import configFromMap
@@ -175,7 +175,7 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
                         errorPrintS,
                         user=cluster.config('ssh.user'),
                         options=cluster.config('ssh.options'),
-                        log=True)
+                        log=DEBUG)
     
     if cluster.config('general.update_dirs'):
         updateDirs(cluster, [master])
@@ -189,7 +189,7 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
                             errorPrintS,
                             user=cluster.config('ssh.user'),
                             options=cluster.config('ssh.options'),
-                            log=True)
+                            log=DEBUG)
     except Exception, err:
         raise TryError(err, cluster)
 
@@ -229,7 +229,7 @@ def startExecNodes(cluster, numExec, reporter=None):
                                 errorPrintS,
                                 user=cluster.config('ssh.user'),
                                 options=cluster.config('ssh.options'),
-                                log=True)
+                                log=DEBUG)
             ##
             # Just send something to let it know we are done
             rchan.send(True)
@@ -368,7 +368,7 @@ def waitForSSHUp(conf, tries, instances):
                             None,
                             conf('ssh.user'),
                             conf('ssh.options'),
-                            log=True)
+                            log=DEBUG)
         
     def _sshTest(res):
         return all(c == 0 for c in res)
@@ -420,14 +420,14 @@ def updateDirs(cluster, instances):
                                 errorPrintS,
                                 user=cluster.config('ssh.user'),
                                 options=cluster.config('ssh.options'),
-                                log=True)
+                                log=DEBUG)
             runSystemInstanceEx(i,
                                 'updateAllDirs.py --vappio-py --vappio-scripts --config_policies --clovr_pipelines --vappio-py-www',
                                 None,
                                 errorPrintS,
                                 user=cluster.config('ssh.user'),
                                 options=cluster.config('ssh.options'),
-                                log=True)
+                                log=DEBUG)
             ##
             # Just send anything to know we are done
             rchan.send(True)
@@ -457,7 +457,7 @@ def runCommandOnCluster(cluster, command, justMaster=False):
                                 errorPrintS,
                                 user=cluster.config('ssh.user'),
                                 options=cluster.config('ssh.options'),
-                                log=True)
+                                log=DEBUG)
             rchan.send(True)
         except Exception, err:
             rchan.sendError(err)

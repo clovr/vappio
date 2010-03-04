@@ -4,8 +4,7 @@ import os
 
 from igs.utils.cli import MissingOptionError, buildConfigN, notNone, defaultIfNone
 
-from vappio.webservice.cluster import loadCluster
-from vappio.cluster.control import terminateCluster
+from vappio.webservice.cluster import terminateCluster
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
@@ -19,8 +18,7 @@ def main(options, _args):
     if options('general.name') == 'local':
         raise Exception('Cannot terminate local cluster')
     
-    cluster = loadCluster(options('general.host'), options('general.name'))
-    terminateCluster(cluster)
-
+    terminateCluster(options('general.host'), options('general.name'))
+    
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))
