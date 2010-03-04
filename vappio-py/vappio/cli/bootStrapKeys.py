@@ -14,8 +14,8 @@ OPTIONS = [
     ]
 
 def main(options, _args):
-    runSystemEx('cp %s /tmp' % options('general.cert'))
-    runSystemEx('cp %s /tmp' % options('general.pk'))
+    runSystemEx('cp %s /tmp/ec2-cert.pem' % options('general.cert'))
+    runSystemEx('cp %s /tmp/ec2-pk.pem' % options('general.pk'))
     if not os.path.exists('/mnt/devel1.pem'):
         runSystemEx('cp %s /mnt' % options('general.devel'))
     runSystemEx('chmod +r /tmp/*.pem')
