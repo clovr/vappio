@@ -6,7 +6,9 @@
 from igs.utils.commands import runSystemEx
 
 COMMANDS = [
-    """shutdownNode.py""",
+    ##
+    # Don't need this yet
+    #"""shutdownNode.py""",
     """rm -rf /opt/db/*""",
     """apt-get clean""",
     """apt-get update""",
