@@ -58,7 +58,9 @@ def main(options, _args):
         grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines', '/opt/clovr_pipelines')
     if options('general.vappio_py_www') or updateAll:
         grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-www/py-www', '/var/www/vappio')
-    if options('general.vappio_conf') or updateAll:
+    ##
+    # Only wan to do this one when specified
+    if options('general.vappio_conf'):
         grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-conf', '/opt/vappio-conf')
 
 
