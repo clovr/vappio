@@ -115,7 +115,7 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
 
     ##
     # Copy the files locally
-    for r, l in lclFilesNames:
+    for r, l in lclFileNames:
         scpFromEx(srcCluster.master.publicDNS, r, l, user=srcCluster.config('ssh.user'), options=srcCluster.config('ssh.options'), log=True)
 
     return [l for r, l in lclFileNames]
