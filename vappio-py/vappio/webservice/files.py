@@ -28,7 +28,7 @@ def uploadTag(host, name, tagName, srcCluster, dstCluster, expand):
     
 
 def downloadTag(host, name, tagName, srcCluster, dstCluster, expand):
-    return performQuery(host, downloadTAG_URL, dict(name=name,
+    return performQuery(host, DOWNLOADTAG_URL, dict(name=name,
                                                     tag_name=tagName,
                                                     src_cluster=srcCluster,
                                                     dst_cluster=dstCluster,
