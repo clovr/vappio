@@ -87,6 +87,9 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     baseDir - When we download a tag we replicate its directory structure, baseDir allows
               us to remove some portion of the prefix dir in downloading.  If baseDir is None
               then srcCluster.config('dirs.upload_dir') is assumed to be the baseDir
+
+    Neither dstDir or baseDir should consider the 'tagname' as part of their name.
+    This may change in the future though if we want to allow downloading to a new tag name
     """
     if dstDir is None:
         dstDir = dstCluster.config('dirs.upload_dir')
@@ -100,12 +103,12 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
 
     ##
     # Create a set of directory names so we can recreate the remote structure locally
-    dirNames = set([os.path.join(dstDir, tagName,
-                                 makePathRelative(f.replace(baseDir, '')))
+    dirNames = set([os.path.join(dstDir,
+                                 makePathRelative(os.path.dirname(f).replace(baseDir, '')))
                     for f in tagData('files')])
     ##
     # Take the files and construct a list of tuples mapping the remote file name to the local file name
-    lclFileNames = [(f, os.path.join(dstDir, tagName,
+    lclFileNames = [(f, os.path.join(dstDir,
                                      makePathRelative(f.replace(baseDir, ''))))
                     for f in tagData('files')]
 
