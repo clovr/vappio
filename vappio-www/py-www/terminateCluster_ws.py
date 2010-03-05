@@ -18,6 +18,6 @@ class TerminateCluster(CGIPage):
 
         cluster = loadCluster('localhost', request['name'])
         terminateCluster(cluster)
-        return json.dumps([True, True])
+        return json.dumps([True, None])
 
 generatePage(TerminateCluster())
