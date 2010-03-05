@@ -9,7 +9,7 @@ from vappio.tags.tagfile import loadTagFile
 
 from vappio.instance.control import runSystemInstanceEx
 
-from vappio.webservices.files import queryTag
+from vappio.webservice.files import queryTag
 
 def makePathRelative(path):
     if path[0] == '/':
@@ -23,7 +23,7 @@ def makeDirsOnCluster(cluster, dirNames):
     Creates a series of directories on a cluster
     """
     for d in dirNames:
-        runSystemInstanceEx(dstCluster.master,
+        runSystemInstanceEx(cluster.master,
                             'mkdir -p ' + d,
                             None,
                             errorPrintS,
