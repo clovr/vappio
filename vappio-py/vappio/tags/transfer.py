@@ -90,6 +90,10 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
 
     Neither dstDir or baseDir should consider the 'tagname' as part of their name.
     This may change in the future though if we want to allow downloading to a new tag name
+
+    TODO: Consider compressing tags on the remote side before a transfer.  It is possible it
+    should be part of the download process.  Alternatively it might make more sense for the compression
+    to be part of another process.
     """
     if dstDir is None:
         dstDir = dstCluster.config('dirs.upload_dir')

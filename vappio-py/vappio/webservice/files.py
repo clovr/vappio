@@ -19,17 +19,15 @@ def tagData(host, name, tagName, files, recursive, expand, append, overwrite):
                                                 overwrite=overwrite))
 
 
-def uploadTag(host, name, tagName, srcCluster, dstCluster, expand):
-    return performQuery(host, UPLOADTAG_URL, dict(name=name,
-                                                  tag_name=tagName,
+def uploadTag(host, tagName, srcCluster, dstCluster, expand):
+    return performQuery(host, UPLOADTAG_URL, dict(tag_name=tagName,
                                                   src_cluster=srcCluster,
                                                   dst_cluster=dstCluster,
                                                   expand=expand))
     
 
-def downloadTag(host, name, tagName, srcCluster, dstCluster, expand):
-    return performQuery(host, DOWNLOADTAG_URL, dict(name=name,
-                                                    tag_name=tagName,
+def downloadTag(host, tagName, srcCluster, dstCluster, expand):
+    return performQuery(host, DOWNLOADTAG_URL, dict(tag_name=tagName,
                                                     src_cluster=srcCluster,
                                                     dst_cluster=dstCluster,
                                                     expand=expand))

@@ -6,7 +6,7 @@ from vappio.webservice.files import downloadTag
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', notNone),
+    #('name', '', '--name', 'Name of cluster to download from', notNone),
     ('tag_name', '', '--tag-name', 'Name of tag to upload', notNone),
     ('src_cluster', '', '--src-cluster', 'Name of source cluster', notNone),
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster, hardcoded to local for now', lambda _ : 'local'),
@@ -15,7 +15,6 @@ OPTIONS = [
 
 def main(options, files):
     downloadTag(options('general.host'),
-                options('general.name'),
                 options('general.tag_name'),
                 options('general.src_cluster'),
                 options('general.dst_cluster'),
