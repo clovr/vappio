@@ -457,7 +457,7 @@ def runCommandOnCluster(cluster, command, justMaster=False):
                                 errorPrintS,
                                 user=cluster.config('ssh.user'),
                                 options=cluster.config('ssh.options'),
-                                log=DEBUG)
+                                log=True)
             rchan.send(True)
         except Exception, err:
             rchan.sendError(err)
