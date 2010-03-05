@@ -15,7 +15,7 @@ class DownloadTag(CGIPage):
     def body(self):
         request = readQuery()
 
-        if request['name'] == 'local':
+        if request['dst_cluster'] == 'local':
             cmd = ['downloadTagR.py',
                    '--tag-name=' + request['tag_name'],
                    '--src-cluster=' + request['src_cluster'],
@@ -31,8 +31,8 @@ class DownloadTag(CGIPage):
         else:
             ##
             # Forward request on
-            cluster = load(request['name'])
-            request['name'] = 'local'
+            cluster = load(request['dst_cluster'])
+            request['dst_cluster'] = 'local'
             performQuery(cluster.master.publicDNS, URL, request)
 
         return json.dumps([True, None])

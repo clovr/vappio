@@ -15,7 +15,7 @@ class UploadTag(CGIPage):
     def body(self):
         request = readQuery()
 
-        if request['name'] == 'local':
+        if request['src_cluster'] == 'local':
             cmd = ['uploadTagR.py',
                    '--tag-name=' + request['tag_name'],
                    '--src-cluster=' + request['src_cluster'],
@@ -31,8 +31,8 @@ class UploadTag(CGIPage):
         else:
             ##
             # Forward request on
-            cluster = load(request['name'])
-            request['name'] = 'local'
+            cluster = load(request['src_cluster'])
+            request['src_cluster'] = 'local'
             performQuery(cluster.master.publicDNS, URL, request)
 
         return json.dumps([True, None])
