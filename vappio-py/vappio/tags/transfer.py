@@ -2,12 +2,14 @@
 # Transfering tags to/from a machine
 import os
 
-from igs.utils.ssh import scpToEx
+from igs.utils.ssh import scpToEx, scpFromEx
 from igs.utils.logging import errorPrintS
 
 from vappio.tags.tagfile import loadTagFile
 
 from vappio.instance.control import runSystemInstanceEx
+
+from vappio.webservices.files import queryTag
 
 def makePathRelative(path):
     if path[0] == '/':
@@ -15,6 +17,20 @@ def makePathRelative(path):
     else:
         return path
 
+
+def makeDirsOnCluster(cluster, dirNames):
+    """
+    Creates a series of directories on a cluster
+    """
+    for d in dirNames:
+        runSystemInstanceEx(dstCluster.master,
+                            'mkdir -p ' + d,
+                            None,
+                            errorPrintS,
+                            user=cluster.config('ssh.user'),
+                            options=cluster.config('ssh.options'),
+                            log=True)
+    
 def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
     """
     srcCluster - Source cluster - currently this needs to be 'local'
@@ -48,14 +64,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
 
     ##
     # Next, lets call 'mkdir -p' on all the dirs we need to make on the destination cluster
-    for d in dirNames:
-        runSystemInstanceEx(dstCluster.master,
-                            'mkdir -p ' + d,
-                            None,
-                            errorPrintS,
-                            user=srcCluster.config('ssh.user'),
-                            options=srcCluster.config('ssh.options'),
-                            log=True)
+    makeDirsOnCluster(dstCluster, dirNames)
 
     ##
     # Now, copy up all of the files
@@ -66,4 +75,48 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
     # return the list of uploaded filenames
     return [d for l, d in dstFileNames]
 
+    
+
+def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
+    """
+    srcCluster - Cluster to download the tag from
+    dstCluster - Cluster to download the tag to (this needs to be 'local' for now)
+    tagName - The name of the tag to download
+    dstDir - The destination directory to put downloaded data to.  If None, dstDir
+             is assumed to be dstCluster.config('dirs.upload_dir')
+    baseDir - When we download a tag we replicate its directory structure, baseDir allows
+              us to remove some portion of the prefix dir in downloading.  If baseDir is None
+              then srcCluster.config('dirs.upload_dir') is assumed to be the baseDir
+    """
+    if dstDir is None:
+        dstDir = dstCluster.config('dirs.upload_dir')
+
+    if baseDir is None:
+        baseDir = srcCluster.config('dirs.upload_dir')
+
+    ##
+    # Get the list of files
+    tagData = queryTag('localhost', srcCluster.name, tagName)
+
+    ##
+    # Create a set of directory names so we can recreate the remote structure locally
+    dirNames = set([os.path.join(dstDir, tagName,
+                                 makePathRelative(f.replace(baseDir, '')))
+                    for f in tagData('files')])
+    ##
+    # Take the files and construct a list of tuples mapping the remote file name to the local file name
+    lclFileNames = [(f, os.path.join(dstDir, tagName,
+                                     makePathRelative(f.replace(baseDir, ''))))
+                    for f in tagData('files')]
+
+    ##
+    # Make all of the directories
+    makeDirsOnCluster(dstCluster, dirNames)
+
+    ##
+    # Copy the files locally
+    for r, l in lclFilesNames:
+        scpFromEx(srcCluster.master.publicDNS, r, l, user=srcCluster.config('ssh.user'), options=srcCluster.config('ssh.options'), log=True)
+
+    return [l for r, l in lclFileNames]
     

@@ -46,6 +46,7 @@ def main(options, _args):
         errorPrint('')
         errorPrint('FAILING, File already exists and you have chosen not to overwrite')
         errorPrint('')
+        raise
         
 if __name__ == '__main__':
     runCatchError(lambda : main(*buildConfigN(OPTIONS)),
