@@ -10,7 +10,7 @@ from igs.utils.errors import TryError
 
 def performQueryNoParse(host, url, var):
     params = urllib.urlencode({'request': json.dumps(var)})
-    conn = httplib.HTTPConnection(host, timeout=5)
+    conn = httplib.HTTPConnection(host, timeout=10)
     conn.request('POST', url, params)
     data = conn.getresponse().read()
     return data
