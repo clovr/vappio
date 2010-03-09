@@ -10,7 +10,7 @@ STARTCLUSTER_URL = '/vappio/startCluster_ws.py'
 CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
 ADDINSTANCES_URL = '/vappio/addInstances_ws.py'
 TERMINATECLUSTER_URL = '/vappio/terminateCluster_ws.py'
-
+LISTCLUSTERS_URL = '/vappio/listClusters_ws.py'
 
 def startCluster(host, name, conf, num, ctype, updateDirs):
     """
@@ -41,3 +41,9 @@ def addInstances(host, name, num, updateDirs):
 def terminateCluster(host, name):
     return performQuery(host, TERMINATECLUSTER_URL, dict(name=name))
     
+
+def listClusters(host):
+    """
+    Return a list of existing cluters
+    """
+    return performQuery(host, LISTCLUSTERS_URL, dict())

@@ -92,3 +92,18 @@ def load(name):
     clust.addDataNodes(dataNodes)
 
     return clust
+
+def cleanUp(name):
+    """
+    Removes a cluster and any record of it from the the colletion
+    """
+    clovr = pymongo.Connection().clovr
+    clovr.clusters.remove(dict(name=name))
+    clovr.instances.remove(dict(cluster=name))
+    
+
+def listClusters():
+    """
+    Returns a list of clusters
+    """
+    return [c['name'] for c in pymongo.Connection().clovr.clusters.find()]

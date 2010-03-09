@@ -7,6 +7,9 @@ import cgitb
 import traceback
 from StringIO import StringIO
 
+from igs.utils import logging
+
+
 
 class CGIPage:
     """
@@ -38,6 +41,12 @@ def generatePage(cgiPage):
     """
     cgitb.enable()
 
+    ##
+    # A bit evil, I know, but we want all output to go to a logging file
+    fout = open('/tmp/webservices.log', 'a')
+    logging.OUTSTREAM = fout
+    logging.ERRSTREAM = fout
+    
     try:
         ##
         # Execute the body first, it may want to add to headers or modify them in soem way as

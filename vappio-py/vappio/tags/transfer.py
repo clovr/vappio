@@ -31,19 +31,22 @@ def makeDirsOnCluster(cluster, dirNames):
                             options=cluster.config('ssh.options'),
                             log=True)
     
-def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
+def uploadTag(srcCluster, dstCluster, tagName, tagDirBase=None):
     """
     srcCluster - Source cluster - currently this needs to be 'local'
     dstCluster - Destination cluster
     tagName - The tag to be copied, will have the same name on the destination cluster,
               must exist on srcCluster
-    tagDir - the local base directory in the tag files, this will be removed from the beginning of
+    tagDirBase - the local base directory in the tag files, this will be removed from the beginning of
              each tag file if present.  Default sto srcCluster.config('dirs.tag_dir')
 
     Tags are upload into dstCluster.config('dirs.upload_dir')
 
     This returns a list of file names that were uploaded
     """
+    if tagDirBase is None:
+        tagDirBase = srcCluster.config('dirs.tag_dir')
+
     tagData = loadTagFile(os.path.join(srcCluster.config('dirs.tag_dir'), tagName))
 
     ##
@@ -51,7 +54,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
     # the destination cluster.  We also want to strip off our local dirs.tag_dir
     # from the dir names and add teh dstCluster's
     dirNames = set([os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
-                                 makePathRelative(os.path.dirname(f).replace(srcCluster.config('dirs.tag_dir'), '')))
+                                 makePathRelative(os.path.dirname(f).replace(tagDirBase, '')))
                     for f in tagData('files')])
 
     ##
@@ -59,7 +62,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDir=None):
     # with the destination clusters.  We maek a list of tuples so we know the local file
     # and destinatio file name which we will then loop over and upload
     dstFileNames = [(f, os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
-                                     makePathRelative(f.replace(srcCluster.config('dirs.tag_dir'), ''))))
+                                     makePathRelative(f.replace(tagDirBase, ''))))
                     for f in tagData('files')]
 
     ##
