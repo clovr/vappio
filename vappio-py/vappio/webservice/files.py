@@ -9,9 +9,10 @@ UPLOADTAG_URL = '/vappio/uploadTag_ws.py'
 DOWNLOADTAG_URL = '/vappio/downloadTag_ws.py'
 QUERYTAG_URL = '/vappio/queryTag_ws.py'
 
-def tagData(host, name, tagName, files, recursive, expand, append, overwrite):
+def tagData(host, name, tagName, tagBaseDir, files, recursive, expand, append, overwrite):
     return performQuery(host, TAGDATA_URL, dict(name=name,
                                                 tag_name=tagName,
+                                                tag_base_dir=tagBaseDir,
                                                 files=files,
                                                 recursive=recursive,
                                                 expand=expand,
@@ -19,12 +20,11 @@ def tagData(host, name, tagName, files, recursive, expand, append, overwrite):
                                                 overwrite=overwrite))
 
 
-def uploadTag(host, tagName, srcCluster, dstCluster, expand, tagBaseDir):
+def uploadTag(host, tagName, srcCluster, dstCluster, expand):
     return performQuery(host, UPLOADTAG_URL, dict(tag_name=tagName,
                                                   src_cluster=srcCluster,
                                                   dst_cluster=dstCluster,
-                                                  expand=expand,
-                                                  tag_base_dir=tagBaseDir))
+                                                  expand=expand))
     
 
 def downloadTag(host, tagName, srcCluster, dstCluster, expand):

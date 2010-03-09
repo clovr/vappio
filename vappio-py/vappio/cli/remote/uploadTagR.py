@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
 from igs.utils.functional import identity
@@ -13,17 +14,24 @@ OPTIONS = [
     ('src_cluster', '', '--src-cluster', 'Name of source cluster, hardcoded to local for now', lambda _ : 'local'),
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster', notNone),
     ('expand', '', '--expand', 'Expand files', defaultIfNone(False), True),
-    ('tag_dir_base', '', '--tag-dir-base', 'Base directory in tags', identity)
     ]
 
 
 def main(options, _args):
     srcCluster = loadCluster('localhost', options('general.src_cluster'))
     dstCluster = loadCluster('localhost', options('general.dst_cluster'))
-    fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'), options('general.tag_dir_base'))
+    ##
+    # This should be fixed, right now there is a disconnect between what uploadTag
+    # does in terms of where it places its data and then how tagData
+    # should be called.  Perhaps these two calls should be placed into their
+    # own call?
+    # Perhaps uploadTag should return a tag and then tagData should take a tag
+    # to be put on the remote box?  Not sure yet, leaning towards the latter
+    fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'))
     tagData('localhost',
             options('general.dst_cluster'),
             options('general.tag_name'),
+            os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name')),
             fileList,
             False,
             options('general.expand'),

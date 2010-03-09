@@ -12,7 +12,6 @@ OPTIONS = [
     ('src_cluster', '', '--src-cluster', 'Name of source cluster, hardcoded to local for now', lambda _ : 'local'),
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster', notNone),
     ('expand', '', '--expand', 'Expand files', defaultIfNone(False), True),
-    ('tag_base_dir', '', '--tag-base-dir', 'Base dir of tag', identity)
     ]
 
 def main(options, files):
@@ -20,8 +19,7 @@ def main(options, files):
               options('general.tag_name'),
               options('general.src_cluster'),
               options('general.dst_cluster'),
-              options('general.expand'),
-              options('general.tag_base_dir'))
+              options('general.expand'))
 
     
 

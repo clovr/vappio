@@ -1,6 +1,7 @@
 ##
 # Contains functions for dealing with tag files
 import os
+import json
 
 from igs.utils.config import configFromMap
 from igs.utils.commands import runSystemEx, runSingleProgramEx
@@ -56,17 +57,21 @@ def generateFileList(files, recursive, expand):
             yield f
                 
 
-def tagData(tagsDir, tagName, files, recursive, expand, append, overwrite, filterF=None):
+def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, overwrite, filterF=None):
     """
     Tag a list of files with the name.  The files can contain direcotires, and if recursive
     is set the contends of the directories will become part of the tag rather than just the name
 
+    tagBaseDir is the name of the directory that is not part of the actual tag heirarchy
+    
     expand will cause any archives listed to be expanded and the contents of the archive to be added
 
     append will add to a tagName if it already exists, only unique names will be kept though
 
     filterF - if you want to filter any of the files as they are added to the file list provide a filter
     function that will be called on each individual file name.  The file will be added if filter returns True
+
+    This returns the tag that was created
     """
     if not os.path.exists(tagsDir):
         runSystemEx('mkdir -p ' + tagsDir)
@@ -100,14 +105,30 @@ def tagData(tagsDir, tagName, files, recursive, expand, append, overwrite, filte
                 outFile.write(f + '\n')
 
     outFile.close()
+
+    ##
+    # If tagBaseDir is set it means we have some metadata to write
+    if tagBaseDir:
+        outFile = open(outName + '.metadata', 'w')
+        outFile.write(json.dumps(dict(tag_base_dir=tagBaseDir)))
+        outFile.close()
+
+    return loadTagFile(outName)
     
 
 def loadTagFile(fname):
     """
     Loads a tagfile, returns a config object of attributes
 
-    TODO - make this look at .metadata file
+    Also considering a .phantom type which would represent files that don't really exist.  I think this makes sense
+    as you should be able to tarnsfer .phantom files around but .metadata's should be generated when you make a tag
+
+    Will explain more abou this in a wiki page somewhere...
     """
-    return configFromMap({'files': [f.strip() for f in open(fname)]})
+    if os.path.exists(fname + '.metadata'):
+        base = configFromMap({'metadata': json.loads(open(fname + '.metadata').read())})
+    else:
+        base = {}
+    return configFromMap({'files': [f.strip() for f in open(fname) if f.strip()]}, base)
 
     

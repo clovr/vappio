@@ -12,7 +12,7 @@ from vappio.instance.control import runSystemInstanceEx
 from vappio.webservice.files import queryTag
 
 def makePathRelative(path):
-    if path[0] == '/':
+    if path and path[0] == '/':
         return path[1:]
     else:
         return path
@@ -31,30 +31,28 @@ def makeDirsOnCluster(cluster, dirNames):
                             options=cluster.config('ssh.options'),
                             log=True)
     
-def uploadTag(srcCluster, dstCluster, tagName, tagDirBase=None):
+def uploadTag(srcCluster, dstCluster, tagName):
     """
     srcCluster - Source cluster - currently this needs to be 'local'
     dstCluster - Destination cluster
     tagName - The tag to be copied, will have the same name on the destination cluster,
               must exist on srcCluster
-    tagDirBase - the local base directory in the tag files, this will be removed from the beginning of
-             each tag file if present.  Default sto srcCluster.config('dirs.tag_dir')
 
     Tags are upload into dstCluster.config('dirs.upload_dir')
 
     This returns a list of file names that were uploaded
     """
-    if tagDirBase is None:
-        tagDirBase = srcCluster.config('dirs.tag_dir')
-
     tagData = loadTagFile(os.path.join(srcCluster.config('dirs.tag_dir'), tagName))
 
+    tagBaseDir = tagData('metadata.tag_base_dir', default='')
+        
+    
     ##
     # First step is to create a list of directorys that we should make on
     # the destination cluster.  We also want to strip off our local dirs.tag_dir
     # from the dir names and add teh dstCluster's
     dirNames = set([os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
-                                 makePathRelative(os.path.dirname(f).replace(tagDirBase, '')))
+                                 makePathRelative(os.path.dirname(f).replace(tagBaseDir, '')))
                     for f in tagData('files')])
 
     ##
@@ -62,7 +60,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagDirBase=None):
     # with the destination clusters.  We maek a list of tuples so we know the local file
     # and destinatio file name which we will then loop over and upload
     dstFileNames = [(f, os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
-                                     makePathRelative(f.replace(tagDirBase, ''))))
+                                     makePathRelative(f.replace(tagBaseDir, ''))))
                     for f in tagData('files')]
 
     ##

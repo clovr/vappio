@@ -21,7 +21,7 @@ def testClusterUp(options):
     def _():
         try:
             cluster = loadCluster(options('general.host'), options('general.name'))
-            return all([i.state == cluster.ctype.Instance.RUNNING
+            return all([i.state in [cluster.ctype.Instance.RUNNING, cluster.ctype.Instance.TERMINATED]
                         for i in cluster.execNodes + cluster.dataNodes])
         except Exception, err:
             debugPrint(lambda : 'Unknown error checking master state: ' + str(err))

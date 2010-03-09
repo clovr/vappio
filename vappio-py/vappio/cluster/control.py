@@ -177,7 +177,7 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
                         options=cluster.config('ssh.options'),
                         log=DEBUG)
     
-    if cluster.config('general.update_dirs'):
+    if cluster.config('general.update_dirs', default=False):
         updateDirs(cluster, [master])
 
     cluster.setMaster(master)
@@ -220,7 +220,7 @@ def startExecNodes(cluster, numExec, reporter=None):
                         user=cluster.config('ssh.user'),
                         options=cluster.config('ssh.options'))
 
-            if cluster.config('general.update_dirs'):
+            if cluster.config('general.update_dirs', default=False):
                 updateDirs(cluster, [i])
 
             runSystemInstanceEx(i,
