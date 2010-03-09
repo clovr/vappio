@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 ##
 # Tags data.
-#
-# tag-name - What to name the tag
-# files - List of files to tag
-# recursive - If a file is a directory, recursively its contents to the file list
-# expand - If file is an archive of some sort (.bz2, .tar.gz, .tgz) expand it and add the contents to tag
-# append - Append the files to the current file list (this will not result in duplicate files in the file list)
-#          in other words, if you tag the same file twice with append it will only show up once in the file list
-# overwrite - Overwrite the tag with these new contents
-#
-# Right now, all data is stored in /mnt/staging/data and al ltags in /mnt/staging/tags.  In the future this will likely
-# change as we may not want all data in staging because it gets synched out to every node.
 
 import json
 
@@ -30,6 +19,9 @@ class TagData(CGIPage):
         if request['name'] == 'local':
             cmd = ['tagDataR.py', '--tag-name=' + request['tag_name']]
 
+            if request['tag_base_dir']:
+                cmd.append('--tag-base-dir=' + request['tag_base_dir'])
+                           
             for i in ['recursive', 'expand', 'append', 'overwrite']:
                 if request[i]:
                     cmd.append('--' + i)

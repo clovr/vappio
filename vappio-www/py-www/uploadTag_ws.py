@@ -24,9 +24,6 @@ class UploadTag(CGIPage):
             if request['expand']:
                 cmd.append('--expand')
 
-            if request['tag_base_dir']:
-                cmd.append('--tag-base-dir=' + request['tag_base_dir'])
-
             cmd.append('>> /tmp/uploadTag.log 2>&1 &')
 
             runSystemEx(' '.join(cmd))
