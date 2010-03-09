@@ -17,7 +17,14 @@ URL = '/vappio/clusterInfo_ws.py'
 class ClusterInfo(CGIPage):
 
     def body(self):
-        request = readQuery()
+        ##
+        # If reading the query fails just get the
+        # information on the local cluster
+        try:
+            request = readQuery()
+        except:
+            request = dict(name='local')
+            
         if request['name'] == 'local':
             cluster = load('local')
             return json.dumps([True, clusterToDict(cluster)])

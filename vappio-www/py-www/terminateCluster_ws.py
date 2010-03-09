@@ -8,6 +8,7 @@ from igs.utils.config import configToDict
 
 from vappio.cluster.control import terminateCluster
 from vappio.webservice.cluster import loadCluster
+from vappio.cluster.persist_mongo import cleanUp
 
 URL = '/vappio/terminateCluster_ws.py'
 
@@ -17,7 +18,9 @@ class TerminateCluster(CGIPage):
         request = readQuery()
 
         cluster = loadCluster('localhost', request['name'])
+        cleanUp(cluster.name)
         terminateCluster(cluster)
+        cleanUp(request['name'])
         return json.dumps([True, None])
 
 generatePage(TerminateCluster())
