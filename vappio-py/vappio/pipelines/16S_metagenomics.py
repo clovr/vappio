@@ -15,7 +15,7 @@ TEMPLATE_NAME = '16S_metagenomics'
 OPTIONS = [
     ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of FASTA files', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
     ('OLIGOS_FILE', '', '--OLIGOS_FILE', 'Oligo\'s file containing barcodes, forward and reverse primers', notNone),
-    ('ALIGNMENT_DB', '', '--ALIGNMENT_DB', 'Database used by mothur\'s align.seqs', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
+    ('ALIGN_DB', '', '--ALIGN_DB', 'Database used by mothur\'s align.seqs', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
     ('CLASSIFY_DB', '', '--CLASSIFY_DB', 'Database used by mothur\'s classify.seqs', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
     ('TAXONOMY_DB', '', '--TAXONOMY_DB', 'Taxonomy database used by mothur\'s classify.seqs', compose(lambda x : '${dirs.upload_dir}/' + x, notNone))
     ]
