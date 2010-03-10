@@ -24,3 +24,5 @@ export EC2_PRIVATE_KEY=/tmp/ec2-pk.pem
 
 ulimit -n 8192
 
+export GLOBUS_LOCATION=/opt/opt-packages/globus-5.0.0
+source $GLOBUS_LOCATION/etc/globus-user-env.sh
