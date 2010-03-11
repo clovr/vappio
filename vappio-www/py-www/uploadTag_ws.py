@@ -7,6 +7,8 @@ from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
 
+from vappio.cluster.persist_mongo import load
+
 URL = '/vappio/uploadTag_ws.py'
 
 class UploadTag(CGIPage):
