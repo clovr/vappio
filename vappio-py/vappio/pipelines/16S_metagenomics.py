@@ -14,6 +14,6 @@ TEMPLATE_NAME = '16S_metagenomics'
 
 OPTIONS = [
     ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of FASTA files', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
-    ('OLIGOS_FILE', '', '--OLIGOS_FILE', 'Oligo\'s file containing barcodes, forward and reverse primers', notNone),
-    ('DB_PATH', '', '--DB_PATH', 'The root database path', compose(lambda x : '${dirs.upload_dir}/' + x, notNone))
+    ('DB_PATH', '', '--DB_PATH', 'The root database path', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
+    ('GROUP_COUNT', '', '--GROUP_COUNT', 'Ergatis group count', defaultIfNone("50"))
     ]
