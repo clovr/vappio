@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 ##
 # Uploads a file tag and tags it on remote side
-
-
 import json
 
 from igs.cgi.handler import CGIPage, generatePage
