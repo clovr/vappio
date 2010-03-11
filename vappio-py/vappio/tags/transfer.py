@@ -30,6 +30,13 @@ def makeDirsOnCluster(cluster, dirNames):
                             user=cluster.config('ssh.user'),
                             options=cluster.config('ssh.options'),
                             log=True)
+        runSystemInstanceEx(cluster.master,
+                            'chown -R %s %s' % (cluster.config('vappio.user'), d),
+                            None,
+                            errorPrintS,
+                            user=cluster.config('ssh.user'),
+                            options=cluster.config('ssh.options'),
+                            log=True)
     
 def uploadTag(srcCluster, dstCluster, tagName):
     """
@@ -71,6 +78,16 @@ def uploadTag(srcCluster, dstCluster, tagName):
     # Now, copy up all of the files
     for l, d in dstFileNames:
         scpToEx(dstCluster.master.publicDNS, l, d, user=srcCluster.config('ssh.user'), options=srcCluster.config('ssh.options'), log=True)
+        ##
+        # We are uploading as root, so chown everything to the user that everything in vappio will be done under
+        runSystemInstanceEx(dstCluster.master,
+                            'chown %s %s' % (dstCluster.config('vappio.user'), d),
+                            None,
+                            errorPrintS,
+                            user=dstCluster.config('ssh.user'),
+                            options=dstCluster.config('ssh.options'),
+                            log=True)
+
 
     ##
     # return the list of uploaded filenames
