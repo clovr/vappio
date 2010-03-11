@@ -3,9 +3,12 @@
 import os
 import json
 
-from igs.utils.config import configFromMap
+from igs.utils.config import configFromMap, configFromStream, configToDict
 from igs.utils.commands import runSystemEx, runSingleProgramEx
 
+
+class MissingTagFileError(Exception):
+    pass
 
 def untargzFile(fname):
     stdout = []
@@ -116,6 +119,45 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
     return loadTagFile(outName)
     
 
+def runCommand(ctype, baseDir, command, tagfile):
+    runSystemEx(command)
+    
+
+def realizePhantom(ctype, baseDir, tagfile):
+    """
+    This takes a phantom tag and turns it into
+    a real tag (creating/downloading the files)
+    
+    ctype - The current cluster type, this says which cluster.$ctype to look at
+    baseDir - The base directory to download the files to
+    tagfile - The tag file.
+
+    In the tag, ctype and baseDir can be referenced through ${ctype} and ${base_dir}
+    """
+    newTag = configFromMap({'ctype': ctype,
+                            'base_dir': baseDir},
+                           tagfile)
+
+    ##
+    # Get what to download, first try the url then get the command if it is not there.
+    # We define a url as anything that starts with <protocol_we_understand>://
+    # so if it doesn't match that, it's a command and we run that
+    download = newTag('phantom.cluster.%s.url' % ctype, default=newTag('phantom.cluster.%s.command' % ctype))
+
+    if download.startswith('http://'):
+        #downloadHttp(ctype, baseDir, download, tagfile)
+        pass
+    elif download.startswith('s3://'):
+        ##
+        # We might ened to modify realizePhantom to take a conf that will have our s3 credentails in it
+        #downloadS3(ctype, baseDir, download, tagfile)
+        pass
+    else:
+        ##
+        # It's a command:
+        runCommand(ctype, baseDir, download, tagfile)
+
+
 def loadTagFile(fname):
     """
     Loads a tagfile, returns a config object of attributes
@@ -125,10 +167,55 @@ def loadTagFile(fname):
 
     Will explain more abou this in a wiki page somewhere...
     """
-    if os.path.exists(fname + '.metadata'):
-        base = configFromMap({'metadata': json.loads(open(fname + '.metadata').read())})
+    ##
+    # Phantom filse are in a format that configFromStream can read.  This is because phantom files
+    # are expected to be written and modified by humans.  .metadata files on the other hand
+    # are just expected to be the produce of a machine storing information so uses json
+    if os.path.exists(fname + '.phantom'):
+        ##
+        # Put everythin under phantom
+        # We want to do it lazily too since we will be adding
+        # data it can access later
+        phantom = configFromMap({'phantom': configToDict(configFromStream(open(fname + '.phantom'), lazy=True))}, lazy=True)
     else:
-        base = {}
-    return configFromMap({'files': [f.strip() for f in open(fname) if f.strip()]}, base)
+        phantom = configFromMap({})
+
+    ##
+    # If the fname actually exists, open its meta data + files
+    # if the fname does not exist but the phantom does, return the phantom
+    # otherwise, throw an exception about missing the tagfile
+    if os.path.exists(fname):
+        if os.path.exists(fname + '.metadata'):
+            metadata = configFromMap({'metadata': json.loads(open(fname + '.metadata').read())}, phantom)
+        else:
+            metadata = configFromMap({}, phantom)
+
+        return configFromMap({'files': [f.strip() for f in open(fname) if f.strip()]}, metadata)
+    elif not os.path.exists(fname) and os.path.exists(fname + '.phantom'):
+        return phantom
+    else:
+        raise MissingTagFileError(fname)
 
     
+    
+def hasFiles(tagfile):
+    """
+    Returns true if this tagfile contains files
+    This, at the very least, means it's a realized phantom
+    """
+    return 'files' in tagfile.keys()
+
+
+def isPhantom(tagfile):
+    """
+    Returns true if this tagfile contains phantom file information.
+    Being a phantom is not mutually exclusive with beinga 'realized'
+    phantom.  That is 'isPhantom(tag) and hasRealFiles(tag)' could be
+    True
+    """
+    for k in tagfile.keys():
+        if k.startswith('phantom.'):
+            return True
+
+    return False
+

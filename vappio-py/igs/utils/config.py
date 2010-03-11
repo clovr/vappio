@@ -65,15 +65,19 @@ class Config:
     immutable
     """
 
-    def __init__(self, m, base):
+    def __init__(self, m, base, lazy=False):
         self.conf = flattenMap(m)
         self.base = base
 
-        for k in self.conf.keys():
-            v = self.conf[k]
-            newV = replaceVariables(k, v, self)
-            if newV != v:
-                self.conf[k] = newV
+
+        ##
+        # If lazy is set, don't validate
+        if not lazy:
+            for k in self.conf.keys():
+                v = self.conf[k]
+                newV = replaceVariables(k, v, self)
+                #if newV != v:
+                #    self.conf[k] = newV
 
 
     def __call__(self, key, **kwargs):
@@ -82,7 +86,13 @@ class Config:
         """
         return self.get(key, **kwargs)
 
+
     def get(self, key, **kwargs):
+        return replaceVariables(key,
+                                self.get_raw(key, **kwargs),
+                                self.get_raw)
+    
+    def get_raw(self, key, **kwargs):
         """
         If the key does not exist in this config and there is no base then raise
         NoKeyFoundError
@@ -99,11 +109,12 @@ class Config:
         elif key not in self.conf and not self.base and 'default' in kwargs:
             return kwargs['default']
         elif key not in self.conf:
-            return self.base.get(key, **kwargs)
+            return self.base.get_raw(key, **kwargs)
         else:
             return self.conf[key]
 
 
+        
     def keys(self):
         """
         Return a set of all the keys
@@ -115,7 +126,7 @@ class Config:
         return s
     
         
-def configFromStream(stream, base=None):
+def configFromStream(stream, base=None, lazy=False):
     """
     Constructs a config function from a stream.
 
@@ -150,7 +161,7 @@ def configFromStream(stream, base=None):
             # Remove the trailing '\n'
             cfg[section][key] = value[:-1]
 
-    return configFromMap(cfg, base)
+    return configFromMap(cfg, base, lazy)
 
 
 def flattenMap(map):
@@ -205,7 +216,7 @@ def replaceVariables(k, value, lookup):
                 except NoKeyFoundError:
                     value = value.replace('${%s}' % var, lookup(var))
 
-            return replaceVariables(k, value, lookup)
+            return replaceVariables(secVar, value, lookup)
         else:
             return value
     else:
@@ -221,20 +232,20 @@ def replaceStr(str, lookup):
 
     return str
 
-def configFromMap(map, base=None):
-    return Config(map, base)
+def configFromMap(map, base=None, lazy=False):
+    return Config(map, base, lazy)
 
             
-def configFromEnv(base=None):
+def configFromEnv(base=None, lazy=False):
     """
     This constructs a config from the environment variables and puts them in the [env] section.
     Case is preserved, so it would be ${env.HOME}.  Variables are also replaced.
     """
-    return configFromMap({'env': os.environ}, base)
+    return configFromMap({'env': os.environ}, base, lazy)
 
 
 def configToDict(config):
-    return dict([(k, config(k)) for k in config.keys()])
+    return dict([(k, config.get_raw(k)) for k in config.keys()])
 
 def test():
     c = configFromMap({
@@ -245,11 +256,12 @@ def test():
                  'zoom': 'bye'},
         })
 
-    print c('general.foo')
-    print c('general.bar')
-    print c('test.foo')
-    print c('test.bar')
-    print c('test.zoom')
+
+    assert 'baz' == c('general.foo')
+    assert 'baz' == c('general.bar')
+    assert 'baz' == c('test.foo')
+    assert 'bye' == c('test.bar')
+    assert 'bye' == c('test.zoom')
 
 
     c1 = configFromMap({
@@ -257,7 +269,7 @@ def test():
         'testing': {'zoom': '${test.zoom}'}
         }, c)
 
-    print c1('general.zoom')
-    print c1('testing.zoom')
-    print c1.keys()
+    assert 'baz' == c1('general.zoom')
+    assert 'bye' == c1('testing.zoom')
+    
     

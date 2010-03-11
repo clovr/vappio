@@ -13,7 +13,7 @@ from vappio.webservice.cluster import startCluster, loadCluster
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
-    ('conf_name', '', '--conf-name', 'Config name', notNone),
+    ('conf_name', '', '--conf-name', 'Config name, defaults to clovr.conf', defaultIfNone('clovr.conf')),
     ('name', '', '--name', 'Name of cluster', notNone),
     ('num', '', '--num', 'Number of exec nodes to start', int),
     ('ctype', '', '--ctype', 'Type of cluster', compose(restrictValues(['ec2', 'nimbus']), notNone)),

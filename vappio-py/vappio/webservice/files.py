@@ -8,6 +8,7 @@ TAGDATA_URL = '/vappio/tagData_ws.py'
 UPLOADTAG_URL = '/vappio/uploadTag_ws.py'
 DOWNLOADTAG_URL = '/vappio/downloadTag_ws.py'
 QUERYTAG_URL = '/vappio/queryTag_ws.py'
+REALIZEPHANTOM_URL = '/vappio/realizePhantom_ws.py'
 
 def tagData(host, name, tagName, tagBaseDir, files, recursive, expand, append, overwrite):
     return performQuery(host, TAGDATA_URL, dict(name=name,
@@ -36,5 +37,9 @@ def downloadTag(host, tagName, srcCluster, dstCluster, expand):
 
 
 def queryTag(host, name, tagName):
-    return configFromMap(performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName)))
+    ##
+    # A tag may contain some keys that shouldn't be evaluated
+    return configFromMap(performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName)), lazy=True)
 
+def realizePhantom(host, name, tagName):
+    return performQuery(host, REALIZEPHANTOM_URL, dict(name=name, tag_name=tagName))
