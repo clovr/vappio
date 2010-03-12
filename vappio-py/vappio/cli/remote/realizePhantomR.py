@@ -19,8 +19,7 @@ OPTIONS = [
 
 def main(options, _args):
     cluster = loadCluster('localhost', 'local')
-    #ctype = cluster.config('general.ctype')
-    ctype = 'ec2'
+    ctype = cluster.config('general.ctype')
     tf = loadTagFile(os.path.join(cluster.config('dirs.tag_dir'), options('general.tag_name')))
     if not hasFiles(tf) and isPhantom(tf):
         outDir = os.path.join(cluster.config('dirs.upload_dir'), options('general.tag_name'))
@@ -28,7 +27,7 @@ def main(options, _args):
         realizePhantom(ctype,
                        outDir,
                        tf)
-        cmd = ['tagData.py', '--name=local',
+        cmd = ['tagDataR.py',
                '--tag-name=' + options('general.tag_name'),
                '--tag-base-dir=' + outDir,
                ##

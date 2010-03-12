@@ -3,6 +3,7 @@ import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
 from igs.utils.functional import identity
+from igs.utils.ssh import scpToEx
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
@@ -26,8 +27,8 @@ def main(options, _args):
 
     if isPhantom(tagData):
         scpToEx(dstCluster.master.publicDNS,
-                os.path.join(srcCluster.config('dirs.tag_dir'), tagName),
-                os.path.join(dstCluster.config('dirs.tag_dir'), tagName),
+                os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
+                os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
                 user=srcCluster.config('ssh.user'),
                 options=srcCluster.config('ssh.options'),
                 log=True)
