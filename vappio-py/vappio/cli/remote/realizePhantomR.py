@@ -32,7 +32,7 @@ def main(options, _args):
                '--tag-base-dir=' + outDir,
                ##
                # Want to be recursive regardless
-               '-r', '-o'
+               '-r', '-o',
                tf('phantom.cluster.%s.tag_options' % ctype),
                outDir]
         runSystemEx(' '.join(cmd))
