@@ -49,8 +49,6 @@ def uploadTag(srcCluster, dstCluster, tagData):
 
     This returns a list of file names that were uploaded
     """
-    tagData = loadTagFile(os.path.join(srcCluster.config('dirs.tag_dir'), tagName))
-
     tagBaseDir = tagData('metadata.tag_base_dir', default='')
         
     
