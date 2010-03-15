@@ -12,9 +12,9 @@ from vappio.tags.tagfile import tagData
 OPTIONS = [
     ('tag_name', '', '--tag-name', 'Name of the tag', notNone),
     ('tag_base_dir', '', '--tag-base-dir', 'Base dir of tag', identity),
-    ('recursive', '', '--recursive', 'If file is a direcotry, recursively add files', defaultIfNone(False), True),
+    ('recursive', '-r', '--recursive', 'If file is a direcotry, recursively add files', defaultIfNone(False), True),
     ('expand', '-e', '--expand', 'If file is an archive (.bz2, .tar.gz, .tgz), expand it', defaultIfNone(False), True),
-    ('append', '-r', '--append', 'Append files to the current file list, this will not add duplicates. The overwrite option supercedes this.', defaultIfNone(False), True),
+    ('append', '-a', '--append', 'Append files to the current file list, this will not add duplicates. The overwrite option supercedes this.', defaultIfNone(False), True),
     ('overwrite', '-o', '--overwrite', 'Overwrite tag if it already exists', defaultIfNone(False), True)
     ]
 
