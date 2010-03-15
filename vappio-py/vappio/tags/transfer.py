@@ -38,7 +38,7 @@ def makeDirsOnCluster(cluster, dirNames):
                             options=cluster.config('ssh.options'),
                             log=True)
     
-def uploadTag(srcCluster, dstCluster, tagData):
+def uploadTag(srcCluster, dstCluster, tagName, tagData):
     """
     srcCluster - Source cluster - currently this needs to be 'local'
     dstCluster - Destination cluster

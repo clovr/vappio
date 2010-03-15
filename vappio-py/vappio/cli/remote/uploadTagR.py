@@ -41,7 +41,7 @@ def main(options, _args):
         # own call?
         # Perhaps uploadTag should return a tag and then tagData should take a tag
         # to be put on the remote box?  Not sure yet, leaning towards the latter
-        fileList = uploadTag(srcCluster, dstCluster, tagData)
+        fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'), tagData)
         tagData('localhost',
                 options('general.dst_cluster'),
                 options('general.tag_name'),
