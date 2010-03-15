@@ -38,7 +38,7 @@ def makeDirsOnCluster(cluster, dirNames):
                             options=cluster.config('ssh.options'),
                             log=True)
     
-def uploadTag(srcCluster, dstCluster, tagName):
+def uploadTag(srcCluster, dstCluster, tagData):
     """
     srcCluster - Source cluster - currently this needs to be 'local'
     dstCluster - Destination cluster
@@ -51,61 +51,46 @@ def uploadTag(srcCluster, dstCluster, tagName):
     """
     tagData = loadTagFile(os.path.join(srcCluster.config('dirs.tag_dir'), tagName))
 
-    ##
-    # We could either have a phantom tag to upload or a real tag.  If we have a phantom
-    # then uploading the .phantom file is sufficient, someone else is expected to 'realize' the
-    # phantom alter
-    if isPhantom(tagData):
-        scpToEx(dstCluster.master.publicDNS,
-                os.path.join(srcCluster.config('dirs.tag_dir'), tagName),
-                os.path.join(dstCluster.config('dirs.tag_dir'), tagName),
-                user=srcCluster.config('ssh.user'),
-                options=srcCluster.config('ssh.options'),
-                log=True)
-        ##
-        # Since we didn't upload any files, return []
-        return []
-    else:
-        tagBaseDir = tagData('metadata.tag_base_dir', default='')
+    tagBaseDir = tagData('metadata.tag_base_dir', default='')
         
     
-        ##
-        # First step is to create a list of directorys that we should make on
-        # the destination cluster.  We also want to strip off our local dirs.tag_dir
-        # from the dir names and add teh dstCluster's
-        dirNames = set([os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
-                                     makePathRelative(os.path.dirname(f).replace(tagBaseDir, '')))
-                        for f in tagData('files')])
+     ##
+     # First step is to create a list of directorys that we should make on
+     # the destination cluster.  We also want to strip off our local dirs.tag_dir
+     # from the dir names and add teh dstCluster's
+    dirNames = set([os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
+                                 makePathRelative(os.path.dirname(f).replace(tagBaseDir, '')))
+                    for f in tagData('files')])
+    
+    ##
+    # Next we want to take the list of local files, remove the dirs.tag_dir and replace it
+    # with the destination clusters.  We maek a list of tuples so we know the local file
+    # and destinatio file name which we will then loop over and upload
+    dstFileNames = [(f, os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
+                                     makePathRelative(f.replace(tagBaseDir, ''))))
+                    for f in tagData('files')]
 
-        ##
-        # Next we want to take the list of local files, remove the dirs.tag_dir and replace it
-        # with the destination clusters.  We maek a list of tuples so we know the local file
-        # and destinatio file name which we will then loop over and upload
-        dstFileNames = [(f, os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
-                                         makePathRelative(f.replace(tagBaseDir, ''))))
-                        for f in tagData('files')]
+    ##
+    # Next, lets call 'mkdir -p' on all the dirs we need to make on the destination cluster
+    makeDirsOnCluster(dstCluster, dirNames)
 
+    ##
+    # Now, copy up all of the files
+    for l, d in dstFileNames:
+        scpToEx(dstCluster.master.publicDNS, l, d, user=srcCluster.config('ssh.user'), options=srcCluster.config('ssh.options'), log=True)
         ##
-        # Next, lets call 'mkdir -p' on all the dirs we need to make on the destination cluster
-        makeDirsOnCluster(dstCluster, dirNames)
-
-        ##
-        # Now, copy up all of the files
-        for l, d in dstFileNames:
-            scpToEx(dstCluster.master.publicDNS, l, d, user=srcCluster.config('ssh.user'), options=srcCluster.config('ssh.options'), log=True)
-            ##
-            # We are uploading as root, so chown everything to the user that everything in vappio will be done under
-            runSystemInstanceEx(dstCluster.master,
-                                'chown %s %s' % (dstCluster.config('vappio.user'), d),
-                                None,
-                                errorPrintS,
-                                user=dstCluster.config('ssh.user'),
-                                options=dstCluster.config('ssh.options'),
-                                log=True)
-
-        ##
-        # return the list of uploaded filenames
-        return [d for l, d in dstFileNames]
+        # We are uploading as root, so chown everything to the user that everything in vappio will be done under
+        runSystemInstanceEx(dstCluster.master,
+                            'chown %s %s' % (dstCluster.config('vappio.user'), d),
+                            None,
+                            errorPrintS,
+                            user=dstCluster.config('ssh.user'),
+                            options=dstCluster.config('ssh.options'),
+                            log=True)
+        
+    ##
+    # return the list of uploaded filenames
+    return [d for l, d in dstFileNames]
 
     
 
