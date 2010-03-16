@@ -50,15 +50,14 @@ def main(options, _args):
     cl = Cluster(options('general.name'), ctype, options)
     try:
         startMaster(cl, lambda m : updateCluster(cl, m), devMode=False, releaseCut=False)
-        if options('general.num'):
-            addInstances('localhost', options('general.name'), options('general.num'), options('general.update_dirs'))
     except TryError, err:
         if cl.master:
             cl.master.state = 'Error'
         errorPrint('There was an error bringing up the cluster: ' + str(err.msg))
         
     dump(cl)
-
+    if options('general.num'):
+        addInstances('localhost', options('general.name'), options('general.num'), options('general.update_dirs'))
 
     
 if __name__ == '__main__':
