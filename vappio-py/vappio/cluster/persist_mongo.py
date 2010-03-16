@@ -7,7 +7,7 @@ import pymongo
 from twisted.python.reflect import fullyQualifiedName, namedAny
 
 from igs.utils.config import configFromMap
-
+from igs.utils.functional import updateDict
 from igs.cgi.request import performQuery
 
 from vappio.cluster.control import Cluster
@@ -18,13 +18,6 @@ CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
 class ClusterDoesNotExist(Exception):
     pass
 
-
-def updateDict(d, nd):
-    """
-    Adds the key/values in nd to d and returns d
-    """
-    d.update(nd)
-    return d
 
 def dump(cluster):
     """
