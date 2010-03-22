@@ -117,68 +117,76 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
 
     applyIfCallable(reporter, [master])
 
-    master = waitForState(cluster.ctype,
-                          NUM_TRIES,
-                          [master],
-                          cluster.ctype.Instance.RUNNING,
-                          reporter)[0]
-
+    master = runAndTerminateBad(cluster,
+                                lambda : waitForState(cluster.ctype,
+                                                      NUM_TRIES,
+                                                      [master],
+                                                      cluster.ctype.Instance.RUNNING,
+                                                      reporter))[0]
     applyIfCallable(reporter, [master])
     
-    waitForSSHUp(cluster.config, NUM_TRIES, [master])
+    master = runAndTerminateBad(cluster,
+                                lambda : waitForSSHUp(cluster.config, NUM_TRIES, [master]))[0]
 
     os.remove(dataFile)
-
-    dataFile = createDataFile(cluster.config,
-                              mode,
-                              master.privateDNS,
-                              outFile='/tmp/machine.tmp.conf')
-    scpToEx(master.publicDNS,
-            dataFile,
-            '/tmp/machine.conf',
-            user=cluster.config('ssh.user'),
-            options=cluster.config('ssh.options'))
-
 
     ##
-    # Create and copy exec data file
-    os.remove(dataFile)
-    dataFile = createDataFile(cluster.config,
-                              [EXEC_NODE],
-                              master.privateDNS,
-                              outFile='/tmp/machine.tmp.conf')
+    # Wrap all this up and terminate master if anything fails
+    try:
+        dataFile = createDataFile(cluster.config,
+                                  mode,
+                                  master.privateDNS,
+                                  outFile='/tmp/machine.tmp.conf')
+        scpToEx(master.publicDNS,
+                dataFile,
+                '/tmp/machine.conf',
+                user=cluster.config('ssh.user'),
+                options=cluster.config('ssh.options'))
+
+
+        ##
+        # Create and copy exec data file
+        os.remove(dataFile)
+        dataFile = createDataFile(cluster.config,
+                                  [EXEC_NODE],
+                                  master.privateDNS,
+                                  outFile='/tmp/machine.tmp.conf')
     
-    scpToEx(master.publicDNS,
-            dataFile,
-            '/tmp/exec.machine.conf',
-            user=cluster.config('ssh.user'),
-            options=cluster.config('ssh.options'))
+        scpToEx(master.publicDNS,
+                dataFile,
+                '/tmp/exec.machine.conf',
+                user=cluster.config('ssh.user'),
+                options=cluster.config('ssh.options'))
 
-    os.remove(dataFile)
-    ##
-    # Copy up EC2 stuff
-    scpToEx(master.publicDNS,
-            os.getenv('EC2_CERT'),
-            '/tmp/ec2-cert.pem',
-            user=cluster.config('ssh.user'),
-            options=cluster.config('ssh.options'))    
+        os.remove(dataFile)
+        ##
+        # Copy up EC2 stuff
+        scpToEx(master.publicDNS,
+                os.getenv('EC2_CERT'),
+                '/tmp/ec2-cert.pem',
+                user=cluster.config('ssh.user'),
+                options=cluster.config('ssh.options'))    
 
-    scpToEx(master.publicDNS,
-            os.getenv('EC2_PRIVATE_KEY'),
-            '/tmp/ec2-pk.pem',
-            user=cluster.config('ssh.user'),
-            options=cluster.config('ssh.options'))    
+        scpToEx(master.publicDNS,
+                os.getenv('EC2_PRIVATE_KEY'),
+                '/tmp/ec2-pk.pem',
+                user=cluster.config('ssh.user'),
+                options=cluster.config('ssh.options'))    
 
-    runSystemInstanceEx(master,
-                        'chmod a+r /tmp/*.pem',
-                        None,
-                        errorPrintS,
-                        user=cluster.config('ssh.user'),
-                        options=cluster.config('ssh.options'),
-                        log=DEBUG)
+        runSystemInstanceEx(master,
+                            'chmod a+r /tmp/*.pem',
+                            None,
+                            errorPrintS,
+                            user=cluster.config('ssh.user'),
+                            options=cluster.config('ssh.options'),
+                            log=DEBUG)
     
-    if cluster.config('general.update_dirs', default=False):
-        updateDirs(cluster, [master])
+        if cluster.config('general.update_dirs', default=False):
+            updateDirs(cluster, [master])
+
+    except:
+        cluster.ctype.terminateInstances([master])
+        raise
 
     cluster.setMaster(master)
 
@@ -241,80 +249,62 @@ def startExecNodes(cluster, numExec, reporter=None):
     if numExec:
         dataFile = createExecDataFile(cluster.config, cluster.master)
 
-        try:
-            slaves = runInstancesWithRetry(cluster.ctype,
-                                           cluster.config('cluster.ami'),
-                                           cluster.config('cluster.key'),
-                                           cluster.config('cluster.exec_type'),
-                                           cluster.config('cluster.exec_groups'),
-                                           cluster.config('cluster.availability_zone', default=None),
-                                           numExec,
-                                           dataFile)
-        except TryError, err:
-            ##
-            # Weren't able to bring up all of them for some reason, but we got some
-            slaves = err.result
+        slaves = runAndTerminateBad(cluster,
+                                    lambda : runInstancesWithRetry(cluster.ctype,
+                                                                   cluster.config('cluster.ami'),
+                                                                   cluster.config('cluster.key'),
+                                                                   cluster.config('cluster.exec_type'),
+                                                                   cluster.config('cluster.exec_groups'),
+                                                                   cluster.config('cluster.availability_zone', default=None),
+                                                                   numExec,
+                                                                   dataFile))
 
         applyIfCallable(reporter, slaves)
 
-        try:
-            ##
-            # This could be a problem in the future.  This waits for ALL of them to reach the given
-            # state but what if 1 machine takes 10 minutes to start and the rest are already started?
-            # Those other machines could be getting work and through SGE and the rest of the setup
-            # for a node is not complete yet.
-            #
-            # In the future, all node setup should probably happen through the datafile scrip that is uploaded.
-            # Alternatively, we can stream waitForState and have return nodes as they reach the state.
+
+
+        ##
+        # This could be a problem in the future.  This waits for ALL of them to reach the given
+        # state but what if 1 machine takes 10 minutes to start and the rest are already started?
+        # Those other machines could be getting work and through SGE and the rest of the setup
+        # for a node is not complete yet.
+        #
+        # In the future, all node setup should probably happen through the datafile scrip that is uploaded.
+        # Alternatively, we can stream waitForState and have return nodes as they reach the state.
+        slaves = runAndTerminateBad(cluster,
+                                    lambda : waitForState(cluster.ctype,
+                                                          NUM_TRIES,
+                                                          slaves,
+                                                          cluster.ctype.Instance.RUNNING,
+                                                          reporter))
+                
+        applyIfCallable(reporter, slaves)
+        slaves = runAndTerminateBad(cluster,
+                                    lambda: waitForSSHUp(cluster.config,
+                                                         NUM_TRIES,
+                                                         slaves))
+
+        chans = [runThreadWithChannel(_setupInstance)[1].sendWithChannel(i)
+                 for i in slaves]
+        
+        res = []
+        ##
+        # Clean up threads, collecting any errors
+        for c, i in zip(chans, slaves):
             try:
-                slaves = waitForState(cluster.ctype,
-                                      NUM_TRIES,
-                                      slaves,
-                                      cluster.ctype.Instance.RUNNING,
-                                      reporter)
-            except TryError, err:
-                ##
-                # Not all reached our state, but some of them hopefully did.  Take those that did and assign them to slaves
-                # and terminate the rest
-                #
-                # This should be modified with some sort of error reporting, not sure how to do that yet though.
-                slaves, bad = err.result
-                cluster.ctype.terminateInstances(bad)
+                c.receive()
+                res.append(i)
+            except Exception, err:
+                errorPrint('Exception here?: ' + str(err))
+
+        slaves = res
+
+        
+        cluster.addExecNodes(slaves)
+        if len(slaves) != numExec:
+            raise TryError('Unable to bring up all nodes', cluster)
                 
-            applyIfCallable(reporter, slaves)
-            try:
-                waitForSSHUp(cluster.config,
-                             NUM_TRIES,
-                             slaves)
-            except TryError, err:
-                slaves, bad = err.result
-                cluster.ctype.terminateInstances(bad)
-                
-
-            chans = [runThreadWithChannel(_setupInstance)[1].sendWithChannel(i)
-                     for i in slaves]
-
-            res = []
-            ##
-            # Clean up threads, collecting any errors
-            for c, i in zip(chans, slaves):
-                try:
-                    c.receive()
-                    res.append(i)
-                except Exception, err:
-                    errorPrint('Exception here?: ' + str(err))
-
-            slaves = res
-
-
-            cluster.addExecNodes(slaves)
-            if len(slaves) != numExec:
-                raise TryError('Unable to bring up all nodes', cluster)
-                
-            return cluster
-        finally:
-            #os.remove(dataFile)
-            pass
+        return cluster
 
         
 def terminateCluster(cluster):
@@ -378,7 +368,7 @@ def waitForSSHUp(conf, tries, instances):
                  for i in instances]
         res = [c.receive() for c in chans]
         if _sshTest(res):
-            return
+            return instances
         else:
             time.sleep(30)
             tries -= 1
@@ -390,6 +380,8 @@ def waitForSSHUp(conf, tries, instances):
 def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, num, dataFile):
     """
     Tries to start up N instances, will try to run more if it cannot bring up all
+
+    TODO: Modify this so it only tries N times and throws a TryError if it fails
     """
     instances = ctype.runInstances(ami,
                                    key,
@@ -474,3 +466,20 @@ def runCommandOnCluster(cluster, command, justMaster=False):
     # Collect all threads
     for c in chans:
         c.receive()
+
+
+def runAndTerminateBad(cluster, func):
+    """
+    This calls func and if a TryError is thrown
+    it is assumed .result is a tuple containing
+    (good, bad) list of instances.  The bad
+    instances are terminated and the good ones are
+    returned
+    """
+    try:
+        return func()
+    except TryError, err:
+        slaves, bad = err.result
+        cluster.ctype.terminateInstances(bad)
+        return slaves
+    
