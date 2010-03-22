@@ -23,9 +23,9 @@ def main(options, _args):
     srcCluster = loadCluster('localhost', options('general.src_cluster'))
     dstCluster = loadCluster('localhost', options('general.dst_cluster'))
     tagFileName = os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name'))
-    tagData = loadTagFile(tagFileName)
+    tagFile = loadTagFile(tagFileName)
 
-    if isPhantom(tagData):
+    if isPhantom(tagFile):
         scpToEx(dstCluster.master.publicDNS,
                 os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
                 os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
@@ -41,7 +41,7 @@ def main(options, _args):
         # own call?
         # Perhaps uploadTag should return a tag and then tagData should take a tag
         # to be put on the remote box?  Not sure yet, leaning towards the latter
-        fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'), tagData)
+        fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'), tagFile)
         tagData('localhost',
                 options('general.dst_cluster'),
                 options('general.tag_name'),

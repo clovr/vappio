@@ -54,3 +54,10 @@ def tryUntil(count, what, cond):
         count -= 1
 
     raise TryError('Failed', None)
+
+def updateDict(d, nd):
+    """
+    Adds the key/values in nd to d and returns d
+    """
+    d.update(nd)
+    return d
