@@ -45,6 +45,7 @@ use warnings;
 use Getopt::Long qw(:config no_ignore_case no_auto_abbrev pass_through);
 use Pod::Usage;
 use Config::IniFiles;
+$|++;
 
 my %options;
 my $results = GetOptions (\%options,
@@ -68,15 +69,19 @@ my $vappio_cli;
 # Upload the necessary files. Check to see if they are already there first and
 # don't upload if present. Uses default tags. If data is already present under an
 # unexpected tag, the script will reupload the files.
-&upload_files( $config );
+#&upload_files( $config );
 
 #Wait for the uploads to finish. does_remote_tag_exist should return 1 for both
 #the input file and the ref db
 &_log($DEBUG, "\n");
-while( !(&does_remote_tag_exist( $config->val('input', 'input_tag') ) &&
-       &does_remote_tag_exist( $config->val('input', 'reference_tag') ) ) ) {
-    &_log($DEBUG, "\rWaiting for files to upload");
-    sleep(10);
+while( !(&does_remote_tag_exist( $config, $config->val('input', 'input_tag') ) &&
+       &does_remote_tag_exist( $config, $config->val('input', 'reference_tag') ) ) ) {
+    &_log($DEBUG, "\rWaiting for files to upload", 1);
+    foreach my $i ( 1..10 ) {
+        &_log($DEBUG, ".",1);
+        sleep(1);
+    }
+    &_log($DEBUG, "                                                 ",1);
 }
 
 &_log($DEBUG, "\nBoth input and ref db have finished copying");
@@ -270,8 +275,9 @@ sub does_remote_tag_exist {
 
     my $cmd = $vappio_cli."/queryTag.py --name $cluster_name --tag-name $input_tag";
     $cmd .= " --host $host" unless( $host eq 'local' );
+    $cmd .= " 2>&1";
     my @files = ();
-    &_log($DEBUG, "Checking for remote tag with command: [$cmd]");
+    #&_log($DEBUG, "Checking for remote tag with command: [$cmd]");
     open(CMD, "$cmd |") or die("Could not run command $cmd ($!)");
     chomp( @files = <CMD> );
     close(CMD);
@@ -453,14 +459,17 @@ sub _config_error {
 }
 
 sub _log {
-    my ($level, $msg) = @_;
+    my ($level, $msg, $no_newline) = @_;
     if( $level == $ERROR ) {
-        print $lfh $msg."\n";
+        print $lfh $msg;
+        print "\n" unless( $no_newline );
         die($msg);
     }
     if( $level <= $debug_level ) {
-        print $msg."\n";
-        print $lfh $msg."\n" 
+        print $msg;
+        print "\n" unless( $no_newline );
+        print $lfh $msg;
+        print "\n" unless( $no_newline );
     }
 }
 
