@@ -3,8 +3,9 @@
 import os
 
 
-from igs.utils import config
+from igs.utils import config, logging
 from igs.utils.commands import runSingleProgram, ProgramRunError
+
 
 DEV_NODE = 'DEV'
 MASTER_NODE = 'MASTER'
@@ -50,7 +51,7 @@ def createMasterDataFile(conf):
     exitCode = runSingleProgram('ssh-keygen -y -f ' + conf('cluster.cluster_private_key'),
                                 outf.append,
                                 None,
-                                log=True)
+                                log=logging.DEBUG)
     if exitCode != 0:
         raise ProgramRunError('ssh-keygen -y -f ' + conf('cluster.cluster_private_key'), exitCode)
 
