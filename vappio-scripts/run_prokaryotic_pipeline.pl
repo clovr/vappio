@@ -358,7 +358,7 @@ sub start_pipeline {
     $cmd .= " --TRIM $trim" if( $trim );
     $cmd .= " --CLEAR $clear" if( $clear );
     $cmd .= " --SPEC_FILE $spec_file" if( $spec_file );
-    $cmd .= " 2>&1 > $log";
+    $cmd .= " 2> $log";
 
     &_log($DEBUG, "Starting runPipeline: [$cmd]");
 
