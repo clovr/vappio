@@ -352,7 +352,7 @@ sub start_pipeline {
     my $runPipeline_exec = $vappio_cli."/runPipeline.py";
 
     #build the command
-    my $cmd = $runPipeline_exec." --name $cluster_tag --pipeline_name $pipeline_name --pipeline barebones_prok ".
+    my $cmd = $runPipeline_exec." --name $cluster_tag --pipeline-name $pipeline_name --pipeline barebones_prok ".
         "-- --INPUT_FILE_LIST $input_tag --OUTPUT_PREFIX $output_prefix --ORGANISM $organism --GROUP_COUNT ".
         ($exec_nodes * 2)." --DATABASE_PATH $reference_tag --conf $clovr_conf";
     $cmd .= " --TRIM $trim" if( $trim );
