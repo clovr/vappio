@@ -90,7 +90,7 @@ while( !(&does_remote_tag_exist( $config, $config->val('input', 'input_tag') ) &
 my $continue = &check_pipeline( $config );
 
 if( $continue ) {
-    
+    &download_data( $config );
 }
 
 
@@ -404,6 +404,7 @@ sub download_data {
     my $downloadPipelineOutput_exe = $vappio_cli."/downloadPipelineOutput.py";
     my $cmd = $downloadPipelineOutput_exe." --name $cluster_tag --pipeline $pipeline_name ".
         "--output_dir $output_dir --overwrite";
+    &_log($DEBUG, "Downloading pipeline data. This could take a while. [$cmd]");
     system("$cmd");
     if( $? != 0 ) {
         &_log($ERROR, "Failed downloading pipeline. Something went wrong (error code: ".($? >> 8));
