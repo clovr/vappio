@@ -92,10 +92,6 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
     else:
         oldFiles = set()
 
-
-    files = [f for f in generateFileList(files, recursive, expand)
-             if f not in oldFiles and (not filterF or filterF and filterF(f))]
-        
     if overwrite:
         ##
         # If we are just overwritign the file, no need to old the list of oldFiles
@@ -106,6 +102,11 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
     else:
         outFile = open(outName, 'a')
 
+
+
+    files = [f for f in generateFileList(files, recursive, expand)
+             if f not in oldFiles and (not filterF or filterF and filterF(f))]
+        
 
     outFile.write('\n'.join(files))
     outFile.write('\n')
