@@ -69,22 +69,24 @@ my $vappio_cli;
 # Upload the necessary files. Check to see if they are already there first and
 # don't upload if present. Uses default tags. If data is already present under an
 # unexpected tag, the script will reupload the files.
-#&upload_files( $config );
+my $wait = &upload_files( $config );
 
 #Wait for the uploads to finish. does_remote_tag_exist should return 1 for both
 #the input file and the ref db
-&_log($DEBUG, "\n");
-while( !(&does_remote_tag_exist( $config, $config->val('input', 'input_tag') ) &&
-       &does_remote_tag_exist( $config, $config->val('input', 'reference_tag') ) ) ) {
-    &_log($DEBUG, "\rWaiting for files to upload", 1);
-    foreach my $i ( 1..10 ) {
-        &_log($DEBUG, ".",1);
-        sleep(1);
+if( $wait ) {
+    &_log($DEBUG, "\n");
+    while( !(&does_remote_tag_exist( $config, $config->val('input', 'input_tag') ) &&
+             &does_remote_tag_exist( $config, $config->val('input', 'reference_tag') ) ) ) {
+        &_log($DEBUG, "\rWaiting for files to upload", 1);
+        foreach my $i ( 1..10 ) {
+            &_log($DEBUG, ".",1);
+            sleep(1);
+        }
+        &_log($DEBUG, "\r                                                 ",1);
     }
-    &_log($DEBUG, "                                                 ",1);
 }
 
-&_log($DEBUG, "\nBoth input and ref db have finished copying");
+&_log($DEBUG, "\nBoth input and ref db have finished uploading");
 
 #And now run the pipeline (since we have all of the necessary files uploaded)
 my $continue = &check_pipeline( $config );
@@ -208,22 +210,22 @@ sub upload_files {
 
     #Deal with input
     my $wait = 0;
-    my ($retval, @files) = &does_remote_tag_exist( $cfg, $input_tag );
-    if( !$retval ) {
+    if( !&does_remote_tag_exist( $cfg, $input_tag ) ) {
         &_log($DEBUG, "The tag, $input_tag, did not exist, so tagging/uploading it");
         &tag_data( $cfg, $input_tag, $input_sff_file );
         &run_upload_cmd( $cfg, $input_tag );
-    } elsif( @files == 0 ) {
         $wait = 1;
+    } else {
+        &_log($DEBUG, "Input tag $input_tag exists.");
     }
 
     #deal with ref_db
-    ($retval, @files) = &does_remote_tag_exist( $cfg, $ref_tag );
-    if( $retval != 0 ) {
+    if( !&does_remote_tag_exist( $cfg, $ref_tag ) ) {
         &_log($DEBUG, "The reftag $ref_tag doesn't exist, so uploading");
         &run_upload_cmd( $cfg, $ref_tag );
-    } elsif( @files == 0 ) {
         $wait = 1;
+    } else {
+        &_log($DEBUG, "The reftag $ref_tag exists");
     }
 
     return $wait;
@@ -278,12 +280,14 @@ sub does_remote_tag_exist {
     $cmd .= " 2>&1";
     my @files = ();
     #&_log($DEBUG, "Checking for remote tag with command: [$cmd]");
-    open(CMD, "$cmd |") or die("Could not run command $cmd ($!)");
-    chomp( @files = <CMD> );
-    close(CMD);
+    my $stdout = `$cmd` or &_log($ERROR, "Couldn't run command [$cmd]: $!");
+    my @files = split(/\n/, $stdout);
+    map { chomp($_); } @files;
+    #&_log($DEBUG, "Return Value from query tag was: $? and there were ".scalar(@files)." files in the tag");
 
     my $retval = 0;
     if( $? == 0 && @files != 0 ) {
+       #&_log($DEBUG, "Setting RETVAL = 1");
         $retval = 1;
     }
 
