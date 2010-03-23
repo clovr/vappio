@@ -41,12 +41,14 @@ def waitForPasswordChange():
         
 
 def main(options, _args):
-    runSystemEx('svn copy https://clovr.svn.sourceforge.net/svnroot/clovr/trunk https://clovr.svn.sourceforge.net/svnroot/clovr/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')))
-    runSystemEx('svn copy https://vappio.svn.sourceforge.net/svnroot/vappio/trunk https://vappio.svn.sourceforge.net/svnroot/vappio/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')))
+    runSystemEx('svn copy https://clovr.svn.sourceforge.net/svnroot/clovr/trunk https://clovr.svn.sourceforge.net/svnroot/clovr/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')),
+                log=True)
+    runSystemEx('svn copy https://vappio.svn.sourceforge.net/svnroot/vappio/trunk https://vappio.svn.sourceforge.net/svnroot/vappio/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')),
+                log=True)
     
     runSystemEx('scp %s:/export/%s .' % (options('general.remote_name'), options('general.image')), log=True)
     runSystemEx('cp %s /usr/local/projects/clovr/images' % options('general.image'), log=True)
-    runSystemEx('cp %s VMware_conversion/' % options('general.image'), log=True)
+    runSystemEx('cp %s VMware_conversion/shared/convert_img.img' % options('general.image'), log=True)
 
     waitForPasswordChange()
     
