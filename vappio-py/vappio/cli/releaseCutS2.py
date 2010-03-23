@@ -13,6 +13,7 @@ from igs.utils.commands import runSystemEx
 
 
 OPTIONS = [
+    ('version', '', '--version', 'Version of this release', notNone),
     ('remote_name', '', '--remote-name', 'Name of remote machine the image lives on', notNone),
     ('image', '-i', '--image', 'Image to bundle', identity),
     ('cert', '-c', '--cert', 'Certifiate to use, default $EC2_CERT', defaultIfNone(os.getenv('EC2_CERT'))),
@@ -40,6 +41,9 @@ def waitForPasswordChange():
         
 
 def main(options, _args):
+    runSystemEx('svn copy https://clovr.svn.sourceforge.net/svnroot/clovr/trunk https://clovr.svn.sourceforge.net/svnroot/clovr/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')))
+    runSystemEx('svn copy https://vappio.svn.sourceforge.net/svnroot/vappio/trunk https://vappio.svn.sourceforge.net/svnroot/vappio/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')))
+    
     runSystemEx('scp %s:/export/%s .' % (options('general.remote_name'), options('general.image')), log=True)
     runSystemEx('cp %s /usr/local/projects/clovr/images' % options('general.image'), log=True)
     runSystemEx('cp %s VMware_conversion/' % options('general.image'), log=True)
