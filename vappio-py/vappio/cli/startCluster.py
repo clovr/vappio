@@ -50,7 +50,7 @@ def main(options, args):
                  options('general.update_dirs'))
 
     if options('general.block'):
-        tryUntil(30, progress, testClusterUp(options))
+        tryUntil(50, progress, testClusterUp(options))
         print
     
 if __name__ == '__main__':
