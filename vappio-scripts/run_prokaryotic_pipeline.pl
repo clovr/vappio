@@ -108,7 +108,7 @@ sub check_cluster {
     
     my $clusterInfo_exec = $vappio_cli."/clusterInfo.py";
     my $cmd = $clusterInfo_exec." --name $cluster_tag ";
-    $cmd .= "--host $host " unless( $host eq 'local' );
+    $cmd .= "--host $host " unless( $host eq 'localhost' );
     $cmd .= "2>&1";
     &_log($DEBUG, "Running [$cmd]");
 
@@ -189,7 +189,7 @@ sub start_cluster {
     
     my $startCluster_exec = $vappio_cli."/startCluster.py";
     my $cmd = $startCluster_exec." --conf $clovr_conf --name $cluster_tag --num $exec_nodes --ctype ec2 -b";
-    $cmd .= " --host $host" unless( $host eq 'local' );
+    $cmd .= " --host $host" unless( $host eq 'localhost' );
     &_log($DEBUG, "Starting cluster with command $cmd");
     my $exit_val = system($cmd);
     if( $exit_val != 0 ) {
@@ -240,7 +240,7 @@ sub tag_data {
     #First we should tag the files on the local VM
     my $tagData_exe = $vappio_cli."/tagData.py";
     my $cmd = $tagData_exe." --name local --tag-name $tag ";
-    $cmd .= "--host $host " unless( $host eq 'local' );
+    $cmd .= "--host $host " unless( $host eq 'localhost' );
     $cmd .= "-o -r $file";
     &_log($DEBUG, "Running command $cmd");
     my $ev = system($cmd);
@@ -260,7 +260,7 @@ sub run_upload_cmd {
     #Now run upload command
     my $uploadFiles_exe = $vappio_cli."/uploadTag.py";
     my $cmd = $uploadFiles_exe." --tag-name $tag --dst-cluster $cluster_name --expand";
-    $cmd .= " --host $host" unless( $host eq 'local' );
+    $cmd .= " --host $host" unless( $host eq 'localhost' );
     &_log($DEBUG, "Running cmd: $cmd");
     my $exit_val = system( $cmd );
     if( $exit_val != 0 ) {
@@ -276,9 +276,9 @@ sub does_remote_tag_exist {
         &_config_error('cluster', 'host');
 
     my $cmd = $vappio_cli."/queryTag.py --name $cluster_name --tag-name $input_tag";
-    $cmd .= " --host $host" unless( $host eq 'local' );
+    $cmd .= " --host $host" unless( $host eq 'localhost' );
     $cmd .= " 2>&1";
-    my @files = ();
+    #my @files = ();
     #&_log($DEBUG, "Checking for remote tag with command: [$cmd]");
     my $stdout = `$cmd` or &_log($ERROR, "Couldn't run command [$cmd]: $!");
     my @files = split(/\n/, $stdout);
