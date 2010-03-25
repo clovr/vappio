@@ -1,0 +1,2 @@
+backtick 1 30 30 clusterInfo.py --list
+hardstatus alwayslastline "Current Clusters: %1`"
