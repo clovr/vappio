@@ -17,6 +17,7 @@ COMMANDS = [
     """perl -e 'use ExtUtils::Installed;$inst = ExtUtils::Installed->new(); foreach my $mod ($inst->modules()){print "$mod ",$inst->version($mod),"\n"};' > /opt/packages/cpan.packages""",
     """svn commit /opt/packages -m "Updating package directory for release" """,
     """rm -rf /opt/packages""",
+    """updateAllDirs.py --vappio-py""",
     """updateAllDirs.py"""
     ]
 
