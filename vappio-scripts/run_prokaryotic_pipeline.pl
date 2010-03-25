@@ -280,7 +280,7 @@ sub does_remote_tag_exist {
     $cmd .= " 2>&1";
     #my @files = ();
     #&_log($DEBUG, "Checking for remote tag with command: [$cmd]");
-    my $stdout = `$cmd` or &_log($ERROR, "Couldn't run command [$cmd]: $!");
+    my $stdout = `$cmd`; # or &_log($ERROR, "Couldn't run command [$cmd]: $!");
     my @files = split(/\n/, $stdout);
     map { chomp($_); } @files;
     #&_log($DEBUG, "Return Value from query tag was: $? and there were ".scalar(@files)." files in the tag");
@@ -314,11 +314,21 @@ sub check_pipeline {
         or &_config_error( 'cluster', 'master_ip' );
     &_log($DEBUG, "Monitor the pipeline from this address: http://$master_ip/ergatis");
     &_log($DEBUG, "Run this script again with the same config file when the pipeline is complete to download the data");
-    my $continue = 0;
-    if( $state eq 'complete' ) {
-        $continue = 1;
+
+    while($state ne 'complete' && $state ne 'failed') {
+        &_log($DEBUG, "\rWaiting for pipeline to complete, currently $state", 1);
+        foreach my $i ( 1..10 ) {
+            &_log($DEBUG, ".",1);
+            sleep(6);
+        }
+	$state = &does_pipeline_exist( $cfg, $cluster_tag, $pipeline_name );
+        &_log($DEBUG, "\r                                                                ",1);
     }
-    return $continue;
+
+    if($state eq 'failed') {
+	&_log($ERROR, "PIPELINE FAILED!!!!!");
+    }
+    return 1;
 }
 
 sub start_pipeline {
@@ -384,7 +394,9 @@ sub does_pipeline_exist {
 
     my $pipelineStatus_exec = $vappio_cli."/pipelineStatus.py";
     my $cmd = $pipelineStatus_exec." --name $cluster_tag $pipeline_name";
-    &_log($DEBUG, "Checking for status of pipeline $pipeline_name on cluster $cluster_tag");
+    ##
+    # Sorry Kevin, quick fix for something else
+    #&_log($DEBUG, "Checking for status of pipeline $pipeline_name on cluster $cluster_tag");
     open(CMD, "$cmd |") or die("Could not run command $cmd ($!)");
     while(my $line = <CMD>) {
         chomp( $line );
