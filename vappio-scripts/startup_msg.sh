@@ -5,4 +5,6 @@ ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $
 echo "###README###"
 echo "Access the CloVR appliance from a web browser at http://$ipaddr"
 
+vmStatus.py
+
 exec bash

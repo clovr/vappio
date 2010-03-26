@@ -88,6 +88,8 @@ if( $wait ) {
 
 &_log($DEBUG, "\nBoth input and ref db have finished uploading");
 
+&check_cluster( $config );
+
 #And now run the pipeline (since we have all of the necessary files uploaded)
 my $continue = &check_pipeline( $config );
 
@@ -315,7 +317,7 @@ sub check_pipeline {
     &_log($DEBUG, "Monitor the pipeline from this address: http://$master_ip/ergatis");
     &_log($DEBUG, "Run this script again with the same config file when the pipeline is complete to download the data");
 
-    while($state ne 'complete' && $state ne 'failed') {
+    while($state ne 'complete' && $state ne 'failed' && $state ne 'error') {
         &_log($DEBUG, "\rWaiting for pipeline to complete, currently $state", 1);
         foreach my $i ( 1..10 ) {
             &_log($DEBUG, ".",1);
@@ -325,7 +327,7 @@ sub check_pipeline {
         &_log($DEBUG, "\r                                                                ",1);
     }
 
-    if($state eq 'failed') {
+    if($state eq 'failed' || $state eq 'error') {
 	&_log($ERROR, "PIPELINE FAILED!!!!!");
     }
     return 1;
