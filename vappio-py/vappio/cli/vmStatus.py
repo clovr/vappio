@@ -14,6 +14,8 @@ from igs.utils.commands import runSystemEx, runSingleProgramEx
 
 from vappio.webservice.cluster import listClusters, loadCluster
 
+from vappio.ec2.control import listInstances
+
 OPTIONS = [
     ('one_line', '-1', '--one-line', 'Give a condenced version of output in one line', identity, True),
     ]
@@ -38,6 +40,12 @@ def networkingEnabled():
     runSingleProgramEx('ifconfig', res.append, None)
     return [l for l in res if 'inet addr:' in l and '127.0.0.1' not in l]
 
+def getNumberOfInstances():
+    try:
+        return str(len(listInstances()))
+    except:
+        return 'Unknown'
+
 def main(options, _args):
     state = {
         'shared': sharedFoldersEnabled(),
@@ -54,9 +62,7 @@ def main(options, _args):
             line.append('Networking Is Not Enabled, Please Restart!')
 
         if not line:
-             line.append('# Instances: %d' % sum([len(state['clusters']) - 1] +
-                                                 [len(i.execNodes) + len(i.dataNodes)
-                                                  for i in [loadCluster('localhost', j) for j in state['clusters']]]))
+             line.append('Instances: %s' % getNumberOfInstances())
              line.append('Clusters: ' + ' '.join(state['clusters']))
 
         print ' :: '.join(line)
