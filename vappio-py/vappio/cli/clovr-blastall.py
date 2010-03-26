@@ -23,12 +23,17 @@
 import sys
 import os
 
-from igs.utils.cli import MissingOptionError
 from igs.utils import logging
 from igs.utils.logging import debugPrint
+from igs.utils.cli import MissingOptionError
 from igs.utils.functional import tryUntil
+from igs.utils.commands import runSystemEx
 
 from vappio.webservices.files import queryTag, tagData, uploadTag
+from vappio.webservices.cluster import listClusters, terminateCluster
+
+def printUsage():
+    raise Exception('Implement me!')
 
 def extractOption(args, shortOpt, longOpt, needsArgument=False):
     """
@@ -61,6 +66,13 @@ def validateInput(args):
 
     if not extractOption(args, '-p', None, True):
         raise MissingOptionError('Must provide a program name')
+
+    if extractOption(args, '-p', None, True) not in ['blastn',
+                                                     'blastp',
+                                                     'blastx',
+                                                     'tblastn',
+                                                     'tblastx']:
+        raise MissingOptionError('Must provide a valid program name')
     
     if not extractOption(args, '-i', None, True):
         raise MissingOptionError('Must provide an input file')
@@ -74,8 +86,90 @@ def validateInput(args):
     if not extractOption(args, '-e', None, True):
         raise MissingOptionError('Must provide an expect value')
 
-    
+def tagExists(cluster, tagName):
+    """
+    Determine if a tag exists
+    """
+    try:
+        return len(queryTag('localhost', cluster, tagName)) > 0
+    except:
+        return False
 
+
+def clusterExists(clusterName):
+    return clusterName in listClusters('localhost')
+
+
+def tagInputIfNeeded(inputFile):
+    inputTagName = os.path.basename(inputFile)
+    if not tagExists('local', inputTagName):
+        debugPrint(lambda : 'Tagging input file: ' + inputFile):
+        tagData('localhost',
+                'local',
+                inputTagName,
+                os.path.dirname(inputFile),
+                [inputFile],
+                False,
+                False,
+                False,
+                False)
+        tryUntil(50, lambda : time.sleep(30), lambda : tagExists('local', inputTagName))
+    else:
+        debugPrint(lambda : 'Input tag exists')
+
+def tagDatabaseFiles(databasePath):
+    """
+    Takes a path to a database like blast expects it.  It then goes through
+    the directory finding all files that start with databasePath + '.' and
+    tags them
+    """
+    tagName = os.path.basename(databasePath)
+    dirName = os.path.dirname(databasePath)
+    if not tagExists('local', tagName):
+        debugPrint(lambda : 'Tagging database: ' + databasePath)
+        tagData('localhost',
+                'local',
+                tagName,
+                dirName,
+                [os.path.join(dirName, f) for f in os.listdir(dirName) if f.startswith(tagName + '.')],
+                False,
+                False,
+                False,
+                False)
+        tryUntil(50, lambda : time.sleep(30), lambda : tagExists('local', tagName))
+
+
+def makeClusterIfNeeded(autoClusterName, numNodes, alreadyClusterName):
+    """
+    autoClusterName - Name of the cluster if we decide to make one ourselves
+    numNodes - How many exec nodes
+    alreadyClusterName - Name of cluster to use if we decide to not make one ourselves
+    """
+    ##
+    # numNodes could be 0, we only want to do this path if it exlicitly is
+    # not False
+    if numNodes is not False:
+        if clusterExists(autoClusterName):
+            debugPrint(lambda : 'Cluster already exists, using it')
+        else:
+            debugPrint(lambda : 'Starting cluster...')
+            ##
+            # Normally we would us a webservice call, but in this case the CLI
+            # program already handles blocking and all that for us.  Once tasks
+            # are working we can use a blocking function there instead
+            cmd = ['startCluster.py',
+                   '--name=' + autoClusterName,
+                   '--num=' + str(autoNodes),
+                   '--ctype=ec2',
+                   '-b']
+            runSystemEx(' '.join(cmd), log=logging.DEBUG)
+        return autoClusterName
+    else:
+        if not clusterExists(alreadyClusterName):
+            raise MissingOptionError('Cluster %s does not exist, do you want --auto?' % alreadyClusterName)
+        return alreadyClusterName
+
+        
 def main(_options, args):
     ##
     # Because we are trying to mimic another program we have to do some funky work
@@ -93,38 +187,48 @@ def main(_options, args):
     
     try:
         validateInput(args)
-        autoNodes = extractOption(args, None, '--auto', True)
+        autoNodes = int(extractOption(args, None, '--auto', True))
         clusterName = extractOption(args, None, '--cluster', True)
         inputFile = extractOption(args, '-i', None, True)
         outputDir = extractOption(args, '-o', None, True)
         databasePath = extractOption(args, '-d', None, True)
 
+        if autoNodes and clusterName:
+            raise MissingOptionError('Can only specify --auto OR --cluster, not both')
+        
+        ##
+        # Check that input tag exists
         inputTagName = os.path.basename(inputFile)
-        try:
-            queryTag('localhost', 'local', inputTagName)
-            debugPrint('Input tag exists')
-        except:
-            debugPrint('Tagging input file')
-            tagData('localhost',
-                    'local',
-                    inputTagName,
-                    os.path.basedir(inputFile),
-                    [inputFile],
-                    False,
-                    False,
-                    False,
-                    False)
-            ##
-            # oogly
-            def _queryTag():
-                try:
-                    return len(queryTag('localhost', 'local', inputTagName)('files')) > 0
-                except:
-                    return False
+        tagInputIfNeeded(inputFile)
 
+        ##
+        # Check if input is a tag name or a file (starts with a '/')
+        if databasePath[0] == '/':
+            databaseTagName = os.path.basename(databasePath)
+            tagDatabaseFiles(databasePath)
+        else:
             ##
-            # keep try this 50 times, should be quick though
-            tryUntil(50, lambda : time.sleep(30), _queryTag)
+            # We can't use tagExists here because tagExists
+            # checks to see if the tag has files associated
+            # with it.  The user could be using a phantom
+            # tag which won't have files associated with it until
+            # it is uploaded.  So here we just do a quick check
+            # to see if queryTag returns anything valid
+            # if it does then at least a tag by that name
+            # exists. Otherwise there is an error
+            try:
+                queryTag('localhost', 'local', databasePath)
+                ##
+                # If a success, then set the tagname to the path
+                databaseTagName = databasePath
+            except:
+                raise MissingOptionError('Database tag does not exist locally')
+
+        
+        ##
+        # Want to create a cluster name that will be the same between runs
+        # So we can just restart the script on failure
+        clusterName = makeClusterIfNeeded(autoNodes, inputTagName + '-' + databaseTagName, clusterName)
             
     except MissingOptionError, err:
         print 'Missing an option:'
