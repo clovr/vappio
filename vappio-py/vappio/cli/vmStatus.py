@@ -37,15 +37,14 @@ def sharedFoldersEnabled():
 
 def networkingEnabled():
     res = []
-    runSingleProgramEx('ifconfig', res.append, None)
+    runSingleProgramEx('/sbin/ifconfig', res.append, None)
     return [l for l in res if 'inet addr:' in l and '127.0.0.1' not in l]
 
 def getNumberOfInstances():
-    return 'Unknown'
-    # try:
-    #     return str(len(listInstances()))
-    # except:
-    #     return 'Unknown'
+    try:
+        return str(len(listInstances()))
+    except:
+        return 'Unknown'
 
 def main(options, _args):
     state = {
