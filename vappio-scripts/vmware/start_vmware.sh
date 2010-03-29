@@ -21,10 +21,11 @@ fi
 
 # Generic Shared area
 mount -o ttl=3 -t vmhgfs .host:$shared_dir $shared_mp -o uid=33 -o gid=33
-mount -o ttl=3 -t vmhgfs .host:$userdata_dir $userdata_mp -o uid=33 -o gid=33
+mount -o ttl=3 -t vmhgfs .host:$userdata_dir $userdata_mp -o uid=33 -o gid=33 -o fmask=000 -o dmask=000
 
 # Postgres specific shared area
 mount -o ttl=3 -t vmhgfs .host:$postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid
+mount -o ttl=3 -t vmhgfs .host:/keys /mnt/keys -o uid=33 -o gid=33 -o fmask=077 -o dmask=077
 
 # Required permissions for postgres
 chmod 700 $postgres_data_dir_mp

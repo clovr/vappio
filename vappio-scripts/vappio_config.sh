@@ -63,7 +63,7 @@ scratch_dir=/mnt/scratch
 
 ##SSH KEY CONFIG
 #ssh_key=/home/guest/.ssh/guest
-ssh_key=/mnt/devel1.pem
+ssh_key=/mnt/keys/devel1.pem
 #ssh-hpn is high performance ssh
 #ssh_client=/usr/local/bin/ssh-hpn
 ssh_client=/usr/bin/ssh
@@ -115,3 +115,4 @@ waitonharvest=y
 #Supported flags (all optional)
 #$vappio_bootflags/skip_vmwarestartnodes  - bypass setup_node.sh and start_master.sh when under vmware
 vappio_bootflagsdir=/mnt/config
+
