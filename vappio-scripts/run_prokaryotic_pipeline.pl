@@ -58,6 +58,7 @@ my $lfh; # Log File Handle
 my $debug_level = 1; #Debug level
 my ($DEBUG, $WARN, $ERROR) = (3,2,1);
 my $vappio_cli;
+my $organism;
 
 &init(\%options);
 
@@ -464,6 +465,16 @@ sub init {
 
    $vappio_cli = $ENV{'VAPPIO_HOME'}."/vappio-py/vappio/cli";
    &_log($DEBUG, "Using vappio cli scripts in dir $vappio_cli");
+
+   # check to make sure they included both a genus and a species in the organism
+   # name
+   my $tmp_org = $config->val('input', 'organism') or &_config_error("input", 'organism');
+   unless( $tmp_org =~ /\w\s+\w/ ) {
+       $tmp_org .= " unknown";
+       &_log($DEBUG, "Organism did not include a species, so adding 'unknown' as species");
+   }
+   $organism = $tmp_org;
+   
 
 }
 
