@@ -32,11 +32,8 @@ if [ $? -eq 0 ] ; then
 fi
 
 # mount data filesystem
-mount -t ext3 /dev/sdb $ec2_localmount 
-mkdir $ec2_staging_dir
-mkdir $ec2_harvesting_dir
-chmod 777 $ec2_staging_dir
-chmod 777 $ec2_harvesting_dir
+mount -t ext3 /dev/sdb $ec2_localmount
+$vappio_scripts/prep_directories.sh 
 
 # check for supplied user-data and potentially run it
 echo "EC2" > $vappio_runtime/cloud_type
