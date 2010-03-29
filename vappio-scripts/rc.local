@@ -135,6 +135,7 @@ do_start() {
 	    cat /mnt/clovr_home.html.tmpl | sed -e 's/\$\;IPADDR\$\;/'"$ipaddr"'/g' > /mnt/clovr_home.html
 	    ##
 	    # Setup crontabs
+	    vmStatus.py -1 > /tmp/vmStatus.log
 	    crontab -u root $VAPPIO_HOME/vappio-scripts/crontab.conf
 	fi
     fi
