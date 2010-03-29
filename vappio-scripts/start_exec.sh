@@ -22,14 +22,21 @@ then
     echo -e $USAGE
     exit 1;
 else
-    ping $MASTER_NODE -c 1
+    ping $MASTER_NODE -c 1 
     if [ $? == 0 ]
     then
 	echo "Master node $MASTER_NODE found. Attempting to add this node to the cluster"
     else
-	echo "ERROR Master node $MASTER_NODE not found."
-	echo -e $USAGE
-	exit 1;
+	sleep 10 
+	ping $MASTER_NODE -c 1
+	if [ $? == 0 ]
+        then
+          echo "Master node $MASTER_NODE found. Attempting to add this node to the cluster"
+        else
+	  echo "ERROR Master node $MASTER_NODE not found."
+	  echo -e $USAGE
+          exit 1;
+        fi
     fi
 fi
 
@@ -87,10 +94,13 @@ sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 #start execd
 $SGE_ROOT/$SGE_CELL/common/sgeexecd
 
-#add as submit host , needed to submit to transfer q
+#add as submit host , needed to submit to staging q
 $SGE_ROOT/bin/$ARCH/qconf -as $myhostname
 
-# stage the default staging data
+# Stage data from the staging area
+# Accept data from nodes in either the staging or stagingsub queues
+# On completion, add this host to the stagingsub queue so that it can stage other hosts
+# This is a blocking call, so that the node does not come "online" until staging completes
 vlog "Running $qsubcmd"
 qsubcmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
 if [ $? == 0 ]
