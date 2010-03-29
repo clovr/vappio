@@ -135,7 +135,7 @@ do_start() {
 	    cat /mnt/clovr_home.html.tmpl | sed -e 's/\$\;IPADDR\$\;/'"$ipaddr"'/g' > /mnt/clovr_home.html
 	    ##
 	    # Setup crontabs
-	    crontab $VAPPIO_CONF/crontab.conf
+	    crontab -u root $VAPPIO_CONF/crontab.conf
 	fi
     fi
 
