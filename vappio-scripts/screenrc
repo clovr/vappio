@@ -1,3 +1,3 @@
 defscrollback 5000
-backtick 1 30 30 vmStatus.py -1
+backtick 1 30 30 cat /tmp/vmStatus.log
 hardstatus alwayslastline "%1`"
