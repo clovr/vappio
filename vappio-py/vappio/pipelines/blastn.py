@@ -11,6 +11,11 @@ from vappio.pipeline_tools.blast import tagToRefDBPath
 # Need to know where the template lives
 TEMPLATE_NAME = 'blastn_tmpl'
 
+def fullPathOrTag(x):
+    if x[0] == '/':
+        return x
+    else:
+        return tagToRefDBPath(x)
 
 OPTIONS = [
     ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),

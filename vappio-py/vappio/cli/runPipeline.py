@@ -8,10 +8,10 @@ from igs.utils.logging import logPrint
 from vappio.webservice.pipeline import runPipeline
 
 OPTIONS = [
-    ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
+    ('host', '', '--host', 'Host of webservice to contact, defaults to localhost', defaultIfNone('localhost')),
     ('name', '', '--name', 'Name of cluster', notNone),
-    ('pipeline', '', '--pipeline', 'Type of pipeline', notNone),
-    ('pipeline_name', '', '--pipeline-name', 'Name to give the pipeline', notNone)
+    ('pipeline', '-p', '--pipeline', 'Type of pipeline', notNone),
+    ('pipeline_name', '-n', '--pipeline-name', 'Name to give the pipeline', notNone)
     ]
 
 URL = '/vappio/runPipeline_ws.py'

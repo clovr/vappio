@@ -8,7 +8,7 @@ from vappio.webservice.files import tagData
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', notNone),
+    ('name', '', '--name', 'Name of cluster, defaults to local', defaultIfNone('local')),
     ('tag_name', '', '--tag-name', 'Name of tag', notNone),
     ('tag_base_dir', '', '--tag-base-dir', 'Base directory of the tag', identity),
     ('recursive', '-r', '--recursive', 'Recursively include directories', defaultIfNone(False), True),

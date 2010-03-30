@@ -14,7 +14,7 @@ from igs.utils.commands import runSystemEx, runSingleProgramEx
 
 from vappio.webservice.cluster import listClusters, loadCluster
 
-from vappio.ec2.control import listInstances
+from vappio.ec2.control import listInstances, Instance
 
 OPTIONS = [
     ('one_line', '-1', '--one-line', 'Give a condenced version of output in one line', identity, True),
@@ -42,7 +42,7 @@ def networkingEnabled():
 
 def getNumberOfInstances():
     try:
-        return str(len(listInstances()))
+        return str(len([i for i in listInstances() if i.state != Instance.TERMINATED]))
     except:
         return 'Unknown'
 
