@@ -159,8 +159,8 @@ sub add_instances {
 
     my $cluster_tag = $cfg->val('cluster', 'cluster_tag')
         or &_config_error( 'cluster', 'cluster_tag' );
-    my $current_exec = $cfg->val('cluster', 'exec_nodes')
-        or &_config_error( 'cluster', 'exec_nodes' ); 
+    my $current_exec = $cfg->val('cluster', 'exec_nodes');
+    &_config_error( 'cluster', 'exec_nodes' ) if( !defined( $exec_nodes ) );
     my $delta_exec_nodes = $total_exec - $current_exec;
     if( $delta_exec_nodes <= 0 ) {
         &_log($WARN, "Cannot add $delta_exec_nodes");
@@ -184,8 +184,8 @@ sub start_cluster {
         or &_config_error( 'cluster', 'cluster_tag' );
     my $clovr_conf = $cfg->val('cluster', 'clovr_conf' )
         or &_config_error( 'cluster', 'clovr_conf' );
-    my $exec_nodes = $cfg->val( 'cluster', 'exec_nodes' )
-        or &_config_error( 'cluster', 'exec_nodes' );
+    my $exec_nodes = $cfg->val( 'cluster', 'exec_nodes' );
+    &_config_error( 'cluster', 'exec_nodes' ) if( !defined( $exec_nodes ) );
     my $host = $cfg->val('cluster', 'host')
         or &_config_error( 'cluster', 'host' );
     
@@ -353,8 +353,8 @@ sub start_pipeline {
         &_config_error('input', 'reference_tag');
     my $cluster_tag = $cfg->val('cluster', 'cluster_tag' ) or
         &_config_error( 'cluster', 'cluater_tag' );
-    my $exec_nodes = $cfg->val('cluster', 'exec_nodes') or
-        &_config_error('cluster', 'exec_nodes');
+    my $exec_nodes = $cfg->val('cluster', 'exec_nodes');
+    &_config_error('cluster', 'exec_nodes') if( !defined( $exec_nodes ) );
     my $clovr_conf = $cfg->val('cluster', 'clovr_conf') or
         &_config_error('cluster', 'clovr_conf');
     
