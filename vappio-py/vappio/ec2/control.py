@@ -288,13 +288,16 @@ def authorizeGroupA(groupName,
            groupName,
            '-P ' + protocol,
            ]
-    
-    try:
-        portRange = str(portRange[0]) + '-' + str(portRange[1])
-    except:
-        portRange = str(portRange)
 
-    cmd.append('-p ' + portRange)
+    
+    if protocol == 'icmp':
+        cmd.append('-t %d:%d' % (portRange[0], portRange[1]))
+    else:
+        try:
+            portRange = str(portRange[0]) + '-' + str(portRange[1])
+        except:
+            portRange = str(portRange)
+        cmd.append('-p ' + portRange)
 
     if sourceGroup:
         cmd.append('-o ' + sourceGroup)

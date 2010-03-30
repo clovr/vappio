@@ -46,7 +46,7 @@ def main(options, _args):
                            accountnumber)
             authorizeGroup('vappio',
                            'icmp',
-                           -1,
+                           (-1, -1),
                            'vappio',
                            accountnumber)
             authorizeGroup('vappio',
