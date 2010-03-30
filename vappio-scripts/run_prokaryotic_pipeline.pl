@@ -160,7 +160,7 @@ sub add_instances {
     my $cluster_tag = $cfg->val('cluster', 'cluster_tag')
         or &_config_error( 'cluster', 'cluster_tag' );
     my $current_exec = $cfg->val('cluster', 'exec_nodes');
-    &_config_error( 'cluster', 'exec_nodes' ) if( !defined( $exec_nodes ) );
+    &_config_error( 'cluster', 'exec_nodes' ) if( !defined( $current_nodes ) );
     my $delta_exec_nodes = $total_exec - $current_exec;
     if( $delta_exec_nodes <= 0 ) {
         &_log($WARN, "Cannot add $delta_exec_nodes");
