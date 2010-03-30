@@ -6,7 +6,7 @@ import os
 from igs.utils.cli import buildConfigN, notNone
 from igs.utils.functional import identity
 
-from igs.utils.commands import runSystemEx
+from igs.utils.commands import runSystemEx, runSingleProgramEx
 
 from vappio.ec2.control import listKeypairs, addKeypair, listGroups, addGroup, authorizeGroup
 
@@ -24,7 +24,7 @@ def main(options, _args):
         if 'vappio_00' not in listKeypairs():
             addKeypair('vappio_00')
 
-        groups = listGroups()
+        groups = [g[0] for g in listGroups()]
         if 'vappio' not in groups:
             print 'We need to setup your EC2 group information.  In order to do this we need',
             print 'your Amazon account number.  This is a number that is around 12 digits in length.',
@@ -38,21 +38,22 @@ def main(options, _args):
                            'tcp',
                            (1, 65535),
                            'vappio',
-                           accountnumber)
+                           accountNumber)
             authorizeGroup('vappio',
                            'udp',
                            (1, 65535),
                            'vappio',
-                           accountnumber)
+                           accountNumber)
             authorizeGroup('vappio',
                            'icmp',
                            (-1, -1),
                            'vappio',
-                           accountnumber)
+                           accountNumber)
             authorizeGroup('vappio',
                            'tcp',
                            22)
 
+        if 'web' not in groups:
             ##
             # Setup web group
             addGroup('web', 'Public ports')
@@ -70,7 +71,12 @@ def main(options, _args):
             runSystemEx('cp %s /mnt/keys' % options('general.devel'))
     else:
         if not os.path.exists('/mnt/keys/devel1.pem'):
-            runSystemEx('ssh-keygen -f /mnt/keys/devel1.pem -P ""')
+            runSingleProgramEx('ssh-keygen -f /mnt/keys/devel1.pem -P ""', None, None)
+
+    print
+    print
+    print 'Setup complete.'
+    print '*** Remember, currently you have to do this every time you restart the VM'
 
     
 if __name__ == '__main__':
