@@ -14,6 +14,8 @@ export MASTER_NODE=localhost
 # store the provided CLUSTER_PRIVATE_KEY into the ssh_key as defined in vappio_config
 mkdir -p `dirname $ssh_key`
 echo -e -n '<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>' > $ssh_key
+chmod 600 $ssh_key
+chown www-data:www-data $ssh_key
 
 # append the CLUSTER_PUBLIC_KEY to the authorized_keys file
 echo -e '\n<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>' >> /root/.ssh/authorized_keys
