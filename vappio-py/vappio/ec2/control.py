@@ -223,4 +223,101 @@ def updateInstances(instances, log=False):
     runProgramRunnerEx(updateInstancesA(retInst, instances, log=log))
     return retInst
 
-            
+def listKeypairsA(keypairs, log=False):
+    """
+    Returns a list of all keypairs
+
+    keypairs is a list that will be filled in with the keypairs
+    """
+    return ctorProgramRunner('ec2-describe-keypairs', lambda l : keypairs.append(l.split()[1]), log=log)
+
+def listKeypairs(log=False):
+    """
+    Blocking version, returns a list of keypairs
+    """
+    keypairs = []
+    runProgramRunnerEx(listKeypairsA(keypairs, log=log))
+    return keypairs
+
+def addKeypairA(name, log=False):
+    return ctorProgramRunner('ec2-add-keypair ' + name, None, log=log)
+
+def addKeypair(name, log=False):
+    """
+    Creates a keypair.
+
+    Currently does not return anything
+    """
+    runProgramRunnerEx(addKeypairA(name, log=log))
+
+def listGroupsA(groups, log=False):
+    return ctorProgramRunner('ec2-describe-group',
+                             lambda l : l.startswith('GROUP') and groups.append(tuple(l.strip().split('\t', 3)[2:])))
+
+def listGroups(log=False):
+    """
+    Blocking versino, returns a list of groups that exit.
+
+    Right now this doesn't parse the rules of a group. A list of tuples is returned:
+    [(group name, group description)]
+    """
+    groups = []
+    runProgramRunnerEx(listGroupsA(groups, log=log))
+    return groups
+
+def addGroupA(name, description, log=False):
+    return ctorProgramRunner('ec2-add-group %s -d "%s"' % (name, description), None, log=log)
+        
+def addGroup(name, description, log=False):
+    """
+    Blocking version, creates a group
+    """
+    runProgramRunnerEx(addGroupA(name, description, log=log))
+
+
+
+def authorizeGroupA(groupName,
+                    protocol,
+                    portRange,
+                    sourceGroup,
+                    sourceGroupUser,
+                    sourceSubnet,
+                    log=False):
+    
+    cmd = ['ec2-authorize',
+           groupName,
+           '-P ' + protocol,
+           ]
+    
+    try:
+        portRange = str(portRange[0]) + '-' + str(portRange[1])
+    except:
+        portRange = str(portRange)
+
+    cmd.append('-p ' + portRange)
+
+    if sourceGroup:
+        cmd.append('-o ' + sourceGroup)
+
+    if sourceGroupUser:
+        cmd.append('-u ' + sourceGroupUser)
+
+    if sourceSubnet:
+        cmd.append('-s ' + sourceSubnet)
+
+    return ctorProgramRunner(' '.join(cmd), None, log=log)
+
+    
+def authorizeGroup(groupName,
+                   protocol,
+                   portRange,
+                   sourceGroup=None,
+                   sourceGroupUser=None,
+                   sourceSubnet=None,
+                   log=False):
+    runProgramRunnerEx(authorizeGroupA(groupName,
+                                       protocol,
+                                       portRange,
+                                       sourceGroup,
+                                       sourceGroupUser,
+                                       sourceSubnet, log=log))
