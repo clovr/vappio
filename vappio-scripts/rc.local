@@ -63,7 +63,7 @@ do_start() {
             echo "VMware" > $vappio_runtime/cloud_type
 	else
         # If this curl fails it means we are not on EC2 (hopefully)
-	    curl --connect-timeout 30 --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
+	    curl --connect-timeout 30 --retry 10 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
 	    if [ $? = "0" ]
 	    then
 		vlog "vappio_cloud_type=EC2"
@@ -103,6 +103,7 @@ do_start() {
     hostname -f
     if [ $? != "0" ]
     then
+	#TODO, check if on EC2 here, this is a problem
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 	ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
 	hostname clovr-$ipalias
@@ -220,6 +221,9 @@ case "$1" in
     stop)
 	do_stop
 	;;
+    restart)
+	do_stop
+	do_start
     *)
 	echo $"Usage: $0 {start|stop}"
 	exit 1

@@ -37,6 +37,7 @@ $vappio_scripts/prep_directories.sh
 
 # check for supplied user-data and potentially run it
 echo "EC2" > $vappio_runtime/cloud_type
+echo "OFFLINE-PENDING" > $vappio_runtime/node_type
 $vappio_scripts/run_user_data.sh
 
 $vappio_scripts/create_swap_file.sh

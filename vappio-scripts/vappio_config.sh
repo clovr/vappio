@@ -56,6 +56,8 @@ execslots=2
 
 ##Time in minutes to poll activity before automatic shutdown
 idleshutdown=3
+#Number of 10-second intervals to wait for master node to boot
+waitformastertimeout=50
 
 ##Workflow 
 wfworking_dir=/mnt/wf-working

@@ -11,7 +11,8 @@ vlog "###"
 # Gather some data
 myhostname=`hostname -f`
 
-if [ `cat $vappio_runtime/node_type` != "OFFLINE" ]
+nodetype=`cat $vappio_runtime/node_type`
+if [ "$nodetype" != "OFFLINE" ]
     then
     case `cat $vappio_runtime/node_type` in
 	MASTER_NODE) 

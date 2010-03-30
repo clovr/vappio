@@ -17,6 +17,9 @@ vlog "###"
 
 MASTER_NODE=$1
 
+#capture time
+min=`date +"%-M"`
+
 if [ "$MASTER_NODE" == "" ]
 then 
     echo -e $USAGE
@@ -27,16 +30,22 @@ else
     then
 	echo "Master node $MASTER_NODE found. Attempting to add this node to the cluster"
     else
-	sleep 10 
-	ping $MASTER_NODE -c 1
-	if [ $? == 0 ]
-        then
-          echo "Master node $MASTER_NODE found. Attempting to add this node to the cluster"
-        else
-	  echo "ERROR Master node $MASTER_NODE not found."
-	  echo -e $USAGE
-          exit 1;
-        fi
+	#Keep checking over an interval, sleep on each iteration
+	#$waitformaster defined in vappio_config.sh
+	i=0
+	while [ "$i" -le "$waitformastertimeout" ]
+	  do 
+	  ping $MASTER_NODE -c 1
+	  if [ $? == 0 ]
+	      then
+	      echo "Master node $MASTER_NODE found. Attempting to add this node to the cluster"
+	      break;
+	  else
+	      echo "Master node $MASTER_NODE not found. Sleeping"
+	      i=`expr $i + 1`
+	      sleep 10
+	  fi
+	done
     fi
 fi
 
@@ -126,7 +135,6 @@ echo "EXEC_NODE" > $vappio_runtime/node_type
 cloudtype=`cat $vappio_runtime/cloud_type`
 if [ "$cloudtype" == "EC2" ]
 then
-    min=`date +"%-M"`
     shutdownmin=$(($min-10))
     if [ $shutdownmin -lt 0 ]
     then
