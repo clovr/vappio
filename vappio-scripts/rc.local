@@ -224,6 +224,7 @@ case "$1" in
     restart)
 	do_stop
 	do_start
+	;;
     *)
 	echo $"Usage: $0 {start|stop}"
 	exit 1
