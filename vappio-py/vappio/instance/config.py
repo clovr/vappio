@@ -89,7 +89,7 @@ def createExecDataFile(conf, master, masterMachineConf):
     masterConf = config.configFromMap({'NODE_TYPE': EXEC_NODE}, masterConf, lazy=True)
 
     fout = open(outName, 'w')
-    fout.write('\n'.join([k + '=' + str(v) for k, v in config.configToDict(masterConf)]))
+    fout.write('\n'.join([k + '=' + str(v) for k, v in config.configToDict(masterConf).iteritems()]))
     fout.close()
 
     
