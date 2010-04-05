@@ -26,7 +26,8 @@ def main(options, _args):
     res = []
     runSingleProgramEx('hostname -f', res.append, errorPrintS)
     localHost = ''.join(res).strip()
-    createDataFile(options, [options('general.mode')], localHost, options('general.output'))
+    outFile = createDataFile(options, [options('general.mode')], options('general.output'))
+    open(outFile, 'a').write('MASTER_IP=' + localHost + '\n')
 
     
 if __name__ == '__main__':

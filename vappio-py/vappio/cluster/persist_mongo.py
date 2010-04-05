@@ -44,7 +44,7 @@ def dump(cluster):
                for i in cluster.execNodes]
     
     
-    saveIds = [instance.save(updateDict(cluster.ctype.instanceToDict(i),
+    saveIds = [instances.save(updateDict(cluster.ctype.instanceToDict(i),
                                         dict(_id=i.instanceId,
                                              cluster=cluster.name,
                                              itype='dataNode')))

@@ -104,7 +104,13 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
     if devMode: mode.append(DEV_NODE)
     if releaseCut: mode.append(RELEASE_CUT)
 
-    dataFile = createMasterDataFile(cluster.config)
+    masterConf = createDataFile(cluster.config,
+                                mode,
+                                outFile='/tmp/machine.tmp.conf')
+    
+    dataFile = createMasterDataFile(cluster.config, masterConf, os.getenv('EC2_CERT'), os.getenv('EC2_PRIVATE_KEY'))
+
+    os.remove(masterConf)
 
     master = runInstancesWithRetry(cluster.ctype,
                                    cluster.config('cluster.ami'),
@@ -128,78 +134,8 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
     master = runAndTerminateBad(cluster,
                                 lambda : waitForSSHUp(cluster.config, NUM_TRIES, [master]))[0]
 
-    os.remove(dataFile)
-
-    ##
-    # Wrap all this up and terminate master if anything fails
-    try:
-        dataFile = createDataFile(cluster.config,
-                                  mode,
-                                  master.privateDNS,
-                                  outFile='/tmp/machine.tmp.conf')
-        scpToEx(master.publicDNS,
-                dataFile,
-                '/tmp/machine.conf',
-                user=cluster.config('ssh.user'),
-                options=cluster.config('ssh.options'))
-
-
-        ##
-        # Create and copy exec data file
-        os.remove(dataFile)
-        dataFile = createDataFile(cluster.config,
-                                  [EXEC_NODE],
-                                  master.privateDNS,
-                                  outFile='/tmp/machine.tmp.conf')
-    
-        scpToEx(master.publicDNS,
-                dataFile,
-                '/tmp/exec.machine.conf',
-                user=cluster.config('ssh.user'),
-                options=cluster.config('ssh.options'))
-
-        os.remove(dataFile)
-        ##
-        # Copy up EC2 stuff
-        scpToEx(master.publicDNS,
-                os.getenv('EC2_CERT'),
-                '/tmp/ec2-cert.pem',
-                user=cluster.config('ssh.user'),
-                options=cluster.config('ssh.options'))    
-
-        scpToEx(master.publicDNS,
-                os.getenv('EC2_PRIVATE_KEY'),
-                '/tmp/ec2-pk.pem',
-                user=cluster.config('ssh.user'),
-                options=cluster.config('ssh.options'))    
-
-        runSystemInstanceEx(master,
-                            'chmod a+r /tmp/*.pem',
-                            None,
-                            errorPrintS,
-                            user=cluster.config('ssh.user'),
-                            options=cluster.config('ssh.options'),
-                            log=DEBUG)
-    
-        if cluster.config('general.update_dirs', default=False):
-            updateDirs(cluster, [master])
-
-    except:
-        cluster.ctype.terminateInstances([master])
-        raise
-
     cluster.setMaster(master)
 
-    try:
-        runSystemInstanceEx(master,
-                            'startUpNode.py',
-                            None,
-                            errorPrintS,
-                            user=cluster.config('ssh.user'),
-                            options=cluster.config('ssh.options'),
-                            log=DEBUG)
-    except Exception, err:
-        raise TryError(err, cluster)
 
     return cluster
     
@@ -212,42 +148,12 @@ def startExecNodes(cluster, numExec, reporter=None):
     It is valid to give 0 for numExec.
     """
 
-    def _setupInstance(chan):
-        i, rchan = chan.receive()
-        try:
-            try:
-                scpToEx(i.publicDNS,
-                        '/tmp/exec.machine.conf',
-                        '/tmp/machine.conf',
-                        user=cluster.config('ssh.user'),
-                        options=cluster.config('ssh.options'))
-            except:
-                scpToEx(i.publicDNS,
-                        '/tmp/exec.machine.conf',
-                        '/tmp/machine.conf',
-                        user=cluster.config('ssh.user'),
-                        options=cluster.config('ssh.options'))
-
-            if cluster.config('general.update_dirs', default=False):
-                updateDirs(cluster, [i])
-
-            runSystemInstanceEx(i,
-                                'startUpNode.py',
-                                None,
-                                errorPrintS,
-                                user=cluster.config('ssh.user'),
-                                options=cluster.config('ssh.options'),
-                                log=DEBUG)
-            ##
-            # Just send something to let it know we are done
-            rchan.send(True)
-        except Exception, err:
-            rchan.sendError(err)
-
     ##
     # Function body
     if numExec:
-        dataFile = createExecDataFile(cluster.config, cluster.master)
+        machineConf = createDataFile(cluster.config, [EXEC_NODE], outFile='/tmp/exec.machine.conf')
+
+        dataFile = createExecDataFile(cluster.config, cluster.master, machineConf)
 
         slaves = runAndTerminateBad(cluster,
                                     lambda : runInstancesWithRetry(cluster.ctype,
@@ -283,21 +189,6 @@ def startExecNodes(cluster, numExec, reporter=None):
                                     lambda: waitForSSHUp(cluster.config,
                                                          NUM_TRIES,
                                                          slaves))
-
-        chans = [runThreadWithChannel(_setupInstance)[1].sendWithChannel(i)
-                 for i in slaves]
-        
-        res = []
-        ##
-        # Clean up threads, collecting any errors
-        for c, i in zip(chans, slaves):
-            try:
-                c.receive()
-                res.append(i)
-            except Exception, err:
-                errorPrint('Exception here?: ' + str(err))
-
-        slaves = res
 
         
         cluster.addExecNodes(slaves)
