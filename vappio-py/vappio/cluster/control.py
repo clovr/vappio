@@ -151,9 +151,8 @@ def startExecNodes(cluster, numExec, reporter=None):
     ##
     # Function body
     if numExec:
-        machineConf = createDataFile(cluster.config, [EXEC_NODE], outFile='/tmp/exec.machine.conf')
 
-        dataFile = createExecDataFile(cluster.config, cluster.master, machineConf)
+        dataFile = createExecDataFile(cluster.config, cluster.master, '/tmp/machine.conf')
 
         slaves = runAndTerminateBad(cluster,
                                     lambda : runInstancesWithRetry(cluster.ctype,
