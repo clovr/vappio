@@ -29,11 +29,12 @@ cat > /tmp/machine.conf <<EOF
 MASTER_IP=`hostname -f`
 EOF
 
-cat > /tmp/ec-cert.pem <<EOF
+
+cat > /tmp/ec2-cert.pem <<EOF
 <TMPL_VAR NAME=CERT_FILE>
 EOF
 
-cat > /tmp/ec-pk.pem <<EOF
+cat > /tmp/ec2-pk.pem <<EOF
 <TMPL_VAR NAME=PK_FILE>
 EOF
 
