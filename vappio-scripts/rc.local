@@ -114,16 +114,31 @@ do_start() {
     touch $vappio_log  
     chmod 666 $vappio_log
 
+
+    ##
+    # If /tmp/machine.conf already exists then we do not need to make it
+    # if we are running under VMWare or a local Xen then it will need to
+    # be created at bootup (Ec2/nimbus should create it during startup process)
+    export HOME=/root
+    if [ ! -e /tmp/machine.conf ]
+    then
+	createLocalMachineConf.py --conf=$VAPPIO_HOME/vappio-conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
+    fi
+
+    ##
+    # Start up all services on the node
+    startUpNode.py >> /tmp/startUpNode.log 2>&1
+
+    vmStatus.py -1 > /tmp/vmStatus.log
+
+
     ##
     # This is temporary, we just want to run this if we are in VMWare right now
     # Cannot be moved to start_vmware.sh at the moment because proper networking is needed
     vmware-checkvm
     if [ $? = "0" ]
     then
-        #In vmware
-	export HOME=/root
-	createLocalMachineConf.py --conf=$VAPPIO_HOME/vappio-conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
-	startUpNode.py >> /tmp/startUpNode.log 2>&1
+
         #Mimic functions called in run_user_data on cloud platforms
         #Allow for bypass using config
 	if [ ! -e $vappio_bootflagsdir/skip_vmwarestartnodes ]
@@ -134,9 +149,8 @@ do_start() {
 	    ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 	    #update home page
 	    cat /mnt/clovr_home.html.tmpl | sed -e 's/\$\;IPADDR\$\;/'"$ipaddr"'/g' > /mnt/clovr_home.html
-	    ##
-	    # Setup crontabs
-	    vmStatus.py -1 > /tmp/vmStatus.log
+            ##
+            # Setup crontabs
 	    crontab -u root $VAPPIO_HOME/vappio-scripts/crontab.conf
 	fi
     fi

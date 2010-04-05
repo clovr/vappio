@@ -13,12 +13,31 @@ export MASTER_NODE=localhost
 
 # store the provided CLUSTER_PRIVATE_KEY into the ssh_key as defined in vappio_config
 mkdir -p `dirname $ssh_key`
-echo -e -n '<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>' > $ssh_key
+cat > $ssh_key <<EOF
+<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>
+EOF
+
 chmod 600 $ssh_key
 chown www-data:www-data $ssh_key
 
 # append the CLUSTER_PUBLIC_KEY to the authorized_keys file
 echo -e '\n<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>' >> /root/.ssh/authorized_keys
+
+
+cat > /tmp/machine.conf <<EOF
+<TMPL_VAR NAME=MACHINE_CONF>
+MASTER_IP=`hostname -f`
+EOF
+
+cat > /tmp/ec-cert.pem <<EOF
+<TMPL_VAR NAME=CERT_FILE>
+EOF
+
+cat > /tmp/ec-pk.pem <<EOF
+<TMPL_VAR NAME=PK_FILE>
+EOF
+
+chmod a+r /tmp/*.pem
 
 touch /tmp/didsomething
 
