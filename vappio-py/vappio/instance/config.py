@@ -1,7 +1,7 @@
 ##
 # Functions for creating a config + useful constants
 import os
-
+import time
 
 from igs.utils import config, logging
 from igs.utils.commands import runSingleProgramEx
@@ -75,12 +75,24 @@ def createMasterDataFile(conf, machineConf, certFile, pkFile):
     return outf
 
 
-def createExecDataFile(conf, master, machineConf):
+def createExecDataFile(conf, master, masterMachineConf):
     """
     Creates a exec data file as the perl start_cluster works
 
     This is very similar to createMasterDataFile, should be refactored a bit
     """
+    outName = os.path.join('/tmp', str(time.time()))
+
+    ##
+    # Going to load the master machine.conf and modify node type
+    masterConf = config.configFromStream(open(masterMachineConf), lazy=True)
+    masterConf = config.configFromMap({'NODE_TYPE': EXEC_NODE}, masterConf, lazy=True)
+
+    fout = open(outName, 'w')
+    fout.write('\n'.join([k + '=' + str(v) for k, v in config.configToDict(masterConf)]))
+    fout.close()
+
+    
     template = open(conf('cluster.exec_user_data_tmpl')).read()
     clusterPrivateKey = open(conf('cluster.cluster_private_key')).read()
     
@@ -99,10 +111,13 @@ def createExecDataFile(conf, master, machineConf):
 
     template = template.replace('<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>', clusterPrivateKey)
     template = template.replace('<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>', clusterPublicKey)
-    template = template.replace('<TMPL_VAR NAME=MACHINE_CONF>', open(machineConf).read().replace('${', '\\${'))
+    template = template.replace('<TMPL_VAR NAME=MACHINE_CONF>', open(outName).read().replace('${', '\\${'))
 
+    os.remove(outName)
+    
     outf = os.path.join(conf('general.secure_tmp'), 'exec_user_data.sh')
     open(outf, 'w').write(template)
+    
 
     return outf
 
