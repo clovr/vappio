@@ -47,7 +47,7 @@ def main(options, _args):
                 log=True)
     
     runSystemEx('scp %s:/export/%s .' % (options('general.remote_name'), options('general.image')), log=True)
-    #runSystemEx('cp %s /usr/local/projects/clovr/images' % options('general.image'), log=True)
+    runSystemEx('cp %s /usr/local/projects/clovr/images' % options('general.image'), log=True)
     runSystemEx('cp %s VMware_conversion/shared/convert_img.img' % options('general.image'), log=True)
 
     waitForPasswordChange()
