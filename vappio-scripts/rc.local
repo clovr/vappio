@@ -129,6 +129,10 @@ do_start() {
     # Start up all services on the node
     startUpNode.py >> /tmp/startUpNode.log 2>&1
 
+    ##
+    # Write a file saying startup done
+    touch /tmp/startup_complete
+
     vmStatus.py -1 > /tmp/vmStatus.log
 
 
