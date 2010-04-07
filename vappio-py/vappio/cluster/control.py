@@ -7,10 +7,12 @@ import json
 
 from twisted.python.reflect import fullyQualifiedName, namedAny
 
-from igs.utils.commands import runSystemEx, runCommandGens
+from igs.utils import logging
+
+from igs.utils.commands import runSystemEx, runCommandGens, ProgramRunError
 from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSH
-from igs.utils.logging import errorPrintS, errorPrint, DEBUG
-from igs.utils.functional import applyIfCallable
+from igs.utils.logging import errorPrintS, errorPrint, logPrintS
+from igs.utils.functional import applyIfCallable, tryUntil
 from igs.utils.errors import TryError
 from igs.utils.config import configFromMap
 
@@ -134,6 +136,10 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
     master = runAndTerminateBad(cluster,
                                 lambda : waitForSSHUp(cluster.config, NUM_TRIES, [master]))[0]
 
+
+    master = runAndTerminateBad(cluster,
+                                lambda : waitForInstancesReady(cluster.config, NUM_TRIES, [master]))[0]
+
     cluster.setMaster(master)
 
 
@@ -189,7 +195,10 @@ def startExecNodes(cluster, numExec, reporter=None):
                                                          NUM_TRIES,
                                                          slaves))
 
-        
+
+        slaves = runAndTerminateBad(cluster,
+                                    lambda : waitForInstancesReady(cluster.config, NUM_TRIES, slaves))[0]
+
         cluster.addExecNodes(slaves)
         if len(slaves) != numExec:
             raise TryError('Unable to bring up all nodes', cluster)
@@ -248,7 +257,7 @@ def waitForSSHUp(conf, tries, instances):
                             None,
                             conf('ssh.user'),
                             conf('ssh.options'),
-                            log=DEBUG)
+                            log=logging.DEBUG)
         
     def _sshTest(res):
         return all(c == 0 for c in res)
@@ -266,6 +275,51 @@ def waitForSSHUp(conf, tries, instances):
     raise TryError('SSH did not come up on all instances', ([i for c, i in zip(instances, res) if c == 0],
                                                             [i for c, i in zip(instances, res) if c != 0]))
 
+
+def waitForInstancesReady(conf, tries, who):
+    """
+    This waits for an instance to be ready.
+    Right now this just works on master nodes because it uses
+    ClusterInfo.  In the future proper state will be setup in an instance
+    so it will work anywhere
+    """
+    def _checkUp():
+        try:
+            for i in who:
+                runSystemInstanceEx(i,
+                                    'test -e /tmp/startup_complete',
+                                    None,
+                                    None,
+                                    user=conf('ssh.user'),
+                                    options=conf('ssh.options'),
+                                    log=logging.DEBUG)
+            return True
+        except ProgramRunError:
+            return False
+
+    try:
+        tryUntil(tries, lambda : time.sleep(30), _checkUp)
+        return who
+    except TryError:
+        ##
+        # If it failed, figure out who failed and throw a TryError
+        good = []
+        bad = []
+        for i in who:
+            try:
+                runSystemInstanceEx(i,
+                                    'test -e /tmp/startup_complete',
+                                    None,
+                                    None,
+                                    user=conf('ssh.user'),
+                                    options=conf('ssh.options'),
+                                    log=logging.DEBUG)
+                good.append(i)
+            except ProgramRunError:
+                bad.append(i)
+
+        raise TryError('Not all machines read', (good, bad))
+    
 
 def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, num, dataFile):
     """
@@ -292,38 +346,6 @@ def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, num, dataFi
 
     return instances
 
-def updateDirs(cluster, instances):
-    def _updateDirs(chan):
-        i, rchan = chan.receive()
-        try:
-            runSystemInstanceEx(i,
-                                'updateAllDirs.py --vappio-py',
-                                None,
-                                errorPrintS,
-                                user=cluster.config('ssh.user'),
-                                options=cluster.config('ssh.options'),
-                                log=DEBUG)
-            runSystemInstanceEx(i,
-                                'updateAllDirs.py --vappio-py --vappio-scripts --config_policies --clovr_pipelines --vappio-py-www',
-                                None,
-                                errorPrintS,
-                                user=cluster.config('ssh.user'),
-                                options=cluster.config('ssh.options'),
-                                log=DEBUG)
-            ##
-            # Just send anything to know we are done
-            rchan.send(True)
-        except Exception, err:
-            rchan.sendError(err)
-
-    chans = [runThreadWithChannel(_updateDirs)[1].sendWithChannel(i)
-             for i in instances]
-
-    ##
-    # Collect all threads
-    for c in chans:
-        c.receive()
-
 
 def runCommandOnCluster(cluster, command, justMaster=False):
     """
@@ -335,7 +357,7 @@ def runCommandOnCluster(cluster, command, justMaster=False):
         try:
             runSystemInstanceEx(i,
                                 command,
-                                None,
+                                lambda l : logPrintS('%s : %s' % (i.publicDNS, l)),
                                 errorPrintS,
                                 user=cluster.config('ssh.user'),
                                 options=cluster.config('ssh.options'),

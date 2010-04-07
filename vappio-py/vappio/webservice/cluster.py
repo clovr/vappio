@@ -22,11 +22,17 @@ def startCluster(host, name, conf, num, ctype, updateDirs):
                                                      ctype=ctype,
                                                      update_dirs=updateDirs))
 
-def loadCluster(host, name):
+def loadCluster(host, name, partial=False):
     """
     Loads cluster information
+
+    Loading cluster information can involve talking to other hosts.
+    Some of those hosts may fail to respond, in that case partial means
+    that it is ok if loadCluster returns only what it can load.  Otherwise
+    it will fail out completely
     """
-    result = performQuery(host, CLUSTERINFO_URL, {'name': name})
+    result = performQuery(host, CLUSTERINFO_URL, dict(name=name,
+                                                      partial=partial))
     return clusterFromDict(result)
 
 
@@ -38,8 +44,9 @@ def addInstances(host, name, num, updateDirs):
     return performQuery(cluster.master.publicDNS, ADDINSTANCES_URL, dict(num=num,
                                                                          update_dirs=updateDirs))
 
-def terminateCluster(host, name):
-    return performQuery(host, TERMINATECLUSTER_URL, dict(name=name))
+def terminateCluster(host, name, force):
+    return performQuery(host, TERMINATECLUSTER_URL, dict(name=name,
+                                                         force=force))
     
 
 def listClusters(host):

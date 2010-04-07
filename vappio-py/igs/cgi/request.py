@@ -8,18 +8,18 @@ import httplib
 
 from igs.utils.errors import TryError
 
-def performQueryNoParse(host, url, var):
+def performQueryNoParse(host, url, var, timeout=30):
     params = urllib.urlencode({'request': json.dumps(var)})
-    conn = httplib.HTTPConnection(host, timeout=30)
+    conn = httplib.HTTPConnection(host, timeout=timeout)
     conn.request('POST', url, params)
     data = conn.getresponse().read()
     return data
 
-def performQuery(host, url, var):
+def performQuery(host, url, var, timeout=30):
     """
     params is a dict on of values to pass to server
     """
-    data = performQueryNoParse(host, url, var)
+    data = performQueryNoParse(host, url, var, timeout=timeout)
     try:
         ok, result = json.loads(data)
         if not ok:

@@ -1,6 +1,7 @@
 ##
 # Routines for managing cluster informatino in mongo
 import json
+import socket
 
 import pymongo
 
@@ -8,6 +9,7 @@ from twisted.python.reflect import fullyQualifiedName, namedAny
 
 from igs.utils.config import configFromMap
 from igs.utils.functional import updateDict
+from igs.utils.errors import TryError
 from igs.cgi.request import performQuery
 
 from vappio.cluster.control import Cluster
@@ -68,19 +70,23 @@ def load(name):
     clust = Cluster(name, namedAny(cluster['ctype']), configFromMap(json.loads(cluster['config'])))
 
     mastInst = clust.ctype.instanceFromDict(cluster['master'])
+    clust.setMaster(mastInst)
     
     if name == 'local':
         execNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='execNode'))]
         dataNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='dataNode'))]
     elif mastInst.state == clust.ctype.Instance.RUNNING:
-        result = performQuery(mastInst.publicDNS, CLUSTERINFO_URL, dict(name='local'))
-        execNodes = [clust.ctype.instanceFromDict(i) for i in result['execNodes']]
-        dataNodes = [clust.ctype.instanceFromDict(i) for i in result['dataNodes']]
+        try:
+            result = performQuery(mastInst.publicDNS, CLUSTERINFO_URL, dict(name='local'), timeout=20)
+            execNodes = [clust.ctype.instanceFromDict(i) for i in result['execNodes']]
+            dataNodes = [clust.ctype.instanceFromDict(i) for i in result['dataNodes']]
+        except socket.timeout:
+            raise TryError('Failed to contact master when loading cluster', clust)
     else:
         execNodes = []
         dataNodes = []
     
-    clust.setMaster(mastInst)
+
     clust.addExecNodes(execNodes)
     clust.addDataNodes(dataNodes)
 
