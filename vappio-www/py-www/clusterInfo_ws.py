@@ -6,6 +6,7 @@ import json
 
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
+from igs.utils.errors import TryError
 
 from vappio.cluster.control import clusterToDict, clusterFromDict
 from vappio.cluster.persist_mongo import load
@@ -24,21 +25,20 @@ class ClusterInfo(CGIPage):
             request = readQuery()
         except:
             request = dict(name='local')
-            
-        if request['name'] == 'local':
-            cluster = load('local')
-            return json.dumps([True, clusterToDict(cluster)])
-        else:
-            ##
-            # Forward the request onto the appropriate machine
+
+
+        ##
+        # If partial is set it means it's okay to return whatever
+        # TryError gave back
+        try:
             cluster = load(request['name'])
-            if cluster.master.state == cluster.ctype.Instance.RUNNING:
-                request['name'] = 'local'
-                cl = clusterFromDict(performQuery(cluster.master.publicDNS, URL, request))
-                cluster.addExecNodes(cl.execNodes)
-                cluster.addDataNodes(cl.dataNodes)
             return json.dumps([True, clusterToDict(cluster)])
-                           
-        
+        except TryError, err:
+            if request['partial']:
+                cluster = err.result
+                return json.dumps([True, clusterToDict(cluster)])
+            else:
+                raise
+            
         
 generatePage(ClusterInfo())

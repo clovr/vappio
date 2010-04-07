@@ -5,6 +5,7 @@ import json
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQueryNoParse
 from igs.utils.config import configToDict
+from igs.utils.errors import TryError
 
 from vappio.cluster.control import terminateCluster
 from vappio.webservice.cluster import loadCluster
@@ -17,8 +18,11 @@ class TerminateCluster(CGIPage):
     def body(self):
         request = readQuery()
 
-        cluster = loadCluster('localhost', request['name'])
-        cleanUp(cluster.name)
+        ##
+        # If 'force' is set to true, it means if we will allow loadCluster to give back
+        # as much info as it can if its attempt to load cluster info fails such as
+        # a remote machine being down
+        cluster = loadCluster('localhost', request['name'], request['force'])
         terminateCluster(cluster)
         cleanUp(request['name'])
         return json.dumps([True, None])
