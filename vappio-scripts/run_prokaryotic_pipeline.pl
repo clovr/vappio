@@ -339,6 +339,7 @@ sub start_pipeline {
 
     #Get all the needed variables
     my $trim = $cfg->val('input', 'trim' );
+    my $linker = $cfg->val('input', 'linker' );
     my $clear = $cfg->val('input', 'clear' );
     my $spec_file = $cfg->val('input', 'spec_file');
     my $pipeline_name = $cfg->val('input', 'pipeline_name' ) or
@@ -369,6 +370,7 @@ sub start_pipeline {
         "-- --INPUT_FILE_LIST $input_tag --OUTPUT_PREFIX $output_prefix --ORGANISM $organism --GROUP_COUNT ".
         ($exec_nodes * 2)." --DATABASE_PATH $reference_tag --conf $clovr_conf";
     $cmd .= " --TRIM $trim" if( $trim );
+    $cmd .= " --LINKER $linker" if( $linker );
     $cmd .= " --CLEAR $clear" if( $clear );
     $cmd .= " --SPEC_FILE $spec_file" if( $spec_file );
     $cmd .= " 2> $log";
