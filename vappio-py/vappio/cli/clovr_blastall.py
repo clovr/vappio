@@ -200,7 +200,7 @@ def removeCustomOptions(args):
     retArgs = []
     for a in args:
         if not wantArg:
-            if a in ['--auto', '--cluster', '-i', '-d', '-o']:
+            if a in ['--auto', '--cluster', '-i', '-d', '-o', '-e']:
                 wantArg = True
             elif a == '--debug' or a.startswith('--cluster=') or a.startswith('--auto='):
                 pass
@@ -212,7 +212,9 @@ def removeCustomOptions(args):
     return retArgs
 
             
-    
+def waitForDownload(fname):
+    pass
+
 def main(_options, args):
     ##
     # Because we are trying to mimic another program we have to do some funky work
@@ -220,6 +222,8 @@ def main(_options, args):
     # so they don't bring up a cluster and try to run it only to find out it
     # has errored out.
 
+
+    args = args[1:]
 
     if not args or args == ['--help']:
         printUsage()
@@ -237,6 +241,7 @@ def main(_options, args):
         inputFile = extractOption(args, '-i', None, True)
         outputDir = extractOption(args, '-o', None, True)
         databasePath = extractOption(args, '-d', None, True)
+        expectValue = extractOption(args, '-e', None, True)
 
         if autoNodes and clusterName:
             raise MissingOptionError('Can only specify --auto OR --cluster, not both')
@@ -304,11 +309,12 @@ def main(_options, args):
             runPipeline('localhost', clusterName, 'clovr_blastall', pipelineName,
                         ['--OTHER_OPTS=' + blastArgs,
                          '--INPUT_FILE_LIST=' + inputTagName,
-                         '--REF_DB_PATH=' + databaseTagName])
+                         '--REF_DB_PATH=' + databaseTagName,
+                         '--EXPECT=' + expectValue])
 
         debugPrint(lambda : 'Waiting for pipeline to finish...')
         pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName)[0]
-        while pipelineInfo['state'] not in ['completed', 'failed', 'error']:
+        while pipelineInfo['state'] not in ['complete', 'failed', 'error']:
             for i in range(10):
                 sys.stdout.write('.')
                 sys.stdout.flush()
@@ -319,10 +325,13 @@ def main(_options, args):
 
         print
         
-        if pipelineInfo['state'] == 'completed':
+        if pipelineInfo['state'] == 'complete':
             debugPrint(lambda : 'Pipeline finished successfully, downloading')
             downloadPipelineOutput('localhost', clusterName, pipelineName, outputDir, True)
-            logPrint('Your pipeline is downloaded to %s.  Enjoy' % outputDir)
+            debugPrint(lambda : 'Downloading pipeline...')
+            downloadName = os.path.join(outputDir, pipelineName + '_output.tar.gz')
+            waitForDownload(downloadName)
+            logPrint('Your pipeline is downloaded to %s ,  Enjoy' % downloadName)
         else:
             errorPrint('The pipeline failed!!!!')
         

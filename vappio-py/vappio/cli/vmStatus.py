@@ -46,10 +46,20 @@ def getNumberOfInstances():
     except:
         return 'Unknown'
 
+def listClustersSafe(host):
+    """
+    This tries to list the clusters, returns an empty list if listClusters fails at all
+    such as networking being down
+    """
+    try:
+        return listClusters(host)
+    except:
+        return []
+    
 def main(options, _args):
     state = {
         'shared': sharedFoldersEnabled(),
-        'clusters': listClusters('localhost'),
+        'clusters': listClustersSafe('localhost'),
         'networking': networkingEnabled()
         }
 

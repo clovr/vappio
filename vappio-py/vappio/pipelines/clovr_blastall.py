@@ -20,6 +20,7 @@ def fullPathOrTag(x):
 OPTIONS = [
     ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
     ('REF_DB_PATH', '', '--REF_DB_PATH', 'The reference db for the blast run', compose(tagToRefDBPath, lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('EXPECT', '', '--EXPECT', 'e-value cutoff, default is 1e-5', notNone),
     ##
     # For SEQS_PER_FILE the function at the end may seem odd, but really this is just validating that they give us an int
     # we actually want it as a string in order to do the replacement in the config file, which is why we do
