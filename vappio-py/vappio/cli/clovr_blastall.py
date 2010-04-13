@@ -22,15 +22,25 @@
 # only to have your run fail if you forgot something it tries to make it hard to make an error
 import sys
 import os
+import time
 
 from igs.utils import logging
-from igs.utils.logging import debugPrint
+from igs.utils.logging import debugPrint, logPrint, errorPrint
 from igs.utils.cli import MissingOptionError
 from igs.utils.functional import tryUntil
 from igs.utils.commands import runSystemEx
 
-from vappio.webservices.files import queryTag, tagData, uploadTag
-from vappio.webservices.cluster import listClusters, terminateCluster
+from vappio.webservice.files import queryTag, tagData, uploadTag
+from vappio.webservice.cluster import listClusters, terminateCluster
+from vappio.webservice.pipeline import runPipeline, pipelineStatus, downloadPipelineOutput
+
+NUM_TRIES = 30
+
+def progress():
+    """Little function to wait and put dots showing progress"""
+    sys.stdout.write('.')
+    sys.stdout.flush()
+    time.sleep(30)
 
 def printUsage():
     raise Exception('Implement me!')
@@ -91,7 +101,7 @@ def tagExists(cluster, tagName):
     Determine if a tag exists
     """
     try:
-        return len(queryTag('localhost', cluster, tagName)) > 0
+        return len(queryTag('localhost', cluster, tagName)('files')) > 0
     except:
         return False
 
@@ -103,7 +113,7 @@ def clusterExists(clusterName):
 def tagInputIfNeeded(inputFile):
     inputTagName = os.path.basename(inputFile)
     if not tagExists('local', inputTagName):
-        debugPrint(lambda : 'Tagging input file: ' + inputFile):
+        debugPrint(lambda : 'Tagging input file: ' + inputFile)
         tagData('localhost',
                 'local',
                 inputTagName,
@@ -122,8 +132,10 @@ def tagDatabaseFiles(databasePath):
     Takes a path to a database like blast expects it.  It then goes through
     the directory finding all files that start with databasePath + '.' and
     tags them
+
     """
-    tagName = os.path.basename(databasePath)
+    tagName = os.path.basename(databasePath) + '_db'
+    baseName = os.path.basename(databasePath)
     dirName = os.path.dirname(databasePath)
     if not tagExists('local', tagName):
         debugPrint(lambda : 'Tagging database: ' + databasePath)
@@ -131,15 +143,16 @@ def tagDatabaseFiles(databasePath):
                 'local',
                 tagName,
                 dirName,
-                [os.path.join(dirName, f) for f in os.listdir(dirName) if f.startswith(tagName + '.')],
+                [os.path.join(dirName, f) for f in os.listdir(dirName) if f.startswith(baseName + '.')],
                 False,
                 False,
                 False,
                 False)
         tryUntil(50, lambda : time.sleep(30), lambda : tagExists('local', tagName))
+    return tagName
 
 
-def makeClusterIfNeeded(autoClusterName, numNodes, alreadyClusterName):
+def makeClusterIfNeeded(numNodes, autoClusterName, alreadyClusterName):
     """
     autoClusterName - Name of the cluster if we decide to make one ourselves
     numNodes - How many exec nodes
@@ -169,7 +182,37 @@ def makeClusterIfNeeded(autoClusterName, numNodes, alreadyClusterName):
             raise MissingOptionError('Cluster %s does not exist, do you want --auto?' % alreadyClusterName)
         return alreadyClusterName
 
-        
+
+def removeCustomOptions(args):
+    """
+    This removes all custom options and returns a new copy.  Custome options
+    are defined as those that this program will muck with so:
+
+    --auto <opt>
+    --cluster <opt>
+    -i <opt>
+    -d <opt>
+    -o <opt>
+    --debug
+    """
+
+    wantArg = False
+    retArgs = []
+    for a in args:
+        if not wantArg:
+            if a in ['--auto', '--cluster', '-i', '-d', '-o']:
+                wantArg = True
+            elif a == '--debug' or a.startswith('--cluster=') or a.startswith('--auto='):
+                pass
+            else:
+                retArgs.append(a)
+        else:
+            wantArg = False
+
+    return retArgs
+
+            
+    
 def main(_options, args):
     ##
     # Because we are trying to mimic another program we have to do some funky work
@@ -187,7 +230,9 @@ def main(_options, args):
     
     try:
         validateInput(args)
-        autoNodes = int(extractOption(args, None, '--auto', True))
+        ##
+        # make autoNodes the integer value of whatever is input or false
+        autoNodes = extractOption(args, None, '--auto', True) and int(extractOption(args, None, '--auto', True))
         clusterName = extractOption(args, None, '--cluster', True)
         inputFile = extractOption(args, '-i', None, True)
         outputDir = extractOption(args, '-o', None, True)
@@ -204,8 +249,7 @@ def main(_options, args):
         ##
         # Check if input is a tag name or a file (starts with a '/')
         if databasePath[0] == '/':
-            databaseTagName = os.path.basename(databasePath)
-            tagDatabaseFiles(databasePath)
+            databaseTagName = tagDatabaseFiles(databasePath)
         else:
             ##
             # We can't use tagExists here because tagExists
@@ -224,11 +268,64 @@ def main(_options, args):
             except:
                 raise MissingOptionError('Database tag does not exist locally')
 
-        
+
+
+        debugPrint(lambda : 'Checking to see if the cluster exists')
         ##
         # Want to create a cluster name that will be the same between runs
         # So we can just restart the script on failure
         clusterName = makeClusterIfNeeded(autoNodes, inputTagName + '-' + databaseTagName, clusterName)
+
+        debugPrint(lambda : 'Uploading tags to the cluster')
+        ##
+        # Upload the tags and wait for them to be complete
+        if not tagExists(clusterName, inputTagName):
+            uploadTag('localhost', inputTagName, 'local', clusterName, True)
+
+        if not tagExists(clusterName, databaseTagName):
+            uploadTag('localhost', databaseTagName, 'local', clusterName, True)
+
+        if not tagExists(clusterName, inputTagName) or not tagExists(clusterName, databaseTagName):
+            tryUntil(NUM_TRIES,
+                     progress,
+                     lambda : tagExists(clusterName, inputTagName) and tagExists(clusterName, databaseTagName))
+
+
+        print
+        
+        ##
+        # Remove args specific to this script
+        blastArgs = ' '.join(removeCustomOptions(args))
+
+        pipelineName = inputTagName + '-' + databaseTagName
+        debugPrint(lambda : 'Checking to see if pipeline is running...')
+        if not pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName):
+            debugPrint(lambda : '%s is not running, running now' % pipelineName)
+            runPipeline('localhost', clusterName, 'clovr_blastall', pipelineName,
+                        ['--OTHER_OPTS=' + blastArgs,
+                         '--INPUT_FILE_LIST=' + inputTagName,
+                         '--REF_DB_PATH=' + databaseTagName])
+
+        debugPrint(lambda : 'Waiting for pipeline to finish...')
+        pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName)[0]
+        while pipelineInfo['state'] not in ['completed', 'failed', 'error']:
+            for i in range(10):
+                sys.stdout.write('.')
+                sys.stdout.flush()
+                time.sleep(5)
+            pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName)[0]
+            sys.stdout.write('\r                  \r')
+            sys.stdout.flush()
+
+        print
+        
+        if pipelineInfo['state'] == 'completed':
+            debugPrint(lambda : 'Pipeline finished successfully, downloading')
+            downloadPipelineOutput('localhost', clusterName, pipelineName, outputDir, True)
+            logPrint('Your pipeline is downloaded to %s.  Enjoy' % outputDir)
+        else:
+            errorPrint('The pipeline failed!!!!')
+        
             
     except MissingOptionError, err:
         print 'Missing an option:'
