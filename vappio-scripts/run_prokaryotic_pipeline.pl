@@ -374,7 +374,7 @@ sub start_pipeline {
     $cmd .= " --LINKER $linker" if( $linker );
     $cmd .= " --CLEAR $clear" if( $clear );
     $cmd .= " --SPEC_FILE $spec_file" if( $spec_file );
-    $cmd .- " --INSERT_SIZE $insert_size" if ($insert_size);
+    $cmd .= " --INSERT_SIZE \"$insert_size\"" if ($insert_size);
     $cmd .= " 2> $log";
 
     &_log($DEBUG, "Starting runPipeline: [$cmd]");
