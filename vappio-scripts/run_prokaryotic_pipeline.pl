@@ -341,6 +341,7 @@ sub start_pipeline {
     my $trim = $cfg->val('input', 'trim' );
     my $linker = $cfg->val('input', 'linker' );
     my $clear = $cfg->val('input', 'clear' );
+    my $insert_size = $cfg->val('input', 'insert_size' );
     my $spec_file = $cfg->val('input', 'spec_file');
     my $pipeline_name = $cfg->val('input', 'pipeline_name' ) or
         &_config_error( 'input', 'pipeline_name' );
@@ -373,6 +374,7 @@ sub start_pipeline {
     $cmd .= " --LINKER $linker" if( $linker );
     $cmd .= " --CLEAR $clear" if( $clear );
     $cmd .= " --SPEC_FILE $spec_file" if( $spec_file );
+    $cmd .- " --INSERT_SIZE $insert_size" if ($inserT_size);
     $cmd .= " 2> $log";
 
     &_log($DEBUG, "Starting runPipeline: [$cmd]");
