@@ -34,7 +34,7 @@ from vappio.webservice.files import queryTag, tagData, uploadTag
 from vappio.webservice.cluster import listClusters, terminateCluster
 from vappio.webservice.pipeline import runPipeline, pipelineStatus, downloadPipelineOutput
 
-NUM_TRIES = 30
+NUM_TRIES = 60
 
 def progress():
     """Little function to wait and put dots showing progress"""
@@ -172,7 +172,7 @@ def makeClusterIfNeeded(numNodes, autoClusterName, alreadyClusterName):
             # are working we can use a blocking function there instead
             cmd = ['startCluster.py',
                    '--name=' + autoClusterName,
-                   '--num=' + str(autoNodes),
+                   '--num=' + str(numNodes),
                    '--ctype=ec2',
                    '-b']
             runSystemEx(' '.join(cmd), log=logging.DEBUG)
@@ -193,6 +193,7 @@ def removeCustomOptions(args):
     -i <opt>
     -d <opt>
     -o <opt>
+    --seqs_per_file <opt>
     --debug
     """
 
@@ -200,9 +201,9 @@ def removeCustomOptions(args):
     retArgs = []
     for a in args:
         if not wantArg:
-            if a in ['--auto', '--cluster', '-i', '-d', '-o', '-e']:
+            if a in ['--auto', '--cluster', '-i', '-d', '-o', '-e', '--seqs_per_file']:
                 wantArg = True
-            elif a == '--debug' or a.startswith('--cluster=') or a.startswith('--auto='):
+            elif a == '--debug' or a.startswith('--cluster=') or a.startswith('--auto=') or a.startswith('--seqs_per_file'):
                 pass
             else:
                 retArgs.append(a)
@@ -242,6 +243,12 @@ def main(_options, args):
         outputDir = extractOption(args, '-o', None, True)
         databasePath = extractOption(args, '-d', None, True)
         expectValue = extractOption(args, '-e', None, True)
+        seqsPerFile = extractOption(args, None, '--seqs_per_file', True)
+
+        try:
+            seqsPerFile = seqsPerFile is not False and int(seqsPerFile)
+        except ValueError:
+            raise MissingOptionError('You must give an integer value for seqs per file')
 
         if autoNodes and clusterName:
             raise MissingOptionError('Can only specify --auto OR --cluster, not both')
@@ -306,11 +313,14 @@ def main(_options, args):
         debugPrint(lambda : 'Checking to see if pipeline is running...')
         if not pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName):
             debugPrint(lambda : '%s is not running, running now' % pipelineName)
-            runPipeline('localhost', clusterName, 'clovr_blastall', pipelineName,
-                        ['--OTHER_OPTS=' + blastArgs,
-                         '--INPUT_FILE_LIST=' + inputTagName,
-                         '--REF_DB_PATH=' + databaseTagName,
-                         '--EXPECT=' + expectValue])
+            pipelineArgs = ['--OTHER_OPTS=' + blastArgs,
+                            '--INPUT_FILE_LIST=' + inputTagName,
+                            '--REF_DB_PATH=' + databaseTagName,
+                            '--EXPECT=' + expectValue]
+            if seqsPerFile is not False:
+                pipelineArgs.append('--SEQS_PER_FILE=' + str(seqsPerFile))
+
+            runPipeline('localhost', clusterName, 'clovr_blastall', pipelineName, pipelineArgs)
 
         debugPrint(lambda : 'Waiting for pipeline to finish...')
         pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName)[0]
