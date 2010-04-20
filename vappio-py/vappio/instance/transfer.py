@@ -5,6 +5,7 @@ import time
 
 from igs.utils.ssh import scpToEx, scpFromEx
 from igs.utils.logging import errorPrintS
+from igs.utils.commands import runSystemEx
 
 from vappio.instance.control import runSystemInstanceEx
 
@@ -105,6 +106,7 @@ def downloadPipeline(instance, conf, pipelineId, outDir, outBaseName, overwrite=
     outFilename = os.path.join(outDir, os.path.basename(outF))
     fileExists = os.path.exists(outFilename)
     if fileExists and overwrite or not fileExists:
+        runSystemEx('mkdir -p ' + outDir)
         scpFromEx(instance.publicDNS, outF, outDir, user=conf('ssh.user'), options=conf('ssh.options'), log=log)
         runSystemInstanceEx(instance, 'rm ' + outF, None, (log and errorPrintS or None), user=conf('ssh.user'), options=conf('ssh.options'), log=log)
         return outFilename

@@ -45,6 +45,13 @@ def progress():
 def printUsage():
     raise Exception('Implement me!')
 
+
+def get_input(prompt, f):
+    inp = raw_input(prompt)
+    while not f(inp):
+        inp = raw_input(prompt)
+    return inp
+
 def extractOption(args, shortOpt, longOpt, needsArgument=False):
     """
     shortOpt and longOpt should contain - and -- repsectively if they should have it.
@@ -214,7 +221,19 @@ def removeCustomOptions(args):
 
             
 def waitForDownload(fname):
-    pass
+    prev = os.stat(fname).st_size
+    time.sleep(1)
+    curr = os.stat(fname).st_size
+    c = 0
+    while prev != curr:
+        if c >= 5:
+            sys.stdout.write('\r' + ' ' * 20 + '\r')
+            c = 0
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        prev = curr
+        curr = os.stat(fname).st_size
+    
 
 def main(_options, args):
     ##
@@ -342,8 +361,35 @@ def main(_options, args):
             downloadName = os.path.join(outputDir, pipelineName + '_output.tar.gz')
             waitForDownload(downloadName)
             logPrint('Your pipeline is downloaded to %s ,  Enjoy' % downloadName)
+            if autoNodes is not False:
+                logPrint('Terminating cluster...')
+                terminateCluster('localhost', clusterName, True)
+            else:
+                print
+                print '*' * 40
+                print 'Do not forget that you need to manually terminate your cluster when you are done'
+                print 'You can terminate your cluster with the following command:'
+                print 'terminateCluster.py --name=' + clusterName
         else:
             errorPrint('The pipeline failed!!!!')
+
+            print
+            print '*' * 40
+            print 'Your pipeline failed! Would you like to TERMINATE the cluster?'
+            print 'If you choose Y then the cluster will be destroyed and all of your data'
+            print 'on it will be deleted.  If you choose N the cluster will be left up but'
+            print 'you will have to remember to terminate it by running the following command:'
+            print 'terminateCluster.py --name=' + clusterName
+            if get_input('(Y/N)', lambda i : i in ['Y', 'N']) == 'Y':
+                logPrint('Terminating cluster...')
+                terminateCluster('localhost', clusterName, True)
+            else:
+                print
+                print '*' * 40
+                print 'You have elected to NOT terminate the cluster.'
+                print 'Remember you MUST terminate your the cluster manually when you are done.'
+                print 'You can terminate the cluster by running:'
+                print 'terminateCluster.py --name=' + clusterName
         
             
     except MissingOptionError, err:
