@@ -359,6 +359,7 @@ def main(_options, args):
             downloadPipelineOutput('localhost', clusterName, pipelineName, outputDir, True)
             debugPrint(lambda : 'Downloading pipeline...')
             downloadName = os.path.join(outputDir, pipelineName + '_output.tar.gz')
+            time.sleep(10)
             waitForDownload(downloadName)
             logPrint('Your pipeline is downloaded to %s ,  Enjoy' % downloadName)
             if autoNodes is not False:
