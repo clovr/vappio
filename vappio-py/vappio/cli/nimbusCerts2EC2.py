@@ -4,40 +4,21 @@
 import os
 import optparse
 
-from igs.utils.cli import buildConfig
+from igs.utils.cli import buildConfigN
+from igs.utils.functional import identity
 from igs.utils.config import configFromMap
 from vappio.nimbus.utils.convert import convertCert, convertKey, addJavaCert
 
 
-def cliParser():
-    parser = optparse.OptionParser(usage='usage: %prog [options]\n%prog will prompt for any variables not passed on the command line')
-
-    parser.add_option('', '--in-cert', dest='in_cert', default=None,
-                      help='Input certificate')
-    parser.add_option('', '--out-cert', dest='out_cert', default=None,
-                      help='Output certificate')
-    parser.add_option('', '--in-key', dest='in_key', default=None,
-                      help='Input key')
-    parser.add_option('', '--out-key', dest='out_key', default=None,
-                      help='Output key')
-    parser.add_option('', '--java-cert-dir', dest='java_cert_dir', default=None,
-                      help='Directory to put the jssecacerts file')
-    parser.add_option('', '--java-cert-host', dest='java_cert_host', default=None,
-                      help='Host for java certificate')
-    parser.add_option('', '--java-cert-port', dest='java_cert_port', default=None,
-                      help='Port for java certificate')
-
-    return parser
-
-def cliMerger(cliOptions, _args):
-    return configFromMap(dict(in_cert=cliOptions.in_cert,
-                              out_cert=cliOptions.out_cert,
-                              in_key=cliOptions.in_key,
-                              out_key=cliOptions.out_key,
-                              java_cert_dir=cliOptions.java_cert_dir,
-                              java_cert_host=cliOptions.java_cert_host,
-                              java_cert_port=cliOptions.java_cert_port))
-
+OPTIONS = [
+    ('in_cert', '', '--in-cert', 'Nimbus certificate file', identity),
+    ('out_cert', '', '--out-cert', 'Converted EC2 cert file', identity),
+    ('in_key', '', '--in-key', 'Nimbus key file', identity),
+    ('out_key', '', '--out-key', 'Converted EC2 key file', identity),
+    ('java_cert_dir', '', '--java-cert-dir', 'Directory for java certificate', identity),
+    ('java_cert_host', '', '--java-cert-host', 'Host for java cert', identity),
+    ('java_cert_port', '', '--java-cert-port', 'Port for java cert', identity)
+    ]
 
 
 def promptIfNone(value, prompt):
@@ -46,15 +27,9 @@ def promptIfNone(value, prompt):
     else:
         return value
 
-def main(options):
+def main(options, _args):
     values = {}
-    for v, p in [('in_cert', 'Nimbus certificate file'),
-                 ('out_cert', 'Converted EC2 cert file'),
-                 ('in_key', 'Nimbus key file'),
-                 ('out_key','Converted EC2 key file'),
-                 ('java_cert_dir', 'Directory for java certificate'),
-                 ('java_cert_host', 'Host for java cert'),
-                 ('java_cert_port', 'Port for java cert')]:
+    for v, p in [(v, p) for v, _s, _l, p, _f in OPTIONS]:
         values[v] = promptIfNone(options(v), p)
 
     convertCert(open(values['in_cert']), open(values['out_cert'], 'w'))
@@ -67,5 +42,4 @@ def main(options):
     print 'export EC2_PRIVATE_KEY=' + values['out_key']
 
 if __name__ == '__main__':
-    options = buildConfig(cliParser(), cliMerger)
-    main(options)
+    main(*buildConfigN(OPTIONS, usage='usage: %prog [options]\n%prog will prompt for any variables not passed on the command line', putInGeneral=False))

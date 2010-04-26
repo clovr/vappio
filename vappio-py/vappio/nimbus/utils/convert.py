@@ -2,7 +2,7 @@
 # This has tools to convert a nimbus cert into a cert that can be used with the EC2 tools
 import os
 
-from igs.utils.commands import ProgramRunError, runSystemEx
+from igs.utils.commands import ProgramRunError, runSystemEx, runSystem
 
 
 def convertCert(instream, outstream):
@@ -37,7 +37,7 @@ def addJavaCert(outputdir, host, port):
     """This installs a java cert.  It is assumed that install-cert.sh is in the PATH"""
 
     runSystemEx("""install-cert.sh %s:%d""" % (host, port))
-    runSystemEx("""mv jssecacerts %s""" % (outputdir,))
+    runSystem("""mv jssecacerts %s""" % (outputdir,))
 
 
 
