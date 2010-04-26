@@ -129,7 +129,7 @@ def tagInputIfNeeded(inputFile):
                 False,
                 False,
                 False,
-                False)
+                True)
         tryUntil(50, lambda : time.sleep(30), lambda : tagExists('local', inputTagName))
     else:
         debugPrint(lambda : 'Input tag exists')
@@ -154,7 +154,7 @@ def tagDatabaseFiles(databasePath):
                 False,
                 False,
                 False,
-                False)
+                True)
         tryUntil(50, lambda : time.sleep(30), lambda : tagExists('local', tagName))
     return tagName
 
