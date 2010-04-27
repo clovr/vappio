@@ -18,7 +18,11 @@ COMMANDS = [
     """svn commit /opt/packages -m "Updating package directory for release" """,
     """rm -rf /opt/packages""",
     """updateAllDirs.py --vappio-py""",
-    """updateAllDirs.py"""
+    """updateAllDirs.py""",
+    """svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/filesystem /opt/filesystem""",
+    """find / -type f -or -type l -exec ls -l --time-style="+" {} \; | grep -v -E '(\/dev\/|\/proc\/|\/sys\/)' | sort > /opt/filesystem/filesystem.list""",
+    """svn commit /opt/filesystem -m "Updating file system list" """,
+    """rm -rf /opt/filesystem"""
     ]
 
 def main():
