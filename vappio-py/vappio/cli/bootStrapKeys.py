@@ -73,6 +73,16 @@ def main(options, _args):
         if not os.path.exists('/mnt/keys/devel1.pem'):
             runSingleProgramEx('ssh-keygen -f /mnt/keys/devel1.pem -P ""', None, None)
 
+    keyData = []
+    runSingleProgramEx('ssh-keygen -y -f /mnt/keys/devel1.pem', keyData.append, None)
+    keyData = ''.join(keyData)
+
+    authorizedKeys = open('/root/.ssh/authorized_keys').read()
+    if keyData not in authorizedKeys:
+        fout = open('/root/.ssh/authorized_keys', 'a')
+        fout.write(keyData + '\n')
+        fout.close()
+
     print
     print
     print 'Setup complete.'
