@@ -1,3 +1,5 @@
+from copy import copy
+
 from igs.utils.errors import TryError
 
 ##
@@ -61,3 +63,19 @@ def updateDict(d, nd):
     """
     d.update(nd)
     return d
+
+
+class Record:
+    """
+    This represents a record of name->value pairs (kind of like a dictionary) that is meant
+    to be used in an immutable fashion
+    """
+
+    def __init__(self, **fields):
+        self.__dict__.update(fields)
+
+    def update(self, **fields):
+        newSelf = copy(self)
+        newSelf.__dict__.update(fields)
+        return newSelf
+    

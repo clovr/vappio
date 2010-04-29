@@ -197,7 +197,7 @@ def startExecNodes(cluster, numExec, reporter=None):
 
 
         slaves = runAndTerminateBad(cluster,
-                                    lambda : waitForInstancesReady(cluster.config, NUM_TRIES, slaves))[0]
+                                    lambda : waitForInstancesReady(cluster.config, NUM_TRIES, slaves))
 
         cluster.addExecNodes(slaves)
         if len(slaves) != numExec:
