@@ -39,7 +39,12 @@ do_start() {
     echo "For more information regarding this appliance, please visit" >> /etc/issue
     echo "http://clovr.sf.net" >> /etc/issue
     echo " " >> /etc/issue
-    
+    ##
+    # Write a file saying machine is alive
+    touch /tmp/startup_complete
+
+    #This code will detect environment and set node type. Setting node
+    #type may trigger long running jobs to receive data
     if [ -f "/var/nimbus-metadata-server-url" ]
     then
 	vlog "vappio_cloud_type=NIMBUS"
@@ -58,14 +63,15 @@ do_start() {
             echo "VMware" > $vappio_runtime/cloud_type
 	    #wait for networking
 	    #sleep 3
-            $vappio_scripts/vmware/start_vmware.sh
+            ##
+  	    $vappio_scripts/vmware/start_vmware.sh
             #write again in case of new mount
             echo "VMware" > $vappio_runtime/cloud_type
 	else
         # If this curl fails it means we are not on EC2 (hopefully)
-	    curl --connect-timeout 30 --retry 10 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null
+	    curl --connect-timeout 30 --retry 10 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null 
 	    if [ $? = "0" ]
-	    then
+	    then 
 		vlog "vappio_cloud_type=EC2"
 		export vappio_cloud_type=EC2
 		echo "EC2" > $vappio_runtime/cloud_type
@@ -73,6 +79,7 @@ do_start() {
 		#write again in case of new mount
 		echo "EC2" > $vappio_runtime/cloud_type
             else
+		#Need a check here for XEN
 		vlog "vappio_cloud_type=XEN"
 		export vappio_cloud_type=XEN
 		echo "XEN" > $vappio_runtime/cloud_type
@@ -128,10 +135,6 @@ do_start() {
     ##
     # Start up all services on the node
     startUpNode.py >> /tmp/startUpNode.log 2>&1
-
-    ##
-    # Write a file saying startup done
-    touch /tmp/startup_complete
 
     vmStatus.py -1 > /tmp/vmStatus.log
 
