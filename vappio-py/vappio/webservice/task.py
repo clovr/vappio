@@ -12,6 +12,6 @@ def loadTask(host, name, taskName, read=True):
     """
     return taskFromDict(performQuery(host, TASK_URL, dict(name=name,
                                                           task_name=taskName,
-                                                          read=read)
+                                                          read=read)))
 
 

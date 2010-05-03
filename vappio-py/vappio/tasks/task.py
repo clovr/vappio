@@ -25,7 +25,7 @@ def taskToDict(task):
                 numTasks=task.numTasks,
                 messages=task.messages)
 
-def dictToTask(d):
+def taskFromDict(d):
     return Record(name=d['name'],
                   state=d['state'],
                   currTask=d['currTask'],
@@ -34,7 +34,7 @@ def dictToTask(d):
 
 
 def loadTask(name):
-    return dictToTask(load(name))
+    return taskFromDict(load(name))
 
 def saveTask(task):
     return dump(taskToDict(task))
