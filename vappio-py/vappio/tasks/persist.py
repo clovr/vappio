@@ -17,5 +17,5 @@ def load(taskName):
     return task
 
 def dump(task):
-    return pymongo.Connection().clovr.tasks.save(updateDict(dict(_id=task.name), task))
+    return pymongo.Connection().clovr.tasks.save(updateDict(dict(_id=task['name']), task))
 
