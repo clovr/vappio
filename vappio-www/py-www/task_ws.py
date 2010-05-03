@@ -25,7 +25,7 @@ class Task(CGIPage):
                 # If read is true then we set all of the messages to
                 # be read and save that back
                 saveTask(readMessages(task))
-            return taskToDict(task)
+            return json.dumps([True, taskToDict(task)])
         else:
             ##
             # Forward the request onto the appropriate machine
