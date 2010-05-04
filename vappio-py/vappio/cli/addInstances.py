@@ -32,7 +32,7 @@ def main(options, _args):
     logPrint('Launching %d instances' % options('general.num'))
 
     if options('general.block'):
-        state = blockOnTask('localhost', 'local', taskName)
+        state = blockOnTask(options('general.host'), options('general.name'), taskName)
         if state == TASK_FAILED:
             raise Exception('Starting cluster failed')
         
