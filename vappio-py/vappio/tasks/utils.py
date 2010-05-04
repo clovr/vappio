@@ -1,24 +1,38 @@
+import time
+
 from igs.utils.logging import logPrint, errorPrint, debugPrint
 from igs.utils import logging
 
 from vappio.webservice.task import loadTask
 
-from vappio.tasks.task import getUnreadMessages, MSG_ERROR, MSG_NOTIFICATION, MSG_SILENT, TASK_FAILED, TASK_COMPLETED
+from vappio.tasks import task
 
 def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
+    endStates = [task.TASK_FAILED, task.TASK_COMPLETED]
     state = None
-    while state not in [TASK_FAILED, TASK_COMPLETED]:
+    while state not in endStates:
         tsk = loadTask(host, name, taskName, read=True)
         state = tsk.state
-        for m in getUnreadMessages(tsk):
-            if m['mtype'] == MSG_ERROR:
+        for m in task.getUnreadMessages(tsk):
+            if m['mtype'] == task.MSG_ERROR:
                 errorF(m['data'])
-            elif m['mtype'] == MSG_NOTIFICATION:
+            elif m['mtype'] == task.MSG_NOTIFICATION:
                 notifyF(m['data'])
-            elif logging.DEBUG and m['mtype'] = MSG_SILENT:
+            elif logging.DEBUG and m['mtype'] == task.MSG_SILENT:
                 debugPrint(m['data'])
         ##
         # Make this configurable
-        time.sleep(30)
+        if state not in endStates:
+            time.sleep(30)
 
     return state
+
+
+def createTaskAndSave(name, numTasks):
+    """
+    This creates a task and saves it immediatly with an IDLE state
+    and returns the name of it
+    """
+    tsk = task.createTask(name, task.TASK_IDLE, numTasks)
+    task.saveTask(tsk)
+    return name

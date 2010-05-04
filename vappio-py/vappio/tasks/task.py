@@ -2,7 +2,7 @@
 # Currently this isn't concurrency safe, assuming that we will be such low traffic it won't be an issue though
 from igs.utils.functional import Record, updateDict
 
-from vappio.tasks.persist import load, dump
+from vappio.tasks.persist import load, dump, TaskDoesNotExistError
 
 
 TASK_IDLE = 'idle'
@@ -37,7 +37,31 @@ def loadTask(name):
     return taskFromDict(load(name))
 
 def saveTask(task):
-    return dump(taskToDict(task))
+    dump(taskToDict(task))
+    return task
+
+def updateTask(task):
+    """
+    This saves a task.  It needs to do a little bit of work in terms
+    of the messages.  Because they can be read elsewhere it will load
+    the task from the database (if present) and check to see if any messages
+    have been marked as read.  If so it will mark its versions as read then
+    save them
+    """
+    try:
+        oldTask = loadTask(task.name)
+        if len(oldTask.messages) < len(task.messages):
+            task = task.update(messages=oldTask.messages + task.messages[len(oldTask.messages):])
+        else:
+            task = task.update(messages=oldTask.messages)
+        dump(taskToDict(task))
+        return task
+    except TaskDoesNotExistError:
+        ##
+        # If this is the first time saving it won't exist, so just save it
+        dump(taskToDict(task))
+        return task
+
 
 def createTask(name, state, numTasks):
     return Record(name=name,

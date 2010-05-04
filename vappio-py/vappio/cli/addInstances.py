@@ -8,6 +8,10 @@ from igs.utils.functional import compose, identity, tryUntil
 
 from vappio.webservice.cluster import addInstances, loadCluster
 
+from vappio.tasks.task import TASK_FAILED
+from vappio.tasks.utils import blockOnTask
+
+
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),    
     ('name', '', '--name', 'Name of cluster (in this case public host name of master)', notNone),
@@ -41,7 +45,7 @@ def main(options, _args):
     if options('general.name') == 'local':
         raise Exception('Cannot add instance to local cluster')
 
-    addInstances(options('general.host'),
+    taskName = addInstances(options('general.host'),
                  options('general.name'),
                  options('general.num'),
                  options('general.update_dirs'))
@@ -49,10 +53,10 @@ def main(options, _args):
     logPrint('Launching %d instances' % options('general.num'))
 
     if options('general.block'):
-        tryUntil(30, progress, testClusterUp(options))
-        print
-        
-    
+    if options('general.block'):
+        state = blockOnTask('localhost', 'local', taskName)
+        if state == TASK_FAILED:
+            raise Exception('Starting cluster failed')
         
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))
