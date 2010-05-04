@@ -52,12 +52,19 @@ def main(options, _args):
         startExecNodes(cluster, options('general.num'), lambda i : updateExecCluster(cluster, i))
         tsk = task.progress(tsk)
         tsk = task.setState(tsk, task.TASK_COMPLETED)
+        dump(cluster)
+    except TryError, err:
+        tsk = task.setState(tsk, task.TASK_COMPLETED)
+        tsk = task.addMessage(tsk, task.MSG_ERROR, 'An error occured attempting to start the instances:\n' + err.msg +
+                              '\nThe cluster has been started as much as possible')
+        dump(err.result)
     except Exception, err:
-        tsk = task.setState(tsk, task.TASK_ERROR)
-        tsk = task.addMessage(tsk, task.MSG_ERROR, err.msg)
+        tsk = task.setState(tsk, task.TASK_FAILED)
+        tsk = task.addMessage(tsk, task.MSG_ERROR, 'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...')
+        tsk = task.updateTask(tsk)
+        raise
 
     tsk = task.updateTask(tsk)        
-    dump(cluster)
     
 
     
