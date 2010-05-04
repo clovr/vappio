@@ -9,6 +9,8 @@ from igs.utils.commands import runSystemEx
 
 from vappio.cluster.persist_mongo import load
 
+from vappio.tasks.utils import createTaskAndSave
+
 URL = '/vappio/realizePhantom_ws.py'
 
 class RealizePhantom(CGIPage):
@@ -16,8 +18,11 @@ class RealizePhantom(CGIPage):
         request = readQuery()
 
         if request['name'] == 'local':
+            taskName = createTaskAndSave(request['tag_name'] + '-realizeTag', 2)
+
             cmd = ['realizePhantomR.py',
-                   '--tag-name=' + request['tag_name']]
+                   '--tag-name=' + request['tag_name'],
+                   '--task-name=' + taskName]
 
 
             cmd.append('>> /tmp/realizePhantom.log 2>&1 &')
@@ -29,9 +34,9 @@ class RealizePhantom(CGIPage):
             # Forward request on
             cluster = load(request['name'])
             request['name'] = 'local'
-            performQuery(cluster.master.publicDNS, URL, request)
+            taskName = performQuery(cluster.master.publicDNS, URL, request)
 
-        return json.dumps([True, None])
+        return json.dumps([True, taskName])
                
 
         

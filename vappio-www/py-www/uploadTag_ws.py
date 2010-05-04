@@ -9,6 +9,8 @@ from igs.utils.commands import runSystemEx
 
 from vappio.cluster.persist_mongo import load
 
+from vappio.tasks.utils import createTaskAndSave
+
 URL = '/vappio/uploadTag_ws.py'
 
 class UploadTag(CGIPage):
@@ -16,8 +18,15 @@ class UploadTag(CGIPage):
         request = readQuery()
 
         if request['src_cluster'] == 'local':
+
+            ##
+            # uploading data has 2 steps
+            taskName = createTaskAndSave(request['tag_name'] + '-uploadTag', 2)
+
+            
             cmd = ['uploadTagR.py',
                    '--tag-name=' + request['tag_name'],
+                   '--task-name=' + taskName,
                    '--src-cluster=' + request['src_cluster'],
                    '--dst-cluster=' + request['dst_cluster']]
 
@@ -33,9 +42,9 @@ class UploadTag(CGIPage):
             # Forward request on
             cluster = load(request['src_cluster'])
             request['src_cluster'] = 'local'
-            performQuery(cluster.master.publicDNS, URL, request)
+            taskName = performQuery(cluster.master.publicDNS, URL, request)
 
-        return json.dumps([True, None])
+        return json.dumps([True, taskName])
                
 
         
