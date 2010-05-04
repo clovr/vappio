@@ -58,6 +58,7 @@ def main(options, _args):
 
         if endState == task.TASK_COMPLETED:
             tsk = task.progress(tsk)
+            tsk = task.setState(tsk, task.TASK_COMPLETED)
             tsk = task.addMessage(tsk, task.MSG_SILENT, 'Done realizing')
         else:
             tsk = task.setState(tsk, task.TASK_FAILED)
@@ -97,6 +98,7 @@ def main(options, _args):
 
         if endState == task.TASK_COMPLETED:
             tsk = task.progress(tsk)
+            tsk = task.setState(tsk, task.TASK_COMPLETED)
             tsk = task.addMessage(tsk, task.MSG_SILENT, 'Tag complete')
         else:
             tsk = task.setState(tsk, task.TASK_FAILED)

@@ -26,7 +26,7 @@ def main(options, _files):
                          options('general.expand'))
 
     if options('general.block'):
-        state = blockOnTask(options('general.host'), options('general.dst_cluster'), taskName)
+        state = blockOnTask(options('general.host'), options('general.src_cluster'), taskName)
         if state == TASK_FAILED:
             raise Exception('Starting cluster failed')
     
