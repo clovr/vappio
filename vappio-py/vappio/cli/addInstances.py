@@ -20,27 +20,6 @@ OPTIONS = [
     ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
     ]
 
-
-def testClusterUp(options):
-    def _():
-        try:
-            cluster = loadCluster(options('general.host'), options('general.name'))
-            return all([i.state in [cluster.ctype.Instance.RUNNING, cluster.ctype.Instance.TERMINATED]
-                        for i in cluster.execNodes + cluster.dataNodes])
-        except Exception, err:
-            debugPrint(lambda : 'Unknown error checking master state: ' + str(err))
-
-    return _
-        
-
-def progress():
-    sys.stdout.write('.')
-    sys.stdout.flush()
-    time.sleep(30)
-
-
-
-
 def main(options, _args):
     if options('general.name') == 'local':
         raise Exception('Cannot add instance to local cluster')

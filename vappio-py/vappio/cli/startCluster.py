@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import sys
 import time
 
 from igs.utils.cli import buildConfigN, notNone, restrictValues, defaultIfNone
@@ -29,7 +28,7 @@ OPTIONS = [
         
 
 
-def main(options, args):
+def main(options, _args):
     taskName = startCluster(options('general.host'),
                             options('general.name'),
                             options('general.conf_name'),

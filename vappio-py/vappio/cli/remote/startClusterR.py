@@ -51,7 +51,7 @@ def addExecInstances(options, cl, tsk):
     # if adding them fails, then throw an TryError
     # with 
     notifications = []
-    errors.append []
+    errors = []
     taskName = addInstances('localhost',
                             options('general.name'),
                             options('general.num'),

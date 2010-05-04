@@ -15,6 +15,8 @@ from vappio.cluster.misc import getInstances
 from vappio.cluster.control import Cluster, startExecNodes
 from vappio.cluster.persist_mongo import load, dump, ClusterDoesNotExist
 
+from vappio.tasks import task
+
 from vappio.ec2 import control as ec2control
 
 OPTIONS = [
@@ -30,7 +32,7 @@ def updateExecCluster(cluster, instances):
     This keeps on setting the cluster master to the new value and
     dumping it to the database
     """
-    debugPrint(lambda : 'Updating cluster: %s %s' % (master.publicDNS, master.state))
+    #debugPrint(lambda : 'Updating cluster: %s %s' % (master.publicDNS, master.state))
     insts = dict([(i.instanceId, i) for i in cluster.execNodes])
     insts.update(dict([(i.instanceId, i) for i in instances]))
     cluster.execNodes = insts.values()
