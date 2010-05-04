@@ -1,22 +1,29 @@
 #!/usr/bin/env python
-import os
-import cgi
 import json
 
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery
 from igs.utils.commands import runSystemEx
 
+from vappio.tasks import task
+
 
 class StartCluster(CGIPage):
     def body(self):
         request = readQuery()
 
+        ##
+        # Starting a cluster requires 2 steps, starting master then starting slaves
+        taskName = request['name'] + '-startCluster'
+        tsk = task.createTask(taskName, task.TASK_IDLE, 2)
+        task.saveTask(tsk)
+        
         cmd = ['startClusterR.py',
                '--conf=' + request['conf'],
                '--num=' + str(request['num']),
                '--ctype=' + request['ctype'],
-               '--name=' + request['name']]
+               '--name=' + request['name'],
+               '--task-name=' + taskName]
 
         if request['update_dirs']:
             cmd.append('--update_dirs')
@@ -25,7 +32,7 @@ class StartCluster(CGIPage):
 
         runSystemEx(' '.join(cmd))
 
-        return json.dumps([True, None])
+        return json.dumps([True, taskName])
                
 
         
