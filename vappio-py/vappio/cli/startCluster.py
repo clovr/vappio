@@ -8,8 +8,10 @@ from igs.utils.logging import logPrint, errorPrint, debugPrint
 from igs.utils.functional import identity, compose, tryUntil
 
 from vappio.webservice.cluster import startCluster, loadCluster
+from vappio.webservice.task import loadTask
 
-
+from vappio.tasks.task import TASK_FAILED
+from vappio.tasks.utils import blockOnTask
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
@@ -24,34 +26,21 @@ OPTIONS = [
     ]
 
 
-def testClusterUp(options):
-    def _():
-        try:
-            cluster = loadCluster(options('general.host'), options('general.name'))
-            return cluster.master.state in [cluster.ctype.Instance.RUNNING, cluster.ctype.Instance.TERMINATED]
-        except Exception, err:
-            debugPrint(lambda : 'Unknown error checking master state: ' + str(err))
-
-    return _
         
-
-def progress():
-    sys.stdout.write('.')
-    sys.stdout.flush()
-    time.sleep(30)
 
 
 def main(options, args):
-    startCluster(options('general.host'),
-                 options('general.name'),
-                 options('general.conf_name'),
-                 options('general.num'),
-                 options('general.ctype'),
-                 options('general.update_dirs'))
+    taskName = startCluster(options('general.host'),
+                            options('general.name'),
+                            options('general.conf_name'),
+                            options('general.num'),
+                            options('general.ctype'),
+                            options('general.update_dirs'))
 
     if options('general.block'):
-        tryUntil(50, progress, testClusterUp(options))
-        print
+        state = blockOnTask('localhost', 'local', taskName)
+        if state == TASK_FAILED:
+            raise Exception('Starting cluster failed')
     
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

@@ -21,14 +21,14 @@ MSG_SILENT = 'silent'
 def taskToDict(task):
     return dict(name=task.name,
                 state=task.state,
-                currTask=task.currTask,
+                completedTasks=task.completedTasks,
                 numTasks=task.numTasks,
                 messages=task.messages)
 
 def taskFromDict(d):
     return Record(name=d['name'],
                   state=d['state'],
-                  currTask=d['currTask'],
+                  completedTasks=d['completedTasks'],
                   numTasks=d['numTasks'],
                   messages=d['messages'])
 
@@ -42,25 +42,25 @@ def saveTask(task):
 def createTask(name, state, numTasks):
     return Record(name=name,
                   state=state,
-                  currTask=1,
+                  completedTasks=0,
                   numTasks=numTasks,
                   messages=[])
 
 
 def addMessage(task, mtype, msg):
-    return task.update(messages=task.messages + dict(mtype=mtype, data=msg, read=False))
+    return task.update(messages=task.messages + [dict(mtype=mtype, data=msg, read=False)])
 
 def readMessages(task):
     """
     Returns a new task with all of the messages read
     """
-    return task.update(messages=[updateDict(dict(read=True), m) for m in task.messages])
+    return task.update(messages=[updateDict(dict(m), dict(read=True)) for m in task.messages])
 
 def getUnreadMessages(task):
     return [m for m in task.messages if not m['read']]
 
 def progress(task, inc=1):
-    return task.update(currTask=task.currTask + inc)
+    return task.update(completedTasks=task.completedTasks + inc)
 
 def setState(task, state):
     return task.update(state=state)

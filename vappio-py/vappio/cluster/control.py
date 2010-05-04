@@ -12,7 +12,7 @@ from igs.utils import logging
 from igs.utils.commands import runSystemEx, runCommandGens, ProgramRunError
 from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSH
 from igs.utils.logging import errorPrintS, errorPrint, logPrintS
-from igs.utils.functional import applyIfCallable, tryUntil
+from igs.utils.functional import applyIfCallable, tryUntil, updateDict
 from igs.utils.errors import TryError
 from igs.utils.config import configFromMap
 
@@ -54,14 +54,6 @@ class Cluster:
         self.dataNodes = updateDict(dict([(i.instanceId, i) for i in self.dataNodes]),
                                     dict([(i.instanceId, i) for i in datas])).values()                                        
         
-
-def updateDict(d, nd):
-    """
-    Adds the key/values in nd to d and returns d
-    """
-    d.update(nd)
-    return d
-
 
 def clusterToDict(cluster):
     """

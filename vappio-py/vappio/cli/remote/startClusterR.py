@@ -18,11 +18,14 @@ from vappio.cluster.persist_mongo import dump
 
 from vappio.webservice.cluster import addInstances
 
+from vappio.tasks import task
+
 from vappio.ec2 import control as ec2control
 
 OPTIONS = [
     ('conf', '', '--conf', 'Name of config file to use', compose(lambda x : '${env.VAPPIO_HOME}/vappio-conf/' + x, notNone)),
     ('name', '', '--name', 'Name of the cluster', notNone),
+    ('task_name', '', '--task-name', 'Name of task associated with this', notNone),
     ('ctype', '', '--ctype', 'Type of cluster to start', compose(restrictValues(['ec2', 'nimbus']), notNone)),
     ('num', '', '--num', 'Number of nodes to create', compose(int, notNone)),
     ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
@@ -46,20 +49,37 @@ def main(options, _args):
                      }
          }, options)
     ctype = ec2control
+
+    tsk = task.loadTask(options('general.task_name'))
+    tsk = task.setState(tsk, task.TASK_RUNNING)
+    tsk = task.addMessage(tsk, task.MSG_NOTIFICATION, 'Starting master')
+    task.saveTask(tsk)
     
     cl = Cluster(options('general.name'), ctype, options)
     try:
         startMaster(cl, lambda m : updateCluster(cl, m), devMode=False, releaseCut=False)
-    except TryError, err:
-        if cl.master:
-            cl.master.state = 'Error'
-        errorPrint('There was an error bringing up the cluster: ' + str(err.msg))
         
-    dump(cl)
-    if options('general.num'):
-        addInstances('localhost', options('general.name'), options('general.num'), options('general.update_dirs'))
 
+        dump(cl)
+        
+        tsk = task.progress(tsk)
+        task.saveTask(tsk)
     
+        if options('general.num'):
+            taskName = addInstances('localhost', options('general.name'), options('general.num'), options('general.update_dirs'))
+
+        ##
+        # We really should have some blockign code in here to wait for the added instances to come up.  This will be added later
+        tsk = task.progress(tsk)
+        tsk = task.setState(tsk, task.TASK_COMPLETED)
+        task.saveTask(tsk)        
+    except TryError, err:
+        tsk = task.setState(tsk, task.TASK_ERROR)
+        tsk = task.addMessage(tsk, task.MSG_ERROR, err.msg)
+
+
+    task.saveTask(tsk)
+        
 if __name__ == '__main__':
     runCatchError(lambda : main(*buildConfigN(OPTIONS)),
                   mongoFail(dict(action='startCluster')))
