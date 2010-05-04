@@ -10,6 +10,8 @@ from igs.utils.commands import runSystemEx
 
 from vappio.cluster.persist_mongo import load
 
+from vappio.tasks.utils import createTaskAndSave
+
 URL = '/vappio/tagData_ws.py'
 
 class TagData(CGIPage):
@@ -17,7 +19,14 @@ class TagData(CGIPage):
         request = readQuery()
 
         if request['name'] == 'local':
-            cmd = ['tagDataR.py', '--tag-name=' + request['tag_name']]
+
+            ##
+            # Tagging data only has one step
+            taskName = createTaskAndSave(request['tag_name'] + '-tagData', 1)
+            
+            cmd = ['tagDataR.py',
+                   '--tag-name=' + request['tag_name'],
+                   '--task-name=' + taskName]
 
             if request['tag_base_dir']:
                 cmd.append('--tag-base-dir=' + request['tag_base_dir'])
@@ -37,9 +46,9 @@ class TagData(CGIPage):
             # Forward request on
             cluster = load(request['name'])
             request['name'] = 'local'
-            performQuery(cluster.master.publicDNS, URL, request)
+            taskName = performQuery(cluster.master.publicDNS, URL, request)
 
-        return json.dumps([True, None])
+        return json.dumps([True, taskName])
                
 
         

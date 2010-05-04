@@ -5,7 +5,7 @@ from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery
 from igs.utils.commands import runSystemEx
 
-from vappio.tasks import task
+from vappio.tasks.utils import createTaskAndSave
 
 
 class StartCluster(CGIPage):
@@ -14,9 +14,7 @@ class StartCluster(CGIPage):
 
         ##
         # Starting a cluster requires 2 steps, starting master then starting slaves
-        taskName = request['name'] + '-startCluster'
-        tsk = task.createTask(taskName, task.TASK_IDLE, 2)
-        task.saveTask(tsk)
+        taskName = task.createTaskAndSave(request['name'] + '-startCluster', 2)
         
         cmd = ['startClusterR.py',
                '--conf=' + request['conf'],

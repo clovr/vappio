@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-import os
-import cgi
+import time
 import json
 
 from igs.utils.core import getStrBetween
@@ -8,15 +7,24 @@ from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery
 from igs.utils.commands import runSystemEx
 
+from vappio.tasks.utils import createTaskAndSave
 
 class AddInstances(CGIPage):
     def body(self):
         request = readQuery()
 
+        ##
+        # Someone could run multiple addInstances at once, so we will
+        # add the time to the end as a cheap trick
+        taskName = task.createTaskAndSave(request['name'] + '-addInstances-' + str(time.time()), 1)
+        
         num = request['num']
         updateDirs = request['update_dirs']
 
-        cmd = ['addInstancesR.py', '--num=' + str(num)]
+        cmd = ['addInstancesR.py',
+               '--num=' + str(num),
+               '--task-name=' + taskName]
+        
         if updateDirs:
             cmd.append('--update_dirs')
 
@@ -24,7 +32,7 @@ class AddInstances(CGIPage):
 
         runSystemEx(' '.join(cmd))
 
-        return json.dumps([True, None])
+        return json.dumps([True, taskName])
                
 
         
