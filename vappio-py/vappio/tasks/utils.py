@@ -28,6 +28,24 @@ def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
     return state
 
 
+def blockOnTaskAndForward(host, name, taskName, dstTask):
+    notifications = []
+    errors = []
+    endState = blockOnTask(host,
+                           name,
+                           taskName,
+                           notifyF=notifications.append,
+                           errorF=errors.append)
+    for m in notifications:
+        dstTask = task.addMessage(dstTask, task.MSG_NOTIFICATION, m)
+    for m in errors:
+        dstTask = task.addMessage(dstTask, task.MSG_ERROR, m)
+        
+    tsk = task.updateTask(dstTask)
+
+    return endState, tsk
+
+
 def createTaskAndSave(name, numTasks):
     """
     This creates a task and saves it immediatly with an IDLE state

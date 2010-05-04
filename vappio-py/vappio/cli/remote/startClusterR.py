@@ -19,7 +19,7 @@ from vappio.cluster.persist_mongo import dump
 from vappio.webservice.cluster import addInstances
 
 from vappio.tasks import task
-from vappio.tasks.utils import blockOnTask
+from vappio.tasks.utils import blockOnTaskAndForward
 
 from vappio.ec2 import control as ec2control
 
@@ -50,24 +50,15 @@ def addExecInstances(options, cl, tsk):
     # and forward any messages onto the current task
     # if adding them fails, then throw an TryError
     # with 
-    notifications = []
-    errors = []
+
     taskName = addInstances('localhost',
                             options('general.name'),
                             options('general.num'),
                             options('general.update_dirs'))
-    endState = blockOnTask('localhost',
-                           options('general.name'),
-                           taskName,
-                           notifyF=notifications.append,
-                           errorF=errors.append)
-
-    for m in notifications:
-        tsk = task.addMessage(tsk, task.MSG_NOTIFICATION, m)
-    for m in errors:
-        tsk = task.addMessage(tsk, task.MSG_ERROR, m)
-        
-    tsk = task.updateTask(tsk)
+    endState, tsk = blockOnTaskAndForward('localhost',
+                                          options('general.name'),
+                                          taskName,
+                                          tsk)
     if endState == task.TASK_FAILED:
         raise TryError('Failed to add instances to cluster', cl)
 
