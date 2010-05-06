@@ -7,7 +7,8 @@ from xml.dom import minidom
 
 from igs.utils.core import getStrBetween
 from igs.utils.cli import buildConfigN
-from igs.utils.config import replaceStr
+from igs.utils.functional import identity, const, applyIfCallable
+from igs.utils.config import replaceStr, configFromStream, configFromMap
 from igs.utils.commands import runSingleProgram, ProgramRunError
 
 from igs.xml.xmlquery import execQuery, name
@@ -68,6 +69,34 @@ class Pipeline:
         """
         return fullyQualifiedName(self.ptype).split('.')[-1]
 
+
+def confIfPipelineConfigSet(conf, options):
+    """
+    Takes a conf, checks to see if a pipeline conf file is specified,
+    if so it loads it up and applies it OVER any options specified on
+    the command line.  This may seem counter intuitive but it makes
+    other things easier, for example a pipeline redefining anything
+    in the machines.conf since that is also in this conf.  It then
+    applies the functions in the OPTIONS variable in the values in
+    the config file
+    """
+    if conf('pipeline_conf', default=None) is not None:
+        fconf = configFromStream(open(conf('pipeline_conf')))
+        keys = fconf.keys()
+        m = {}
+        for o in options:
+            ##
+            # Get the name of the option, it's the first element of the tuple
+            name = o[0]
+            f = o[4]
+            if name in keys:
+                m[name] = applyIfCallable(f(fconf(name)), conf)
+
+        
+        return configFromMap(m, configFromStream(open(conf('pipeline_conf')), conf))
+    else:
+        return conf
+
 def runPipeline(name, pipeline, args=None):
     """
     name is the name of this pipeline
@@ -83,20 +112,20 @@ def runPipeline(name, pipeline, args=None):
     TEMPLATE_DIR - where the template lives
     OPTIONS - list of options needed for config file
 
-    OPTIONS looks like (name, func, description):
-    name - the name they will pass on the command line, this also matches the name of the variable in
-           the config file
-    func - A functiont hat is applied to the option from the command line, if nothing needs to be
-           done simply use igs.utils.functional.id
-    description - Just a brief description of the variable, this will be in the --help for the pipeline
     """
 
     ##
     # Mocheezmo way to have it load a conf file.  This will be removed in the future
-    options = pipeline.OPTIONS
-    options.append(('conf', '', '--conf', 'Conf file', lambda _ : '/tmp/machine.conf'))
+    options = list(pipeline.OPTIONS)
+    options.append(('conf', '', '--conf', 'Conf file (DO NOT SPECIFY, FOR INTERNAL USE)', const('/tmp/machine.conf')))
+    options.append(('pipeline_conf', '-c', '--CONFIG_FILE',
+                    'Config file for the pipeline.  Specify this if you do not want to specify options on the comamnd line', identity))
     
     conf, _args = buildConfigN(options, args, putInGeneral=False)
+
+    ##
+    # If they specified a pipeline_conf, load that and set the values
+    conf = confIfPipelineConfigSet(conf, pipeline.OPTIONS)
 
     templateDir = os.path.join(conf('dirs.clovr_pipelines_template_dir'), pipeline.TEMPLATE_NAME)
     templateConfig = os.path.join(templateDir, 'pipeline_tmpl.config')
