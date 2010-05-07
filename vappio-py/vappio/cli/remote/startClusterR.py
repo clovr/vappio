@@ -90,7 +90,7 @@ def main(options, _args):
 
         
         if options('general.num'):
-            tsk = addExecInstances(cl, options, tsk)
+            tsk = addExecInstances(options, cl, tsk)
 
         tsk = task.progress(tsk)
         tsk = task.setState(tsk, task.TASK_COMPLETED)
