@@ -23,10 +23,9 @@ OPTIONS = [
     
 
 def main(options, files):
-    tsk = task.loadTask(options('general.task_name'))
-    tsk = task.setState(tsk, task.TASK_RUNNING)
-    tsk = task.addMessage(tsk, task.MSG_SILENT, 'Starting tagging')
-    tsk = task.updateTask(tsk)
+    tsk = task.updateTask(task.loadTask(options('general.task_name')
+                                        ).setState(task.TASK_RUNNING
+                                                   ).addMessage(task.MSG_SILENT, 'Starting tagging'))
 
     try:
         cluster = loadCluster('localhost', 'local')
@@ -38,11 +37,9 @@ def main(options, files):
                 expand=options('general.expand'),
                 append=options('general.append'),
                 overwrite=options('general.overwrite'))
-        tsk = task.progress(tsk)
-        tsk = task.setState(tsk, task.TASK_COMPLETED)
+        tsk = tsk.progress().setState(task.TASK_COMPLETED)
     except Exception, err:
-        tsk = task.setState(tsk, task.TASK_FAILED)
-        tsk = task.addMessage(tsk, task.MSG_ERROR, str(err))
+        tsk = tsk.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, str(err))
 
     tsk = task.updateTask(tsk)
 

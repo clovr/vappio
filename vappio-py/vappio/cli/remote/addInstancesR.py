@@ -43,25 +43,22 @@ def updateExecCluster(cluster, instances):
 def main(options, _args):
     cluster = load('local')
 
-    tsk = task.loadTask(options('general.task_name'))
-    tsk = task.setState(tsk, task.TASK_RUNNING)
-    tsk = task.addMessage(tsk, task.MSG_SILENT, 'Starting instances')
-    tsk = task.updateTask(tsk)
+    tsk = task.updateTask(task.loadTask(options('general.task_name')
+                                        ).setState(task.TASK_RUNNING
+                                                   ).addMessage(task.MSG_SILENT, 'Starting instances')
 
     try:
         startExecNodes(cluster, options('general.num'), lambda i : updateExecCluster(cluster, i))
-        tsk = task.progress(tsk)
-        tsk = task.setState(tsk, task.TASK_COMPLETED)
+        tsk = tsk.progress().setState(task.TASK_COMPLETED)
         dump(cluster)
     except TryError, err:
-        tsk = task.setState(tsk, task.TASK_COMPLETED)
-        tsk = task.addMessage(tsk, task.MSG_ERROR, 'An error occured attempting to start the instances:\n' + err.msg +
-                              '\nThe cluster has been started as much as possible')
+        tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_ERROR, 'An error occured attempting to start the instances:\n' + err.msg +
+                                                           '\nThe cluster has been started as much as possible')
         dump(err.result)
     except Exception, err:
-        tsk = task.setState(tsk, task.TASK_FAILED)
-        tsk = task.addMessage(tsk, task.MSG_ERROR, 'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...')
-        tsk = task.updateTask(tsk)
+        tsk = task.updateTask(tsk.setState(task.TASK_FAILED
+                                           ).addMessage(task.MSG_ERROR,
+                                                        'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...'))
         raise
 
     tsk = task.updateTask(tsk)        

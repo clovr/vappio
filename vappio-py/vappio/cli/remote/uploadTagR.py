@@ -29,15 +29,12 @@ def main(options, _args):
     tagFileName = os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name'))
     tagFile = loadTagFile(tagFileName)
 
-    tsk = task.loadTask(options('general.task_name'))
-    tsk = task.setState(tsk, task.TASK_RUNNING)
-    tsk = task.addMessage(tsk, task.MSG_SILENT, 'Starting uploadTag')
-    tsk = task.updateTask(tsk)
-
+    tsk = task.updateTask(task.loadTask(options('general.task_name')
+                                        ).setState(task.TASK_RUNNING
+                                                   ).addMessage(task.MSG_SILENT, 'Starting uploadTag'))
     
     if isPhantom(tagFile):
-        tsk = task.addMessage(tsk, task.MSG_SILENT, 'Tag is phantom, uploading tag')
-        tsk = task.updateTask(tsk)
+        tsk = task.updateTask(tsk.addMessage(task.MSG_SILENT, 'Tag is phantom, uploading tag'))
 
         scpToEx(dstCluster.master.publicDNS,
                 os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
@@ -46,9 +43,7 @@ def main(options, _args):
                 options=srcCluster.config('ssh.options'),
                 log=True)
 
-        tsk = task.progress(tsk)
-        tsk = task.addMessage(tsk, task.MSG_SILENT, 'realizing phantom tag')
-        tsk = task.updateTask(tsk)
+        tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'realizing phantom tag'))
         
         realizeTask = realizePhantom('localhost', dstCluster.name, options('general.tag_name'))
         endState, tsk = blockOnTaskAndForward('localhost',
@@ -57,11 +52,9 @@ def main(options, _args):
                                               tsk)
 
         if endState == task.TASK_COMPLETED:
-            tsk = task.progress(tsk)
-            tsk = task.setState(tsk, task.TASK_COMPLETED)
-            tsk = task.addMessage(tsk, task.MSG_SILENT, 'Done realizing')
+            tsk = tsk.progress().setState(task.TASK_COMPLETED).addMessage(task.MSG_SILENT, 'Done realizing')
         else:
-            tsk = task.setState(tsk, task.TASK_FAILED)
+            tsk = tsk.setState(task.TASK_FAILED)
 
         tsk = task.updateTask(tsk)
         
@@ -73,14 +66,10 @@ def main(options, _args):
         # own call?
         # Perhaps uploadTag should return a tag and then tagData should take a tag
         # to be put on the remote box?  Not sure yet, leaning towards the latter
-        tsk = task.addMessage(tsk, task.MSG_SILENT, 'Uploading tag contents')
-        tsk = task.updateTask(tsk)
+        tsk = task.updateTask(tsk.addMessage(task.MSG_SILENT, 'Uploading tag contents'))
 
         fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'), tagFile)
-        tsk = task.progress(tsk)
-        tsk = task.addMessage(tsk, task.MSG_SILENT, 'Upload complete, tagging')
-        tsk = task.updateTask(tsk)
-
+        tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'Upload complete, tagging'))
         
         tagTask = tagData('localhost',
                           options('general.dst_cluster'),
@@ -97,11 +86,9 @@ def main(options, _args):
                                               tsk)
 
         if endState == task.TASK_COMPLETED:
-            tsk = task.progress(tsk)
-            tsk = task.setState(tsk, task.TASK_COMPLETED)
-            tsk = task.addMessage(tsk, task.MSG_SILENT, 'Tag complete')
+            tsk = tsk.progress().setState(task.TASK_COMPLETED).addMessage(task.MSG_SILENT, 'Tag complete')
         else:
-            tsk = task.setState(tsk, task.TASK_FAILED)
+            tsk = tsk.setState(task.TASK_FAILED)
             
         tsk = task.updateTask(tsk)
         

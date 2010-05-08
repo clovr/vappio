@@ -74,10 +74,9 @@ def main(options, _args):
          }, options)
     ctype = ec2control
 
-    tsk = task.loadTask(options('general.task_name'))
-    tsk = task.setState(tsk, task.TASK_RUNNING)
-    tsk = task.addMessage(tsk, task.MSG_SILENT, 'Starting master')
-    tsk = task.updateTask(tsk)
+    tsk = task.updateTask(task.loadTask(options('general.task_name')
+                                        ).setState(task.TASK_RUNNING
+                                                   ).addMessage(task.MSG_SILENT, 'Starting master'))
     
     cl = Cluster(options('general.name'), ctype, options)
     try:
@@ -85,24 +84,20 @@ def main(options, _args):
 
         dump(cl)
         
-        tsk = task.progress(tsk)
-        task.updateTask(tsk)
-
+        tsk = task.updateTask(tsk.progress())
         
         if options('general.num'):
             tsk = addExecInstances(options, cl, tsk)
 
-        tsk = task.progress(tsk)
-        tsk = task.setState(tsk, task.TASK_COMPLETED)
+        tsk = tsk.progress().setState(task.TASK_COMPLETED)
     except TryError, err:
-        tsk = task.setState(tsk, task.TASK_COMPLETED)
-        tsk = task.addMessage(tsk, task.MSG_ERROR, 'An error occured attempting to start the cluster:\n' + err.msg +
-                              '\nThe cluster has been started as much as possible, it may not function properly though')
+        tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_ERROR, 'An error occured attempting to start the cluster:\n' + err.msg +
+                                                           '\nThe cluster has been started as much as possible, it may not function properly though')
         dump(err.result)
     except Exception, err:
-        tsk = task.setState(tsk, task.TASK_FAILED)
-        tsk = task.addMessage(tsk, task.MSG_ERROR, 'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...')
-        tsk = task.updateTask(tsk)
+        tsk = task.updateTask(tsk.setState(task.TASK_FAILED
+                                           ).addMessage(task.MSG_ERROR,
+                                                        'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...')
         raise
 
 

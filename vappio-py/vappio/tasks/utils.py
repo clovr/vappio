@@ -13,7 +13,7 @@ def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
     while state not in endStates:
         tsk = loadTask(host, name, taskName, read=True)
         state = tsk.state
-        for m in task.getUnreadMessages(tsk):
+        for m in tsk.getUnreadMessages():
             if m['mtype'] == task.MSG_ERROR:
                 errorF(m['data'])
             elif m['mtype'] == task.MSG_NOTIFICATION:
@@ -37,9 +37,9 @@ def blockOnTaskAndForward(host, name, taskName, dstTask):
                            notifyF=notifications.append,
                            errorF=errors.append)
     for m in notifications:
-        dstTask = task.addMessage(dstTask, task.MSG_NOTIFICATION, m)
+        dstTask = dstTask.addMessage(task.MSG_NOTIFICATION, m)
     for m in errors:
-        dstTask = task.addMessage(dstTask, task.MSG_ERROR, m)
+        dstTask = dstTask.addMessage(task.MSG_ERROR, m)
         
     tsk = task.updateTask(dstTask)
 

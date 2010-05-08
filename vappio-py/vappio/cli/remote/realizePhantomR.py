@@ -22,11 +22,9 @@ OPTIONS = [
     
 
 def main(options, _args):
-    tsk = task.loadTask(options('general.task_name'))
-    tsk = task.setState(tsk, task.TASK_RUNNING)
-    tsk = task.addMessage(tsk, task.MSG_SILENT, 'Starting realizing')
-    tsk = task.updateTask(tsk)
-
+    tsk = task.updateTask(task.loadTask(options('general.task_name')
+                                        ).setState(task.TASK_RUNNING
+                                                   ).addMessage(task.MSG_SILENT, 'Starting realizing'))
     
     cluster = loadCluster('localhost', 'local')
     ctype = cluster.config('general.ctype')
@@ -40,7 +38,7 @@ def main(options, _args):
             realizePhantom(ctype,
                            outDir,
                            tf)
-            tsk = task.progress(tsk)
+            tsk = tsk.progress()
 
             ##
             # Need to fix this so it makes use of tag_options
@@ -69,17 +67,15 @@ def main(options, _args):
                                                   tagTask,
                                                   tsk)
             if endState == task.TASK_FAILED:
-                tsk = task.setState(tsk, task.TASK_FAILED)
+                tsk = tsk.setState(task.TASK_FAILED)
             else:
-                tsk = task.progress(tsk)
+                tsk = tsk.progress()
         except Exception, err:
-            tsk = task.setState(tsk, task.TASK_FAILED)
-            tsk = task.addMessage(tsk, task.MSG_ERROR, str(err))
+            tsk = tsk.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, str(err))
     else:
         ##
         # Skip the two steps that happened in there
-        tsk = task.progress(tsk, 2)
-        tsk = task.addMessage(tsk, task.MSG_SILENT, 'File tag already realized')
+        tsk = tsk.progress(2).addMessage(task.MSG_SILENT, 'File tag already realized')
 
     tsk = task.updateTask(tsk)
 

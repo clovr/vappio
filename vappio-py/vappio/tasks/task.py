@@ -18,6 +18,26 @@ MSG_NOTIFICATION = 'notification'
 MSG_SILENT = 'silent'
 
 
+class Task(Record):
+    def addMessage(self, mtype, msg):
+        return self.update(messages=self.messages + [dict(mtype=mtype, data=msg, read=False)])
+
+    def readMessages(self):
+        """
+        Returns a new self with all of the messages read
+        """
+        return self.update(messages=[updateDict(dict(m), dict(read=True)) for m in self.messages])
+
+    def getUnreadMessages(self):
+        return [m for m in self.messages if not m['read']]
+    
+    def progress(self, inc=1):
+        return self.update(completedSelfs=self.completedTaskss + inc)
+
+    def setState(self, state):
+        return self.update(state=state)
+    
+
 def taskToDict(task):
     return dict(name=task.name,
                 state=task.state,
@@ -26,11 +46,11 @@ def taskToDict(task):
                 messages=task.messages)
 
 def taskFromDict(d):
-    return Record(name=d['name'],
-                  state=d['state'],
-                  completedTasks=d['completedTasks'],
-                  numTasks=d['numTasks'],
-                  messages=d['messages'])
+    return Task(name=d['name'],
+                state=d['state'],
+                completedTasks=d['completedTasks'],
+                numTasks=d['numTasks'],
+                messages=d['messages'])
 
 
 def loadTask(name):
@@ -64,30 +84,13 @@ def updateTask(task):
 
 
 def createTask(name, state, numTasks):
-    return Record(name=name,
-                  state=state,
-                  completedTasks=0,
-                  numTasks=numTasks,
-                  messages=[])
+    return Task(name=name,
+                state=state,
+                completedTasks=0,
+                numTasks=numTasks,
+                messages=[])
 
 
-def addMessage(task, mtype, msg):
-    return task.update(messages=task.messages + [dict(mtype=mtype, data=msg, read=False)])
-
-def readMessages(task):
-    """
-    Returns a new task with all of the messages read
-    """
-    return task.update(messages=[updateDict(dict(m), dict(read=True)) for m in task.messages])
-
-def getUnreadMessages(task):
-    return [m for m in task.messages if not m['read']]
-
-def progress(task, inc=1):
-    return task.update(completedTasks=task.completedTasks + inc)
-
-def setState(task, state):
-    return task.update(state=state)
 
 
                                                      
