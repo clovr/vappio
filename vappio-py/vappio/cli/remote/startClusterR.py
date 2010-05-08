@@ -97,7 +97,7 @@ def main(options, _args):
     except Exception, err:
         tsk = task.updateTask(tsk.setState(task.TASK_FAILED
                                            ).addMessage(task.MSG_ERROR,
-                                                        'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...')
+                                                        'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...'))
         raise
 
 

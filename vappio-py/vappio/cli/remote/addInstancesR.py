@@ -45,7 +45,7 @@ def main(options, _args):
 
     tsk = task.updateTask(task.loadTask(options('general.task_name')
                                         ).setState(task.TASK_RUNNING
-                                                   ).addMessage(task.MSG_SILENT, 'Starting instances')
+                                                   ).addMessage(task.MSG_SILENT, 'Starting instances'))
 
     try:
         startExecNodes(cluster, options('general.num'), lambda i : updateExecCluster(cluster, i))
