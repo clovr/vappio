@@ -9,7 +9,7 @@ from igs.utils.errors import TryError
 
 from vappio.webservice.cluster import loadCluster
 
-from vappio.tasks.task import loadTask, saveTask, taskToDict, readMessages
+from vappio.tasks.task import loadTask, saveTask, taskToDict
 
 URL = '/vappio/task_ws.py'
 
@@ -24,7 +24,7 @@ class Task(CGIPage):
                 ##
                 # If read is true then we set all of the messages to
                 # be read and save that back
-                saveTask(readMessages(task))
+                saveTask(task.readMessages())
             return json.dumps([True, taskToDict(task)])
         else:
             ##
