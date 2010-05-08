@@ -9,6 +9,7 @@ from igs.utils.config import configFromEnv, configFromStream, configFromMap
 from igs.utils.logging import logPrint, debugPrint
 from igs.utils.functional import compose
 from igs.utils.commands import runSingleProgramEx
+from igs.utils.errors import TryError
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.cluster.misc import getInstances
