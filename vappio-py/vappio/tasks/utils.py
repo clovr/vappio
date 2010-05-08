@@ -19,7 +19,7 @@ def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
             elif m['mtype'] == task.MSG_NOTIFICATION:
                 notifyF(m['data'])
             elif logging.DEBUG and m['mtype'] == task.MSG_SILENT:
-                debugPrint(m['data'])
+                debugPrint(lambda : m['data'])
         ##
         # Make this configurable
         if state not in endStates:

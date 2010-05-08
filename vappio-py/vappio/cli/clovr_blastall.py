@@ -31,8 +31,11 @@ from igs.utils.functional import tryUntil
 from igs.utils.commands import runSystemEx
 
 from vappio.webservice.files import queryTag, tagData, uploadTag
-from vappio.webservice.cluster import listClusters, terminateCluster
+from vappio.webservice.cluster import startCluster, listClusters, terminateCluster
 from vappio.webservice.pipeline import runPipeline, pipelineStatus, downloadPipelineOutput
+
+from vappio.tasks.task import TASK_FAILED
+from vappio.tasks.utils import blockOnTask
 
 NUM_TRIES = 60
 
@@ -44,6 +47,11 @@ def progress():
 
 def printUsage():
     raise Exception('Implement me!')
+
+def blockOnTaskAndFail(name, taskName, errMsg):
+    state = blockOnTask('localhost', name, taskName)
+    if state == TASK_FAILED:
+        raise Exception(errMsg)
 
 
 def get_input(prompt, f):
@@ -121,16 +129,16 @@ def tagInputIfNeeded(inputFile):
     inputTagName = os.path.basename(inputFile)
     if not tagExists('local', inputTagName):
         debugPrint(lambda : 'Tagging input file: ' + inputFile)
-        tagData('localhost',
-                'local',
-                inputTagName,
-                os.path.dirname(inputFile),
-                [inputFile],
-                False,
-                False,
-                False,
-                True)
-        tryUntil(50, lambda : time.sleep(30), lambda : tagExists('local', inputTagName))
+        taskName = tagData('localhost',
+                           'local',
+                           inputTagName,
+                           os.path.dirname(inputFile),
+                           [inputFile],
+                           False,
+                           False,
+                           False,
+                           True)
+        blockOnTaskAndFail('local', taskName, 'Tagging input failed')
     else:
         debugPrint(lambda : 'Input tag exists')
 
@@ -146,16 +154,16 @@ def tagDatabaseFiles(databasePath):
     dirName = os.path.dirname(databasePath)
     if not tagExists('local', tagName):
         debugPrint(lambda : 'Tagging database: ' + databasePath)
-        tagData('localhost',
-                'local',
-                tagName,
-                dirName,
-                [os.path.join(dirName, f) for f in os.listdir(dirName) if f.startswith(baseName + '.')],
-                False,
-                False,
-                False,
-                True)
-        tryUntil(50, lambda : time.sleep(30), lambda : tagExists('local', tagName))
+        taskName = tagData('localhost',
+                           'local',
+                           tagName,
+                           dirName,
+                           [os.path.join(dirName, f) for f in os.listdir(dirName) if f.startswith(baseName + '.')],
+                           False,
+                           False,
+                           False,
+                           True)
+        blockOnTaskAndFail('local', taskName, 'Tagging input failed')
     return tagName
 
 
@@ -173,16 +181,13 @@ def makeClusterIfNeeded(numNodes, autoClusterName, alreadyClusterName):
             debugPrint(lambda : 'Cluster already exists, using it')
         else:
             debugPrint(lambda : 'Starting cluster...')
-            ##
-            # Normally we would us a webservice call, but in this case the CLI
-            # program already handles blocking and all that for us.  Once tasks
-            # are working we can use a blocking function there instead
-            cmd = ['startCluster.py',
-                   '--name=' + autoClusterName,
-                   '--num=' + str(numNodes),
-                   '--ctype=ec2',
-                   '-b']
-            runSystemEx(' '.join(cmd), log=logging.DEBUG)
+            taskName = startCluster('localhost',
+                                    autoClusterName,
+                                    'clovr.conf',
+                                    numNodes,
+                                    'ec2',
+                                    False)
+            blockOnTaskAndFail('local', taskName, 'Error starting cluster')
         return autoClusterName
     else:
         if not clusterExists(alreadyClusterName):
@@ -220,21 +225,6 @@ def removeCustomOptions(args):
     return retArgs
 
             
-def waitForDownload(fname):
-    prev = os.stat(fname).st_size
-    time.sleep(1)
-    curr = os.stat(fname).st_size
-    c = 0
-    while prev != curr:
-        if c >= 5:
-            sys.stdout.write('\r' + ' ' * 20 + '\r')
-            c = 0
-        sys.stdout.write('.')
-        sys.stdout.flush()
-        prev = curr
-        curr = os.stat(fname).st_size
-    
-
 def main(_options, args):
     ##
     # Because we are trying to mimic another program we have to do some funky work
@@ -308,19 +298,17 @@ def main(_options, args):
         clusterName = makeClusterIfNeeded(autoNodes, inputTagName + '-' + databaseTagName, clusterName)
 
         debugPrint(lambda : 'Uploading tags to the cluster')
+        uploadTasks = []
         ##
         # Upload the tags and wait for them to be complete
         if not tagExists(clusterName, inputTagName):
-            uploadTag('localhost', inputTagName, 'local', clusterName, True)
+            uploadTasks.append(uploadTag('localhost', inputTagName, 'local', clusterName, True))
 
         if not tagExists(clusterName, databaseTagName):
-            uploadTag('localhost', databaseTagName, 'local', clusterName, True)
+            uploadTasks.append(uploadTag('localhost', databaseTagName, 'local', clusterName, True))
 
-        if not tagExists(clusterName, inputTagName) or not tagExists(clusterName, databaseTagName):
-            tryUntil(NUM_TRIES,
-                     progress,
-                     lambda : tagExists(clusterName, inputTagName) and tagExists(clusterName, databaseTagName))
-
+        for t in uploadTasks:
+            blockOnTaskAndFail('local', t, 'Error uploading tasks')
 
         print
         
@@ -356,11 +344,11 @@ def main(_options, args):
         
         if pipelineInfo['state'] == 'complete':
             debugPrint(lambda : 'Pipeline finished successfully, downloading')
-            downloadPipelineOutput('localhost', clusterName, pipelineName, outputDir, True)
+            taskName = downloadPipelineOutput('localhost', clusterName, pipelineName, outputDir, True)
             debugPrint(lambda : 'Downloading pipeline...')
             downloadName = os.path.join(outputDir, pipelineName + '_output.tar.gz')
             time.sleep(10)
-            waitForDownload(downloadName)
+            blockOnTaskAndFail('local', taskName, 'Failed to download file')
             logPrint('Your pipeline is downloaded to %s ,  Enjoy' % downloadName)
             if autoNodes is not False:
                 logPrint('Terminating cluster...')
