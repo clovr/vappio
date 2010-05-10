@@ -2,7 +2,7 @@
 # Currently this isn't concurrency safe, assuming that we will be such low traffic it won't be an issue though
 from igs.utils.functional import Record, updateDict
 
-from vappio.tasks.persist import load, dump, TaskDoesNotExistError
+from vappio.tasks.persist import load, loadAll, dump, TaskDoesNotExistError
 
 
 TASK_IDLE = 'idle'
@@ -55,6 +55,9 @@ def taskFromDict(d):
 
 def loadTask(name):
     return taskFromDict(load(name))
+
+def loadAllTasks():
+    return [taskFromDict(t) for t in loadAll()]
 
 def saveTask(task):
     dump(taskToDict(task))

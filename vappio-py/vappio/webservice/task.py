@@ -12,6 +12,12 @@ def loadTask(host, name, taskName, read=True):
     """
     return taskFromDict(performQuery(host, TASK_URL, dict(name=name,
                                                           task_name=taskName,
-                                                          read=read)))
+                                                          read=read))[0])
+
+def loadAllTasks(host, name, read=True):
+    return [taskFromDict(t) for t in performQuery(host, TASK_URL, dict(name=name, read=read))]
+
+
+    
 
 
