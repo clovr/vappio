@@ -122,7 +122,7 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
     return loadTagFile(outName)
     
 
-def runCommand(ctype, baseDir, command, tagfile):
+def runCommand(_ctype, _baseDir, command, _tagfile):
     runSystemEx(command)
     
 
@@ -200,6 +200,14 @@ def loadTagFile(fname):
         raise MissingTagFileError(fname)
 
     
+def loadAllTagFiles(directory):
+    def _cutExtension(f):
+        if f.endswith('.metadata') or f.endswith('.phantom'):
+            return '.'.join(f.split('.')[:-1])
+        return f
+    
+    tags = set([_cutExtension(f) for f in os.listdir(directory)])
+    return [loadTagFile(os.path.join(directory, f)) for f in tags]
     
 def hasFiles(tagfile):
     """

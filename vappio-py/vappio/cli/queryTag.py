@@ -2,7 +2,7 @@
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 
-from vappio.webservice.files import queryTag
+from vappio.webservice.tag import queryTag
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', defaultIfNone('localhost')),

@@ -7,7 +7,7 @@ from igs.utils.ssh import scpToEx
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
-from vappio.webservice.files import tagData, realizePhantom
+from vappio.webservice.tag import tagData, realizePhantom
 from vappio.tags.transfer import uploadTag
 from vappio.tags.tagfile import loadTagFile, isPhantom
 

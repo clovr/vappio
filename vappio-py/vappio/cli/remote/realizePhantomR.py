@@ -7,7 +7,7 @@ from igs.utils.commands import runSystemEx
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
-from vappio.webservice.files import tagData
+from vappio.webservice.tag import tagData
 from vappio.tags.tagfile import realizePhantom, isPhantom, hasFiles, loadTagFile
 
 from vappio.tasks import task

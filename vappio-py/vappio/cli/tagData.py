@@ -4,7 +4,7 @@ import os
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils.functional import identity
 
-from vappio.webservice.files import tagData
+from vappio.webservice.tag import tagData
 
 from vappio.tasks.utils import blockOnTask
 

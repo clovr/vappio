@@ -30,7 +30,7 @@ from igs.utils.cli import MissingOptionError
 from igs.utils.functional import tryUntil
 from igs.utils.commands import runSystemEx
 
-from vappio.webservice.files import queryTag, tagData, uploadTag
+from vappio.webservice.tag import queryTag, tagData, uploadTag
 from vappio.webservice.cluster import startCluster, listClusters, terminateCluster
 from vappio.webservice.pipeline import runPipeline, pipelineStatus, downloadPipelineOutput
 

@@ -9,7 +9,7 @@ from vappio.tags.tagfile import loadTagFile, isPhantom
 
 from vappio.instance.control import runSystemInstanceEx
 
-from vappio.webservice.files import queryTag
+from vappio.webservice.tag import queryTag
 
 def makePathRelative(path):
     if path and path[0] == '/':

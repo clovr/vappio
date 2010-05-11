@@ -4,7 +4,7 @@ from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
-from vappio.webservice.files import tagData
+from vappio.webservice.tag import tagData
 from vappio.tags.transfer import downloadTag
 
 OPTIONS = [

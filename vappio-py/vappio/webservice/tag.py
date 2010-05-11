@@ -36,10 +36,16 @@ def downloadTag(host, tagName, srcCluster, dstCluster, expand):
     
 
 
+def listAllTags(host, name):
+    """
+    Returns a list of all tags on a machine
+    """
+    return [configFromMap(t, lazy=True) for t in performQuery(host, QUERYTAG_URL, dict(name=name))]
+    
 def queryTag(host, name, tagName):
     ##
     # A tag may contain some keys that shouldn't be evaluated
-    return configFromMap(performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName)), lazy=True)
+    return configFromMap(performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName))[0], lazy=True)
 
 def realizePhantom(host, name, tagName):
     return performQuery(host, REALIZEPHANTOM_URL, dict(name=name, tag_name=tagName))
