@@ -54,7 +54,7 @@ def credentialFromDict(d):
                             d['desc'],
                             reflect.namedAny(d['ctype']),
                             d['cert'],
-                            d['pkey']
+                            d['pkey'],
                             d['active'])
 
 def createCredential(name, desc, ctype, cert, pkey, active):
@@ -73,7 +73,7 @@ def createCredential(name, desc, ctype, cert, pkey, active):
 def loadCredential(name):
     return credentialFromDict(persist.load(name))
 
-def loadAllCredentails():
+def loadAllCredentials():
     return [credentialFromDict(c) for c in persist.loadAll()]
 
 def saveCredential(cred):
@@ -90,5 +90,5 @@ def ctypeNameToInstance(name):
 def credentialToPublicCredential(cred):
     return PublicCredential(name=cred.name,
                             desc=cred.desc,
-                            ctype=cred.ctype.NAME
+                            ctype=cred.ctype.NAME,
                             active=cred.active)

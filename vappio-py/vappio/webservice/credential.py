@@ -1,16 +1,16 @@
 
 from igs.cgi.request import performQuery
 
-from vappio.credentials.manager import credentialToDict
+from vappio.credentials import manager
 
 CREDENTIAL_URL = '/vappio/credential_ws.py'
 
 
 def saveCredential(host, name, cred):
     return performQuery(host, CREDENTIAL_URL, dict(name=name,
-                                                   cred=credentialToDict(cred)))
+                                                   cred=manager.credentialToDict(cred)))
                                                    
 
 
 def listCredentials(host, name):
-    return performQuery(host, CREDENTIAL_URL, dict(name=name))
+    return [manager.publicCredentialFromDict(c) for c in performQuery(host, CREDENTIAL_URL, dict(name=name))]
