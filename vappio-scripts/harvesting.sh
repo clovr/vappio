@@ -29,7 +29,7 @@ parentdir=`echo "$dir" | perl -ne '/(.*\/)[^\/]+/;print $1'`
 vlog "Harvesting output from $exechost:$dir to $parentdir"
 mkdir -p $parentdir
 vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" root@$exechost:$dir $parentdir"
-rsync -av -e "$ssh_client -i $ssh_key $ssh_options" root@$exechost:$dir $parentdir 1>> $vappio_log 2>> $vappio_log
+rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --temp-dir $scratch_dir root@$exechost:$dir $parentdir 1>> $vappio_log 2>> $vappio_log
 if [ $? == 0 ]
 then
     vlog "rsync success. return value: $?"

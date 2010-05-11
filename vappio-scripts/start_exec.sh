@@ -112,6 +112,7 @@ $SGE_ROOT/bin/$ARCH/qconf -as $myhostname
 # This is a blocking call, so that the node does not come "online" until staging completes
 vlog "Running $qsubcmd"
 qsubcmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
+$qsubcmd 1>> $vappio_log 2>> $vappio_log
 if [ $? == 0 ]
 then
     echo "Successfully seeded node $myhostname"
@@ -122,7 +123,7 @@ fi
 #su -p guest -c "$qsubcmd"
 # Above will fail if run as guest with  error: can't chdir to /home/guest: No such file or directory"
 # $SGE_ROOT/bin/$ARCH/qsub -b y -sync n -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingq
-$qsubcmd 1>> $vappio_log 2>> $vappio_log
+
 
 #add to runnable hosts in $execq
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq 

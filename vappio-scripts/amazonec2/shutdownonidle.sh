@@ -10,7 +10,7 @@ while [ "$i" -le "$idleshutdown" ]
 do 
     #Add additional checks here
     echo "Querying for idle stat at $i minutes"
-	$SGE_ROOT/bin/$ARCH/qstat -u '*' >> $vappio_runtime/sge.running 
+    $SGE_ROOT/bin/$ARCH/qstat -u '*' >> $vappio_runtime/sge.running 
     sleep 60 
     i=`expr $i + 1`
 done
@@ -20,5 +20,7 @@ if [ -s $vappio_runtime/sge.running ]
  then
 	cat $vappio_runtime/sge.running	
  else
-	/sbin/shutdown -h +5 "Cron enabled shutdown scheduled. Override by running 'shutdown -c'" 
+    myhostname=`hostname -f`
+    verror("Scheduling shutdown in 5 minutes of $myhostname");
+    /sbin/shutdown -h +5 "Cron enabled shutdown scheduled. Override by running 'shutdown -c'" 
 fi

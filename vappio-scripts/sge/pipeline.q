@@ -11,7 +11,7 @@ processors            UNDEFINED
 qtype                 BATCH INTERACTIVE
 ckpt_list             NONE
 pe_list               make
-rerun                 FALSE
+rerun                 TRUE
 slots                 3 
 tmpdir                /tmp
 shell                 /bin/csh
