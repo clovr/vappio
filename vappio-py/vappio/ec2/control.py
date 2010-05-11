@@ -11,6 +11,10 @@ from igs.utils import logging
 from igs.utils.logging import logPrint, errorPrint, debugPrint
 from igs.utils.commands import runSystemEx, runSingleProgram, runProgramRunnerEx, ProgramRunner
 
+##
+# This module wants to go by
+NAME = 'EC2'
+DESC = """Control module for EC2"""
 
 class Instance:
     """Represents running image"""

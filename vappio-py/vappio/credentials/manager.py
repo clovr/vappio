@@ -23,12 +23,14 @@ class PublicCredential(Record):
 def publicCredentialFromDict(d):
     return PublicCredential(name=d['name'],
                             desc=d['desc'],
-                            ctype=d['ctype'])
+                            ctype=d['ctype'],
+                            active=d['active'])
 
 def publicCredentialToDict(pcred):
     return dict(name=pcred.name,
                 desc=pcred.desc,
-                ctype=pcred.ctype)
+                ctype=pcred.ctype,
+                active=pcred.active)
 
 
 def credentialToDict(cred):
@@ -36,11 +38,12 @@ def credentialToDict(cred):
     The main difference here is the ctype is turned into a string representation
     of the class/module name
     """
-    return dict(name=name,
-                desc=desc,
-                ctype=ctype,
-                cert=reflect.fullyQualifiedName(cert),
-                pkey=pkey)
+    return dict(name=cred.name,
+                desc=cred.desc,
+                ctype=reflect.fullyQualifiedName(cred.ctype),
+                cert=cred.cert,
+                pkey=cred.pkey,
+                active=cred.active)
 
 def credentialFromDict(d):
     """
@@ -49,21 +52,23 @@ def credentialFromDict(d):
     """
     return createCredential(d['name'],
                             d['desc'],
-                            d['ctype'],
-                            reflect.namedAny(d['cert']),
-                            d['pkey'])
+                            reflect.namedAny(d['ctype']),
+                            d['cert'],
+                            d['pkey']
+                            d['active'])
 
-def createCredential(name, desc, ctype, cert, pkey):
+def createCredential(name, desc, ctype, cert, pkey, active):
     """
     name - a string naming the cred
     desc - a free form string describing the cred
     ctype - module/class that should be used to control a cluster in this credential
     cert - contents of certificate data
     pkey - contents of private key data
-
+    active - if the account this credential is attached to is active or not
+    
     *** This is subject to change as this is a first pass
     """
-    return Credential(name=name, desc=desc, ctype=ctype, cert=cert, pkey=pkey)
+    return Credential(name=name, desc=desc, ctype=ctype, cert=cert, pkey=pkey, active=active)
 
 def loadCredential(name):
     return credentialFromDict(persist.load(name))
@@ -72,7 +77,7 @@ def loadAllCredentails():
     return [credentialFromDict(c) for c in persist.loadAll()]
 
 def saveCredential(cred):
-    return credentialToDict(persist.dump(cred))
+    return persist.dump(credentialToDict(cred))
 
 
 def ctypeNameToInstance(name):
@@ -85,4 +90,5 @@ def ctypeNameToInstance(name):
 def credentialToPublicCredential(cred):
     return PublicCredential(name=cred.name,
                             desc=cred.desc,
-                            ctype=cred.ctype.name)
+                            ctype=cred.ctype.NAME
+                            active=cred.active)
