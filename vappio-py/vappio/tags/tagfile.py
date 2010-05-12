@@ -179,7 +179,7 @@ def loadTagFile(fname):
         # Put everythin under phantom
         # We want to do it lazily too since we will be adding
         # data it can access later
-        phantom = configFromMap({'phantom': configToDict(configFromStream(open(fname + '.phantom'), lazy=True))}, lazy=True)
+        phantom = configFromMap({'phantom_tag': True, 'phantom': configToDict(configFromStream(open(fname + '.phantom'), lazy=True))}, lazy=True)
     else:
         phantom = configFromMap({})
 
@@ -203,6 +203,8 @@ def loadTagFile(fname):
 def loadAllTagFiles(directory):
     def _cutExtension(f):
         if f.endswith('.metadata') or f.endswith('.phantom'):
+            ##
+            # Cut off the ending .(metadata|phantom)
             return '.'.join(f.split('.')[:-1])
         return f
     
@@ -221,12 +223,8 @@ def isPhantom(tagfile):
     """
     Returns true if this tagfile contains phantom file information.
     Being a phantom is not mutually exclusive with beinga 'realized'
-    phantom.  That is 'isPhantom(tag) and hasRealFiles(tag)' could be
+    phantom.  That is 'isPhantom(tag) and hasFiles(tag)' could be
     True
     """
-    for k in tagfile.keys():
-        if k.startswith('phantom.'):
-            return True
-
-    return False
+    return tagfile('phantom_tag', default=False)
 
