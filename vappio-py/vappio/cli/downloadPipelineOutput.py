@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils.functional import identity
 
 from vappio.webservice.pipeline import downloadPipelineOutput
 
