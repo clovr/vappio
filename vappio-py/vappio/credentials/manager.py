@@ -43,7 +43,8 @@ def credentialToDict(cred):
                 ctype=reflect.fullyQualifiedName(cred.ctype),
                 cert=cred.cert,
                 pkey=cred.pkey,
-                active=cred.active)
+                active=cred.active,
+                misc=cred.misc)
 
 def credentialFromDict(d):
     """
@@ -55,9 +56,10 @@ def credentialFromDict(d):
                             reflect.namedAny(d['ctype']),
                             d['cert'],
                             d['pkey'],
-                            d['active'])
+                            d['active'],
+                            d['misc'])
 
-def createCredential(name, desc, ctype, cert, pkey, active):
+def createCredential(name, desc, ctype, cert, pkey, active, misc):
     """
     name - a string naming the cred
     desc - a free form string describing the cred
@@ -65,10 +67,12 @@ def createCredential(name, desc, ctype, cert, pkey, active):
     cert - contents of certificate data
     pkey - contents of private key data
     active - if the account this credential is attached to is active or not
+    misc - a dictionary of miscellaneous values for the credential.  this dictionary MUST be
+           convertable to json
     
     *** This is subject to change as this is a first pass
     """
-    return Credential(name=name, desc=desc, ctype=ctype, cert=cert, pkey=pkey, active=active)
+    return Credential(name=name, desc=desc, ctype=ctype, cert=cert, pkey=pkey, active=active, misc=misc)
 
 def loadCredential(name):
     return credentialFromDict(persist.load(name))
