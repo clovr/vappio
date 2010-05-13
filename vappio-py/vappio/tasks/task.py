@@ -32,7 +32,7 @@ class Task(Record):
         return [m for m in self.messages if not m['read']]
     
     def progress(self, inc=1):
-        return self.update(completedSelfs=self.completedTasks + inc)
+        return self.update(completedTasks=self.completedTasks + inc)
 
     def setState(self, state):
         return self.update(state=state)
