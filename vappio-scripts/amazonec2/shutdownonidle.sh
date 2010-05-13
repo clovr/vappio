@@ -21,6 +21,6 @@ if [ -s $vappio_runtime/sge.running ]
 	cat $vappio_runtime/sge.running	
  else
     myhostname=`hostname -f`
-    verror("Scheduling shutdown in 5 minutes of $myhostname");
+    verror "Scheduling shutdown in 5 minutes of $myhostname"
     /sbin/shutdown -h +5 "Cron enabled shutdown scheduled. Override by running 'shutdown -c'" 
 fi
