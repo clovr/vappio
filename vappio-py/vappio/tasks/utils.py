@@ -10,6 +10,11 @@ from vappio.tasks import task
 def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
     endStates = [task.TASK_FAILED, task.TASK_COMPLETED]
     state = None
+    ##
+    # Some tasks finish *really* quick but this executes just a bit faster.
+    # so wait 2 seconds before checking so we don't end up waitign 30
+    # seconds for no good reason
+    time.sleep(2)
     while state not in endStates:
         tsk = loadTask(host, name, taskName, read=True)
         state = tsk.state

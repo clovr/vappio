@@ -353,13 +353,13 @@ def main(_options, args):
             if autoNodes is not False:
                 logPrint('Terminating cluster...')
                 terminateCluster('localhost', clusterName, True)
-            else:
+            elif clusterName != 'local':
                 print
                 print '*' * 40
                 print 'Do not forget that you need to manually terminate your cluster when you are done'
                 print 'You can terminate your cluster with the following command:'
                 print 'terminateCluster.py --name=' + clusterName
-        else:
+        elif pipelineInfo['state'] != 'complete' and clusterName != 'local':
             errorPrint('The pipeline failed!!!!')
 
             print
@@ -379,6 +379,10 @@ def main(_options, args):
                 print 'Remember you MUST terminate your the cluster manually when you are done.'
                 print 'You can terminate the cluster by running:'
                 print 'terminateCluster.py --name=' + clusterName
+        elif pipelineInfo['state'] != 'complete' and clusterName == 'local':
+            print
+            print '*' * 40
+            print 'Your pipeline failed!'
         
             
     except MissingOptionError, err:
