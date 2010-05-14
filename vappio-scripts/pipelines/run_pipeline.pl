@@ -41,6 +41,7 @@ sub make_pipeline {
                                           );
 
     my $ergatisConfig = new Ergatis::ConfigFile(-file => $ergatisConfigFile);
+    $ergatisConfig->newval('workflow_settings', 'observer_scripts', 'echo.py:setlife:prop.conf');
     $pipeline->run('ergatis_cfg' => $ergatisConfig);
     return $pipeline_id
 }
