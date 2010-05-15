@@ -42,19 +42,31 @@ then
 	vlog "wfcomponentdir: $wfcomponentdir"
 	vlog "wfgroupdir: $wfgroupdir"
 
-	echo "$wfdir" > $request_cwd/wfdir
 	if [ -z "$wfdir" ]
 	then
 		vlog "Unable to parse workflow directory from wfxml=$wfxml" 
-		exit 1;
+		exit 100
 	fi
     	if [ -z "$wfgroupdir" ]
 	then
 		vlog "Unable to parse group directory from wfxml=$wfxml" 
-		exit 1;
+		exit 100
 	fi
 	
+	echo "$wfdir" > $request_cwd/wfdir
+        if [ $? -ne 0 ]
+        then
+            vlog "Cannot save file $request_cwd/wfdir: $?"
+            exit 100
+        fi
+	
 	mkdir -p $wfdir
+	if [ $? -ne 0 ]
+	then
+	    vlog "Cannot create directory $wfdir: $?"
+	    exit 100
+	fi
+
 	vlog "Submitting staging job for $wfxml@$myhost to wf.q" 
 	#Get workflow xml and final.config from the master to the exec host
         cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $wfq $stagingwf_script $myhost $wfxml"
@@ -63,16 +75,16 @@ then
 	ret1=$?
 	if [ $ret1 -ne 0 ] 
 	then
-	  vlog "Error during qsub return code: $cmd"
-	  exit $ret1
+	  vlog "Error during qsub return code: $ret1"
+	  exit 100
 	fi
+
 	#Sync staging dir from any data node
 	#vlog "Submitting staging job for staging_dir@$myhost" 
         #cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $stagingq,$stagingsubq $staging_script $myhost"
         #vlog "CMD: $cmd" 
 	#$cmd 1>> $vappio_log 2>> $vappio_log
-	vlog "Skipping re-staging of staging_dir@$myhost"
-
+	
         #Previous steps should have completed, so now we should have all our inputs are are ready to run
 	#First read the .final.config file to retrieve the output repository 
         outprefix=`grep OUTPUT_DIRECTORY $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
@@ -80,10 +92,15 @@ then
 	if [ -z "$outprefix" ]
 	then
 		vlog "Unable to parse output directory from $wfcomponentdir/*.final.config" 
-		exit 1;
+		exit 100
 	fi 
 	#Save the output repository name to a file
         echo "$outdir" > $request_cwd/outdir
+	if [ $? -ne 0 ]
+	then
+	    vlog "Unable to save output directory in file $request_cwd/outdir"
+	    exit 100
+	fi
 fi
 
-exit
+exit 0

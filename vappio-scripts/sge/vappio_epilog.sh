@@ -22,13 +22,13 @@ outdir=`cat ${request_cwd}/outdir`
 if [ -z "$wfdir" ]
 then
 	vlog "Unable to retrive wfdir from file ${request_cwd}/wfdir" 
-	exit 1;
+	exit 100
 fi
 
 if [ -z "$outdir" ]
 then
     vlog "Unable to retrive wfdir from file ${request_cwd}/outdir" 
-    exit 1;
+    exit 100
 fi
 
 #Harvest output directory
@@ -41,7 +41,7 @@ vlog "rsync return value: $ret"
 if [ $ret1 -ne 0 ]
 then
  vlog "Error during harvesting data qsub return code: $ret1"
- exit $ret1
+ exit 100
 fi
 
 #Harvest wf xml
@@ -51,10 +51,10 @@ vlog "CMD: $cmd"
 $cmd 1>> $vappio_log 2>> $vappio_log
 ret2=$?
 vlog "rsync return value: $ret2"
-f [ $ret2 -ne 0 ]
+if [ $ret2 -ne 0 ]
 then
  vlog "Error during harvesting workflow qsub return code: $ret2"
- exit $ret2
+ exit 100
 fi
 
 exit
