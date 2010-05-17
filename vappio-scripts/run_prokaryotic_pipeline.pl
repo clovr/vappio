@@ -368,8 +368,12 @@ sub start_pipeline {
 
     #build the command
     my $cmd = $runPipeline_exec." --name $cluster_tag --pipeline-name $pipeline_name --pipeline barebones_prok ".
-        "-- --INPUT_FILE_LIST $input_tag --OUTPUT_PREFIX $output_prefix --ORGANISM \"$organism\" --GROUP_COUNT ".
-        ($exec_nodes * 2)." --DATABASE_PATH $reference_tag --conf $clovr_conf";
+        "-- --INPUT_FILE_LIST $input_tag --OUTPUT_PREFIX $output_prefix --ORGANISM \"$organism\" --DATABASE_PATH $reference_tag --conf $clovr_conf";
+    my $group_count = $exec_nodes * 2;
+    if( $group_count == 0 ) {
+	$group_count = 10;
+    }
+    $cmd .= " --GROUP_COUNT $group_count";
     $cmd .= " --TRIM $trim" if( $trim );
     $cmd .= " --LINKER $linker" if( $linker );
     $cmd .= " --CLEAR $clear" if( $clear );
