@@ -4,6 +4,8 @@ import os
 
 from igs.utils.ssh import scpToEx, scpFromEx
 from igs.utils.logging import errorPrintS
+from igs.utils.errors import TryError
+from igs.utils.commands import ProgramRunError
 
 from vappio.tags.tagfile import loadTagFile, isPhantom
 
@@ -30,13 +32,16 @@ def makeDirsOnCluster(cluster, dirNames):
                             user=cluster.config('ssh.user'),
                             options=cluster.config('ssh.options'),
                             log=True)
-        runSystemInstanceEx(cluster.master,
-                            'chown -R %s %s' % (cluster.config('vappio.user'), d),
-                            None,
-                            errorPrintS,
-                            user=cluster.config('ssh.user'),
-                            options=cluster.config('ssh.options'),
-                            log=True)
+        try:
+            runSystemInstanceEx(cluster.master,
+                                'chown -R %s %s' % (cluster.config('vappio.user'), d),
+                                None,
+                                errorPrintS,
+                                user=cluster.config('ssh.user'),
+                                options=cluster.config('ssh.options'),
+                                log=True)
+        except ProgramRunError, err:
+            raise TryError('Could not chown directory', err)
     
 def uploadTag(srcCluster, dstCluster, tagName, tagData):
     """
@@ -70,7 +75,10 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
 
     ##
     # Next, lets call 'mkdir -p' on all the dirs we need to make on the destination cluster
-    makeDirsOnCluster(dstCluster, dirNames)
+    try:
+        makeDirsOnCluster(dstCluster, dirNames)
+    except TryError, err:
+        errorPrint('Caught TryError, ignoring for now: %s - %s ' (err.msg, str(err.result)))
 
     ##
     # Now, copy up all of the files
@@ -133,7 +141,10 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
 
     ##
     # Make all of the directories
-    makeDirsOnCluster(dstCluster, dirNames)
+    try:
+        makeDirsOnCluster(dstCluster, dirNames)
+    except TryError, err:
+        errorPrint('Caught TryError, ignoring for now: %s - %s ' (err.msg, str(err.result)))    
 
     ##
     # Copy the files locally
