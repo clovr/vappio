@@ -80,8 +80,8 @@ def confIfPipelineConfigSet(conf, options):
     applies the functions in the OPTIONS variable in the values in
     the config file
     """
-    if conf('pipeline_conf', default=None) is not None:
-        fconf = configFromStream(open(conf('pipeline_conf')))
+    if conf('CONFIG_FILE', default=None) is not None:
+        fconf = configFromStream(open(conf('CONFIG_FILE')))
         keys = fconf.keys()
         m = {}
         for o in options:
@@ -93,7 +93,7 @@ def confIfPipelineConfigSet(conf, options):
                 m[name] = applyIfCallable(f(fconf(name)), conf)
 
         
-        return configFromMap(m, configFromStream(open(conf('pipeline_conf')), conf))
+        return configFromMap(m, configFromStream(open(conf('CONFIG_FILE')), conf))
     else:
         return conf
 
@@ -118,7 +118,7 @@ def runPipeline(name, pipeline, args=None):
     # Mocheezmo way to have it load a conf file.  This will be removed in the future
     options = list(pipeline.OPTIONS)
     options.append(('conf', '', '--conf', 'Conf file (DO NOT SPECIFY, FOR INTERNAL USE)', const('/tmp/machine.conf')))
-    options.append(('pipeline_conf', '-c', '--CONFIG_FILE',
+    options.append(('CONFIG_FILE', '-c', '--CONFIG_FILE',
                     'Config file for the pipeline.  Specify this if you do not want to specify options on the comamnd line', identity))
     
     conf, _args = buildConfigN(options, args, putInGeneral=False)
