@@ -430,7 +430,7 @@ sub download_data {
     
     my $downloadPipelineOutput_exe = $vappio_cli."/downloadPipelineOutput.py";
     my $cmd = $downloadPipelineOutput_exe." --name $cluster_tag --pipeline $pipeline_name ".
-        "--output-dir $output_dir --overwrite";
+        "--output-dir $output_dir --overwrite -b";
     &_log($DEBUG, "Downloading pipeline data. This could take a while. [$cmd]");
     system("$cmd");
     if( $? != 0 ) {
