@@ -100,7 +100,8 @@ def downloadPipeline(instance, conf, pipelineId, outDir, outBaseName, overwrite=
            'tar',
            '-zcf',
            outF,
-           'output_repository/*/%s_default' % pipelineId]
+           'output_repository/*/%s_*' % pipelineId,
+           'workflow/runtime/*/%s_*' % pipelineId]
     
     runSystemInstanceEx(instance, ' '.join(cmd), None, (log and errorPrintS or None), user=conf('ssh.user'), options=conf('ssh.options'), log=log)
     outFilename = os.path.join(outDir, os.path.basename(outF))
