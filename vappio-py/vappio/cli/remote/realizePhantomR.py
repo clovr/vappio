@@ -69,13 +69,13 @@ def main(options, _args):
             if endState == task.TASK_FAILED:
                 tsk = tsk.setState(task.TASK_FAILED)
             else:
-                tsk = tsk.progress()
+                tsk = tsk.progress().setState(task.TASK_COMPLETED)
         except Exception, err:
             tsk = tsk.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, str(err))
     else:
         ##
         # Skip the two steps that happened in there
-        tsk = tsk.progress(2).addMessage(task.MSG_SILENT, 'File tag already realized')
+        tsk = tsk.progress(2).addMessage(task.MSG_SILENT, 'File tag already realized').setState(task.TASK_COMPLETED)
 
     tsk = task.updateTask(tsk)
 
