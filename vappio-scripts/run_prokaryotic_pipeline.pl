@@ -371,7 +371,7 @@ sub start_pipeline {
         "-- --INPUT_FILE_LIST $input_tag --OUTPUT_PREFIX $output_prefix --ORGANISM \"$organism\" --DATABASE_PATH $reference_tag --conf $clovr_conf";
     my $group_count = $exec_nodes * 2;
     if( $group_count == 0 ) {
-	$group_count = 10;
+	$group_count = 20;
     }
     $cmd .= " --GROUP_COUNT $group_count";
     $cmd .= " --TRIM $trim" if( $trim );
