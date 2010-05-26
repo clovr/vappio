@@ -22,9 +22,9 @@ class QueryTag(CGIPage):
         if request['name'] == 'local':
             cluster = loadCluster('localhost', 'local')
             if 'tag_name' in request:
-                return json.dumps([True, [configToDict(loadTagFile(os.path.join(cluster.config('dirs.tag_dir'), request['tag_name'])))]])
+                return json.dumps([True, {request['tag_name']: configToDict(loadTagFile(os.path.join(cluster.config('dirs.tag_dir'), request['tag_name'])))}])
             else:
-                return json.dumps([True, [configToDict(t) for t in loadAllTagFiles(cluster.config('dirs.tag_dir'))]])
+                return json.dumps([True, dict([(k, configToDict(v)) for k, v in loadAllTagFiles(cluster.config('dirs.tag_dir')).iteritems()])])
         else:
             ##
             # Forward the request onto the appropriate machine
