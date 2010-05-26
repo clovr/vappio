@@ -209,7 +209,7 @@ def loadAllTagFiles(directory):
         return f
     
     tags = set([_cutExtension(f) for f in os.listdir(directory)])
-    return [loadTagFile(os.path.join(directory, f)) for f in tags]
+    return dict([(f, loadTagFile(os.path.join(directory, f))) for f in tags])
     
 def hasFiles(tagfile):
     """
