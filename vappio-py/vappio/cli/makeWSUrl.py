@@ -12,8 +12,8 @@ from igs.cgi import request
 
 OPTIONS = [
     ('json', '-j', '--json', 'JSON to pass (reads from stdin by default)', func.identity),
-    ('do_request', '-d', '--do', 'Do the actual request and print the results rather than just the URL', func.identity, True),
     ('url', '-u', '--url', 'URL to perform the query on', cli.notNone),
+    ('debug', '-d', '--debug', 'Turn debugging on so you can see exactly what is going on behind the scenes', func.identity, True)
     ]
 
 
@@ -27,8 +27,7 @@ def main(options, _args):
 
     urlParsed = urlparse(options('general.url'))
         
-    if options('general.do_request'):
-        print json.dumps(request.performQuery(urlParsed.netloc, urlparsed.path, json.loads(jsonQuery)))
+    print json.dumps(request.performQuery(urlParsed.netloc, urlParsed.path, json.loads(jsonQuery), debug=options('general.debug')), indent=True)
         
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS))
