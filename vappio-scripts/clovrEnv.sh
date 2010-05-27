@@ -7,17 +7,24 @@ export BIOINF_HOME=/opt/opt-packages/bioinf-v1r4b1/
 export RDP_JAR_PATH=$BIOINF_HOME/rdp_classifier/rdp_classifier-2.0.jar
 
 export VAPPIO_HOME=/opt
-export PYTHONPATH=$PYTHONPATH:$VAPPIO_HOME/vappio-py:$BIOINF_HOME/Denoiser/:$BIOINF_HOME/PyNAST/:$BIOINF_HOME/Qiime/lib/
+export PYTHONPATH=$PYTHONPATH:$VAPPIO_HOME/vappio-py:$BIOINF_HOME/Denoiser/:$BIOINF_HOME/PyNAST/lib/:$BIOINF_HOME/qiime/lib/
 export JAVA_HOME=/usr
   
 export PATH=$PATH:/usr/local/bin:/usr/local/sbin:/usr/sbin
 export PATH=$PATH:/opt/vappio-py/vappio/cli:/opt/vappio-py/vappio/cli/remote:/opt/vappio-scripts:/opt/vappio-scripts/pipelines
 export PATH=$PATH:/opt/crossbow/ec2-local:/opt/crossbow/local:/opt/samtools:/opt/cufflinks
-export PATH=$PATH:$BIOINF_HOME/cd-hit/:$BIOINF_HOME/FastTree:$BIOINF_HOME/rdp_classifier:$BIOINF_HOME/UCLUST/
+export PATH=$PATH:$BIOINF_HOME/cd-hit/:$BIOINF_HOME/FastTree:$BIOINF_HOME/rdp_classifier:$BIOINF_HOME/UCLUST/:$BIOINF_HOME/MUSCLE/:$BIOINF_HOME/mafft/bin/:$BIOINF_HOME/PyNAST/bin/:$BIOINF_HOME/qiime/bin/:$BIOINF_HOME/mothur/:$BIOINF_HOME/microbiomeutil/ChimeraSlayer/
 
 ##
 # Something weird for mongodb
 export PYTHON_EGG_CACHE=/tmp/python-eggs
+
+## Qiime needs the an env variable set to point to the
+## .qiime_config file
+export QIIME_CONFIG_FP=$BIOINF_HOME/qiime/.qiime_config
+
+## Qiime needs the BLASTMAT env set
+export BLASTMAT=/usr/share/ncbi/data/
 
 ##
 # These are temporary right now, trying to figure out the best way to 
