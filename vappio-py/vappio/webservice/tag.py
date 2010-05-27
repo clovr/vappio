@@ -45,7 +45,7 @@ def listAllTags(host, name):
 def queryTag(host, name, tagName):
     ##
     # A tag may contain some keys that shouldn't be evaluated
-    return configFromMap(performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName))[0], lazy=True)
+    return configFromMap(performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName))[tagName], lazy=True)
 
 def realizePhantom(host, name, tagName):
     return performQuery(host, REALIZEPHANTOM_URL, dict(name=name, tag_name=tagName))
