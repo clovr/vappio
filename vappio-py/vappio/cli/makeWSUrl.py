@@ -12,20 +12,24 @@ from igs.cgi import request
 
 OPTIONS = [
     ('json', '-j', '--json', 'JSON to pass (reads from stdin by default)', func.identity),
-    ('url', '-u', '--url', 'URL to perform the query on', cli.notNone),
     ('debug', '-d', '--debug', 'Turn debugging on so you can see exactly what is going on behind the scenes', func.identity, True)
     ]
 
 
 
-def main(options, _args):
+def main(options, args):
     if options('general.json'):
         jsonQuery = options('general.json')
     else:
         jsonQuery = sys.stdin.read()
 
 
-    urlParsed = urlparse(options('general.url'))
+    if not args:
+        raise Exception('You must specify a URL')
+    else:
+        url = args[0]
+        
+    urlParsed = urlparse(url)
         
     print json.dumps(request.performQuery(urlParsed.netloc, urlParsed.path, json.loads(jsonQuery), debug=options('general.debug')), indent=True)
         
