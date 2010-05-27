@@ -7,6 +7,8 @@ import json
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQueryNoParse
 from igs.utils.config import configToDict
+from igs.utils import functional as func
+
 
 from vappio.tags.tagfile import loadTagFile, loadAllTagFiles
 
@@ -22,9 +24,13 @@ class QueryTag(CGIPage):
         if request['name'] == 'local':
             cluster = loadCluster('localhost', 'local')
             if 'tag_name' in request:
-                return json.dumps([True, {request['tag_name']: configToDict(loadTagFile(os.path.join(cluster.config('dirs.tag_dir'), request['tag_name'])))}])
+                return json.dumps([True, func.updateDict(configToDict(loadTagFile(os.path.join(cluster.config('dirs.tag_dir'),
+                                                                                               request['tag_name']))),
+                                                         dict(name=request['tag_name']))])
             else:
-                return json.dumps([True, dict([(k, configToDict(v)) for k, v in loadAllTagFiles(cluster.config('dirs.tag_dir')).iteritems()])])
+                return json.dumps([True, [func.updateDict(configToDict(v), dict(name=k))
+                                          for k, v in
+                                          loadAllTagFiles(cluster.config('dirs.tag_dir')).iteritems()]])
         else:
             ##
             # Forward the request onto the appropriate machine
