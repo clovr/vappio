@@ -25,10 +25,12 @@ def performQuery(host, url, var, timeout=30, debug=False):
     try:
         ok, result = json.loads(data)
         if not ok:
-            raise TryError(str(res), None)
+            raise TryError(str(result), None)
         return result
-    except:
-        raise ValueError('Unknown data: ' + data)
+    except TryError:
+        raise
+    except Exception, err:
+        raise ValueError('Unknown data: ' + str(data))
 
 def readQuery():
     form = cgi.FieldStorage()
