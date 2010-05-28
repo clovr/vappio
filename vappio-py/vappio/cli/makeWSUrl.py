@@ -31,7 +31,7 @@ def main(options, args):
         
     urlParsed = urlparse(url)
         
-    print json.dumps(request.performQuery(urlParsed.netloc, urlParsed.path, json.loads(jsonQuery), debug=options('general.debug')), indent=True)
+    print json.dumps([True, request.performQuery(urlParsed.netloc, urlParsed.path, json.loads(jsonQuery), debug=options('general.debug'))], indent=True)
         
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS))
