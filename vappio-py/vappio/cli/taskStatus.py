@@ -17,7 +17,6 @@ OPTIONS = [
     ('name', '', '--name', 'Name of cluster', notNone),
     ('read', '', '--read', 'Mark any messages as read', identity, True),
     ('show_msgs', '', '--show', 'Print out any messages present', identity, True),
-    ('show_unread_msgs', '', '--show-unread', 'Print out only unread messages', identity, True),
     ('show_error_msgs', '', '--show-error', 'Print out only error messages', identity, True),
     ('show_debug_msgs', '', '--show-debug', 'Print out any debug messages', identity, True),
     ('debug', '', '--debug', 'Print debugging messages', identity, True),
@@ -29,15 +28,12 @@ def main(options, tasks):
     if options('general.debug'):
         logging.DEBUG = True
 
-    if options('general.read'):
-        debugPrint(lambda : 'Will mark any messages unread as read')
-        
     if not tasks:
         debugPrint(lambda : 'No task names provided, loading all from database')
-        tasks = loadAllTasks(options('general.host'), options('general.name'), read=options('general.read'))
+        tasks = loadAllTasks(options('general.host'), options('general.name'))
     else:
         debugPrint(lambda : 'Task names provided, loading from database')
-        tasks = [loadTask(options('general.host'), options('general.name'), t, read=options('general.read'))
+        tasks = [loadTask(options('general.host'), options('general.name'), t)
                  for t in tasks]
 
     if options('general.no_completed'):
