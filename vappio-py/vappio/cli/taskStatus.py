@@ -55,9 +55,9 @@ def main(options, tasks):
                                                              t.completedTasks,
                                                              t.numTasks,
                                                              int(float(t.completedTasks)/t.numTasks * 100.0))
-        if options('general.show_msgs') or options('general.show_unread_msgs') or options('general.show_debug_msgs'):
+        if options('general.show_msgs') or options('general.show_debug_msgs'):
             for m in t.messages:
-                if m['mtype'] == task.MSG_NOTIFICATION and (options('general.show_msgs') or options('general.show_unread_msgs')):
+                if m['mtype'] == task.MSG_NOTIFICATION and options('general.show_msgs'):
                     print 'Notification: ' + m['data']
                 elif m['mtype'] == task.MSG_ERROR and (options('general.show_msgs') or options('general.show_error_msgs')):
                     print 'Error: ' + m['data']
