@@ -21,17 +21,9 @@ class Task(CGIPage):
         if request['name'] == 'local':
             if 'task_name' in request:
                 task = loadTask(request['task_name'])
-                if request['read']:
-                    ##
-                    # If read is true then we set all of the messages to
-                    # be read and save that back
-                    saveTask(task.readMessages())
                 return json.dumps([True, [taskToDict(task)]])
             else:
                 tasks = loadAllTasks()
-                if request['read']:
-                    for t in tasks:
-                        saveTask(t.readMessages())
                 return json.dumps([True, [taskToDict(t) for t in tasks]])
         else:
             ##
