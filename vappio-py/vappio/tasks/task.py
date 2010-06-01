@@ -1,5 +1,7 @@
 ##
 # Currently this isn't concurrency safe, assuming that we will be such low traffic it won't be an issue though
+import time
+
 from igs.utils.functional import Record, updateDict
 
 from vappio.tasks.persist import load, loadAll, dump, TaskDoesNotExistError
@@ -20,22 +22,23 @@ MSG_SILENT = 'silent'
 
 class Task(Record):
     def addMessage(self, mtype, msg):
-        return self.update(messages=self.messages + [dict(mtype=mtype, data=msg, read=False)])
+        t = time.time()
+        return self.update(timestamp=t,
+                           messages=self.messages + [dict(mtype=mtype, data=msg, timestamp=t)])
 
-    def readMessages(self):
+    def getMessagesAfterTime(self, t):
         """
-        Returns a new self with all of the messages read
+        Returns a list of message from after the specified time
         """
-        return self.update(messages=[updateDict(dict(m), dict(read=True)) for m in self.messages])
-
-    def getUnreadMessages(self):
-        return [m for m in self.messages if not m['read']]
+        return [m for m in self.messages if m['timestamp'] > t]
     
     def progress(self, inc=1):
-        return self.update(completedTasks=self.completedTasks + inc)
+        return self.update(timestamp=time.time(),
+                           completedTasks=self.completedTasks + inc)
 
     def setState(self, state):
-        return self.update(state=state)
+        return self.update(timestamp=time.time(),
+                           state=state)
     
 
 def taskToDict(task):
@@ -43,14 +46,16 @@ def taskToDict(task):
                 state=task.state,
                 completedTasks=task.completedTasks,
                 numTasks=task.numTasks,
-                messages=task.messages)
+                messages=task.messages,
+                timestamp=task.timestamp)
 
 def taskFromDict(d):
     return Task(name=d['name'],
                 state=d['state'],
                 completedTasks=d['completedTasks'],
                 numTasks=d['numTasks'],
-                messages=d['messages'])
+                messages=d['messages'],
+                timestamp=d['timestamp'])
 
 
 def loadTask(name):
@@ -65,25 +70,11 @@ def saveTask(task):
 
 def updateTask(task):
     """
-    This saves a task.  It needs to do a little bit of work in terms
-    of the messages.  Because they can be read elsewhere it will load
-    the task from the database (if present) and check to see if any messages
-    have been marked as read.  If so it will mark its versions as read then
-    save them
+    Currently this does the samet hign as saveTask.  In the future this should be
+    modified to ensure that the task has not been modified between load and update
     """
-    try:
-        oldTask = loadTask(task.name)
-        if len(oldTask.messages) < len(task.messages):
-            task = task.update(messages=oldTask.messages + task.messages[len(oldTask.messages):])
-        else:
-            task = task.update(messages=oldTask.messages)
-        dump(taskToDict(task))
-        return task
-    except TaskDoesNotExistError:
-        ##
-        # If this is the first time saving it won't exist, so just save it
-        dump(taskToDict(task))
-        return task
+    return saveTask(task)
+
 
 
 def createTask(name, state, numTasks):
@@ -91,7 +82,8 @@ def createTask(name, state, numTasks):
                 state=state,
                 completedTasks=0,
                 numTasks=numTasks,
-                messages=[])
+                messages=[],
+                timestamp=time.time())
 
 
 

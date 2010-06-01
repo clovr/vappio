@@ -10,15 +10,21 @@ from vappio.tasks import task
 def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
     endStates = [task.TASK_FAILED, task.TASK_COMPLETED]
     state = None
+    prevTime = None
     ##
     # Some tasks finish *really* quick but this executes just a bit faster.
     # so wait 2 seconds before checking so we don't end up waitign 30
     # seconds for no good reason
     time.sleep(2)
     while state not in endStates:
-        tsk = loadTask(host, name, taskName, read=True)
+        tsk = loadTask(host, name, taskName)
         state = tsk.state
-        for m in tsk.getUnreadMessages():
+        if prevTime is None:
+            msgs = tsk.getMessages()
+        else:
+            msgs = tsk.getMessagesAfterTime(prevTime)
+        prevTime = tsk.timestamp
+        for m in msgs:
             if m['mtype'] == task.MSG_ERROR:
                 errorF(m['data'])
             elif m['mtype'] == task.MSG_NOTIFICATION:
