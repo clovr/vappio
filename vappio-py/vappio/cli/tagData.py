@@ -6,6 +6,7 @@ from igs.utils.functional import identity
 
 from vappio.webservice.tag import tagData
 
+from vappio.tasks.task import TASK_FAILED
 from vappio.tasks.utils import blockOnTask
 
 OPTIONS = [
@@ -16,7 +17,8 @@ OPTIONS = [
     ('recursive', '-r', '--recursive', 'Recursively include directories', defaultIfNone(False), True),
     ('expand', '-e', '--expand', 'Expand archives', defaultIfNone(False), True),
     ('append', '-a', '--append', 'Append listed files to tag name, ignoring duplicate files', defaultIfNone(False), True),
-    ('overwrite', '-o', '--overwrite', 'Overwrite file list if it exists', defaultIfNone(False), True)
+    ('overwrite', '-o', '--overwrite', 'Overwrite file list if it exists', defaultIfNone(False), True),
+    ('block', '-b', '--block', 'Block on the tagging', defaultIfNone(False), True),
     ]
 
 
@@ -40,7 +42,13 @@ def main(options, files):
                        options('general.expand'),
                        options('general.append'),
                        options('general.overwrite'))
-    blockOnTask(options('general.host'), options('general.name'), taskName)
+
+    if options('general.block'):
+        state = blockOnTask(options('general.host'), options('general.name'), taskName)
+        if state == TASK_FAILED:
+            raise Exception('Tagging data filed')
+    
+    
 
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS, usage='--name=cluster --tag-name=name [options] file_1 .. file_n'))

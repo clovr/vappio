@@ -26,6 +26,9 @@ class Task(Record):
         return self.update(timestamp=t,
                            messages=self.messages + [dict(mtype=mtype, data=msg, timestamp=t)])
 
+    def getMessages(self):
+        return self.messages
+    
     def getMessagesAfterTime(self, t):
         """
         Returns a list of message from after the specified time
