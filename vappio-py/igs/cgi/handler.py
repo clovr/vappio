@@ -7,6 +7,8 @@ import cgitb
 import traceback
 from StringIO import StringIO
 
+from twisted.python import reflect
+
 from igs.utils import logging
 
 
@@ -56,11 +58,13 @@ def generatePage(cgiPage):
         if cgiPage.headers:
             print '\n'.join([h + ': ' + v for h, v in cgiPage.headers.iteritems()])
         print
-        print body
-    except:
+        print json.dumps([True, body])
+    except Exception, err:
         print cgiPage.contentType
         print
         stream = StringIO()
         traceback.print_exc(file=stream)
-        print json.dumps([False, stream.getvalue()])
+        print json.dumps([False, dict(stacktrace=stream.getvalue(),
+                                      name=reflect.fullyQualifiedName(reflect.getClass(err)),
+                                      msg=str(err))])
     

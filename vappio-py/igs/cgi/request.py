@@ -25,7 +25,7 @@ def performQuery(host, url, var, timeout=30, debug=False):
     try:
         ok, result = json.loads(data)
         if not ok:
-            raise TryError(str(result), None)
+            raise TryError('Query failed', result)
         return result
     except TryError:
         raise
