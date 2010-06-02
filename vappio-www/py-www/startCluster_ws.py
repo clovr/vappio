@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import json
-
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery
 from igs.utils.commands import runSystemEx
@@ -30,7 +28,7 @@ class StartCluster(CGIPage):
 
         runSystemEx(' '.join(cmd))
 
-        return json.dumps([True, taskName])
+        return taskName
                
 
         

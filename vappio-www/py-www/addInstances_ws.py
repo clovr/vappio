@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import time
-import json
 
 from igs.utils.core import getStrBetween
 from igs.cgi.handler import CGIPage, generatePage
@@ -32,7 +31,7 @@ class AddInstances(CGIPage):
 
         runSystemEx(' '.join(cmd))
 
-        return json.dumps([True, taskName])
+        return taskName
                
 
         

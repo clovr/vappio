@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-
-import json
-
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQueryNoParse
 from igs.utils.config import configToDict
@@ -25,6 +22,6 @@ class TerminateCluster(CGIPage):
         cluster = loadCluster('localhost', request['name'], request['force'])
         terminateCluster(cluster)
         cleanUp(request['name'])
-        return json.dumps([True, None])
+        return None
 
 generatePage(TerminateCluster())

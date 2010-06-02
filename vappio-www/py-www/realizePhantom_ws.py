@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 ##
 # Uploads a file tag and tags it on remote side
-import json
-
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
@@ -36,7 +34,7 @@ class RealizePhantom(CGIPage):
             request['name'] = 'local'
             taskName = performQuery(cluster.master.publicDNS, URL, request)
 
-        return json.dumps([True, taskName])
+        return taskName
                
 
         

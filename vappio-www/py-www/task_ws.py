@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 ##
-
-import json
-
 from igs.cgi.handler import CGIPage, generatePage
-from igs.cgi.request import readQuery, performQueryNoParse
+from igs.cgi.request import readQuery, performQuery
 from igs.utils.errors import TryError
 
 from vappio.webservice.cluster import loadCluster
@@ -24,13 +21,13 @@ class Task(CGIPage):
                 return json.dumps([True, [taskToDict(task)]])
             else:
                 tasks = loadAllTasks()
-                return json.dumps([True, [taskToDict(t) for t in tasks]])
+                return [taskToDict(t) for t in tasks]
         else:
             ##
             # Forward the request onto the appropriate machine
             cluster = loadCluster('localhost', request['name'])
             request['name'] = 'local'
-            return performQueryNoParse(cluster.master.publicDNS, URL, request)        
+            return performQuery(cluster.master.publicDNS, URL, request)        
             
         
 generatePage(Task())

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import time
-import json
 
 from igs.utils.core import getStrBetween
 from igs.cgi.handler import CGIPage, generatePage
@@ -29,7 +28,7 @@ class DownloadPipelineOutput(CGIPage):
 
         runSystemEx(' '.join(cmd))
 
-        return json.dumps([True, taskName])
+        return taskName
                
 
         

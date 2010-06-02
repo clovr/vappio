@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 import os
-import json
 
 from igs.utils.core import getStrBetween
 from igs.cgi.handler import CGIPage, generatePage
-from igs.cgi.request import readQuery, performQueryNoParse
+from igs.cgi.request import readQuery, performQuery
 
 from vappio.pipeline_tools.persist import load, loadAll
 
@@ -35,13 +34,13 @@ class PipelineStatus(CGIPage):
             else:
                 pipelines = loadAll()
         
-            return json.dumps([True, [getPipelineStatus(p) for p in pipelines]])
+            return [getPipelineStatus(p) for p in pipelines]
         else:
             ##
             # Forward the request onto the appropriate machine
             cluster = loadCluster('localhost', request['name'])
             request['name'] = 'local'
-            return performQueryNoParse(cluster.master.publicDNS, URL, request)
+            return performQuery(cluster.master.publicDNS, URL, request)
 
         
 generatePage(PipelineStatus())

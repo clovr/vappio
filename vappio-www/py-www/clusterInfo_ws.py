@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 ##
 # This script serves double duty.  It can either return local information or proxy out to another cluster
-
-import json
-
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.errors import TryError
@@ -32,11 +29,11 @@ class ClusterInfo(CGIPage):
         # TryError gave back
         try:
             cluster = load(request['name'])
-            return json.dumps([True, clusterToDict(cluster)])
+            return clusterToDict(cluster)
         except TryError, err:
             if request['partial']:
                 cluster = err.result
-                return json.dumps([True, clusterToDict(cluster)])
+                return clusterToDict(cluster)
             else:
                 raise
             
