@@ -23,9 +23,9 @@ class QueryTag(CGIPage):
         if request['name'] == 'local':
             cluster = loadCluster('localhost', 'local')
             if 'tag_name' in request:
-                return func.updateDict(configToDict(loadTagFile(os.path.join(cluster.config('dirs.tag_dir'),
-                                                                             request['tag_name']))),
-                                       dict(name=request['tag_name']))
+                return [func.updateDict(configToDict(loadTagFile(os.path.join(cluster.config('dirs.tag_dir'),
+                                                                              request['tag_name']))),
+                                        dict(name=request['tag_name']))]
             else:
                 return [func.updateDict(configToDict(v), dict(name=k))
                         for k, v in
