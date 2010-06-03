@@ -78,7 +78,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
     try:
         makeDirsOnCluster(dstCluster, dirNames)
     except TryError, err:
-        errorPrint('Caught TryError, ignoring for now: %s - %s ' (err.msg, str(err.result)))
+        errorPrint('Caught TryError, ignoring for now: %s - %s ' % (err.msg, str(err.result)))
 
     ##
     # Now, copy up all of the files
@@ -86,13 +86,16 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
         scpToEx(dstCluster.master.publicDNS, l, d, user=srcCluster.config('ssh.user'), options=srcCluster.config('ssh.options'), log=True)
         ##
         # We are uploading as root, so chown everything to the user that everything in vappio will be done under
-        runSystemInstanceEx(dstCluster.master,
-                            'chown %s %s' % (dstCluster.config('vappio.user'), d),
-                            None,
-                            errorPrintS,
-                            user=dstCluster.config('ssh.user'),
-                            options=dstCluster.config('ssh.options'),
-                            log=True)
+        try:
+            runSystemInstanceEx(dstCluster.master,
+                                'chown %s %s' % (dstCluster.config('vappio.user'), d),
+                                None,
+                                errorPrintS,
+                                user=dstCluster.config('ssh.user'),
+                                options=dstCluster.config('ssh.options'),
+                                log=True)
+        except ProgramRunError:
+            errorPrint('Chown failed on ' + d)
         
     ##
     # return the list of uploaded filenames
