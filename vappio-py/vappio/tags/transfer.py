@@ -3,7 +3,7 @@
 import os
 
 from igs.utils.ssh import scpToEx, scpFromEx
-from igs.utils.logging import errorPrintS
+from igs.utils.logging import errorPrintS, errorPrint
 from igs.utils.errors import TryError
 from igs.utils.commands import ProgramRunError
 
