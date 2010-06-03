@@ -21,6 +21,6 @@ OPTIONS = [
     ('ORGANISM', '', '--ORGANISM', 'Organism name', defaultIfNone('/dev/null')),
     ('GROUP_COUNT', '', '--GROUP_COUNT', 'Corresponds to number of groups to split data into (Ergatis)', defaultIfNone('50')),
     ('DATABASE_PATH', '', '--DATABASE_PATH', 'The tag for the uploaded reference database set', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
-    ('SKIP_BANK', '', '--SKIP_BANK', 'Skip conversion of celera assembler output to AMOS bank format.', compose(lambda x : x and "toAmos,bank-transact,cleanup afg file" or "", defaultIfNone(False)), True)
+    ('SKIP_BANK', '', '--SKIP_BANK', 'Skip conversion of celera assembler output to AMOS bank format.', compose(lambda x : x and "toAmos,bank-transact,cleanup afg file" or "null", defaultIfNone(False)), True)
     ]
 
