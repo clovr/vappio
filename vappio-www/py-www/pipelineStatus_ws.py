@@ -20,7 +20,7 @@ def getPipelineStatus(pipeline):
                        'pid': pipeline.pid,
                        'complete': complete,
                        'total': total}]
-    except Exeption, err:
+    except Exception, err:
         return [False, str(err)]
                 
 class PipelineStatus(CGIPage):
