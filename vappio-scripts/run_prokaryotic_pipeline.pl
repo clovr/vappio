@@ -343,6 +343,7 @@ sub start_pipeline {
     my $clear = $cfg->val('input', 'clear' );
     my $insert_size = $cfg->val('input', 'insert_size' );
     my $spec_file = $cfg->val('input', 'spec_file');
+    my $skip_bank = $cfg->val('input', 'skip_bank');
     my $pipeline_name = $cfg->val('input', 'pipeline_name' ) or
         &_config_error( 'input', 'pipeline_name' );
     my $output_prefix = $cfg->val('input', 'output_prefix' ) or
@@ -377,7 +378,8 @@ sub start_pipeline {
     $cmd .= " --TRIM $trim" if( $trim );
     $cmd .= " --LINKER $linker" if( $linker );
     $cmd .= " --CLEAR $clear" if( $clear );
-    $cmd .= " --SPEC_FILE $spec_file" if( $spec_file );
+    $cmd .= " --SPEC_FILE $spec_file" if( $spec_file ); 
+    $cmd .= " --SKIP_BANK" if ($skip_bank);
     $cmd .= " --INSERT_SIZE \"$insert_size\"" if ($insert_size);
     $cmd .= " 2> $log";
 
