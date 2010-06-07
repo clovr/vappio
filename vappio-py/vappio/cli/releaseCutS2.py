@@ -8,8 +8,9 @@ import os
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils.functional import identity
 from igs.utils.config import replaceStr
-from igs.utils.commands import runSystemEx
-
+from igs.utils.commands import runSystemEx, runSingleProgramEx
+from igs.utils.logging import logPrint, errorPrint
+from igs.threading import threads
 
 
 OPTIONS = [
@@ -40,6 +41,44 @@ def waitForPasswordChange():
         res = sys.stdin.readline().strip()
         
 
+def bundleAMI(chan):
+    options, rchan = chan.receive()
+    try:
+        cmd = ['ec2-bundle-image',
+               '-c ${general.cert}',
+               '-k ${general.key}',
+               '-u ${general.user}',
+               '--kernel ${general.kernel}',
+               '-i ${general.image}',
+               '-d ${general.dest}',
+               '-p ${general.image}',
+               '-r ${general.arch}']
+        
+        if options('general.ec2cert'):
+            cmd.append('--ec2cert ${general.ec2cert}')
+            
+        runSystemEx(replaceStr(' '.join(cmd), options), log=options('general.debug'))
+            
+        cmd = ['ec2-upload-bundle', '-b ${general.image}', '-m ${general.dest}/${general.image}.manifest.xml', '-a ${general.access_key}', '-s ${general.secret_access_key}']
+        runSystemEx(replaceStr(' '.join(cmd), options), log=options('general.debug'))
+        
+        cmd = ['ec2-register', '${general.image}/${general.image}.manifest.xml', '-K ${general.key}', '-C ${general.cert}']
+
+        outp = []
+        runSingleProgramEx(replaceStr(' '.join(cmd), options), stdoutf=outp.append, stderrf=sys.stderr, log=True)
+        rchan.send(''.join(outp))
+    except Exception, err:
+        rchan.sendError(err)
+
+
+def convertImage(chan):
+    options, rchan = chan.receive()
+    try:
+        runSingleProgramEx('vmplayer VMware_conversion/conversion_image.vmx', stdoutf=None, stderrf=None, log=True)
+        rchan.send(None)
+    except Exeption, err:
+        rchan.sendError(err)
+        
 def main(options, _args):
     runSystemEx('svn copy https://clovr.svn.sourceforge.net/svnroot/clovr/trunk https://clovr.svn.sourceforge.net/svnroot/clovr/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')),
                 log=True)
@@ -51,30 +90,24 @@ def main(options, _args):
     runSystemEx('cp %s VMware_conversion/shared/convert_img.img' % options('general.image'), log=True)
 
     waitForPasswordChange()
-    
-    cmd = ['ec2-bundle-image',
-           '-c ${general.cert}',
-           '-k ${general.key}',
-           '-u ${general.user}',
-           '--kernel ${general.kernel}',
-           '-i ${general.image}',
-           '-d ${general.dest}',
-           '-p ${general.image}',
-           '-r ${general.arch}']
 
-    if options('general.ec2cert'):
-        cmd.append('--ec2cert ${general.ec2cert}')
 
-    runSystemEx(replaceStr(' '.join(cmd), options), log=options('general.debug'))
+    bundleChannel = threads.runThreadWithChannel(bundleAMI)[1].sendWithChannel(options)
+    convertChannel = threads.runThreadWithChannel(convertImage)[1].sendWithChannel(options)
 
-    cmd = ['ec2-upload-bundle', '-b ${general.image}', '-m ${general.dest}/${general.image}.manifest.xml', '-a ${general.access_key}', '-s ${general.secret_access_key}']
-    runSystemEx(replaceStr(' '.join(cmd), options), log=options('general.debug'))
+    try:
+        amiId = bundleChannel.receive()
+        logPrint('AMI: ' + amiId)
+    except Exception, err:
+        amiId = None
+        errorPrint('Bundling AMI failed for some reason.  Error message:')
+        errorPrint(str(err))
 
-    cmd = ['ec2-register', '${general.image}/${general.image}.manifest.xml', '-K ${general.key}', '-C ${general.cert}']
-
-    ##
-    # We want to output the AMI regardless
-    runSystemEx(replaceStr(' '.join(cmd), options), log=True)
+    try:
+        convertChannel.receive()
+    except Exception, err:
+        errorPrint('Converting image failed.  Error message:')
+        errorPrint(str(err))
 
 
 
