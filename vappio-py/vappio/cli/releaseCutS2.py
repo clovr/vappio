@@ -76,7 +76,7 @@ def convertImage(chan):
     try:
         runSingleProgramEx('vmplayer VMware_conversion/conversion_image.vmx', stdoutf=None, stderrf=None, log=True)
         rchan.send(None)
-    except Exeption, err:
+    except Exception, err:
         rchan.sendError(err)
         
 def main(options, _args):
