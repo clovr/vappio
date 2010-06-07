@@ -18,7 +18,7 @@ class Task(CGIPage):
         if request['name'] == 'local':
             if 'task_name' in request:
                 task = loadTask(request['task_name'])
-                return json.dumps([True, [taskToDict(task)]])
+                return [taskToDict(task)]
             else:
                 tasks = loadAllTasks()
                 return [taskToDict(t) for t in tasks]
