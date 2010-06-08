@@ -97,8 +97,10 @@ def confIfPipelineConfigSet(conf, options):
     else:
         return conf
 
-def runPipeline(name, pipeline, args=None):
+def runPipeline(taskName, name, pipeline, args=None):
     """
+    taskName - the name of the task to update as the pipeline runs
+    
     name is the name of this pipeline
     
     args are any CLI arguments you want to use instead of
@@ -138,9 +140,10 @@ def runPipeline(name, pipeline, args=None):
         
     fout.close()
 
-    cmd = 'run_pipeline.pl --config=%(config)s --templatelayout=%(templatelayout)s' % dict(
+    cmd = 'run_pipeline.pl --config=%(config)s --templatelayout=%(templatelayout)s --taskname=%(taskname)s' % dict(
         config=foutName,
-        templatelayout=templateLayout)
+        templatelayout=templateLayout,
+        taskname=taskName)
 
     res = []
     exitCode = runSingleProgram(cmd, res.append, None)

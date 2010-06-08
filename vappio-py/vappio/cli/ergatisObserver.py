@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 ##
 # This script observes a running pipeline and feeds updates back to the associated task
-
-import sys
+from xml.dom import minidom
 
 from igs.utils.cli import buildConfigN, notNone, restrictValues, defaultIfNone
 from igs.utils.functional import identity
 
-from vappio.webservice import task #import loadTask
+from igs.xml.xmlquery import execQuery, name
+
+from vappio.tasks import task
+
 
 
 OPTIONS = [
@@ -23,20 +25,39 @@ OPTIONS = [
     ]
 
 
+def pipelineProgress(workflowXML):
+    doc = minidom.parse(workflowXML)
+    query = [name('commandSetRoot'),
+             [name('commandSet'),
+              [name('status')]]]
+    
+    res = execQuery(query, doc)
+
+    total = sum([int(r.childNodes[0].data) for r in res if r.localName == 'total'])
+    complete = sum([int(r.childNodes[0].data) for r in res if r.localName == 'complete'])
+
+    return (complete, total)
+    
+
 def main(options, _args):
     ##
     # Let's log what's going on
     fout = open('/tmp/ergatisObserver.log', 'a')
     if options('general.event') == 'finish' and ' workflow' in options('general.message'):
-        tsk = task.loadTask('localhost', 'local', options('general.props'))
-        tsk = tsk.progress().addMessage(task.MSG_DEBUG, 'Completed ' + options('general.name'))
+        completed, total = pipelineProgress(options('general.file'))
+        
+        tsk = task.loadTask(options('general.props'))
+        tsk = tsk.update(completedTasks=completed + 1, numTasks=total).addMessage(task.MSG_SILENT, 'Completed ' + options('general.name'))
+        if  completed + 1 == total:
+            tsk = tsk.setState(task.TASK_COMPLETED)
         task.updateTask(tsk)
         
         fout.write('%s finished  %s %s\n' % (options('general.name'), options('general.file'), options('general.retval')))
-    elif int(options('general.retval')):
-        tsk = task.loadTask('localhost', 'local', options('general.props'))
-        tsk = tsk.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, 'Task failed on step ' + options('general.name'))
-        task.updateTask(tsk)
+    elif options('general.retval') and int(options('general.retval')):
+        tsk = task.loadTask(options('general.props'))
+        if tsk.state != task.TASK_FAILED:
+            tsk = tsk.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, 'Task failed on step ' + options('general.name'))
+            task.updateTask(tsk)
 
         
         fout.write('%s %s %s %s\n' % (options('general.event'),
@@ -49,4 +70,7 @@ def main(options, _args):
         
 
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS))
+    try:
+        main(*buildConfigN(OPTIONS))
+    except Exception, err:
+        open('/tmp/ergatisObserver.log', 'a').write(str(err) + '\n')
