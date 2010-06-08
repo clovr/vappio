@@ -9,7 +9,7 @@ from vappio.pipeline_tools.blast import tagToRefDBPath
 
 ##
 # Need to know where the template lives
-TEMPLATE_NAME = 'wait_tmpl'
+TEMPLATE_NAME = 'clovr_sleep'
 
 def fullPathOrTag(x):
     if x[0] == '/':
@@ -18,7 +18,7 @@ def fullPathOrTag(x):
         return tagToRefDBPath(x)
 
 OPTIONS = [
-    ('TIME', '', '--TIME', 'Time to sleep', defaultIfNone('1'))
+    ('TIME', '', '--TIME', 'Time to sleep', defaultIfNone('1')),
     ('INPUT_FILE', '', '--INPUT_FILE', 'One or more input files', defaultIfNone('/mnt/staging'))
     ]
 
