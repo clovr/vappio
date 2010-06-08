@@ -16,7 +16,7 @@ from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.cluster.control import Cluster, startMaster
 from vappio.cluster.persist_mongo import dump
 
-from vappio.webservice.cluster import addInstances
+from vappio.webservice import cluster
 
 from vappio.tasks import task
 from vappio.tasks.utils import blockOnTaskAndForward
@@ -51,10 +51,10 @@ def addExecInstances(options, cl, tsk):
     # if adding them fails, then throw an TryError
     # with 
 
-    taskName = addInstances('localhost',
-                            options('general.name'),
-                            options('general.num'),
-                            options('general.update_dirs'))
+    taskName = cluster.addInstances('localhost',
+                                    options('general.name'),
+                                    options('general.num'),
+                                    options('general.update_dirs'))
     endState, tsk = blockOnTaskAndForward('localhost',
                                           options('general.name'),
                                           taskName,
@@ -64,6 +64,13 @@ def addExecInstances(options, cl, tsk):
 
     return tsk
 
+
+def clusterExists(host, name):
+    try:
+        cluster.loadCluster(host, name)
+        return True
+    except TryError:
+        return False
 
     
 def main(options, _args):
@@ -77,28 +84,32 @@ def main(options, _args):
     tsk = task.updateTask(task.loadTask(options('general.task_name')
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting master'))
-    
-    cl = Cluster(options('general.name'), ctype, options)
-    try:
-        startMaster(cl, lambda m : updateCluster(cl, m), devMode=False, releaseCut=False)
+    ##
+    # Try to load the cluster.  If it does not exist, continue and make it, if it does exist noop
+    if not clusterExists('localhost', options('general.name')):
+        cl = Cluster(options('general.name'), ctype, options)
+        try:
+            startMaster(cl, lambda m : updateCluster(cl, m), devMode=False, releaseCut=False)
 
-        dump(cl)
+            dump(cl)
         
-        tsk = task.updateTask(tsk.progress())
+            tsk = task.updateTask(tsk.progress())
         
-        if options('general.num'):
-            tsk = addExecInstances(options, cl, tsk)
+            if options('general.num'):
+                tsk = addExecInstances(options, cl, tsk)
 
-        tsk = tsk.progress().setState(task.TASK_COMPLETED)
-    except TryError, err:
-        tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_ERROR, 'An error occured attempting to start the cluster:\n' + err.msg +
+            tsk = tsk.progress().setState(task.TASK_COMPLETED)
+        except TryError, err:
+            tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_ERROR, 'An error occured attempting to start the cluster:\n' + err.msg +
                                                            '\nThe cluster has been started as much as possible, it may not function properly though')
-        dump(err.result)
-    except Exception, err:
-        tsk = task.updateTask(tsk.setState(task.TASK_FAILED
-                                           ).addMessage(task.MSG_ERROR,
-                                                        'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...'))
-        raise
+            dump(err.result)
+        except Exception, err:
+            tsk = task.updateTask(tsk.setState(task.TASK_FAILED
+                                               ).addMessage(task.MSG_ERROR,
+                                                            'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...'))
+            raise
+    else:
+        tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Cluster already running')
 
 
     tsk = task.updateTask(tsk)

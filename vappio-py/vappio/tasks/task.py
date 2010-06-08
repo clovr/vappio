@@ -46,6 +46,7 @@ class Task(Record):
 
 def taskToDict(task):
     return dict(name=task.name,
+                tType=task.tType,
                 state=task.state,
                 completedTasks=task.completedTasks,
                 numTasks=task.numTasks,
@@ -54,6 +55,7 @@ def taskToDict(task):
 
 def taskFromDict(d):
     return Task(name=d['name'],
+                tType=d['tType'],
                 state=d['state'],
                 completedTasks=d['completedTasks'],
                 numTasks=d['numTasks'],
@@ -80,15 +82,11 @@ def updateTask(task):
 
 
 
-def createTask(name, state, numTasks):
+def createTask(name, tType, state, numTasks):
     return Task(name=name,
+                tType=tType,
                 state=state,
                 completedTasks=0,
                 numTasks=numTasks,
                 messages=[],
                 timestamp=time.time())
-
-
-
-
-                                                     

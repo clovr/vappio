@@ -54,12 +54,13 @@ def main(options, tasks):
             print
             print
 
-        print 'Task: %s%s State: %s%s Num: %d/%d (%3d%%) LastUpdated: %s' % (t.name, ' ' * (maxTaskNameLen - len(t.name)),
-                                                                             t.state, ' ' * (13 - len(t.state)),
-                                                                             t.completedTasks,
-                                                                             t.numTasks,
-                                                                             int(float(t.completedTasks)/t.numTasks * 100.0),
-                                                                             timestampToStr(t.timestamp))
+        print 'Task: %s%s Type: %s%s State: %s%s Num: %d/%d (%3d%%) LastUpdated: %s' % (t.name, ' ' * (maxTaskNameLen - len(t.name)),
+                                                                                        t.tType, ' ' * (13 - len(t.tType)),
+                                                                                        t.state, ' ' * (13 - len(t.state)),
+                                                                                        t.completedTasks,
+                                                                                        t.numTasks,
+                                                                                        int(float(t.completedTasks)/t.numTasks * 100.0),
+                                                                                        timestampToStr(t.timestamp))
         if options('general.show_msgs') or options('general.show_debug_msgs'):
             for m in t.messages:
                 if m['mtype'] == task.MSG_NOTIFICATION and options('general.show_msgs'):

@@ -57,11 +57,16 @@ def blockOnTaskAndForward(host, name, taskName, dstTask):
     return endState, tsk
 
 
-def createTaskAndSave(name, numTasks):
+def createTaskAndSave(tType, numTasks, initialMsg=None):
     """
     This creates a task and saves it immediatly with an IDLE state
     and returns the name of it
+
+    tType - the type of task it is (generally corresponds to the name the task was started as)
     """
-    tsk = task.createTask(name, task.TASK_IDLE, numTasks)
+    name = tType + '-' + str(time.time())
+    tsk = task.createTask(name, tType, task.TASK_IDLE, numTasks)
+    if initialMsg is not None:
+        tsk = tsk.addMessage(task.MSG_NOTIFICATION, initialMsg)
     task.saveTask(tsk)
     return name
