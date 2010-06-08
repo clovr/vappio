@@ -17,7 +17,8 @@ OPTIONS = [
     ('name', '', '--name', 'Name of cluster (in this case public host name of master)', notNone),
     ('num', '', '--num', 'Number of nodes to create', compose(int, notNone)),
     ('block', '-b', '--block', 'Block until cluster is up', identity, True),
-    ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
+    ('update_dirs', '', '--update-dirs', 'Update scripts directories', defaultIfNone(False), True),
+    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),
     ]
 
 def main(options, _args):
@@ -35,6 +36,9 @@ def main(options, _args):
         state = blockOnTask(options('general.host'), options('general.name'), taskName)
         if state == TASK_FAILED:
             raise Exception('Starting cluster failed')
+
+    if options('general.print_task_name'):
+        print taskName
         
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

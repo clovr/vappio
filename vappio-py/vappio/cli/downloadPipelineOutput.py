@@ -16,6 +16,7 @@ OPTIONS = [
     ('output_dir', '-o', '--output-dir', 'Directory the output file should go to', notNone),
     ('overwrite', '', '--overwrite', 'Do you want to overwrite a local file if it already exists?', defaultIfNone(False), True),
     ('block', '-b', '--block', 'Block until download is complete', identity, True),
+    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),
     ]
 
 
@@ -31,7 +32,9 @@ def main(options, _args):
         state = blockOnTask('localhost', 'local', taskName)
         if state == TASK_FAILED:
             raise Exception('Starting cluster failed')
-    
+
+    if options('general.print_task_name'):
+        print taskName
     
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

@@ -22,6 +22,7 @@ OPTIONS = [
     ('dev_mode', '-d', '--dev_mode', 'Dev mode or not', identity, True),
     ('release_cut', '', '--release_cut', 'Want to cut a release', identity, True),
     ('update_dirs', '', '--update_dirs', 'Want to update scripts dirs once instance is up', identity, True),
+    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),
     ]
 
 
@@ -43,6 +44,9 @@ def main(options, _args):
             state = blockOnTask('localhost', 'local', taskName)
             if state == TASK_FAILED:
                 raise Exception('Starting cluster failed')
+
+        if options('general.print_task_name'):
+            print taskName
     
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

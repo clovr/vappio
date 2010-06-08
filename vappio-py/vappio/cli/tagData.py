@@ -19,6 +19,7 @@ OPTIONS = [
     ('append', '-a', '--append', 'Append listed files to tag name, ignoring duplicate files', defaultIfNone(False), True),
     ('overwrite', '-o', '--overwrite', 'Overwrite file list if it exists', defaultIfNone(False), True),
     ('block', '-b', '--block', 'Block on the tagging', defaultIfNone(False), True),
+    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),
     ]
 
 
@@ -47,6 +48,9 @@ def main(options, files):
         state = blockOnTask(options('general.host'), options('general.name'), taskName)
         if state == TASK_FAILED:
             raise Exception('Tagging data filed')
+
+    if options('general.print_task_name'):
+        print taskName
     
     
 

@@ -101,7 +101,7 @@ def main(options, _args):
             tsk = tsk.progress().setState(task.TASK_COMPLETED)
         except TryError, err:
             tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_ERROR, 'An error occured attempting to start the cluster:\n' + err.msg +
-                                                           '\nThe cluster has been started as much as possible, it may not function properly though')
+                                                               '\nThe cluster has been started as much as possible, it may not function properly though')
             dump(err.result)
         except Exception, err:
             tsk = task.updateTask(tsk.setState(task.TASK_FAILED

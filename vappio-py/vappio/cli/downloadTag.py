@@ -16,7 +16,8 @@ OPTIONS = [
     ('src_cluster', '', '--src-cluster', 'Name of source cluster', notNone),
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster, hardcoded to local for now', lambda _ : 'local'),
     ('block', '-b', '--block', 'Block until download is complete', identity, True),
-    ('expand', '', '--expand', 'Expand files', defaultIfNone(False), True)    
+    ('expand', '', '--expand', 'Expand files', defaultIfNone(False), True),
+    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),    
     ]
 
 def main(options, files):
@@ -31,7 +32,8 @@ def main(options, files):
         if state == TASK_FAILED:
             raise Exception('Starting cluster failed')
 
-    
+    if options('general.print_task_name'):
+        print taskName
 
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

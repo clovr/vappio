@@ -22,11 +22,24 @@ OPTIONS = [
     ('debug', '', '--debug', 'Print debugging messages', identity, True),
     ('no_completed', '', '--nc', 'Filtered out completed tasks', identity, True),
     ('exit_code', '', '--exit-code', 'Exit with a non zero value if any tasks are not in a completed state', identity, True),
+    ('block', '-b', '--block', 'Block on the tasks until they have completed or errored', identity, True),
     ]
 
 
 def timestampToStr(ts):
     return time.strftime('%Y/%m/%d %H:%M:%S UTC', time.gmtime(ts))
+
+
+def blockOnTasks(options, tasks):
+    ##
+    # Loop until all of the tasks are in state FAILED or COMPLETED
+    while [t for t in tasks if t.state not in [task.TASK_FAILED, task.TASK_COMPLETED]]:
+        time.sleep(30)
+        tasks = [loadTask(options('general.host'), options('general.name'), t.name)
+                 for t in tasks]
+
+    return tasks
+
 
 def main(options, tasks):
     if options('general.debug'):
@@ -40,6 +53,10 @@ def main(options, tasks):
         tasks = [loadTask(options('general.host'), options('general.name'), t)
                  for t in tasks]
 
+    if options('general.block'):
+        debugPrint(lambda : 'Blocking until tasks finish or fail')
+        tasks = blockOnTasks(options, tasks)
+        
     if options('general.no_completed'):
         debugPrint(lambda : 'Removing any completed tasks')
         tasks = filter(lambda t : t.state != task.TASK_COMPLETED, tasks)

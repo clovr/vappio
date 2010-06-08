@@ -16,6 +16,7 @@ OPTIONS = [
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster', notNone),
     ('block', '-b', '--block', 'Block until cluster is up', identity, True),
     ('expand', '', '--expand', 'Expand files', defaultIfNone(False), True),
+    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),
     ]
 
 def main(options, _files):
@@ -29,6 +30,9 @@ def main(options, _files):
         state = blockOnTask(options('general.host'), options('general.src_cluster'), taskName)
         if state == TASK_FAILED:
             raise Exception('Starting cluster failed')
+
+    if options('general.print_task_name'):
+        print taskName
     
 
 if __name__ == '__main__':

@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-
-import os
-
 from igs.utils.cli import MissingOptionError, buildConfigN, notNone, defaultIfNone
 
 from vappio.webservice.cluster import terminateCluster
