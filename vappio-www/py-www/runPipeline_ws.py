@@ -10,6 +10,11 @@ from vappio.pipeline_tools.persist import dump
 
 from vappio.webservice.cluster import loadCluster
 
+from vappio.tasks.utils import createTaskAndSave
+
+from vappio.tasks import task
+
+
 URL = '/vappio/runPipeline_ws.py'
 
 class RunPipeline(CGIPage):
@@ -18,12 +23,17 @@ class RunPipeline(CGIPage):
         request = readQuery()
 
         if request['name'] == 'local':
+            ##
+            # Each pipeline has a variable number of steps, so just set this to 1 and it will be fixed later
+            taskName = createTaskAndSave('runPipeline', 1, 'Starting ' + request['pipeline_name'])
+            task.updateTask(task.loadTask(taskName).setState(task.TASK_RUNNING))
+            
             pipelineName = request['pipeline']
         
             pipeline = namedModule('vappio.pipelines.' + pipelineName)
-            pipelineObj = runPipeline(request['pipeline_name'], pipeline, request['args'])
+            pipelineObj = runPipeline(taskName, request['pipeline_name'], pipeline, request['args'])
             dump(pipelineObj)
-            return pipelineObj.pid
+            return taskName
         else:
             ##
             # Forward the request onto the appropriate machine
