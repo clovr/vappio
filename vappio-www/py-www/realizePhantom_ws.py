@@ -16,7 +16,7 @@ class RealizePhantom(CGIPage):
         request = readQuery()
 
         if request['name'] == 'local':
-            taskName = createTaskAndSave(request['tag_name'] + '-realizeTag', 2)
+            taskName = createTaskAndSave('realizeTag', 2, 'Realizing ' + request['tag_name'])
 
             cmd = ['realizePhantomR.py',
                    '--tag-name=' + request['tag_name'],

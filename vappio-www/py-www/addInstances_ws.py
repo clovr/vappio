@@ -15,7 +15,7 @@ class AddInstances(CGIPage):
         ##
         # Someone could run multiple addInstances at once, so we will
         # add the time to the end as a cheap trick
-        taskName = createTaskAndSave('local-addInstances-' + str(time.time()), 1)
+        taskName = createTaskAndSave('addInstances', 1)
         
         num = request['num']
         updateDirs = request['update_dirs']

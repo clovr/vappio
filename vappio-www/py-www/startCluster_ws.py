@@ -12,7 +12,7 @@ class StartCluster(CGIPage):
 
         ##
         # Starting a cluster requires 2 steps, starting master then starting slaves
-        taskName = createTaskAndSave(request['name'] + '-startCluster', 2)
+        taskName = createTaskAndSave('startCluster', 2, 'Starting ' + request['name'])
         
         cmd = ['startClusterR.py',
                '--conf=' + request['conf'],

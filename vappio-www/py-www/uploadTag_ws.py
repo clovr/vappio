@@ -19,7 +19,7 @@ class UploadTag(CGIPage):
 
             ##
             # uploading data has 2 steps
-            taskName = createTaskAndSave(request['tag_name'] + '-uploadTag', 2)
+            taskName = createTaskAndSave('uploadTag', 2, 'Uploading ' + request['tag_name'])
 
             
             cmd = ['uploadTagR.py',

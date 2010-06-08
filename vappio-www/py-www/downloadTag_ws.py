@@ -15,7 +15,7 @@ class DownloadTag(CGIPage):
 
         if request['dst_cluster'] == 'local':
 
-            taskName = createTaskAndSave(request['name'] + '-downloadTag-' + str(time.time()), 2)
+            taskName = createTaskAndSave('downloadTag', 2, 'Downloading ' + request['tag_name'])
             
             cmd = ['downloadTagR.py',
                    '--tag-name=' + request['tag_name'],

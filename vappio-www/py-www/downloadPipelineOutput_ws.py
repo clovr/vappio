@@ -13,7 +13,7 @@ class DownloadPipelineOutput(CGIPage):
     def body(self):
         request = readQuery()
 
-        taskName = createTaskAndSave(request['name'] + '-downloadPipelineOutput-' + str(time.time()), 1)
+        taskName = createTaskAndSave('downloadPipelineOutput', 1, 'Downloading ' + request['name'])
         
         cmd = ['downloadPipelineOutputR.py',
                '--name=' + request['name'],

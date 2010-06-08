@@ -19,7 +19,7 @@ class TagData(CGIPage):
 
             ##
             # Tagging data only has one step
-            taskName = createTaskAndSave(request['tag_name'] + '-tagData', 1)
+            taskName = createTaskAndSave('tagData', 1, 'Tagging ' + request['tag_name'])
             
             cmd = ['tagDataR.py',
                    '--tag-name=' + request['tag_name'],
