@@ -19,5 +19,6 @@ def fullPathOrTag(x):
 
 OPTIONS = [
     ('TIME', '', '--TIME', 'Time to sleep', defaultIfNone('1'))
+    ('INPUT_FILE', '', '--INPUT_FILE', 'One or more input files', defaultIfNone('/mnt/staging'))
     ]
 
