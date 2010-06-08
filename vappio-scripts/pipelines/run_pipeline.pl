@@ -27,14 +27,14 @@ die("Must specify a config file") unless($configFile);
 die("Must specify a template") unless($templateLayout);
 die("Must specify a taskname") unless($taskName);
 
-my $pipeline_id = &make_pipeline($templateLayout, $repoRoot, $idRepo, $configFile);
+my $pipeline_id = &make_pipeline($templateLayout, $repoRoot, $idRepo, $configFile, $taskName);
 
 ##
 # Pring the pipeline
 print "$pipeline_id\n";
 
 sub make_pipeline {
-    my ($pipeline_layout, $repository_root, $id_repo, $config) = @_;
+    my ($pipeline_layout, $repository_root, $id_repo, $config, $taskName) = @_;
     my $template = new Ergatis::SavedPipeline( 'template' => $pipeline_layout );
     $template->configure_saved_pipeline( $config, $repository_root, $id_repo );
     my $pipeline_id = $template->pipeline_id();
@@ -44,7 +44,7 @@ sub make_pipeline {
                                           );
 
     my $ergatisConfig = new Ergatis::ConfigFile(-file => $ergatisConfigFile);
-    $ergatisConfig->newval('workflow_settings', 'observer_scripts', 'ergatisObserver.py:setlife:$taskName');
+    $ergatisConfig->newval('workflow_settings', 'observer_scripts', "ergatisObserver.py:setlife:$taskName");
     $pipeline->run('ergatis_cfg' => $ergatisConfig);
     return $pipeline_id
 }
