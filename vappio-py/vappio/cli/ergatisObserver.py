@@ -43,12 +43,15 @@ def main(options, _args):
     ##
     # Let's log what's going on
     fout = open('/tmp/ergatisObserver.log', 'a')
-    if options('general.event') == 'finish' and ' workflow' in options('general.message'):
+    if options('general.event') == 'finish': # and ' workflow' in options('general.message'):
         completed, total = pipelineProgress(options('general.file'))
+
+        if completed != total:
+            completed += 1
         
         tsk = task.loadTask(options('general.props'))
-        tsk = tsk.update(completedTasks=completed + 1, numTasks=total).addMessage(task.MSG_SILENT, 'Completed ' + options('general.name'))
-        if  completed + 1 == total:
+        tsk = tsk.update(completedTasks=completed, numTasks=total).addMessage(task.MSG_SILENT, 'Completed ' + options('general.name'))
+        if  completed == total:
             tsk = tsk.setState(task.TASK_COMPLETED)
         task.updateTask(tsk)
         
