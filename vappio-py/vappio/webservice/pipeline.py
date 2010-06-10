@@ -24,8 +24,8 @@ def pipelineStatus(host, name, pred=lambda _ : True):
     # We are also passing None for pipelines because the webservice API can take a list of pipeline
     # names to limit itself to.  We just aren't using that here right now
     return [p
-            for _ret, p in performQuery(host, PIPELINESTATUS_URL, dict(name=name, pipelines=None))
-            if pred(p)]
+            for ret, p in performQuery(host, PIPELINESTATUS_URL, dict(name=name, pipelines=None))
+            if pred(p) and ret]
 
 
 def runPipeline(host, name, pipeline, pipelineName, args):
