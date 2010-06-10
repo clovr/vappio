@@ -385,20 +385,13 @@ sub start_pipeline {
 
     &_log($DEBUG, "Starting runPipeline: [$cmd]");
 
-    #and set it running
+    #and set it running 
     my $pipeline_id;
     open( RUN, "$cmd |") or &_log($ERROR, "Could not run command $cmd: ($!)");
-    while( my $line = <RUN> ) {
-        if( $line =~ /Pipeline Id\:\s+(\d+)/ ) {
-            $pipeline_id = $1;
-            last;
-        }
-    }
+    my $line = <RUN>;
+    chomp($line);
     close(RUN);
-
-    unless( $pipeline_id ) {
-        &_log($ERROR, "Something went wrong running runPipeline.pl\nCheck $log for stderr and stdout.\nCOMMAND: $cmd");
-    }
+    return $line
 }
 
 sub does_pipeline_exist {
