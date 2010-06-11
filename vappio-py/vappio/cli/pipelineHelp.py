@@ -21,7 +21,7 @@ def main(options, _args):
     sys.argv = [sys.argv[0]] + ['--help']
     try:
         pipeline = namedModule('vappio.pipelines.' + options('general.pipeline'))
-        runPipeline(None, pipeline)
+        runPipeline(None, None, pipeline)
     except ImportError:
         errorPrint('The requested pipeline could not be found')
 
