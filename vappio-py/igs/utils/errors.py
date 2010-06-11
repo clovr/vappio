@@ -1,5 +1,8 @@
 ##
 # Various exceptions/errors can be defined here
+import traceback
+from StringIO import StringIO
+
 
 class TryError(Exception):
     """
@@ -16,3 +19,9 @@ class TryError(Exception):
     def __str__(self):
         return str(self.msg)
 
+
+
+def getStacktrace():
+    stream = StringIO()
+    traceback.print_exc(file=stream)
+    return stream.getvalue()

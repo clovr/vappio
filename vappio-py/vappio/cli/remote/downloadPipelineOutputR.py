@@ -7,6 +7,7 @@ from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils.ssh import scpFromEx
 from igs.utils.logging import errorPrintS, errorPrint
 from igs.utils.functional import compose
+from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
 
@@ -57,8 +58,7 @@ def main(options, _args):
         errorPrint('')
         raise
     except Exception, err:
-        tsk = task.updateTask(tsk.setState(task.TASK_FAILED
-                                           ).addMessage(task.MSG_ERROR, str(err)))
+        tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())        
         raise
 
             

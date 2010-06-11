@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
+from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
@@ -46,7 +47,7 @@ def main(options, _args):
         else:
             tsk = task.updateTask(tsk.progress().setState(task.TASK_COMPLETED))
     except Exception, err:
-        tsk = task.updateTask(tsk.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, str(err)))
+        tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())        
 
 
 if __name__ == '__main__':

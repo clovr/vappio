@@ -81,11 +81,14 @@ def main(options, tasks):
         if options('general.show_msgs') or options('general.show_debug_msgs'):
             for m in t.messages:
                 if m['mtype'] == task.MSG_NOTIFICATION and options('general.show_msgs'):
-                    print 'Notification - %s: %s' % (timestampToStr(m['timestamp']), m['data'])
+                    print 'Notification - %s: %s' % (timestampToStr(m['timestamp']), m['text'])
                 elif m['mtype'] == task.MSG_ERROR and (options('general.show_msgs') or options('general.show_error_msgs')):
-                    print 'Error - %s: %s' % (timestampToStr(m['timestamp']), m['data'])
+                    print 'Error - %s: %s' % (timestampToStr(m['timestamp']), m['text'])
+                    if 'stacktrace' in m:
+                        indented = '\n\t'.join(m['stacktrace'].split('\n'))
+                        print 'Stacktrace:\n\t' + indented
                 elif m['mtype'] == task.MSG_SILENT and (options('general.show_msgs') or options('general.show_debug_msgs')):
-                    print 'Debug - %s: %s' % (timestampToStr(m['timestamp']), m['data'])
+                    print 'Debug - %s: %s' % (timestampToStr(m['timestamp']), m['text'])
 
     if options('general.exit_code'):
         debugPrint(lambda : 'Exiting with non-zero state if any tasks are not in a completed state')

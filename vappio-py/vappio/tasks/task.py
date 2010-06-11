@@ -2,6 +2,8 @@
 # Currently this isn't concurrency safe, assuming that we will be such low traffic it won't be an issue though
 import time
 
+from twisted.python import reflect
+
 from igs.utils.functional import Record, updateDict
 
 from vappio.tasks.persist import load, loadAll, dump, TaskDoesNotExistError
@@ -24,8 +26,17 @@ class Task(Record):
     def addMessage(self, mtype, msg):
         t = time.time()
         return self.update(timestamp=t,
-                           messages=self.messages + [dict(mtype=mtype, data=msg, timestamp=t)])
+                           messages=self.messages + [dict(mtype=mtype, text=msg, timestamp=t)])
 
+    def addException(self, msg, exc, stacktrace):
+        t = time.time()
+        return self.update(timestamp=t,
+                           messages=self.messages + [dict(mtype=MSG_ERROR,
+                                                          text=msg,
+                                                          name=reflect.fullyQualifiedName(reflect.getClass(exc)),
+                                                          stacktrace=stacktrace,
+                                                          timestamp=t)])
+    
     def getMessages(self):
         return self.messages
     

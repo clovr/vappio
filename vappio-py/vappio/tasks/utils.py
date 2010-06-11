@@ -26,11 +26,11 @@ def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
         prevTime = tsk.timestamp
         for m in msgs:
             if m['mtype'] == task.MSG_ERROR:
-                errorF(m['data'])
+                errorF(m['text'])
             elif m['mtype'] == task.MSG_NOTIFICATION:
-                notifyF(m['data'])
+                notifyF(m['text'])
             elif logging.DEBUG and m['mtype'] == task.MSG_SILENT:
-                debugPrint(lambda : m['data'])
+                debugPrint(lambda : m['text'])
         ##
         # Make this configurable
         if state not in endStates:

@@ -4,6 +4,7 @@ import os
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
 from igs.utils.functional import identity
 from igs.utils.ssh import scpToEx
+from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
@@ -36,26 +37,30 @@ def main(options, _args):
     if isPhantom(tagFile):
         tsk = task.updateTask(tsk.addMessage(task.MSG_SILENT, 'Tag is phantom, uploading tag'))
 
-        scpToEx(dstCluster.master.publicDNS,
-                os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
-                os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
-                user=srcCluster.config('ssh.user'),
-                options=srcCluster.config('ssh.options'),
-                log=True)
+        try:
+            scpToEx(dstCluster.master.publicDNS,
+                    os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
+                    os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
+                    user=srcCluster.config('ssh.user'),
+                    options=srcCluster.config('ssh.options'),
+                    log=True)
 
-        tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'realizing phantom tag'))
-        
-        realizeTask = realizePhantom('localhost', dstCluster.name, options('general.tag_name'))
-        endState, tsk = blockOnTaskAndForward('localhost',
-                                              options('general.dst_cluster'),
-                                              realizeTask,
-                                              tsk)
+            tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'realizing phantom tag'))
+            
+            realizeTask = realizePhantom('localhost', dstCluster.name, options('general.tag_name'))
+            endState, tsk = blockOnTaskAndForward('localhost',
+                                                  options('general.dst_cluster'),
+                                                  realizeTask,
+                                                  tsk)
 
-        if endState == task.TASK_COMPLETED:
-            tsk = tsk.progress().setState(task.TASK_COMPLETED).addMessage(task.MSG_SILENT, 'Done realizing')
-        else:
-            tsk = tsk.setState(task.TASK_FAILED)
+            if endState == task.TASK_COMPLETED:
+                tsk = tsk.progress().setState(task.TASK_COMPLETED).addMessage(task.MSG_SILENT, 'Done realizing')
+            else:
+                tsk = tsk.setState(task.TASK_FAILED)
 
+        except Exception, err:
+            tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
+            
         tsk = task.updateTask(tsk)
         
     else:
@@ -68,27 +73,32 @@ def main(options, _args):
         # to be put on the remote box?  Not sure yet, leaning towards the latter
         tsk = task.updateTask(tsk.addMessage(task.MSG_SILENT, 'Uploading tag contents'))
 
-        fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'), tagFile)
-        tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'Upload complete, tagging'))
+        try:
+            fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'), tagFile)
+            tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'Upload complete, tagging'))
         
-        tagTask = tagData('localhost',
-                          options('general.dst_cluster'),
-                          options('general.tag_name'),
-                          os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name')),
-                          fileList,
-                          False,
-                          options('general.expand'),
-                          False,
-                          True)
-        endState, tsk = blockOnTaskAndForward('localhost',
-                                              options('general.dst_cluster'),
-                                              tagTask,
-                                              tsk)
+            tagTask = tagData('localhost',
+                              options('general.dst_cluster'),
+                              options('general.tag_name'),
+                              os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name')),
+                              fileList,
+                              False,
+                              options('general.expand'),
+                              False,
+                              True)
+            endState, tsk = blockOnTaskAndForward('localhost',
+                                                  options('general.dst_cluster'),
+                                                  tagTask,
+                                                  tsk)
 
-        if endState == task.TASK_COMPLETED:
-            tsk = tsk.progress().setState(task.TASK_COMPLETED).addMessage(task.MSG_SILENT, 'Tag complete')
-        else:
-            tsk = tsk.setState(task.TASK_FAILED)
+            if endState == task.TASK_COMPLETED:
+                tsk = tsk.progress().setState(task.TASK_COMPLETED).addMessage(task.MSG_SILENT, 'Tag complete')
+            else:
+                tsk = tsk.setState(task.TASK_FAILED)
+                
+        except Exception, err:
+            tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
+            
             
         tsk = task.updateTask(tsk)
         
