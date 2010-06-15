@@ -3,7 +3,7 @@
 # This updates every directory with the latest from SVN.
 from igs.utils.cli import buildConfigN, defaultIfNone
 from igs.utils.commands import runSystemEx, runSingleProgramEx
-
+from igs.utils.logging import errorPrint
 
 OPTIONS = [
     ('stow', '', '--stow', 'Update stow', defaultIfNone(False), True),
@@ -19,6 +19,8 @@ OPTIONS = [
     ]
 
 
+class CheckoutModifiedError(Exception):
+    pass
 
 def grabFromSVN(options, srcUrl, dstDir):
     cmd = ['svn']
@@ -30,11 +32,11 @@ def grabFromSVN(options, srcUrl, dstDir):
     cmd += [srcUrl, dstDir]
 
     outp = []
-    runProgramRunnerEx('svn status ' + dstDir, stdoutf=outp.append, stderrf=None, log=False)
+    runSingleProgramEx('svn status ' + dstDir, stdoutf=outp.append, stderrf=None, log=False)
     ##
     # If outp contains some output it means modifications have been made
     if outp:
-        raise Exception('There are modifications to %s, please commit them or revert them before continuing' % dstDir)
+        raise CheckoutModifiedError('There are modifications to %s, please commit them or revert them before continuing' % dstDir)
         
 
     
@@ -48,36 +50,41 @@ def main(options, _args):
             break
     else:
         updateAll = True
-        
-    if options('general.stow') or updateAll:
-        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/stow', '/usr/local/stow')
-    if options('general.opt_packages') or updateAll:
-        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages', '/opt/opt-packages')
-    if options('general.config_policies') or updateAll:
-        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/config_policies', '/opt/config_policies')
-    if options('general.vappio_py') or updateAll:
-        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py', '/opt/vappio-py')
-        runSystemEx("""chmod +x /opt/vappio-py/vappio/cli/*.py""")
-    if options('general.vappio_scripts') or updateAll:
-        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-scripts', '/opt/vappio-scripts')
-        runSystemEx("""chmod -R +x /opt/vappio-scripts""", log=True)
-        runSystemEx("""cp -f /opt/vappio-scripts/clovrEnv.sh /root""", log=True)
-        runSystemEx("""cp -f /opt/vappio-scripts/local /etc/init.d/local""", log=True)
-        runSystemEx("""cp -f /opt/vappio-scripts/rc.local /etc/init.d/rc.local""", log=True)
-        runSystemEx("""cp -f /opt/vappio-scripts/screenrc /root/.screenrc""", log=True)
-    if options('general.clovr_pipelines') or updateAll:
-        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines', '/opt/clovr_pipelines')
-    if options('general.vappio_py_www') or updateAll:
-        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-www/py-www', '/var/www/vappio')
-    ##
-    # Only want to do this one when specified
-    if options('general.vappio_conf'):
-        grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-conf', '/opt/vappio-conf')
 
-    if options('general.hudson') or updateAll:
-        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/jobs', '/var/lib/hudson/jobs')
-        grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-scripts', '/opt/hudson')
-        runSystemEx("""chown -R hudson.nogroup /var/lib/hudson/jobs""", log=True)
+
+    try:
+        if options('general.stow') or updateAll:
+            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/stow', '/usr/local/stow')
+        if options('general.opt_packages') or updateAll:
+            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages', '/opt/opt-packages')
+        if options('general.config_policies') or updateAll:
+            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/config_policies', '/opt/config_policies')
+        if options('general.vappio_py') or updateAll:
+            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py', '/opt/vappio-py')
+            runSystemEx("""chmod +x /opt/vappio-py/vappio/cli/*.py""")
+        if options('general.vappio_scripts') or updateAll:
+            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-scripts', '/opt/vappio-scripts')
+            runSystemEx("""chmod -R +x /opt/vappio-scripts""", log=True)
+            runSystemEx("""cp -f /opt/vappio-scripts/clovrEnv.sh /root""", log=True)
+            runSystemEx("""cp -f /opt/vappio-scripts/local /etc/init.d/local""", log=True)
+            runSystemEx("""cp -f /opt/vappio-scripts/rc.local /etc/init.d/rc.local""", log=True)
+            runSystemEx("""cp -f /opt/vappio-scripts/screenrc /root/.screenrc""", log=True)
+        if options('general.clovr_pipelines') or updateAll:
+            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr_pipelines', '/opt/clovr_pipelines')
+        if options('general.vappio_py_www') or updateAll:
+            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-www/py-www', '/var/www/vappio')
+        ##    
+        # Only want to do this one when specified
+        if options('general.vappio_conf'):
+            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-conf', '/opt/vappio-conf')
+
+        if options('general.hudson') or updateAll:
+            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/jobs', '/var/lib/hudson/jobs')
+            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-scripts', '/opt/hudson')
+            runSystemEx("""chown -R hudson.nogroup /var/lib/hudson/jobs""", log=True)
+
+    except CheckoutModifiedError, err:
+        errorPrint(str(err))
 
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))
