@@ -157,6 +157,7 @@ do_start() {
 	    ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 	    #update home page
 	    cat /mnt/clovr_home.html.tmpl | sed -e 's/\$\;IPADDR\$\;/'"$ipaddr"'/g' > /mnt/clovr_home.html
+	    echo $ipaddr > /mnt/clovr_ip
             ##
             # Setup crontabs
 	    crontab -u root $VAPPIO_HOME/vappio-scripts/crontab.conf
@@ -182,6 +183,10 @@ do_stop() {
     # Remove any subversions tuff
     rm -rf /root/.svn
     rm -rf /root/.subversion
+
+    ##
+    # Delete the ip address file so outside scripts can know when the system is up
+    rm /mnt/clovr_ip
 
     ##
     # Don't want people having our SSH keys
