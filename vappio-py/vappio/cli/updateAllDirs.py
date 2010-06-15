@@ -2,7 +2,7 @@
 ##
 # This updates every directory with the latest from SVN.
 from igs.utils.cli import buildConfigN, defaultIfNone
-from igs.utils.commands import runSystemEx
+from igs.utils.commands import runSystemEx, runSingleProgramEx
 
 
 OPTIONS = [
@@ -29,6 +29,15 @@ def grabFromSVN(options, srcUrl, dstDir):
 
     cmd += [srcUrl, dstDir]
 
+    outp = []
+    runProgramRunnerEx('svn status ' + dstDir, stdoutf=outp.append, stderrf=None, log=False)
+    ##
+    # If outp contains some output it means modifications have been made
+    if outp:
+        raise Exception('There are modifications to %s, please commit them or revert them before continuing' % dstDir)
+        
+
+    
     runSystemEx('rm -rf ' + dstDir, log=True)
     runSystemEx(' '.join(cmd), log=True)
 

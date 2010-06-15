@@ -5,7 +5,7 @@ import time
 
 import pymongo
 
-from igs.utils import errors
+from igs.utils import errorutils
 
 
 def runCatchError(func, fail):
@@ -33,7 +33,7 @@ def mongoFail(runInfo):
         errors = pymongo.Connection().clovr.errors
         runInfo['error_msg'] = str(err)
         runInfo['timestamp'] = int(time.time())
-        runInfo['stacktrace'] = errors.getStacktrace()
+        runInfo['stacktrace'] = errorutilss.getStacktrace()
         errors.insert(runInfo)
 
     return _

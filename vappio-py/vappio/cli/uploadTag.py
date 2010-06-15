@@ -29,7 +29,7 @@ def main(options, _files):
     if options('general.block'):
         state = blockOnTask(options('general.host'), options('general.src_cluster'), taskName)
         if state == TASK_FAILED:
-            raise Exception('Starting cluster failed')
+            raise Exception('Uploadign tag failed')
 
     if options('general.print_task_name'):
         print taskName
