@@ -23,6 +23,7 @@ def dump(pipeline):
 
     pipelines.insert(dict(_id=pipeline.name,
                           name=pipeline.name,
+                          taskName=pipeline.taskName,
                           ptype=fullyQualifiedName(pipeline.ptype),
                           pid=pipeline.pid,
                           conf=json.dumps(dict([(k, pipeline.config(k)) for k in pipeline.config.keys()]))))
@@ -36,11 +37,12 @@ def load(name):
     if pipeline is None:
         raise PipelineDoesNotExist('Could not find pipeline: ' + name)
 
+    taskName = pipeline['taskName']
     ptype = namedAny(pipeline['ptype'])
     pid = pipeline['pid']
     conf = configFromMap(json.loads(pipeline['conf']))
     
-    return Pipeline(name, pid, ptype, conf)
+    return Pipeline(name, taskName, pid, ptype, conf)
     
 
 

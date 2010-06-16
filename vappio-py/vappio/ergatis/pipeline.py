@@ -24,7 +24,7 @@ class Pipeline:
     Represents a pipeline
     """
 
-    def __init__(self, name, pid, ptype, conf):
+    def __init__(self, name, taskName, pid, ptype, conf):
         """
         name is the name of the pipeline
         pid is the Id of the pipeline this is preresenting
@@ -32,6 +32,7 @@ class Pipeline:
         conf is the config
         """
         self.name = name
+        self.taskName = taskName
         self.pid = pid
         self.ptype = ptype
         self.config = conf
@@ -156,5 +157,5 @@ def runPipeline(taskName, name, pipeline, args=None):
 
     ##
     # This should be the pipeline ID
-    return Pipeline(name, res[0].strip(), pipeline, conf)
+    return Pipeline(name, taskName, res[0].strip(), pipeline, conf)
         
