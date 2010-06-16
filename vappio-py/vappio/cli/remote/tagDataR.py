@@ -39,6 +39,8 @@ def main(options, files):
                 append=options('general.append'),
                 overwrite=options('general.overwrite'))
         tsk = tsk.progress().setState(task.TASK_COMPLETED)
+    except IOError, err:
+        tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
     except Exception, err:
         tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
 

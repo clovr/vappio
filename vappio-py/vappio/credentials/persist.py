@@ -13,7 +13,7 @@ class CredentialDoesNotExistError(Exception):
 def load(credentialName):
     credential = pymongo.Connection().clovr.credentials.find_one(dict(name=credentialName))
     if credential is None:
-        raise CredentialDoesNotExistError(taskName)
+        raise CredentialDoesNotExistError(credentialName)
     return credential
 
 def dump(credential):

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 ##
 # Checks the status of all, or a specific pipeline, running on the cluster
-import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 

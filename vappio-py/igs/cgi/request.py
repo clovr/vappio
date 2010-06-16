@@ -29,7 +29,7 @@ def performQuery(host, url, var, timeout=30, debug=False):
         return result
     except TryError:
         raise
-    except Exception, err:
+    except Exception:
         raise ValueError('Unknown data: ' + str(data))
 
 def readQuery():

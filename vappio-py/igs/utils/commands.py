@@ -244,7 +244,6 @@ def runCommandGens(generators):
 
 
 def test():
-    import sys
     import random
     
     def _(id):
@@ -261,7 +260,6 @@ def test():
     
 
 def test1():
-    import sys
 
     def f1():
         yield ProgramRunner('date', sys.stdout.write, sys.stderr.write, log=True)

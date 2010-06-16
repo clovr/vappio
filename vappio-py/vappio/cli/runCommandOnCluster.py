@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 ##
 # Runs commands on the cluster
-import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 

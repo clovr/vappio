@@ -33,6 +33,7 @@ def main(options, _args):
         tagTaskName = tagData('localhost',
                               options('general.dst_cluster'),
                               options('general.tag_name'),
+                              None,
                               fileList,
                               False,
                               options('general.expand'),
