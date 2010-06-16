@@ -33,7 +33,7 @@ def mongoFail(runInfo):
         errors = pymongo.Connection().clovr.errors
         runInfo['error_msg'] = str(err)
         runInfo['timestamp'] = int(time.time())
-        runInfo['stacktrace'] = errorutilss.getStacktrace()
+        runInfo['stacktrace'] = errorutils.getStacktrace()
         errors.insert(runInfo)
 
     return _

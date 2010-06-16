@@ -76,7 +76,7 @@ def main(options, tasks):
                                                                                         t.state, ' ' * (13 - len(t.state)),
                                                                                         t.completedTasks,
                                                                                         t.numTasks,
-                                                                                        int(float(t.completedTasks)/t.numTasks * 100.0),
+                                                                                        t.numTasks and int(float(t.completedTasks)/t.numTasks * 100.0) or 0,
                                                                                         timestampToStr(t.timestamp))
         if options('general.show_msgs') or options('general.show_debug_msgs'):
             for m in t.messages:
