@@ -5,7 +5,7 @@ import time
 
 import pymongo
 
-from igs.utils import errorutils
+from igs.utils import errors as errorutils
 
 
 def runCatchError(func, fail):

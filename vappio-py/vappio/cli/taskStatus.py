@@ -15,7 +15,7 @@ from vappio.tasks import task
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', notNone),
+    ('name', '', '--name', 'Name of cluster, defaults to local', defaultIfNone('local')),
     ('show_msgs', '', '--show', 'Print out any messages present', identity, True),
     ('show_error_msgs', '', '--show-error', 'Print out only error messages', identity, True),
     ('show_debug_msgs', '', '--show-debug', 'Print out any debug messages', identity, True),

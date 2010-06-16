@@ -43,7 +43,7 @@ def main(options, _args):
     ##
     # Let's log what's going on
     fout = open('/tmp/ergatisObserver.log', 'a')
-    if options('general.event') == 'finish': # and ' workflow' in options('general.message'):
+    if options('general.event') == 'finish' and options('general.retval') and not int(options('general.retval')):
         completed, total = pipelineProgress(options('general.file'))
 
         if completed != total:
