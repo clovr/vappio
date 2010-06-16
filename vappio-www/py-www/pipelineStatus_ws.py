@@ -15,6 +15,7 @@ def getPipelineStatus(pipeline):
     try:
         complete, total = pipeline.progress()
         return [True, {'name': pipeline.name,
+                       'taskName': pipeline.taskName,
                        'state': pipeline.state(),
                        'ptype': pipeline.ptypeStr(),
                        'pid': pipeline.pid,
