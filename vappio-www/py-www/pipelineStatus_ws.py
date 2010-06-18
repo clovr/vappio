@@ -5,22 +5,15 @@ from igs.utils.core import getStrBetween
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 
-from vappio.pipeline_tools.persist import load, loadAll
+from vappio.ergatis import pipeline
 
 from vappio.webservice.cluster import loadCluster
 
 URL = '/vappio/pipelineStatus_ws.py'
 
-def getPipelineStatus(pipeline):
+def pipelineSnapshot(p):
     try:
-        complete, total = pipeline.progress()
-        return [True, {'name': pipeline.name,
-                       'taskName': pipeline.taskName,
-                       'state': pipeline.state(),
-                       'ptype': pipeline.ptypeStr(),
-                       'pid': pipeline.pid,
-                       'complete': complete,
-                       'total': total}]
+        return [True, pipeline.pipelineSSToDict(pipeline.createPipelineSS(p))]
     except Exception, err:
         return [False, str(err)]
                 
@@ -31,11 +24,11 @@ class PipelineStatus(CGIPage):
 
         if request['name'] == 'local':
             if request['pipelines']:
-                pipelines = [load(p) for p in request['pipelines']]
+                pipelines = [pipeline.loadPipeline(p) for p in request['pipelines']]
             else:
-                pipelines = loadAll()
+                pipelines = pipeline.loadAllPipelines()
         
-            return [getPipelineStatus(p) for p in pipelines]
+            return [pipelineSnapshot(p) for p in pipelines]
         else:
             ##
             # Forward the request onto the appropriate machine

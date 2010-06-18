@@ -4,9 +4,7 @@ from twisted.python.reflect import namedModule
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 
-from vappio.ergatis.pipeline import runPipeline
-
-from vappio.pipeline_tools.persist import dump
+from vappio.ergatis import pipeline as pl
 
 from vappio.webservice.cluster import loadCluster
 
@@ -31,8 +29,8 @@ class RunPipeline(CGIPage):
             pipelineName = request['pipeline']
         
             pipeline = namedModule('vappio.pipelines.' + pipelineName)
-            pipelineObj = runPipeline(taskName, request['pipeline_name'], pipeline, request['args'])
-            dump(pipelineObj)
+            pipelineObj = pl.runPipeline(taskName, request['pipeline_name'], pipeline, request['args'])
+            pl.savePipeline(pipelineObj)
             return taskName
         else:
             ##
