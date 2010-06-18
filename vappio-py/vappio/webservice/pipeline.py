@@ -1,5 +1,8 @@
 from igs.cgi.request import performQuery
 
+
+from vappio.ergatis.pipeline import pipelineSSFromDict
+
 from vappio.webservice.cluster import loadCluster
 
 PIPELINESTATUS_URL = '/vappio/pipelineStatus_ws.py'
@@ -23,9 +26,9 @@ def pipelineStatus(host, name, pred=lambda _ : True):
     #
     # We are also passing None for pipelines because the webservice API can take a list of pipeline
     # names to limit itself to.  We just aren't using that here right now
-    return [p
+    return [pipelineSSFromDict(p)
             for ret, p in performQuery(host, PIPELINESTATUS_URL, dict(name=name, pipelines=None))
-            if ret and pred(p)]
+            if ret and pred(pipelineSSFromDict(p))]
 
 
 def runPipeline(host, name, pipeline, pipelineName, args):

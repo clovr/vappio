@@ -33,11 +33,11 @@ def main(options, _args):
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting download'))
     
-    pipelines = pipelineStatus('localhost', options('general.name'), lambda p : p['name'] == options('general.pipeline'))
+    pipelines = pipelineStatus('localhost', options('general.name'), lambda p : p.name == options('general.pipeline'))
     if not pipelines:
         raise Exception('No pipeline found by name: ' + options('general.pipeline'))
 
-    pid = pipelines[0]['pid']
+    pid = pipelines[0].pid
 
     cluster = loadCluster('localhost', options('general.name'))
     

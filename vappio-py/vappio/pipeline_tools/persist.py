@@ -6,10 +6,7 @@ import pymongo
 
 from twisted.python.reflect import fullyQualifiedName, namedAny
 
-from igs.utils.config import configFromMap
-
-from vappio.ergatis.pipeline import Pipeline
-
+from igs.utils import functional as func
 
 class PipelineDoesNotExist(Exception):
     pass
@@ -20,13 +17,7 @@ def dump(pipeline):
     Dumps pipeline info to mongodb
     """
     pipelines = pymongo.Connection().clovr.pipelines
-
-    pipelines.insert(dict(_id=pipeline.name,
-                          name=pipeline.name,
-                          taskName=pipeline.taskName,
-                          ptype=fullyQualifiedName(pipeline.ptype),
-                          pid=pipeline.pid,
-                          conf=json.dumps(dict([(k, pipeline.config(k)) for k in pipeline.config.keys()]))))
+    pipelines.insert(func.updateDict(dict(_id=pipeline['name']), pipeline))
     
 def load(name):
     """
@@ -37,13 +28,7 @@ def load(name):
     if pipeline is None:
         raise PipelineDoesNotExist('Could not find pipeline: ' + name)
 
-    taskName = pipeline['taskName']
-    ptype = namedAny(pipeline['ptype'])
-    pid = pipeline['pid']
-    conf = configFromMap(json.loads(pipeline['conf']))
-    
-    return Pipeline(name, taskName, pid, ptype, conf)
-    
+    return pipeline
 
 
 def loadAll():

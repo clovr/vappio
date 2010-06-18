@@ -235,6 +235,9 @@ def replaceStr(str, lookup):
 def configFromMap(map, base=None, lazy=False):
     return Config(map, base, lazy)
 
+
+def configFromDict(d, base=None, lazy=False):
+    return configFromMap(d, base, lazy)
             
 def configFromEnv(base=None, lazy=False):
     """

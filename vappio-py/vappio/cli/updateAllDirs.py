@@ -15,6 +15,7 @@ OPTIONS = [
     ('vappio_py_www', '', '--vappio-py-www', 'Update vappio-www/py-ww', defaultIfNone(False), True),
     ('vappio_conf', '', '--vappio-conf', 'Update vappio/conf', defaultIfNone(False), True),
     ('hudson', '', '--hudson', 'Update hudson', defaultIfNone(False), True),
+    ('clovr_www', '', '--clovr-www', 'CloVR web gui', defaultIfNone(False), True),
     ('co', '', '--co', 'Check out rather than export', defaultIfNone(False), True),
     ]
 
@@ -83,6 +84,9 @@ def main(options, _args):
             grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-scripts', '/opt/hudson')
             runSystemEx("""chown -R hudson.nogroup /var/lib/hudson/jobs""", log=True)
 
+        if options('general.clovr_www') or updateAll:
+            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/clovr-www', '/var/www/clovr')
+            
     except CheckoutModifiedError, err:
         errorPrint(str(err))
 

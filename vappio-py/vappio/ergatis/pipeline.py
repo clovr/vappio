@@ -5,37 +5,27 @@ import os
 import time
 from xml.dom import minidom
 
+from twisted.python import reflect
+
 from igs.utils.core import getStrBetween
 from igs.utils.cli import buildConfigN
-from igs.utils.functional import identity, const, applyIfCallable
-from igs.utils.config import replaceStr, configFromStream, configFromMap
+from igs.utils.functional import identity, const, applyIfCallable, Record
+from igs.utils.config import replaceStr, configFromStream, configFromMap, configToDict
 from igs.utils.commands import runSingleProgram, ProgramRunError
 
 from igs.xml.xmlquery import execQuery, name
 
-from twisted.python.reflect import fullyQualifiedName
+from vappio.pipeline_tools import persist
 
 
 class PipelineError(Exception):
     pass
 
-class Pipeline:
+
+class Pipeline(Record):
     """
     Represents a pipeline
     """
-
-    def __init__(self, name, taskName, pid, ptype, conf):
-        """
-        name is the name of the pipeline
-        pid is the Id of the pipeline this is preresenting
-        ptype is the module/object that was used to make this pipeline
-        conf is the config
-        """
-        self.name = name
-        self.taskName = taskName
-        self.pid = pid
-        self.ptype = ptype
-        self.config = conf
 
     def state(self):
         """
@@ -63,13 +53,90 @@ class Pipeline:
 
         return (complete, total)
 
-        
     def ptypeStr(self):
         """
         A string representing the ptype
         """
-        return fullyQualifiedName(self.ptype).split('.')[-1]
+        return reflect.fullyQualifiedName(self.ptype).split('.')[-1]
 
+
+
+class PipelineSnapshot(Record):
+    """
+    Represents a pipeline at a particular point in time so it can be transfered around
+    """
+
+
+    def ptypeStr(self):
+        """
+        A string representing the ptype
+        """
+        return reflect.fullyQualifiedName(self.ptype).split('.')[-1]
+    
+    
+def createPipeline(taskName, name, pid, ptype, config):
+    return Pipeline(name=name,
+                    taskName=taskName,
+                    pid=pid,
+                    ptype=ptype,
+                    config=config)
+
+
+def createPipelineSS(pipeline):
+    complete, total = pipeline.progress()
+    state = pipeline.state()
+    return PipelineSnapshot(name=pipeline.name,
+                            taskName=pipeline.taskName,
+                            pid=pipeline.pid,
+                            ptype=pipeline.ptype,
+                            config=pipeline.config,
+                            complete=complete,
+                            total=total,
+                            state=state)
+
+def pipelineToDict(p):
+    return dict(name=p.name,
+                taskName=p.taskName,
+                pid=p.pid,
+                ptype=p.ptypeStr(),
+                config=[kv for kv in configToDict(p.config).iteritems()])
+
+def pipelineFromDict(d):
+    return createPipeline(taskName=d['taskName'],
+                          name=d['name'],
+                          pid=d['pid'],
+                          ptype=reflect.namedAny('vappio.pipelines.' + d['ptype']),
+                          config=configFromMap(dict(d['config'])))
+
+
+def loadAllPipelines():
+    return [pipelineFromDict(p) for p in persist.loadAll()]
+
+def loadPipeline(name):
+    return pipelineFromDict(persist.load(name))
+
+def savePipeline(p):
+    return persist.dump(pipelineToDict(p))
+
+def pipelineSSToDict(pss):
+    return dict(name=pss.name,
+                taskName=pss.taskName,
+                pid=pss.pid,
+                ptype=pss.ptypeStr(),
+                config=configToDict(pss.config),
+                complete=pss.complete,
+                total=pss.total,
+                state=pss.state)
+
+def pipelineSSFromDict(d):
+    return PipelineSnapshot(name=d['name'],
+                            taskName=d['taskName'],
+                            pid=d['pid'],
+                            ptype=reflect.namedAny('vappio.pipelines.' + d['ptype']),
+                            config=configFromMap(d['config']),
+                            complete=d['complete'],
+                            total=d['total'],
+                            state=d['state'])
 
 def confIfPipelineConfigSet(conf, options):
     """
@@ -157,5 +224,5 @@ def runPipeline(taskName, name, pipeline, args=None):
 
     ##
     # This should be the pipeline ID
-    return Pipeline(name, taskName, res[0].strip(), pipeline, conf)
+    return createPipeline(taskName, name, res[0].strip(), pipeline, conf)
         

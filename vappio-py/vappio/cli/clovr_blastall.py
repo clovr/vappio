@@ -318,7 +318,7 @@ def main(_options, args):
 
         pipelineName = inputTagName + '-' + databaseTagName
         debugPrint(lambda : 'Checking to see if pipeline is running...')
-        if not pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName):
+        if not pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineName):
             debugPrint(lambda : '%s is not running, running now' % pipelineName)
             pipelineArgs = ['--OTHER_OPTS=' + blastArgs,
                             '--INPUT_FILE_LIST=' + inputTagName,
@@ -330,19 +330,19 @@ def main(_options, args):
             runPipeline('localhost', clusterName, 'clovr_blastall', pipelineName, pipelineArgs)
 
         debugPrint(lambda : 'Waiting for pipeline to finish...')
-        pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName)[0]
-        while pipelineInfo['state'] not in ['complete', 'failed', 'error']:
+        pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineName)[0]
+        while pipelineInfo.state not in ['complete', 'failed', 'error']:
             for i in range(10):
                 sys.stdout.write('.')
                 sys.stdout.flush()
                 time.sleep(5)
-            pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p['name'] == pipelineName)[0]
+            pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineName)[0]
             sys.stdout.write('\r                  \r')
             sys.stdout.flush()
 
         print
         
-        if pipelineInfo['state'] == 'complete':
+        if pipelineInfo.state == 'complete':
             debugPrint(lambda : 'Pipeline finished successfully, downloading')
             taskName = downloadPipelineOutput('localhost', clusterName, pipelineName, outputDir, True)
             debugPrint(lambda : 'Downloading pipeline...')
@@ -359,7 +359,7 @@ def main(_options, args):
                 print 'Do not forget that you need to manually terminate your cluster when you are done'
                 print 'You can terminate your cluster with the following command:'
                 print 'terminateCluster.py --name=' + clusterName
-        elif pipelineInfo['state'] != 'complete' and clusterName != 'local':
+        elif pipelineInfo.state != 'complete' and clusterName != 'local':
             errorPrint('The pipeline failed!!!!')
 
             print
@@ -379,7 +379,7 @@ def main(_options, args):
                 print 'Remember you MUST terminate your the cluster manually when you are done.'
                 print 'You can terminate the cluster by running:'
                 print 'terminateCluster.py --name=' + clusterName
-        elif pipelineInfo['state'] != 'complete' and clusterName == 'local':
+        elif pipelineInfo.state != 'complete' and clusterName == 'local':
             print
             print '*' * 40
             print 'Your pipeline failed!'
