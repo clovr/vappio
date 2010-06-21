@@ -4,18 +4,26 @@ import cgi
 import json
 import urllib
 import httplib
-
+import socket
 
 from igs.utils.errors import TryError
 
 def performQueryNoParse(host, url, var, timeout=30, debug=False):
-    params = urllib.urlencode({'request': json.dumps(var)})
-    conn = httplib.HTTPConnection(host, timeout=timeout)
-    if debug:
-        conn.set_debuglevel(3)
-    conn.request('POST', url, params)
-    data = conn.getresponse().read()
-    return data
+    def _performQuery():
+        params = urllib.urlencode({'request': json.dumps(var)})
+        conn = httplib.HTTPConnection(host, timeout=timeout)
+        if debug:
+            conn.set_debuglevel(3)
+        conn.request('POST', url, params)
+        return conn.getresponse().read()
+
+    count = 10
+    while count > 0:
+        try:
+            return _performQuery()
+        except socket.timeout:
+            count -= 1
+    
 
 def performQuery(host, url, var, timeout=30, debug=False):
     """

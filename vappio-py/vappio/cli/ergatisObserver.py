@@ -51,7 +51,9 @@ def main(options, _args):
         
         tsk = task.loadTask(options('general.props'))
         tsk = tsk.update(completedTasks=completed, numTasks=total).addMessage(task.MSG_SILENT, 'Completed ' + options('general.name'))
-        if  completed == total:
+        ##
+        # Set to complete if the number of steps is not zero and we have completed all of them
+        if total and completed == total:
             tsk = tsk.setState(task.TASK_COMPLETED)
         task.updateTask(tsk)
         
