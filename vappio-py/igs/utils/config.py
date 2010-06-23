@@ -125,18 +125,14 @@ class Config:
 
         return s
     
-        
-def configFromStream(stream, base=None, lazy=False):
+
+def configListFromStream(stream):
     """
-    Constructs a config function from a stream.
-
-    base is used if you want to make this on top of base (for example this references variables in base.
-
-    The returned value will be a composite of base with stream."""
-
+    Constructs a list of [(key, value)] from an ini-like file
+    """
     ##
     # We are just going to read the config file into a map and use configFromMap
-    cfg = {'': {}}
+    cfg = []
     ##
     # Default section
     section = ''
@@ -150,8 +146,6 @@ def configFromStream(stream, base=None, lazy=False):
             line = line.rstrip()
             if line[-1] == ']':
                 section = line[1:-1]
-                if section not in cfg:
-                    cfg[section] = {}
                 continue
             else:
                 raise ConfigParseError("""Error parsing line: %r""" % line)
@@ -159,9 +153,22 @@ def configFromStream(stream, base=None, lazy=False):
             key, value = line.split('=', 1)
             ##
             # Remove the trailing '\n'
-            cfg[section][key] = value[:-1]
+            if section:
+                key = section + '.' + key
+            cfg.append((key, value[:-1]))
 
-    return configFromMap(cfg, base, lazy)
+    return cfg
+    
+    
+def configFromStream(stream, base=None, lazy=False):
+    """
+    Constructs a config function from a stream.
+
+    base is used if you want to make this on top of base (for example this references variables in base.
+
+    The returned value will be a composite of base with stream."""
+
+    return configFromMap(dict(configListFromStream(stream)), base, lazy)
 
 
 def flattenMap(map):
