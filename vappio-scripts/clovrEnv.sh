@@ -36,5 +36,15 @@ export EC2_PRIVATE_KEY=/tmp/ec2-pk.pem
 
 ulimit -n 8192
 
-export GLOBUS_LOCATION=/opt/opt-packages/globus-5.0.0
-source $GLOBUS_LOCATION/etc/globus-user-env.sh
+#Globus perl5lib is causing problems. This will be deactivated until
+#it works, see task 376.
+
+#export GLOBUS_LOCATION=/opt/opt-packages/globus-5.0.0
+#source $GLOBUS_LOCATION/etc/globus-user-env.sh
+
+clovrWrapper () { runPipeline.py --pipeline clovr_wrapper --pipeline-name
+clovr_wrapper$$ -- --CONFIG_FILE=$1 ; }
+clovr16S () { clovrWrapper $1 ; }
+clovrMicrobe () { clovrWrapper $1 ; }
+clovrMetagenomics () { clovrWrapper $1 ; }
+clovrSearch () { clovrWrapper $1 ; }
