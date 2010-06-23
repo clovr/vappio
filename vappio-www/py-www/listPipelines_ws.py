@@ -16,11 +16,10 @@ def loadConfig(conf, pipeline):
     ##
     # This is temporary until all of the pipelines support this config template
     try:
-        pConf = config.configFromStream(open(os.path.join(conf('dirs.clovr_pipelines_template_dir'),
-                                                          pModule.TEMPLATE_NAME,
-                                                          pModule.TEMPLATE_NAME + '.config.tmpl')),
-                                        lazy=True)
-        return dict([(k, json.loads(v)) for k, v in config.configToDict(pConf).iteritems()])
+        pConf = config.configListFromStream(open(os.path.join(conf('dirs.clovr_pipelines_template_dir'),
+                                                              pModule.TEMPLATE_NAME,
+                                                              pModule.TEMPLATE_NAME + '.config.tmpl')))
+        return [(k, json.loads(v)) for k, v in pConf]
     except IOError:
         return None
         
