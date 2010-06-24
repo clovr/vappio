@@ -1,4 +1,16 @@
 #!/bin/sh
+#
+#USAGE: staging.wf.sh [remotehost] [workflow_xml]
+#The input workflow XML must the absolute path to a single group from an Ergatis iterator.
+#
+
+#This script parse the workflow XML and perform 2 copies
+#1)Copy the input files for the group to remotehost. The input files
+#  are referenced in a file name $groupnumber.iter
+
+#2)Copy the workflow XML for the group to remotehost.  The workflow
+#  XML is contained in a directory g$groupnumber
+
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
@@ -20,16 +32,19 @@ vlog "wfcomponentdir: $wfcomponentdir"
 vlog "wfgroupdir: $wfgroupdir"
 vlog "group: $group"
 
-#TODO try seeding the data nodes first
+#TODO transfer list of files as a single transfer instead of one at a time
 vlog "Start transfer of input from $wfgroupdir/$group.iter to $remotehost" 
-for f in `cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v '^\\$' | perl -ne 'split(/\t/);print $_[2],"\n"'`; do
+#Check for $;I_FILE_PATH$;
+groupitertype=`cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v 'I_FILE_PATH'`
+if [ "$groupitertype" != "" ]
+then
+    for f in `cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v '^\\$' | perl -ne 'split(/\t/);print $_[2],"\n"'`; do
 	vlog "Transfering $f to $remotehost:$f" 
 
 	# Commands can't be stored in variables, it just doesn't work w/ the quotes
 	# http://www.bash-hackers.org/wiki/doku.php/mirroring/bashfaq/050
 	# -R = recursive.  Needed for getting the entire directory tree up to the target file
 	# -O = omit directories when preserving times (prevents error when trying to change timestamp of / dirs)
-#	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" $f $remotehost:$f;
 	vlog "CMD: rsync -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" $f root@$remotehost:/"
 	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $f root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
 	if [ $? == 0 ]
@@ -40,7 +55,8 @@ for f in `cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v '^\\$' | perl -n
 	    verror "STAGING WF GROUP $wfcomponentdir/$wfgroupdir/$group.iter FAILURE"
 	    exit 1;
 	fi
-done 
+    done 
+fi
 cd $wfcomponentdir
 vlog "Start transfer of workflow xml from $wfcomponentdir/$wfgroupdir to $remotehost:$wfcomponentdir" 
 vlog "CMD: rsync -av -R -e \"$ssh_client -i $ssh_key $ssh_options\" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir" 
