@@ -62,7 +62,9 @@ def main(options, tasks):
         tasks = filter(lambda t : t.state != task.TASK_COMPLETED, tasks)
 
 
-    maxTaskNameLen = max([len(t.name) for t in tasks])
+    ##
+    # If there are tasks, find the largest, otherwise just return 0
+    maxTaskNameLen = tasks and max([len(t.name) for t in tasks]) or 0
     printSpacing = False
     for t in tasks:
         if not printSpacing:
