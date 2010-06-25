@@ -63,9 +63,9 @@ def shutdownExecNode(conf):
 
         
 def uninstallAllStow():
-    for p in os.listdir('/usr/local/stow'):
+    for p in [d for d in os.listdir('/usr/local/stow') if d[0] != '.']:
         uninstallPkg(p)
 
 def uninstallAllOptPackages():
-    for p in os.listdir('/opt/opt-packages'):
+    for p in [d for d in os.listdir('/opt/opt-packages') if d[0] != '.']:
         uninstallOptPkg(p)

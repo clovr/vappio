@@ -88,11 +88,11 @@ def startUpAllNodes(conf):
 
 
 def installAllStow():
-    for p in os.listdir('/usr/local/stow'):
+    for p in [d for d in os.listdir('/usr/local/stow') if d[0] != '.']:
         installPkg(p)
         
 
 def installAllOptPackages():
-    for p in os.listdir('/opt/opt-packages'):
+    for p in [d for d in os.listdir('/opt/opt-packages') if d[0] != '.']:
         installOptPkg(p)
         
