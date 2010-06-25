@@ -12,11 +12,10 @@ from vappio.pipeline_tools.blast import tagToRefDBPath
 TEMPLATE_NAME = '16S_metagenomics'
 
 OPTIONS = [
-    ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of FASTA files', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('FASTA_FILES', '', '--FASTA_FILES', 'The input file list of FASTA files', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
     ('DB_PATH', '', '--DB_PATH', 'The root database path', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
-    ('OLIGOS_FILE', '', '--OLIGOS_FILE', 'Oligos file', compose(lambda x : x, notNone)),
-    ('QUALITY_FILE', '', '--QUALITY_FILE', 'Quality file', compose(lambda x : x, notNone)),
-    ('META_FILE', '', '--META_FILE', 'Metadata file', compose(lambda x : x, notNone)),
+    ('OLIGOS_FILE', '', '--OLIGOS_FILE', 'Oligos file', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('QUALITY_FILE', '', '--QUALITY_FILE', 'Quality file', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('META_FILE', '', '--META_FILE', 'Metadata file', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
     ('GROUP_COUNT', '', '--GROUP_COUNT', 'Ergatis group count', defaultIfNone("50"))
     ]
-
