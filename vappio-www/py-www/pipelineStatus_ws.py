@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-import os
-
-from igs.utils.core import getStrBetween
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 

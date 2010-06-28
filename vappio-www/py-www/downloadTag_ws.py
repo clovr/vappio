@@ -7,6 +7,8 @@ from igs.utils.commands import runSystemEx
 
 from vappio.tasks.utils import createTaskAndSave
 
+from vappio.webservices.cluster import loadCluster
+
 URL = '/vappio/downloadTag_ws.py'
 
 class DownloadTag(CGIPage):
@@ -32,7 +34,7 @@ class DownloadTag(CGIPage):
         else:
             ##
             # Forward request on
-            cluster = load(request['dst_cluster'])
+            cluster = loadCluster('localhost', request['dst_cluster'])
             request['dst_cluster'] = 'local'
             taskName = performQuery(cluster.master.publicDNS, URL, request)
 

@@ -2,9 +2,10 @@
 ##
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
-from igs.utils.errors import TryError
 
 from vappio.credentials import manager
+
+from vappio.webservices.cluster import loadCluster
 
 URL = '/vappio/credential_ws.py'
 

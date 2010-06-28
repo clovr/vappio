@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 from igs.cgi.handler import CGIPage, generatePage
-from igs.cgi.request import readQuery, performQueryNoParse
-from igs.utils.config import configToDict
-from igs.utils.errors import TryError
+from igs.cgi.request import readQuery
 
 from vappio.cluster.control import terminateCluster
 from vappio.webservice.cluster import loadCluster

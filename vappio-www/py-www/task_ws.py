@@ -2,11 +2,10 @@
 ##
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
-from igs.utils.errors import TryError
 
 from vappio.webservice.cluster import loadCluster
 
-from vappio.tasks.task import loadTask, loadAllTasks, saveTask, taskToDict
+from vappio.tasks.task import loadTask, loadAllTasks, taskToDict
 
 URL = '/vappio/task_ws.py'
 

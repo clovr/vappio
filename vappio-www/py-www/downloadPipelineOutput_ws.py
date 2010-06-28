@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-import os
-import time
-
-from igs.utils.core import getStrBetween
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery
 from igs.utils.commands import runSystemEx

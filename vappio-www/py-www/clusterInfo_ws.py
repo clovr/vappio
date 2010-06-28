@@ -2,10 +2,10 @@
 ##
 # This script serves double duty.  It can either return local information or proxy out to another cluster
 from igs.cgi.handler import CGIPage, generatePage
-from igs.cgi.request import readQuery, performQuery
+from igs.cgi.request import readQuery
 from igs.utils.errors import TryError
 
-from vappio.cluster.control import clusterToDict, clusterFromDict
+from vappio.cluster.control import clusterToDict
 from vappio.cluster.persist_mongo import load
 
 

@@ -6,7 +6,6 @@ import json
 from twisted.python import reflect
 
 from igs.cgi.handler import CGIPage, generatePage
-from igs.cgi.request import readQuery
 
 from igs.utils import config
 
