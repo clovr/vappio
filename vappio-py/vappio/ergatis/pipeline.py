@@ -1,6 +1,5 @@
 ##
 # Functions to control creating and running a pipeline through ergatis
-import optparse
 import os
 import time
 from xml.dom import minidom
@@ -8,9 +7,9 @@ from xml.dom import minidom
 from twisted.python import reflect
 
 from igs.utils.core import getStrBetween
-from igs.utils.cli import buildConfigN
+from igs.utils import cli
 from igs.utils.functional import identity, const, applyIfCallable, Record
-from igs.utils.config import replaceStr, configFromStream, configFromMap, configToDict
+from igs.utils import config #import replaceStr, configFromStream, configFromMap, configToDict
 from igs.utils.commands import runSingleProgram, ProgramRunError
 
 from igs.xml.xmlquery import execQuery, name
@@ -99,14 +98,14 @@ def pipelineToDict(p):
                 taskName=p.taskName,
                 pid=p.pid,
                 ptype=p.ptypeStr(),
-                config=[kv for kv in configToDict(p.config).iteritems()])
+                config=[kv for kv in config.configToDict(p.config).iteritems()])
 
 def pipelineFromDict(d):
     return createPipeline(taskName=d['taskName'],
                           name=d['name'],
                           pid=d['pid'],
                           ptype=reflect.namedAny('vappio.pipelines.' + d['ptype']),
-                          config=configFromMap(dict(d['config'])))
+                          config=config.configFromMap(dict(d['config'])))
 
 
 def loadAllPipelines():
@@ -123,7 +122,7 @@ def pipelineSSToDict(pss):
                 taskName=pss.taskName,
                 pid=pss.pid,
                 ptype=pss.ptypeStr(),
-                config=configToDict(pss.config),
+                config=config.configToDict(pss.config),
                 complete=pss.complete,
                 total=pss.total,
                 state=pss.state)
@@ -133,7 +132,7 @@ def pipelineSSFromDict(d):
                             taskName=d['taskName'],
                             pid=d['pid'],
                             ptype=reflect.namedAny('vappio.pipelines.' + d['ptype']),
-                            config=configFromMap(d['config']),
+                            config=config.configFromMap(d['config']),
                             complete=d['complete'],
                             total=d['total'],
                             state=d['state'])
@@ -149,7 +148,7 @@ def confIfPipelineConfigSet(conf, options):
     the config file
     """
     if conf('CONFIG_FILE', default=None) is not None:
-        fconf = configFromStream(open(conf('CONFIG_FILE')))
+        fconf = config.configFromStream(open(conf('CONFIG_FILE')))
         keys = fconf.keys()
         m = {}
         for o in options:
@@ -160,13 +159,17 @@ def confIfPipelineConfigSet(conf, options):
             if name in keys:
                 m[name] = applyIfCallable(f(fconf(name)), conf)
 
-        
-        return configFromMap(m, configFromStream(open(conf('CONFIG_FILE')), conf))
+        ##
+        # lazy=True is for saftey incase there is a value in the CONFIG_FILE that we use that
+        # really depends on a value in the map we just created
+        return config.configFromMap(m, config.configFromStream(open(conf('CONFIG_FILE')), conf, lazy=False))
     else:
         return conf
 
 def runPipeline(taskName, name, pipeline, args=None):
     """
+    Runes a pipeline with command line arguments in args
+    
     taskName - the name of the task to update as the pipeline runs
     
     name is the name of this pipeline
@@ -191,12 +194,42 @@ def runPipeline(taskName, name, pipeline, args=None):
     options.append(('CONFIG_FILE', '-c', '--CONFIG_FILE',
                     'Config file for the pipeline.  Specify this if you do not want to specify options on the comamnd line', identity))
     
-    conf, _args = buildConfigN(options, args, putInGeneral=False)
+    conf, _args = cli.buildConfigN(options, args, putInGeneral=False)
 
     ##
     # If they specified a pipeline_conf, load that and set the values
     conf = confIfPipelineConfigSet(conf, pipeline.OPTIONS)
 
+    return runPipelineWithConfig(taskName, name, pipeline, conf)
+
+
+
+def runPipelineConfig(taskName, name, pipeline, conf):
+    """
+    Takes a config object representing a pipeline options, validates those options
+    in pipeline.OPTIONS and passes the results onto runPipelineWithConfig
+    """
+    ##
+    # Mocheezmo way to have it load a conf file.  This will be removed in the future
+    options = list(pipeline.OPTIONS)
+    options.append(('conf', '', '--conf', 'Conf file (DO NOT SPECIFY, FOR INTERNAL USE)', const('/tmp/machine.conf')))    
+
+    ##
+    # Load up machine.conf and apply it to our current config
+    conf = config.configFromConfig(conf, config.configFromStream(open('/tmp/machine.conf')), lazy=True)
+    vals = {}
+    for o in pipeline.OPTIONS:
+        vals[o[0]] = cli.applyOption(conf(o[0]), o[4], conf)
+
+    conf = config.configFromMap(vals, conf)
+
+    return runPipelineWithConfig(taskName, name, pipeline, conf)
+    
+
+def runPipelineWithConfig(taskName, name, pipeline, conf):
+    """
+    This is for internal use only
+    """
     templateDir = os.path.join(conf('dirs.clovr_pipelines_template_dir'), pipeline.TEMPLATE_NAME)
     templateConfig = os.path.join(templateDir, 'pipeline_tmpl.config')
     templateLayout = os.path.join(templateDir, 'pipeline.layout')
@@ -204,7 +237,7 @@ def runPipeline(taskName, name, pipeline, args=None):
     foutName = os.path.join('/tmp', str(time.time()))
     fout = open(foutName, 'w')
     for line in open(templateConfig):
-        fout.write(replaceStr(line, conf))
+        fout.write(config.replaceStr(line, conf))
         
     fout.close()
 

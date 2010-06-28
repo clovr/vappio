@@ -3,7 +3,13 @@
 # Step 1 in cutting a release
 # This runs on the build box
 
+from igs.utils.cli import buildConfigN, notNone
 from igs.utils.commands import runSystemEx
+
+OPTIONS = [
+    ('version_string', '', '--vs', 'Version string', notNone)
+    ]
+
 
 COMMANDS = [
     ##
@@ -25,10 +31,11 @@ COMMANDS = [
     """rm -rf /opt/filesystem"""
     ]
 
-def main():
+def main(options, _args):
+    open('/opt/CLOVR-RELEASE', 'w').write(options('general.version_string') + '\n')
     for c in COMMANDS:
         runSystemEx(c, log=True)
 
 
 if __name__ == '__main__':
-    main()
+    main(*buildConfigN(OPTIONS))    

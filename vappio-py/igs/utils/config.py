@@ -245,7 +245,11 @@ def configFromMap(map, base=None, lazy=False):
 
 def configFromDict(d, base=None, lazy=False):
     return configFromMap(d, base, lazy)
-            
+
+
+def configFromConfig(c, base=None, lazy=False):
+    return configFromMap(configToDict(c), base, lazy)
+
 def configFromEnv(base=None, lazy=False):
     """
     This constructs a config from the environment variables and puts them in the [env] section.

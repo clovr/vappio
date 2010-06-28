@@ -20,6 +20,25 @@ class CLIError(Exception):
     def __str__(self):
         return 'Error handling option: %s, failed with message: %s' % (self.option, self.msg)
 
+
+
+def applyOption(val, func, conf):
+    ##
+    # We want to apply any replacements on the options
+    # The question is if baseConf is really the config file
+    # we should be applying these from...
+    v = func(val)
+    
+    ##
+    # Now v might still be a function at this point because we want to give
+    # them the ability to access baseConf is they need it to do more replacements
+    v = applyIfCallable(v, conf)
+    try:
+        return replaceStr(v, conf)
+    except TypeError:
+        return v
+
+    
 def buildConfigN(options, args=None, usage=None, putInGeneral=True):
     """
     This builds a config from options.  Options is a list of tuples that looks like:
@@ -63,7 +82,10 @@ def buildConfigN(options, args=None, usage=None, putInGeneral=True):
     ##
     # keep track of the function to apply to conf
     confFunc = None
-    
+
+    ##
+    # The order of the options below
+    # var name, short option, long option, help message, function to apply, binary option    
     for n, s, l, h, f, b in _iterBool(options):
         ##
         # We could have a function we want to apply to the conf variable.  We want to store it
@@ -85,22 +107,12 @@ def buildConfigN(options, args=None, usage=None, putInGeneral=True):
 
     vals = {}
 
+    ##
+    # The order of the options below
+    # var name, short option, long option, help message, function to apply, binary option
     for n, _s, l, _h, f, _b in _iterBool(options):
         try:
-            ##
-            # We want to apply any replacements on the options
-            # The question is if baseConf is really the config file
-            # we should be applying these from...
-            v = f(getattr(ops, n))
-
-            ##
-            # Now v might still be a function at this point because we want to give
-            # them the ability to access baseConf is they need it to do more replacements
-            v = applyIfCallable(v, baseConf)
-            try:
-                vals[n] = replaceStr(v, baseConf)
-            except TypeError:
-                vals[n] = v
+            vals[n] = applyOption(getattr(ops, n), f, baseConf)
         except Exception, err:
             raise CLIError(l, err)
             

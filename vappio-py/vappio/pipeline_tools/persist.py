@@ -17,7 +17,7 @@ def dump(pipeline):
     Dumps pipeline info to mongodb
     """
     pipelines = pymongo.Connection().clovr.pipelines
-    pipelines.insert(func.updateDict(dict(_id=pipeline['name']), pipeline))
+    pipelines.save(func.updateDict(dict(_id=pipeline['name']), pipeline))
     
 def load(name):
     """
