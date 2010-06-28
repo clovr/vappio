@@ -3,6 +3,7 @@ from twisted.python.reflect import namedModule
 
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
+from igs.utils import config
 
 from vappio.ergatis import pipeline as pl
 
@@ -29,7 +30,15 @@ class RunPipeline(CGIPage):
             pipelineName = request['pipeline']
         
             pipeline = namedModule('vappio.pipelines.' + pipelineName)
-            pipelineObj = pl.runPipeline(taskName, request['pipeline_name'], pipeline, request['args'])
+            if 'args' in request:
+                pipelineObj = pl.runPipeline(taskName, request['pipeline_name'], pipeline, request['args'])
+            elif 'pipeline_config' in request:
+                pipelineObj = pl.runPipelineConfig(taskName,
+                                                   request['pipeline_name'],
+                                                   pipeline,
+                                                   config.configFromMap(request['pipeline_config'], lazy=True))
+            else:
+                raise Exception('Must provide args or pipeline_config')
             pl.savePipeline(pipelineObj)
             return taskName
         else:
