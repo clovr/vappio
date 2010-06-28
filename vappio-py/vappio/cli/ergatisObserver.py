@@ -53,7 +53,8 @@ def main(options, _args):
         tsk = tsk.update(completedTasks=completed, numTasks=total).addMessage(task.MSG_SILENT, 'Completed ' + options('general.name'))
         ##
         # Set to complete if the number of steps is not zero and we have completed all of them
-        if total and completed == total:
+        if total and completed == total and 'start pipeline' in options('general.name'):
+            fout.write('Setting task to completed')
             tsk = tsk.setState(task.TASK_COMPLETED)
         task.updateTask(tsk)
         
