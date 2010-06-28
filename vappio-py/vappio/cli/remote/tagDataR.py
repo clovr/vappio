@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-import os
-
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
+from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils.functional import identity
 from igs.utils import errors
 
@@ -39,8 +37,6 @@ def main(options, files):
                 append=options('general.append'),
                 overwrite=options('general.overwrite'))
         tsk = tsk.progress().setState(task.TASK_COMPLETED)
-    except IOError, err:
-        tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
     except Exception, err:
         tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
 

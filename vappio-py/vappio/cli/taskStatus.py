@@ -4,7 +4,7 @@
 import sys
 import time
 
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils.cli import buildConfigN, defaultIfNone
 from igs.utils.functional import identity
 from igs.utils.logging import debugPrint
 from igs.utils import logging

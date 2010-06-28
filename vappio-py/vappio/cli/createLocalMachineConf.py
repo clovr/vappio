@@ -2,10 +2,7 @@
 ##
 # This creates a machine.conf file for the local machine.
 # This is useful if you need to create a machine.conf for something coming up in Xen or VMWare
-import sys
-
 from igs.utils.cli import buildConfigN, defaultIfNone, notNone
-from igs.utils.functional import compose
 from igs.utils.commands import runSingleProgramEx
 from igs.utils.logging import errorPrintS
 

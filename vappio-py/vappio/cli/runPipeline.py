@@ -3,8 +3,6 @@
 # Runs a pipeline throuhg the webservice call
 from igs.utils.cli import buildConfigN, defaultIfNone, notNone
 
-from igs.utils.logging import logPrint
-
 from vappio.webservice.pipeline import runPipeline
 
 OPTIONS = [

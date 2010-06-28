@@ -3,7 +3,7 @@
 # This script observes a running pipeline and feeds updates back to the associated task
 from xml.dom import minidom
 
-from igs.utils.cli import buildConfigN, notNone, restrictValues, defaultIfNone
+from igs.utils.cli import buildConfigN
 from igs.utils.functional import identity
 
 from igs.xml.xmlquery import execQuery, name

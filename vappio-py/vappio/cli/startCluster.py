@@ -1,13 +1,8 @@
 #!/usr/bin/env python
-import time
-
 from igs.utils.cli import buildConfigN, notNone, restrictValues, defaultIfNone
-from igs.utils.config import configFromMap, configFromStream
-from igs.utils.logging import logPrint, errorPrint, debugPrint
-from igs.utils.functional import identity, compose, tryUntil
+from igs.utils.functional import identity, compose
 
-from vappio.webservice.cluster import startCluster, loadCluster
-from vappio.webservice.task import loadTask
+from vappio.webservice.cluster import startCluster
 
 from vappio.tasks.task import TASK_FAILED
 from vappio.tasks.utils import blockOnTask

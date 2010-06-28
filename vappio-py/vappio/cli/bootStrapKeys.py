@@ -3,7 +3,7 @@
 # Temporary program for loading keys into the proper location
 import os
 
-from igs.utils.cli import buildConfigN, notNone
+from igs.utils.cli import buildConfigN
 from igs.utils.functional import identity
 
 from igs.utils.commands import runSystemEx, runSingleProgramEx

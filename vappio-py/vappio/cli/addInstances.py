@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-import sys
-import time
+from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils.functional import compose, identity
+from igs.utils.logging import logPrint
 
-from igs.utils.cli import MissingOptionError, buildConfigN, notNone, defaultIfNone
-from igs.utils.logging import logPrint, errorPrint, debugPrint
-from igs.utils.functional import compose, identity, tryUntil
-
-from vappio.webservice.cluster import addInstances, loadCluster
+from vappio.webservice.cluster import addInstances
 
 from vappio.tasks.task import TASK_FAILED
 from vappio.tasks.utils import blockOnTask

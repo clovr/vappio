@@ -2,7 +2,7 @@
 import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
-from igs.utils.config import configFromMap, replaceStr
+from igs.utils.config import replaceStr
 from igs.utils.commands import runSystemEx
 from igs.utils.functional import identity
 

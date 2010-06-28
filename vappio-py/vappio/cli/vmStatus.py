@@ -7,12 +7,11 @@
 # - Is networking enabled
 # - What clusters are running
 
-from igs.utils.cli import buildConfigN, notNone, restrictValues, defaultIfNone
+from igs.utils.cli import buildConfigN
 from igs.utils.functional import identity
-from igs.utils.logging import debugPrint, errorPrint, logPrint
 from igs.utils.commands import runSystemEx, runSingleProgramEx
 
-from vappio.webservice.cluster import listClusters, loadCluster
+from vappio.webservice.cluster import listClusters
 
 from vappio.ec2.control import listInstances, Instance
 

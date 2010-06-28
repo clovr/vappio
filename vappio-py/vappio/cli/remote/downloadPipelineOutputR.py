@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 ##
 # Uploads files to a cluster
-import os
-
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
-from igs.utils.ssh import scpFromEx
-from igs.utils.logging import errorPrintS, errorPrint
-from igs.utils.functional import compose
+from igs.utils.logging import errorPrint
 from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail

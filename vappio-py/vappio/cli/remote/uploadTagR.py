@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os
 
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
-from igs.utils.functional import identity
+from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils.ssh import scpToEx
 from igs.utils import errors
 
@@ -69,7 +68,7 @@ def main(options, _args):
         # does in terms of where it places its data and then how tagData
         # should be called.  Perhaps these two calls should be placed into their
         # own call?
-        # Perhaps uploadTag should return a tag and then tagData should take a tag
+        # Perhaps uploadTag should return a tag data structure and then tagData should take a tag
         # to be put on the remote box?  Not sure yet, leaning towards the latter
         tsk = task.updateTask(tsk.addMessage(task.MSG_SILENT, 'Uploading tag contents'))
 

@@ -2,23 +2,15 @@
 ##
 # This adds instances to the current cluster.  This should run on the master node of
 # whatever cluster instances are being added to
-import os
-
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
-from igs.utils.config import configFromEnv, configFromStream, configFromMap
-from igs.utils.logging import logPrint, debugPrint
 from igs.utils.functional import compose
-from igs.utils.commands import runSingleProgramEx
 from igs.utils.errors import TryError
 
 from vappio.core.error_handler import runCatchError, mongoFail
-from vappio.cluster.misc import getInstances
-from vappio.cluster.control import Cluster, startExecNodes
-from vappio.cluster.persist_mongo import load, dump, ClusterDoesNotExist
+from vappio.cluster.control import startExecNodes
+from vappio.cluster.persist_mongo import load, dump
 
 from vappio.tasks import task
-
-from vappio.ec2 import control as ec2control
 
 OPTIONS = [
     ('task_name', '', '--task-name', 'Name of task', notNone),
@@ -53,8 +45,10 @@ def main(options, _args):
         tsk = tsk.progress().setState(task.TASK_COMPLETED)
         dump(cluster)
     except TryError, err:
-        tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_ERROR, 'An error occured attempting to start the instances:\n' + err.msg +
-                                                           '\nThe cluster has been started as much as possible')
+        tsk = tsk.setState(task.TASK_COMPLETED).addException('An error occured attempting to start the instances: ' + err.msg +
+                                                             '\nThe cluster has been started as much as possible, it may not function properly though',
+                                                             err,
+                                                             errors.getStacktrace())
         dump(err.result)
     except Exception, err:
         tsk = task.updateTask(tsk.setState(task.TASK_FAILED
@@ -65,7 +59,6 @@ def main(options, _args):
     tsk = task.updateTask(tsk)        
     
 
-    
 if __name__ == '__main__':
     runCatchError(lambda : main(*buildConfigN(OPTIONS)),
                   mongoFail(dict(action='addInstances')))

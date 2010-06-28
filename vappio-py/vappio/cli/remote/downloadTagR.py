@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
+from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail

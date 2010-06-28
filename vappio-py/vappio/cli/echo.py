@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-import sys
-
-from igs.utils.cli import buildConfigN, notNone, restrictValues, defaultIfNone
+from igs.utils.cli import buildConfigN
 from igs.utils.functional import identity
 
 

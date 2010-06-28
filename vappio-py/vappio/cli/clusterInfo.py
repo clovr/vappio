@@ -2,7 +2,7 @@
 ##
 # Provides useful URLs and other information about the cluster
 
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils.cli import buildConfigN, defaultIfNone
 from igs.utils.functional import identity
 
 from vappio.webservice.cluster import loadCluster, listClusters

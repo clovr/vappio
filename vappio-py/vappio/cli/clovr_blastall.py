@@ -27,8 +27,6 @@ import time
 from igs.utils import logging
 from igs.utils.logging import debugPrint, logPrint, errorPrint
 from igs.utils.cli import MissingOptionError
-from igs.utils.functional import tryUntil
-from igs.utils.commands import runSystemEx
 
 from vappio.webservice.tag import queryTag, tagData, uploadTag
 from vappio.webservice.cluster import startCluster, listClusters, terminateCluster

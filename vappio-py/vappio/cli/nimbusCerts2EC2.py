@@ -2,11 +2,9 @@
 ##
 # A little tool to convert nimbus certs to EC2
 import os
-import optparse
 
 from igs.utils.cli import buildConfigN
 from igs.utils.functional import identity
-from igs.utils.config import configFromMap
 from vappio.nimbus.utils.convert import convertCert, convertKey, addJavaCert
 
 

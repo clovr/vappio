@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 ##
 # Uploads files to a cluster
-import os
-
 from igs.utils.cli import buildConfigN, notNone, MissingOptionError
 
 from vappio.instance.transfer import uploadAndTag
