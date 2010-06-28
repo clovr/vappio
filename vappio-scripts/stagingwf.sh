@@ -35,9 +35,10 @@ vlog "group: $group"
 #TODO transfer list of files as a single transfer instead of one at a time
 vlog "Start transfer of input from $wfgroupdir/$group.iter to $remotehost" 
 #Check for $;I_FILE_PATH$;
-groupitertype=`cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v 'I_FILE_PATH'`
+groupitertype=`cat $wfcomponentdir/$wfgroupdir/$group.iter | grep 'I_FILE_PATH'`
 if [ "$groupitertype" != "" ]
 then
+    vlog "Found files in iterator $wfcomponentdir/$wfgroupdir/$group.iter. Parsing..."
     for f in `cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v '^\\$' | perl -ne 'split(/\t/);print $_[2],"\n"'`; do
 	vlog "Transfering $f to $remotehost:$f" 
 
@@ -56,6 +57,8 @@ then
 	    exit 1;
 	fi
     done 
+else
+	vlog "No files found for staging in iterator $wfcomponentdir/$wfgroupdir/$group.iter. Skipping file staging"
 fi
 cd $wfcomponentdir
 vlog "Start transfer of workflow xml from $wfcomponentdir/$wfgroupdir to $remotehost:$wfcomponentdir" 
