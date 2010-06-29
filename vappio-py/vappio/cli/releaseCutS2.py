@@ -89,11 +89,12 @@ def main(options, _args):
     runSystemEx('cp %s /usr/local/projects/clovr/images' % options('general.image'), log=True)
     runSystemEx('cp %s VMware_conversion/shared/convert_img.img' % options('general.image'), log=True)
 
+
+    convertChannel = threads.runThreadWithChannel(convertImage)[1].sendWithChannel(options)    
+
     waitForPasswordChange()
-
-
     bundleChannel = threads.runThreadWithChannel(bundleAMI)[1].sendWithChannel(options)
-    convertChannel = threads.runThreadWithChannel(convertImage)[1].sendWithChannel(options)
+
 
     try:
       amiId = bundleChannel.receive()
