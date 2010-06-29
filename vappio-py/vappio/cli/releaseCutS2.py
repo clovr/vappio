@@ -81,9 +81,9 @@ def convertImage(chan):
         
 def main(options, _args):
     runSystemEx('svn copy https://clovr.svn.sourceforge.net/svnroot/clovr/trunk https://clovr.svn.sourceforge.net/svnroot/clovr/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')),
-                log=True)
+               log=True)
     runSystemEx('svn copy https://vappio.svn.sourceforge.net/svnroot/vappio/trunk https://vappio.svn.sourceforge.net/svnroot/vappio/tags/%s -m "Cutting release %s"' % (options('general.version'), options('general.version')),
-                log=True)
+               log=True)
     
     runSystemEx('scp %s:/export/%s .' % (options('general.remote_name'), options('general.image')), log=True)
     runSystemEx('cp %s /usr/local/projects/clovr/images' % options('general.image'), log=True)
@@ -96,18 +96,18 @@ def main(options, _args):
     convertChannel = threads.runThreadWithChannel(convertImage)[1].sendWithChannel(options)
 
     try:
-        amiId = bundleChannel.receive()
-        logPrint('AMI: ' + amiId)
+       amiId = bundleChannel.receive()
+       logPrint('AMI: ' + amiId)
     except Exception, err:
-        amiId = None
-        errorPrint('Bundling AMI failed for some reason.  Error message:')
-        errorPrint(str(err))
+       amiId = None
+       errorPrint('Bundling AMI failed for some reason.  Error message:')
+       errorPrint(str(err))
 
     try:
         convertChannel.receive()
-        vmWareDir = 'clovr-vmware.beta-%s' % options('general.version')
+        vmWareDir = 'clovr-vmware.%s' % options('general.version')
         runSystemEx('mkdir -p ' + vmWareDir)
-        runSystemEx('mv VMware_conversion/shared/converted_img.vmdk %s' % os.path.join(vmWareDir, 'clovr.9-04.x86-64.beta-%s.vmdk' % options('general.version')))
+        runSystemEx('mv VMware_conversion/shared/converted_img.vmdk %s' % os.path.join(vmWareDir, 'clovr.9-04.x86-64.%s.vmdk' % options('general.version')))
         runSystemEx('mkdir -p %s %s' % (os.path.join(vmWareDir, 'keys'),
                                         os.path.join(vmWareDir, 'user_data')))
         runSystemEx('cp -rv /usr/local/projects/clovr/shared ' + vmWareDir)
