@@ -7,7 +7,7 @@ import os
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils.functional import identity
-from igs.utils.config import replaceStr
+from igs.utils import config
 from igs.utils.commands import runSystemEx, runSingleProgramEx
 from igs.utils.logging import logPrint, errorPrint
 from igs.threading import threads
@@ -57,15 +57,15 @@ def bundleAMI(chan):
         if options('general.ec2cert'):
             cmd.append('--ec2cert ${general.ec2cert}')
             
-        runSystemEx(replaceStr(' '.join(cmd), options), log=options('general.debug'))
+        runSystemEx(config.replaceStr(' '.join(cmd), options), log=options('general.debug'))
             
         cmd = ['ec2-upload-bundle', '-b ${general.image}', '-m ${general.dest}/${general.image}.manifest.xml', '-a ${general.access_key}', '-s ${general.secret_access_key}']
-        runSystemEx(replaceStr(' '.join(cmd), options), log=options('general.debug'))
+        runSystemEx(config.replaceStr(' '.join(cmd), options), log=options('general.debug'))
         
         cmd = ['ec2-register', '${general.image}/${general.image}.manifest.xml', '-K ${general.key}', '-C ${general.cert}']
 
         outp = []
-        runSingleProgramEx(replaceStr(' '.join(cmd), options), stdoutf=outp.append, stderrf=sys.stderr, log=True)
+        runSingleProgramEx(config.replaceStr(' '.join(cmd), options), stdoutf=outp.append, stderrf=sys.stderr, log=True)
         rchan.send(''.join(outp))
     except Exception, err:
         rchan.sendError(err)
@@ -105,6 +105,16 @@ def main(options, _args):
 
     try:
         convertChannel.receive()
+        vmWareDir = 'clovr-vmware.beta-%s' % options('general.version')
+        runSystemEx('mkdir -p ' + vmWareDir)
+        runSystemEx('mv VMware_conversion/shared/converted_img.vmdk %s' % os.path.join(vmWareDir, 'clovr.9-04.x86-64.beta-%s.vmdk' % options('general.version')))
+        runSystemEx('mkdir -p %s %s' % (os.path.join(vmWareDir, 'keys'),
+                                        os.path.join(vmWareDir, 'user_data')))
+        runSystemEx('cp -rv /usr/local/projects/clovr/shared ' + vmWareDir)
+        fout = open(os.path.join(vmWareDir, 'start_clovr.vmx'), 'w')
+        clovrConf = config.configFromMap(dict(version=options('general.version')))
+        for line in open('/usr/local/projects/clovr/start_clovr.vmx'):
+            fout.write(config.replaceStr(line, clovrConf))
     except Exception, err:
         errorPrint('Converting image failed.  Error message:')
         errorPrint(str(err))
