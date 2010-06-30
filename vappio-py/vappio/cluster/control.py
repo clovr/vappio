@@ -255,7 +255,7 @@ def waitForSSHUp(conf, tries, instances):
         return all(c == 0 for c in res)
 
     while tries > 0:
-        chans = [runThreadWithChannel(_wrapCheckSSHUp)[1].sendWithChannel(i)
+        chans = [runThreadWithChannel(_wrapCheckSSHUp).channel.sendWithChannel(i)
                  for i in instances]
         res = [c.receive() for c in chans]
         if _sshTest(res):
@@ -363,7 +363,7 @@ def runCommandOnCluster(cluster, command, justMaster=False):
        instances += cluster.execNodes + cluster.dataNodes
 
 
-    chans = [runThreadWithChannel(_runCommandOnInstance)[1].sendWithChannel(i)
+    chans = [runThreadWithChannel(_runCommandOnInstance).channel.sendWithChannel(i)
              for i in instances]
 
     ##

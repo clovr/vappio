@@ -90,10 +90,10 @@ def main(options, _args):
     runSystemEx('cp %s VMware_conversion/shared/convert_img.img' % options('general.image'), log=True)
 
 
-    convertChannel = threads.runThreadWithChannel(convertImage)[1].sendWithChannel(options)    
+    convertChannel = threads.runThreadWithChannel(convertImage).channel.sendWithChannel(options)
 
     waitForPasswordChange()
-    bundleChannel = threads.runThreadWithChannel(bundleAMI)[1].sendWithChannel(options)
+    bundleChannel = threads.runThreadWithChannel(bundleAMI).channel.sendWithChannel(options)
 
 
     try:
