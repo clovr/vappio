@@ -7,6 +7,7 @@ from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
+from vappio.webservice.tag import tagData
 from vappio.tags import tagfile
 
 from vappio.tasks import task
@@ -42,15 +43,15 @@ def main(options, _args):
 
                 ##
                 # Need to fix this so it makes use of tag_options
-                tagTask = tagfile.tagData('localhost',
-                                          'local',
-                                          options('general.tag_name'),
-                                          outDir,
-                                          [outDir],
-                                          recursive=True,
-                                          expand=True,
-                                          append=False,
-                                          overwrite=True)
+                tagTask = tagData('localhost',
+                                  'local',
+                                  options('general.tag_name'),
+                                  outDir,
+                                  [outDir],
+                                  recursive=True,
+                                  expand=True,
+                                  append=False,
+                                  overwrite=True)
 
                 endState, tsk = blockOnTaskAndForward('localhost',
                                                       'local',
