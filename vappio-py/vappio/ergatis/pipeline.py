@@ -211,17 +211,39 @@ def runPipelineConfig(taskName, name, pipeline, conf):
     """
     ##
     # Mocheezmo way to have it load a conf file.  This will be removed in the future
+    tmpConfigName = os.path.join('/tmp', str(time.time()) + '.config')
     options = list(pipeline.OPTIONS)
-    options.append(('conf', '', '--conf', 'Conf file (DO NOT SPECIFY, FOR INTERNAL USE)', const('/tmp/machine.conf')))    
+    options.append(('conf', '', '--conf', 'Conf file (DO NOT SPECIFY, FOR INTERNAL USE)', const('/tmp/machine.conf')))
+    options.append(('CONFIG_FILE', '-c', '--CONFIG_FILE',
+                    'Config file for the pipeline.  Specify this if you do not want to specify options on the comamnd line', const(tmpConfigName)))
 
     ##
     # Load up machine.conf and apply it to our current config
-    conf = config.configFromConfig(conf, config.configFromStream(open('/tmp/machine.conf')), lazy=True)
+    conf = config.configFromConfig(conf, config.configFromStream(open('/tmp/machine.conf'), config.configFromEnv()), lazy=True)
     vals = {}
-    for o in pipeline.OPTIONS:
-        vals[o[0]] = cli.applyOption(conf(o[0]), o[4], conf)
+    for o in options:
+        vals[o[0]] = cli.applyOption(conf(o[0], default=None), o[4], conf)
 
     conf = config.configFromMap(vals, conf)
+
+    ##
+    # For some ergatis trickery we then need to output this config to a temp file so ergatis can pull variables from it
+    confDict = config.configToDict(conf)
+    confVals = {}
+    cv = [('.'.join(k.split('.')[:-1]), k.split('.')[-1], v) for k, v in confDict.iteritems()]
+    for s, k, v in cv:
+        confVals.setdefault(s, {})[k] = v
+
+    fout = open(tmpConfigName, 'w')
+    for s, d in confVals.iteritems():
+        if s not in ['', 'env']:
+            fout.write('[' + s + ']\n')
+            for k, v in d.iteritems():
+                fout.write('%s=%s\n' % (k, str(v)))
+
+    fout.close()
+
+    
 
     return runPipelineWithConfig(taskName, name, pipeline, conf)
     

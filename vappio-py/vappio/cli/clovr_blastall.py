@@ -25,15 +25,19 @@ import os
 import time
 
 from igs.utils import logging
-from igs.utils.logging import debugPrint, logPrint, errorPrint
+from igs.utils.logging import debugPrint
 from igs.utils.cli import MissingOptionError
+from igs.utils import config
 
 from vappio.webservice.tag import queryTag, tagData, uploadTag
-from vappio.webservice.cluster import startCluster, listClusters, terminateCluster
-from vappio.webservice.pipeline import runPipeline, pipelineStatus, downloadPipelineOutput
+from vappio.webservice.cluster import startCluster, listClusters
+from vappio.webservice.pipeline import runPipelineConfig, pipelineStatus
 
 from vappio.tasks.task import TASK_FAILED
 from vappio.tasks.utils import blockOnTask
+
+
+PIPELINE_CONFIG_FILE = '/opt/clovr_pipelines/workflow/project_saved_templates/clovr_blastall/clovr_blastall.config'
 
 NUM_TRIES = 60
 
@@ -51,7 +55,17 @@ def blockOnTaskAndFail(name, taskName, errMsg):
     if state == TASK_FAILED:
         raise Exception(errMsg)
 
+def makeAbsolute(fname):
+    """
+    Makes a file name absolute by prepending the current working directory to it
+    if it does not start with '/'
+    """
+    if fname[0] != '/':
+        return os.path.join(os.getcwd(), fname)
+    else:
+        return fname
 
+    
 def get_input(prompt, f):
     inp = raw_input(prompt)
     while not f(inp):
@@ -211,7 +225,7 @@ def removeCustomOptions(args):
     retArgs = []
     for a in args:
         if not wantArg:
-            if a in ['--auto', '--cluster', '-i', '-d', '-o', '-e', '--seqs_per_file']:
+            if a in ['--auto', '--cluster', '-i', '-p', '-d', '-o', '-e', '--seqs_per_file']:
                 wantArg = True
             elif a == '--debug' or a.startswith('--cluster=') or a.startswith('--auto=') or a.startswith('--seqs_per_file'):
                 pass
@@ -246,11 +260,12 @@ def main(_options, args):
         # make autoNodes the integer value of whatever is input or false
         autoNodes = extractOption(args, None, '--auto', True) and int(extractOption(args, None, '--auto', True))
         clusterName = extractOption(args, None, '--cluster', True)
-        inputFile = extractOption(args, '-i', None, True)
-        outputDir = extractOption(args, '-o', None, True)
-        databasePath = extractOption(args, '-d', None, True)
+        inputFile = makeAbsolute(extractOption(args, '-i', None, True))
+        outputDir = makeAbsolute(extractOption(args, '-o', None, True))
+        databasePath = makeAbsolute(extractOption(args, '-d', None, True))
         expectValue = extractOption(args, '-e', None, True)
         seqsPerFile = extractOption(args, None, '--seqs_per_file', True)
+        blastProgram = extractOption(args, '-p', None, True)
 
         try:
             seqsPerFile = seqsPerFile is not False and int(seqsPerFile)
@@ -318,69 +333,21 @@ def main(_options, args):
         debugPrint(lambda : 'Checking to see if pipeline is running...')
         if not pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineName):
             debugPrint(lambda : '%s is not running, running now' % pipelineName)
-            pipelineArgs = ['--OTHER_OPTS=' + blastArgs,
-                            '--INPUT_FILE_LIST=' + inputTagName,
-                            '--REF_DB_PATH=' + databaseTagName,
-                            '--EXPECT=' + expectValue]
+            conf = config.configFromMap({'input.INPUT_TAG': inputTagName,
+                                         'input.REF_DB_TAG': databaseTagName,
+                                         'misc.EXPECT': expectValue,
+                                         'misc.OTHER_OPTS': blastArgs,
+                                         'misc.PROGRAM': blastProgram},
+                                        config.configFromStream(open(PIPELINE_CONFIG_FILE), config.configFromEnv()))
             if seqsPerFile is not False:
-                pipelineArgs.append('--SEQS_PER_FILE=' + str(seqsPerFile))
+                conf = config.configFromMap({'misc.SEQS_PER_FILE': str(seqsPerFile)}, conf)
 
-            runPipeline('localhost', clusterName, 'clovr_blastall', pipelineName, pipelineArgs)
+
+            runPipelineConfig('localhost', clusterName, 'clovr_wrapper', pipelineName, conf)
 
         debugPrint(lambda : 'Waiting for pipeline to finish...')
         pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineName)[0]
-        while pipelineInfo.state not in ['complete', 'failed', 'error']:
-            for i in range(10):
-                sys.stdout.write('.')
-                sys.stdout.flush()
-                time.sleep(5)
-            pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineName)[0]
-            sys.stdout.write('\r                  \r')
-            sys.stdout.flush()
-
-        print
-        
-        if pipelineInfo.state == 'complete':
-            debugPrint(lambda : 'Pipeline finished successfully, downloading')
-            taskName = downloadPipelineOutput('localhost', clusterName, pipelineName, outputDir, True)
-            debugPrint(lambda : 'Downloading pipeline...')
-            downloadName = os.path.join(outputDir, pipelineName + '_output.tar.gz')
-            time.sleep(10)
-            blockOnTaskAndFail('local', taskName, 'Failed to download file')
-            logPrint('Your pipeline is downloaded to %s ,  Enjoy' % downloadName)
-            if autoNodes is not False:
-                logPrint('Terminating cluster...')
-                terminateCluster('localhost', clusterName, True)
-            elif clusterName != 'local':
-                print
-                print '*' * 40
-                print 'Do not forget that you need to manually terminate your cluster when you are done'
-                print 'You can terminate your cluster with the following command:'
-                print 'terminateCluster.py --name=' + clusterName
-        elif pipelineInfo.state != 'complete' and clusterName != 'local':
-            errorPrint('The pipeline failed!!!!')
-
-            print
-            print '*' * 40
-            print 'Your pipeline failed! Would you like to TERMINATE the cluster?'
-            print 'If you choose Y then the cluster will be destroyed and all of your data'
-            print 'on it will be deleted.  If you choose N the cluster will be left up but'
-            print 'you will have to remember to terminate it by running the following command:'
-            print 'terminateCluster.py --name=' + clusterName
-            if get_input('(Y/N)', lambda i : i in ['Y', 'N']) == 'Y':
-                logPrint('Terminating cluster...')
-                terminateCluster('localhost', clusterName, True)
-            else:
-                print
-                print '*' * 40
-                print 'You have elected to NOT terminate the cluster.'
-                print 'Remember you MUST terminate your the cluster manually when you are done.'
-                print 'You can terminate the cluster by running:'
-                print 'terminateCluster.py --name=' + clusterName
-        elif pipelineInfo.state != 'complete' and clusterName == 'local':
-            print
-            print '*' * 40
-            print 'Your pipeline failed!'
+        blockOnTaskAndFail(clusterName, pipelineInfo.taskName, 'Pipeline failed')
         
             
     except MissingOptionError, err:

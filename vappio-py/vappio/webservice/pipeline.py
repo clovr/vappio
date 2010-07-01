@@ -1,5 +1,6 @@
 from igs.cgi.request import performQuery
 
+from igs.utils import config
 
 from vappio.ergatis.pipeline import pipelineSSFromDict
 
@@ -40,6 +41,16 @@ def runPipeline(host, name, pipeline, pipelineName, args):
                                                     pipeline_name=pipelineName,
                                                     args=args))
     
+
+def runPipelineConfig(host, name, pipeline, pipelineName, conf):
+    """
+    pipeline is the type of pipeline (blastx, tblastn, ..)
+    """
+    return performQuery(host, RUNPIPELINE_URL, dict(name=name,
+                                                    pipeline=pipeline,
+                                                    pipeline_name=pipelineName,
+                                                    pipeline_config=config.configToDict(conf)))
+
 
 def downloadPipelineOutput(host, name, pipelineName, outputDir, overwrite):
     return performQuery(host, DOWNLOADPIPELINEOUTPUT_URL, dict(name=name,
