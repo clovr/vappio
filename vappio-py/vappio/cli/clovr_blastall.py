@@ -330,10 +330,12 @@ def main(_options, args):
         blastArgs = ' '.join(removeCustomOptions(args))
 
         pipelineName = inputTagName + '-' + databaseTagName
+        pipelineWrapperName = pipelineName + '-wrapper'
         debugPrint(lambda : 'Checking to see if pipeline is running...')
-        if not pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineName):
+        if not pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineWrapperName):
             debugPrint(lambda : '%s is not running, running now' % pipelineName)
-            conf = config.configFromMap({'input.INPUT_TAG': inputTagName,
+            conf = config.configFromMap({'input.PIPELINE_NAME': pipelineName,
+                                         'input.INPUT_TAG': inputTagName,
                                          'input.REF_DB_TAG': databaseTagName,
                                          'misc.EXPECT': expectValue,
                                          'misc.OTHER_OPTS': blastArgs,
@@ -343,10 +345,10 @@ def main(_options, args):
                 conf = config.configFromMap({'misc.SEQS_PER_FILE': str(seqsPerFile)}, conf)
 
 
-            runPipelineConfig('localhost', clusterName, 'clovr_wrapper', pipelineName, conf)
+            runPipelineConfig('localhost', clusterName, 'clovr_wrapper', pipelineWrapperName, conf)
 
         debugPrint(lambda : 'Waiting for pipeline to finish...')
-        pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineName)[0]
+        pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineWrapperName)[0]
         blockOnTaskAndFail(clusterName, pipelineInfo.taskName, 'Pipeline failed')
         
             
