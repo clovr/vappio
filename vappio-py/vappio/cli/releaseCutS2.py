@@ -65,7 +65,7 @@ def bundleAMI(chan):
         cmd = ['ec2-register', '${general.image}/${general.image}.manifest.xml', '-K ${general.key}', '-C ${general.cert}']
 
         outp = []
-        runSingleProgramEx(config.replaceStr(' '.join(cmd), options), stdoutf=outp.append, stderrf=sys.stderr, log=True)
+        runSingleProgramEx(config.replaceStr(' '.join(cmd), options), stdoutf=outp.append, stderrf=sys.stderr.write, log=True)
         rchan.send(''.join(outp))
     except Exception, err:
         rchan.sendError(err)
