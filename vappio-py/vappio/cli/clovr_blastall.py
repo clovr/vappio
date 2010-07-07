@@ -179,7 +179,7 @@ def tagDatabaseFiles(databasePath):
     return tagName
 
 
-def makeClusterIfNeeded(numNodes, autoClusterName, alreadyClusterName):
+def makeClusterNameIfNeeded(numNodes, autoClusterName, alreadyClusterName):
     """
     autoClusterName - Name of the cluster if we decide to make one ourselves
     numNodes - How many exec nodes
@@ -189,17 +189,6 @@ def makeClusterIfNeeded(numNodes, autoClusterName, alreadyClusterName):
     # numNodes could be 0, we only want to do this path if it exlicitly is
     # not False
     if numNodes is not False:
-        if clusterExists(autoClusterName):
-            debugPrint(lambda : 'Cluster already exists, using it')
-        else:
-            debugPrint(lambda : 'Starting cluster...')
-            taskName = startCluster('localhost',
-                                    autoClusterName,
-                                    'clovr.conf',
-                                    numNodes,
-                                    'ec2',
-                                    False)
-            blockOnTaskAndFail('local', taskName, 'Error starting cluster')
         return autoClusterName
     else:
         if not clusterExists(alreadyClusterName):
@@ -280,51 +269,15 @@ def main(_options, args):
         inputTagName = os.path.basename(inputFile)
         tagInputIfNeeded(inputFile)
 
-        ##
-        # Check if input is a tag name or a file (starts with a '/')
-        if databasePath[0] == '/':
-            databaseTagName = tagDatabaseFiles(databasePath)
-        else:
-            ##
-            # We can't use tagExists here because tagExists
-            # checks to see if the tag has files associated
-            # with it.  The user could be using a phantom
-            # tag which won't have files associated with it until
-            # it is uploaded.  So here we just do a quick check
-            # to see if queryTag returns anything valid
-            # if it does then at least a tag by that name
-            # exists. Otherwise there is an error
-            try:
-                queryTag('localhost', 'local', databasePath)
-                ##
-                # If a success, then set the tagname to the path
-                databaseTagName = databasePath
-            except:
-                raise MissingOptionError('Database tag does not exist locally')
-
+        databaseTagName = tagDatabaseFiles(databasePath)
 
 
         debugPrint(lambda : 'Checking to see if the cluster exists')
         ##
         # Want to create a cluster name that will be the same between runs
         # So we can just restart the script on failure
-        clusterName = makeClusterIfNeeded(autoNodes, inputTagName + '-' + databaseTagName, clusterName)
+        clusterName = makeClusterNameIfNeeded(autoNodes, inputTagName + '-' + databaseTagName, clusterName)
 
-        debugPrint(lambda : 'Uploading tags to the cluster')
-        uploadTasks = []
-        ##
-        # Upload the tags and wait for them to be complete
-        if not tagExists(clusterName, inputTagName):
-            uploadTasks.append(uploadTag('localhost', inputTagName, 'local', clusterName, True))
-
-        if not tagExists(clusterName, databaseTagName):
-            uploadTasks.append(uploadTag('localhost', databaseTagName, 'local', clusterName, True))
-
-        for t in uploadTasks:
-            blockOnTaskAndFail('local', t, 'Error uploading tasks')
-
-        print
-        
         ##
         # Remove args specific to this script
         blastArgs = ' '.join(removeCustomOptions(args))
@@ -332,9 +285,17 @@ def main(_options, args):
         pipelineName = inputTagName + '-' + databaseTagName
         pipelineWrapperName = pipelineName + '-wrapper'
         debugPrint(lambda : 'Checking to see if pipeline is running...')
-        if not pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineWrapperName):
+        if not pipelineStatus('localhost', 'local', lambda p : p.name == pipelineWrapperName):
             debugPrint(lambda : '%s is not running, running now' % pipelineName)
-            conf = config.configFromMap({'input.PIPELINE_NAME': pipelineName,
+            if clusterName != 'local':
+                clusterType = 'ec2'
+            else:
+                clusterType = 'local'
+                
+            conf = config.configFromMap({'cluster.CLUSTER_TAG': clusterName,
+                                         'cluster.CLUSTER_TYPE': clusterType,
+                                         'cluster.EXEC_NODES': str(autoNodes or 0),
+                                         'input.PIPELINE_NAME': pipelineName,
                                          'input.INPUT_TAG': inputTagName,
                                          'input.REF_DB_TAG': databaseTagName,
                                          'misc.EXPECT': expectValue,
@@ -345,11 +306,11 @@ def main(_options, args):
                 conf = config.configFromMap({'misc.SEQS_PER_FILE': str(seqsPerFile)}, conf)
 
 
-            runPipelineConfig('localhost', clusterName, 'clovr_wrapper', pipelineWrapperName, conf)
+            runPipelineConfig('localhost', 'local', 'clovr_wrapper', pipelineWrapperName, conf)
 
         debugPrint(lambda : 'Waiting for pipeline to finish...')
-        pipelineInfo = pipelineStatus('localhost', clusterName, lambda p : p.name == pipelineWrapperName)[0]
-        blockOnTaskAndFail(clusterName, pipelineInfo.taskName, 'Pipeline failed')
+        pipelineInfo = pipelineStatus('localhost', 'local', lambda p : p.name == pipelineWrapperName)[0]
+        blockOnTaskAndFail('local', pipelineInfo.taskName, 'Pipeline failed')
         
             
     except MissingOptionError, err:
