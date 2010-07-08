@@ -21,6 +21,15 @@ class ClusterDoesNotExist(Exception):
     pass
 
 
+class ClusterLoadIncompleteError(Exception):
+    def __init__(self, msg, cluster):
+        self.msg = msg
+        self.cluster = cluster
+
+    def __str__(self):
+        return str(self.msg)
+    
+
 def dump(cluster):
     """
     Dumps a cluster to MongoDB
@@ -77,11 +86,11 @@ def load(name):
         dataNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='dataNode'))]
     elif mastInst.state == clust.ctype.Instance.RUNNING:
         try:
-            result = performQuery(mastInst.publicDNS, CLUSTERINFO_URL, dict(name='local'), timeout=20)
+            result = performQuery(mastInst.publicDNS, CLUSTERINFO_URL, dict(name='local'), timeout=10)
             execNodes = [clust.ctype.instanceFromDict(i) for i in result['execNodes']]
             dataNodes = [clust.ctype.instanceFromDict(i) for i in result['dataNodes']]
         except socket.timeout:
-            raise TryError('Failed to contact master when loading cluster', clust)
+            raise ClusterLoadIncompleteError('Failed to contact master when loading cluster', clust)
     else:
         execNodes = []
         dataNodes = []

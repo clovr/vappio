@@ -12,17 +12,23 @@ def performQueryNoParse(host, url, var, timeout=30, debug=False):
     def _performQuery():
         params = urllib.urlencode({'request': json.dumps(var)})
         conn = httplib.HTTPConnection(host, timeout=timeout)
+        conn.connect()
         if debug:
             conn.set_debuglevel(3)
+        ##
+        # Incredibly cheap hack
+        conn.sock.settimeout(60)
         conn.request('POST', url, params)
         return conn.getresponse().read()
 
-    count = 10
-    while count > 0:
+    count = 4
+    while True:
         try:
             return _performQuery()
         except socket.timeout:
             count -= 1
+            if count <= 0:
+                raise
     
 
 def performQuery(host, url, var, timeout=30, debug=False):
