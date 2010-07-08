@@ -6,7 +6,7 @@ from igs.cgi.request import readQuery
 from igs.utils.errors import TryError
 
 from vappio.cluster.control import clusterToDict
-from vappio.cluster.persist_mongo import load
+from vappio.cluster.persist_mongo import load, ClusterLoadIncompleteError
 
 
 
@@ -30,10 +30,9 @@ class ClusterInfo(CGIPage):
         try:
             cluster = load(request['name'])
             return clusterToDict(cluster)
-        except TryError, err:
+        except ClusterLoadIncompleteError, err:
             if request['partial']:
-                cluster = err.result
-                return clusterToDict(cluster)
+                return clusterToDict(err.cluster)
             else:
                 raise
             
