@@ -196,6 +196,7 @@ do_stop() {
     rm -f /root/.ssh/known_hosts
     ##
     # Logs just take up space and are not needed 
+    rm -f /var/log/wtmp
     rm -f /var/log/*.log
     rm -f /var/log/*.gz
     rm -f /var/log/dmesg.*
