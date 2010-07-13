@@ -30,9 +30,14 @@ export BLASTMAT=/usr/share/ncbi/data/
 ##
 # These are temporary right now, trying to figure out the best way to 
 # allow a cluster to start up its own children
-export EC2_HOME=/usr
+export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907
 export EC2_CERT=/tmp/ec2-cert.pem
 export EC2_PRIVATE_KEY=/tmp/ec2-pk.pem
+
+##
+# EC2 api stuff needs to go in begining of path to override what is already on the VM
+export PATH=/opt/opt-packages/ec2-api-tools-1.3-53907/bin:$PATH
+
 
 ulimit -n 8192
 
