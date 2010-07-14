@@ -93,7 +93,7 @@ then
 	
         #Previous steps should have completed, so now we should have all our inputs are are ready to run
 	#First read the .final.config file to retrieve the output repository 
-        outprefix=`grep -P '^\s*\$;OUTPUT_DIRECTORY\$;\s*=' $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
+        outprefix=`grep -P '^\s*.;OUTPUT_DIRECTORY.;\s*=' $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
         outdir=`echo "$outprefix/$wfgroupdir"`
 	if [ -z "$outprefix" ]
 	then
