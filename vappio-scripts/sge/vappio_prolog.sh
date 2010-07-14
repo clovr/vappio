@@ -8,6 +8,12 @@
 #This script is invoked from the prolog attached to the exec.q in
 #the vappio framework
 
+#The following error codes are supported
+#              0: Success
+#              99: Reschedule job
+#              100: Put job in error state
+#              Anything else: Put queue in error state
+
 ##
 ##Import vappio config
 vappio_scripts=$vappio_root
@@ -44,26 +50,26 @@ then
 
 	if [ -z "$wfdir" ]
 	then
-		vlog "Unable to parse workflow directory from wfxml=$wfxml" 
+		verror "PROLOG. Unable to parse workflow directory from wfxml=$wfxml" 
 		exit 100
 	fi
     	if [ -z "$wfgroupdir" ]
 	then
-		vlog "Unable to parse group directory from wfxml=$wfxml" 
+		verror "PROLOG. Unable to parse group directory from wfxml=$wfxml" 
 		exit 100
 	fi
 	
 	echo "$wfdir" > $request_cwd/wfdir
         if [ $? -ne 0 ]
         then
-            vlog "Cannot save file $request_cwd/wfdir: $?"
+            verror "PROLOG. Cannot save file $request_cwd/wfdir: $?"
             exit 100
         fi
 	
 	mkdir -p $wfdir
 	if [ $? -ne 0 ]
 	then
-	    vlog "Cannot create directory $wfdir: $?"
+	    verror "PROLOG. Cannot create directory $wfdir: $?"
 	    exit 100
 	fi
 
@@ -75,7 +81,7 @@ then
 	ret1=$?
 	if [ $ret1 -ne 0 ] 
 	then
-	  vlog "Error during qsub return code: $ret1"
+	  verror "PROLOG. Error during qsub return code: $ret1"
 	  exit 100
 	fi
 
@@ -87,19 +93,37 @@ then
 	
         #Previous steps should have completed, so now we should have all our inputs are are ready to run
 	#First read the .final.config file to retrieve the output repository 
-        outprefix=`grep OUTPUT_DIRECTORY $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
+        outprefix=`grep -P '^\s*\$;OUTPUT_DIRECTORY\$;\s*=' $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
         outdir=`echo "$outprefix/$wfgroupdir"`
 	if [ -z "$outprefix" ]
 	then
-		vlog "Unable to parse output directory from $wfcomponentdir/*.final.config" 
+		verror "PROLOG. Unable to parse output directory from $wfcomponentdir/*.final.config" 
 		exit 100
 	fi 
 	#Save the output repository name to a file
         echo "$outdir" > $request_cwd/outdir
 	if [ $? -ne 0 ]
 	then
-	    vlog "Unable to save output directory in file $request_cwd/outdir"
+	    verror "PROLOG. Unable to save output directory in file $request_cwd/outdir"
 	    exit 100
+	fi 
+        ##
+        #Perform additional data staging if specified in the component configuration file
+        #STAGEDATA=file1 file2 dir1 dir2
+        #Files and directories should be absolute paths
+	stagedata=`grep STAGEDATA $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
+	if [ "$stagedata" != "" ]; then
+	    verror "PROLOG. STAGEDATA configuration option not implemented"
+#	    vlog "Submitting staging of input $exechost:$outdir to $stagingq,$stagingsubq"
+#	    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $stagingq,$stagingsubq $staging_script $myhost $stagedata"
+#	    vlog "CMD: $cmd" 
+#	    $cmd 1>> $vappio_log 2>> $vappio_log
+#	    if [ $? -ne 0 ]
+#		then
+#		verror "PROLOG. Unable to copy $stagedata to $myhost"
+#		exit 100
+#	    fi 
+#	    vlog "Finished staging of $f@$myhost"
 	fi
 fi
 
