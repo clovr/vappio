@@ -65,6 +65,13 @@ def updateDict(d, nd):
     return d
 
 
+def find(f, iterable):
+    for idx, v in enumerate(iterable):
+        if f(v):
+            return idx
+
+    return None
+
 class Record:
     """
     This represents a record of name->value pairs (kind of like a dictionary) that is meant

@@ -112,6 +112,7 @@ def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
                                    cluster.config('cluster.master_type'),
                                    cluster.config('cluster.master_groups'),
                                    cluster.config('cluster.availability_zone', default=None),
+                                   cluster.config('cluster.master_bid_price', default=None),
                                    1,
                                    dataFile)[0]
 
@@ -159,6 +160,7 @@ def startExecNodes(cluster, numExec, reporter=None):
                                                                    cluster.config('cluster.exec_type'),
                                                                    cluster.config('cluster.exec_groups'),
                                                                    cluster.config('cluster.availability_zone', default=None),
+                                                                   cluster.config('cluster.exec_bid_price', default=None),
                                                                    numExec,
                                                                    dataFile))
 
@@ -313,19 +315,30 @@ def waitForInstancesReady(conf, tries, who):
         raise TryError('Not all machines read', (good, bad))
     
 
-def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, num, dataFile):
+def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, bidPrice, num, dataFile):
     """
     Tries to start up N instances, will try to run more if it cannot bring up all
 
     TODO: Modify this so it only tries N times and throws a TryError if it fails
     """
-    instances = ctype.runInstances(ami,
-                                   key,
-                                   itype,
-                                   groups,
-                                   availzone,
-                                   num,
-                                   userDataFile=dataFile)
+    if bidPrice is None:
+        instances = ctype.runInstances(ami,
+                                       key,
+                                       itype,
+                                       groups,
+                                       availzone,
+                                       num,
+                                       userDataFile=dataFile)
+    else:
+        instances = ctype.runSpotInstances(bidPrice,
+                                           ami,
+                                           key,
+                                           itype,
+                                           groups,
+                                           availzone,
+                                           num,
+                                           userDataFile=dataFile)
+        
     if len(instances) < num:
         instances += runInstancesWithRetry(ctype,
                                            ami,
@@ -333,6 +346,7 @@ def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, num, dataFi
                                            itype,
                                            groups,
                                            availzone,
+                                           bidPrice,
                                            num - len(instances),
                                            dataFile)
 
