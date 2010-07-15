@@ -96,13 +96,6 @@ def main(options, _args):
     bundleChannel = threads.runThreadWithChannel(bundleAMI).channel.sendWithChannel(options)
 
 
-    try:
-      amiId = bundleChannel.receive()
-      logPrint('AMI: ' + amiId)
-    except Exception, err:
-      amiId = None
-      errorPrint('Bundling AMI failed for some reason.  Error message:')
-      errorPrint(str(err))
 
     try:
         convertChannel.receive()
@@ -120,6 +113,13 @@ def main(options, _args):
         errorPrint('Converting image failed.  Error message:')
         errorPrint(str(err))
 
+    try:
+      amiId = bundleChannel.receive()
+      logPrint('AMI: ' + amiId)
+    except Exception, err:
+      amiId = None
+      errorPrint('Bundling AMI failed for some reason.  Error message:')
+      errorPrint(str(err))
 
 
 if __name__ == '__main__':
