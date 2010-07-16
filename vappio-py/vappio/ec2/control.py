@@ -313,7 +313,6 @@ def updateInstancesA(retInst, instances, log=False):
     
     def _instanceParse(line):
         instance = parseInstanceLine(line)
-        logPrint(str(instance))
         if instance and (instance.instanceId and instance.instanceId in instanceSet or
             instance.spotRequestId and instance.spotRequestId in spotRequestSet):
             
