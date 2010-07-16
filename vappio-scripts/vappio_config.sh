@@ -2,6 +2,7 @@ vappio_scripts=/opt/vappio-scripts
 vappio_runtime=/mnt/clovr/runtime/
 vappio_log=/tmp/vappio.log
 
+
 ##
 #Debugging and error reporting functions
 #Report errors to the error log
@@ -24,12 +25,23 @@ verror() {
 	newloglines=`expr $newlogcount - $logcount`
 	logmsg=`tail -n $newloglines $vappio_log`
 	reportstr=`echo -e "[$myhostname $stamp]\n$msg\n$logmsg"`
-	curl --retry 2 --silent --show-error --fail -d "msg=$reportstr" "http://$master_node:8080/announce.cgi"
+	errorfile=`curl --retry 2 --silent --show-error --fail -d "msg=$reportstr" "http://$master_node:8080/announce.cgi"`
+        vlog "ERROR LOGGED: $vappio_runtime/$errorfile"
     fi
 }
 
 # This is used to make changes to the configuration at boot time
 mod_config() { perl -pi -e "s/^$1=.*/$1=$2/" $vappio_scripts/vappio_config.sh; }
+
+#Data transfer function 
+#Arguments are file source and destination that are passed through to rsync
+#eg. vcopy (--delete $staging_dir/ root@$remotehost:$staging_dir)
+#eg. vcopy ($staging_dir/ root@$remotehost:$staging_dir)
+#eg. vcopy (-R $f root@$remotehost:/)
+vcopy() {
+    vlog "CMD: rsync -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" @"
+    rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options"  @
+}
 
 export BASH_ENV=
 export HISTFILE=
@@ -53,9 +65,14 @@ wfq_conf=$vappio_scripts/sge/wf.q
 repositoryq_conf=$vappio_scripts/sge/repository.q
 execq=exec.q
 execslots=2
+masterslots=1
 
+##Time in minutes prior to hourly rollover since launch to start activity checks
+rolloverstart=10
 ##Time in minutes to poll activity before automatic shutdown
 idleshutdown=3
+##Time in minutes to delay before shutdown
+delayshutdown=5
 #Number of 10-second intervals to wait for master node to boot
 waitformastertimeout=50
 
