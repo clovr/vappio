@@ -38,6 +38,7 @@ class ProgramRunner:
         self.stdoutf = stdoutf
         self.stderrf = stderrf
         self.log = log
+        self.exitCode = None
 
     def __call__(self):
         """
