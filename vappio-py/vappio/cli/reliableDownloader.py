@@ -30,19 +30,19 @@ def runDownloader(chan):
     except Exception, err:
         rchan.sendError(err)
 
-def getSizeOfCwd():
+def getSizeOfDir(d):
     stdoutL = []
-    commands.runSingleProgramEx('du -ks .',
+    commands.runSingleProgramEx('du -ks ' + d,
                                 stdoutf=stdoutL.append,
                                 stderrf=None,
                                 log=False)
     return int(''.join(stdoutL).split()[0])
     
         
-def monitorDownload(pr, downloaderChan, minRate):
+def monitorDownload(pr, downloaderChan, downloadDir, minRate):
     sizeSamples = []
     while True:
-        baseSize = getSizeOfCwd()
+        baseSize = getSizeOfDir(downloadDir)
         time.sleep(SAMPLE_RATE)
         ##
         # If the program exited and exited correctly, then we're good
@@ -51,7 +51,7 @@ def monitorDownload(pr, downloaderChan, minRate):
             ret = downloaderChan.receive()
             return True
         else:
-            currentSize = getSizeOfCwd() - baseSize
+            currentSize = getSizeOfDir(downloadDir) - baseSize
             logging.debugPrint(lambda : 'Download rate: %d' % (currentSize/SAMPLE_RATE))
             sizeSamples.append(currentSize/SAMPLE_RATE)
             if len(sizeSamples) > MAX_SAMPLE_SIZE:
@@ -81,7 +81,7 @@ def attemptDownload(options, url):
 
     logging.debugPrint(lambda : 'Downloading with a minimum acceptable rate of %d' % options('general.min_rate'))
 
-    return monitorDownload(pr, downloaderChan, options('general.min_rate'))
+    return monitorDownload(pr, downloaderChan, options('general.base_dir'), options('general.min_rate'))
 
     
             
