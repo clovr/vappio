@@ -20,20 +20,23 @@ myhostname=`hostname -f`
 vlog "Attempting to disable queue for host $myhostname"
 $SGE_ROOT/bin/$ARCH/qmod -d $execq@$myhostname
 $SGE_ROOT/bin/$ARCH/qmod -d $stagingsubq@$myhostname
-vlog "Attempting to delete jobs for host $myhostname"
-execjobs=`$SGE_ROOT/bin/$ARCH/qstat -q $execq@$myhostname -u '*' | perl -ne 's/^\s+//;print' | cut -f 1 -d ' ' | perl -ne 'chomp;if(/(\d+)/){print "$1 "}'`
-if [ "$execjobs" != "" ]
-then
-    vlog "Rescheduling exec jobs $execjobs"
-    $SGE_ROOT/bin/$ARCH/qmod -rj $execjobs
-fi
+vlog "Attempting to reschedule jobs for host $myhostname in $execq and $stagingsubq"
+$SGE_ROOT/bin/$ARCH/qstat -rq $execq@$myhostname
+$SGE_ROOT/bin/$ARCH/qstat -rq $stagingsubq@$myhostname
+#Deprecated way, per job
+#execjobs=`$SGE_ROOT/bin/$ARCH/qstat -q $execq@$myhostname -u '*' | perl -ne 's/^\s+//;print' | cut -f 1 -d ' ' | perl -ne 'chomp;if(/(\d+)/){print "$1 "}'`
+#if [ "$execjobs" != "" ]
+#then
+#    vlog "Rescheduling exec jobs $execjobs"
+#    $SGE_ROOT/bin/$ARCH/qmod -rj $execjobs
+#fi
 
-stagingjobs=`$SGE_ROOT/bin/$ARCH/qstat -q $stagingsubq@$myhostname -u '*' | perl -ne 's/^\s+//;print' | cut -f 1 -d ' ' | perl -ne 'chomp;if(/(\d+)/){print "$1 "}'`
-if [ "$stagingjobs" != "" ]
-then
-    vlog "Rescheduling staging jobs $stagingjobs"
-    $SGE_ROOT/bin/$ARCH/qmod -rj $stagingjobs
-fi
+#stagingjobs=`$SGE_ROOT/bin/$ARCH/qstat -q $stagingsubq@$myhostname -u '*' | perl -ne 's/^\s+//;print' | cut -f 1 -d ' ' | perl -ne 'chomp;if(/(\d+)/){print "$1 "}'`
+#if [ "$stagingjobs" != "" ]
+#then
+#    vlog "Rescheduling staging jobs $stagingjobs"
+#    $SGE_ROOT/bin/$ARCH/qmod -rj $stagingjobs
+#fi
 
 #Keep checking over an interval, sleep on each iteration
 maxwait=10 #10*sleep 6=1 minute total waiting
