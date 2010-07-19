@@ -1,15 +1,25 @@
 #!/bin/sh
-#Mirrors staging directory from the MASTER or DATA_NODE to an EXEC_NODE
-#
-#In the case where an EXEC_NODE is already staged, it can stage other nodes
-#in a peer-to-peer manner. This is achieved through the stagingsub.q
-#
-#Invoked by workflow start, start_exec, and SGE prolog for the exec.q. 
-#
-#Scheduled through SGE running from staging.q(MASTER_NODE,DATA_NODE),stagingsub.q(EXEC_NODE).
-#Note, the rsync is invoked so that the MASTER,DATA pushes data to the EXEC_NODE
-#This allows for coordination of staging so that a configurable number of staging steps
-#run concurrently as determined by the number of slots in the staging.q.
+#staging.sh $remotehostname [$file1 $file2 $directory1 $directory2... ]
+
+#Mirrors staging directory from the MASTER or DATA_NODE to an
+#EXEC_NODE named $remotehostname. Default option is to mirror the
+#configured staging directory. A second argument can specify a list of
+#files or directories to stage. Absolute paths should be used. If
+#files or directories are specified, they should be absolute paths and
+#formatted as expected by rsync.
+
+#In the case where an EXEC_NODE is already staged, it can stage other
+#nodes in a peer-to-peer manner. This is achieved through the
+#stagingsub.q
+
+#This script is invoked by workflow start, start_exec, and SGE prolog for the
+#exec.q.
+
+#Scheduled through SGE running from staging.q(MASTER_NODE,DATA_NODE),
+#stagingsub.q(EXEC_NODE).  Note, the rsync is invoked so that the
+#MASTER,DATA pushes data to the EXEC_NODE. This allows for coordination
+#of staging so that a configurable number of staging steps run
+#concurrently as determined by the number of slots in the staging.q.
 
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
@@ -56,53 +66,14 @@ then
 	fi
     fi
 fi
-#copy staging area
-vlog "Start staging from $staging_dir/ to $remotehost:$staging_dir"
-
-if [ "$transfer_method" == "gridftp" ]
+#If argument is specified
+#copy specified files
+if [ "$2" != "" ]; then
+    vlog "Start staging from $2 to $remotehost:/"
+    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $2 root@$remotehost:/"
+    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $2 root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+    if [ $? == 0 ]
     then
-    #This method transfers files > $largefilesize with gridftp
-    #These files are "synced" based on size only, datestamps are ignored
-    #First list only large files and print out list for gridftp
-    vlog "CMD:rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --min-size $largefilesize --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep \"<f\" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print \"file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n\"}' > /tmp/$$.gridftp.staging.list"
-    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --min-size $largefilesize --size-only --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep "<f" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print "file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n"}' $remotehost $staging_dir > /tmp/$$.gridftp.staging.list
-    if [ $? == 0 ]
-	then
-	vlog "rsync success. return value: $?"
-    else
-	vlog "ERROR: $0 rsync fail. return value $1"
-	verror "LIST LARGEFILE STAGING FAILURE";
-	exit 1;
-    fi
-    #First set up all directories on the receiving side
-    #vlog "CMD: rsync --dirs -lptgoD -e \"$ssh_client -i $ssh_key $ssh_options\" $staging_dir/ root@$remotehost:$staging_dir"
-    #rsync --dirs -lptgoD -e "$ssh_client -i $ssh_key $ssh_options" $staging_dir/ root@$remotehost:$staging_dir
-    #Do gridftp of large files
-    if [ -s "/tmp/$$.gridftp.staging.list" ]
-	then
-	export GLOBUS_LOCATION=/opt/globus-5.0.0
-	source $GLOBUS_LOCATION/etc/globus-user-env.sh
-	export LD_LIBRARY_PATH=/opt/globus-5.0.0/lib
-	#Can't get udt to work yet
-	#/opt/globus-5.0.0/bin/globus-url-copy -udt -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
-	#/opt/globus-5.0.0/bin/globus-url-copy -tcp-bs 1MB -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
-	#/opt/globus-5.0.0/bin/globus-url-copy -tcp-bs 17500 -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
-	/opt/globus-5.0.0/bin/globus-url-copy -p 8 -vb -cd -pp -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
-	if [ $? == 0 ]
-	    then
-	    vlog "gridftp success. return value: $?"
-	else
-	    vlog "ERROR: $0 gridftp fail. return value $1"
-	    verror "STAGING FAILURE GRIDFTP";
-	    exit 1;
-	fi
-    fi
-    #Want to update permissions but avoid second copy, need --size-only because globus-url-copy does not preserve time
-    #The rest through rsync: smaller files, delete, and reset permissions etc
-    #vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $staging_dir/ root@$remotehost:$staging_dir"
-    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --itemize-changes --max-size $largefilesize --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
-    if [ $? == 0 ]
-	then
 	vlog "rsync success. return value: $?"
     else
 	vlog "ERROR: $0 rsync fail. return value $1"
@@ -110,16 +81,70 @@ if [ "$transfer_method" == "gridftp" ]
 	exit 1;
     fi
 else
-    #Plain ole' rsync
-    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir"
-    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
-    if [ $? == 0 ]
+#copy staging area
+    vlog "Start staging from $staging_dir/ to $remotehost:$staging_dir"
+    if [ "$transfer_method" == "gridftp" ]
 	then
-	vlog "rsync success. return value: $?"
+        #This method transfers files > $largefilesize with gridftp
+        #These files are "synced" based on size only, datestamps are ignored
+        #First list only large files and print out list for gridftp
+	vlog "CMD:rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --min-size $largefilesize --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep \"<f\" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print \"file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n\"}' > /tmp/$$.gridftp.staging.list"
+	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --min-size $largefilesize --size-only --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep "<f" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print "file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n"}' $remotehost $staging_dir > /tmp/$$.gridftp.staging.list
+	if [ $? == 0 ]
+	    then
+	    vlog "rsync success. return value: $?"
+	else
+	    vlog "ERROR: $0 rsync fail. return value $1"
+	    verror "LIST LARGEFILE STAGING FAILURE";
+	    exit 1;
+	fi
+        #First set up all directories on the receiving side
+        #vlog "CMD: rsync --dirs -lptgoD -e \"$ssh_client -i $ssh_key $ssh_options\" $staging_dir/ root@$remotehost:$staging_dir"
+        #rsync --dirs -lptgoD -e "$ssh_client -i $ssh_key $ssh_options" $staging_dir/ root@$remotehost:$staging_dir
+        #Do gridftp of large files
+	if [ -s "/tmp/$$.gridftp.staging.list" ]
+	    then
+	    export GLOBUS_LOCATION=/opt/globus-5.0.0
+	    source $GLOBUS_LOCATION/etc/globus-user-env.sh
+	    export LD_LIBRARY_PATH=/opt/globus-5.0.0/lib
+  	    #Can't get udt to work yet
+	    #/opt/globus-5.0.0/bin/globus-url-copy -udt -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
+	    #/opt/globus-5.0.0/bin/globus-url-copy -tcp-bs 1MB -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
+	    #/opt/globus-5.0.0/bin/globus-url-copy -tcp-bs 17500 -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
+	    /opt/globus-5.0.0/bin/globus-url-copy -p 8 -vb -cd -pp -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
+	    if [ $? == 0 ]
+		then
+		vlog "gridftp success. return value: $?"
+	    else
+		vlog "ERROR: $0 gridftp fail. return value $1"
+		verror "STAGING FAILURE GRIDFTP";
+		exit 1;
+	    fi
+	fi
+        #Want to update permissions but avoid second copy, need --size-only because globus-url-copy does not preserve time
+        #The rest through rsync: smaller files, delete, and reset permissions etc
+        #vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $staging_dir/ root@$remotehost:$staging_dir"
+	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --itemize-changes --max-size $largefilesize --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
+	if [ $? == 0 ]
+	    then
+	    vlog "rsync success. return value: $?"
+	else
+	    vlog "ERROR: $0 rsync fail. return value $1"
+	    verror "STAGING FAILURE";
+	    exit 1;
+	fi
     else
-	vlog "ERROR: $0 rsync fail. return value $1"
-	verror "STAGING FAILURE";
-	exit 1;
+    #Plain ole' rsync
+	vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir"
+	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
+	if [ $? == 0 ]
+	    then
+	    vlog "rsync success. return value: $?"
+	else
+	    vlog "ERROR: $0 rsync fail. return value $1"
+	    verror "STAGING FAILURE";
+	    exit 1;
+	fi
     fi
 fi
 

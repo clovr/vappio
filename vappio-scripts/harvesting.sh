@@ -36,5 +36,5 @@ then
 else
     vlog "ERROR: $0 rsync fail. return value: $?"
     verror "HARVESTING FAILURE"
-    exit 1;
+    exit 1
 fi

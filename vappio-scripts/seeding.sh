@@ -5,6 +5,9 @@
 # Seeding performs two actions
 # 1)Copies data from master to $remotehost using $staging_script
 # 2)Adds $remotehost to $queue
+#
+# After this script completes, the remotehost has been successfully
+# staged and is ready to seed peers
 
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts

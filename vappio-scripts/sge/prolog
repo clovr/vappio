@@ -79,6 +79,7 @@ if [ -n "$vappio_data_placement" ]; then
 	vlog "vappio_prolog return code: $ret1"
 	if [ $ret1 -ne 0 ] 
 	then
+          echo echo "I~~~vappio staging failure. See $vappio_log";
 	  exit $ret1
 	fi 
 fi
@@ -116,6 +117,7 @@ if [ -n "$request_cwd" ]; then
 	  	vlog "rsync return value: $?"
 		if [ $ret1 -ne 0 ]
 		then
+		 echo "I~~~vappio event.log capture failure. See $vappio_log";
 		 exit $ret1
 		fi
 

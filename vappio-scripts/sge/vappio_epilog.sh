@@ -1,4 +1,8 @@
 #!/bin/sh
+
+#USAGE:vappio_epilog.sh hostname sge_job_dir
+#
+
 ##
 ##Import vappio config
 vappio_scripts=$vappio_root
@@ -21,17 +25,39 @@ outdir=`cat ${request_cwd}/outdir`
 
 if [ -z "$wfdir" ]
 then
-	vlog "Unable to retrive wfdir from file ${request_cwd}/wfdir" 
+	verror "EPILOG. Unable to retrive wfdir from file ${request_cwd}/wfdir" 
 	exit 100
 fi
 
 if [ -z "$outdir" ]
 then
-    vlog "Unable to retrive wfdir from file ${request_cwd}/outdir" 
+    verror "EPILOG. Unable to retrive wfdir from file ${request_cwd}/outdir" 
     exit 100
 fi
 
+##
+#Epilog past this point assumes workflow
+
+harvestdata=`grep HARVESTDATA $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
+if [ "$harvestdata" != "" ]; then
+    verror "EPILOG. HARVESTDATA configuration option not implemented"
+#    vlog "Submitting harvesting of output $exechost:$outdir to $harvestingq"
+#    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync $waitonharvest -q $harvestingq $harvesting_script $exechost $harvestdata"
+#    vlog "CMD: $cmd"
+#    $cmd 1>> $vappio_log 2>> $vappio_log
+#    ret1=$?
+#    vlog "rsync return value: $?"
+#    if [ $ret1 -ne 0 ]
+#	then
+#	verror "EPILOG Error during harvesting output $exechost:$outdir to $harvestingq"
+#	exit 100
+#    fi
+fi
+
+##
 #Harvest output directory
+#$waitonharvest determines whether workflow will wait for harvesting 
+#to complete before marking the command complete
 vlog "Submitting harvesting of output $exechost:$outdir to $harvestingq"
 cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync $waitonharvest -q $harvestingq $harvesting_script $exechost $outdir"
 vlog "CMD: $cmd"
@@ -40,8 +66,9 @@ ret1=$?
 vlog "rsync return value: $ret"
 if [ $ret1 -ne 0 ]
 then
- vlog "Error during harvesting data qsub return code: $ret1"
- exit 100
+ verror "EPILOG Error during harvesting data qsub return code: $ret1"
+ #Requeue
+ exit 99
 fi
 
 #Harvest wf xml
@@ -53,8 +80,9 @@ ret2=$?
 vlog "rsync return value: $ret2"
 if [ $ret2 -ne 0 ]
 then
- vlog "Error during harvesting workflow qsub return code: $ret2"
- exit 100
+ verror "EPILOG Error during harvesting workflow qsub return code: $ret2"
+ #Requeue
+ exit 99
 fi
 
 exit

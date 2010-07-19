@@ -74,7 +74,7 @@ then
 	fi
 
 	vlog "Submitting staging job for $wfxml@$myhost to wf.q" 
-	#Get workflow xml and final.config from the master to the exec host
+	#Get iterator input, workflow xml and final.config from the master to the exec host
         cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $wfq $stagingwf_script $myhost $wfxml"
 	vlog "CMD: $cmd" 
 	$cmd 1>> $vappio_log 2>> $vappio_log
@@ -82,7 +82,8 @@ then
 	if [ $ret1 -ne 0 ] 
 	then
 	  verror "PROLOG. Error during qsub return code: $ret1"
-	  exit 100
+	  #Requeue
+	  exit 99
 	fi
 
 	#Sync staging dir from any data node
