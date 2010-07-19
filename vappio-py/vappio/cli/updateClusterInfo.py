@@ -4,19 +4,25 @@
 # The main thing it updates right now is the state of the child instances
 
 from igs.utils import cli
+from igs.utils import logging
 
 from vappio.cluster.persist_mongo import load, dump
 
-OPTIONS = []
+OPTIONS = [
+    ('debug', '', '--debug', 'Debugging', cli.defaultIfNone(False), True),
+    ]
 
 
 def main(options, _args):
+    logging.DEBUG = options('general.debug')
+    
     cluster = load('local')
 
     if cluster.ctype.NAME == 'EC2':
         cluster.dataNodes = cluster.ctype.updateInstances(cluster.dataNodes)
         cluster.execNodes = cluster.ctype.updateInstances(cluster.execNodes)
 
+        logging.debugPrint(lambda : 'Dumping new cluster')
         dump(cluster)
     
 
