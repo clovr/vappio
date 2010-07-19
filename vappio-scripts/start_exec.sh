@@ -110,23 +110,32 @@ $SGE_ROOT/bin/$ARCH/qconf -as $myhostname
 # Accept data from nodes in either the staging or stagingsub queues
 # On completion, add this host to the stagingsub queue so that it can stage other hosts
 # This is a blocking call, so that the node does not come "online" until staging completes
-vlog "Running $qsubcmd"
+# Currently makes 2 attempts at staging
 qsubcmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
+vlog "Running $qsubcmd"
 $qsubcmd 1>> $vappio_log 2>> $vappio_log
 if [ $? == 0 ]
 then
     echo "Successfully seeded node $myhostname"
 else
-    echo "ERROR: Failed to seed node $myhostname. See error log /mnt/scratch"
+    echo "ERROR: Failed to seed node $myhostname. See error log /mnt/scratch. Retrying"
+    qsubcmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
+    vlog "Running $qsubcmd"
+    $qsubcmd 1>> $vappio_log 2>> $vappio_log
+    if [ $? == 0 ]
+    then
+	echo "Successfully seeded node $myhostname on second try"
+    else
+	echo "ERROR: Failed to seed node $myhostname on second try. See error log /mnt/scratch. Exiting boot process prematurely"
+	exit 1;
+    fi
 fi
-
-#su -p guest -c "$qsubcmd"
-# Above will fail if run as guest with  error: can't chdir to /home/guest: No such file or directory"
-# $SGE_ROOT/bin/$ARCH/qsub -b y -sync n -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingq
-
 
 #add to runnable hosts in $execq
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq 
+#set slots to number of CPUs
+numcpus=`cat /proc/cpuinfo | grep -c CPU`
+$SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $numcpus $execq@$myhostname
 
 echo "EXEC_NODE" > $vappio_runtime/node_type
 
@@ -136,7 +145,10 @@ echo "EXEC_NODE" > $vappio_runtime/node_type
 cloudtype=`cat $vappio_runtime/cloud_type`
 if [ "$cloudtype" == "EC2" ]
 then
-    shutdownmin=$(($min-10))
+    #Set EC2 host group
+    instancetype=`curl -f -s http://169.254.169.254/1.0/meta-data/instance-type`
+    #Add to host group
+    shutdownmin=$(($min-$rolloverstart))
     if [ $shutdownmin -lt 0 ]
     then
 	shutdownmin=$((60 + $shutdownmin));
