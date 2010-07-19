@@ -378,7 +378,8 @@ def runCommandOnCluster(cluster, command, justMaster=False):
 
 
     chans = [runThreadWithChannel(_runCommandOnInstance).channel.sendWithChannel(i)
-             for i in instances]
+             for i in instances
+             if i.state == cluster.ctype.Instance.RUNNING]
 
     ##
     # Collect all threads
