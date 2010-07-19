@@ -5,7 +5,7 @@ load_thresholds       NONE
 suspend_thresholds    NONE
 nsuspend              1
 suspend_interval      00:05:00
-priority              0
+priority              -19
 min_cpu_interval      00:05:00
 processors            UNDEFINED
 qtype                 BATCH INTERACTIVE
