@@ -1,7 +1,8 @@
 #/bin/bash
 
-#Clean up dead hosts
 #reaper.sh 
+#Clean up dead hosts. To be run on master
+
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
@@ -9,13 +10,12 @@ source $vappio_scripts/vappio_config.sh
 
 #Attempt to ping and ssh hosts up to maxretry
 
-#Gather list of likely dead hosts from unreachabe
-deadhosts1=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][text()='du']/../../@name" | perl -ne '($host) = ($_ =~ /name="(.*)"/);print $host," " if ($host)'`
-deadhosts2=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][text()='u']/../../@name" | perl -ne '($host) = ($_ =~ /name="(.*)"/);print $host," " if ($host)'`
-deadhosts3=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][text()='duo']/../../@name" | perl -ne '($host) = ($_ =~ /name="(.*)"/);print $host," " if ($host)'`
-deadhosts4=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][text()='uo']/../../@name" | perl -ne '($host) = ($_ =~ /name="(.*)"/);print $host," " if ($host)'`
+#Gather list of likely dead hosts from unreachabe state 'u'
+#On testing, we've encountered state combinations including u,du,uo,duo
+deadhosts1=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][contains(text(),'u')]/../../@name" | perl -ne '($host) = ($_ =~ /name="(.*)"/);print $host," " if ($host)'`
+
 #
-for deadhostname in $deadhosts1 $deadhosts2 $deadhosts3 $deadhosts4
+for deadhostname in $deadhosts1
 do
   #Disable all queues on this host
   echo "Removing dead host $deadhostname\n"
