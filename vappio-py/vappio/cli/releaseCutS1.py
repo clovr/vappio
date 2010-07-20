@@ -12,10 +12,8 @@ OPTIONS = [
 
 
 COMMANDS = [
-    ##
-    # Don't need this yet
-    #"""shutdownNode.py""",
-    """rm -rf /opt/db/*""",
+    """shutdownNode.py""",
+    """rm -rf /mnt/db /mnt/keys/*""",
     """apt-get clean""",
     """apt-get update""",
     """svn co https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages /opt/packages""",

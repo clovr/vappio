@@ -59,7 +59,7 @@ def monitorDownload(pr, downloaderChan, baseDir, url, minRate):
             return True
         else:
             currentSize = getSizeOfFiles(getDownloadFilenames(baseDir, url)) - baseSize
-            logging.debugPrint(lambda : 'Download rate: %d - %s' % (currentSize/SAMPLE_RATE, getUrlFilename(url)))
+            logging.debugPrint(lambda : 'Download rate: %8d - %s' % (currentSize/SAMPLE_RATE, getUrlFilename(url)))
             size = currentSize/SAMPLE_RATE
             if size < 0:
                 size = 0
@@ -68,7 +68,7 @@ def monitorDownload(pr, downloaderChan, baseDir, url, minRate):
                 sizeSamples.pop(0)
 
             if len(sizeSamples) >= MAX_SAMPLE_SIZE and sum(sizeSamples)/len(sizeSamples) < minRate:
-                logging.debugPrint(lambda : 'Average Rate: %d - %s' % (sum(sizeSamples)/len(sizeSamples), getUrlFilename(url)))
+                logging.debugPrint(lambda : 'Average Rate: %8d - %s' % (sum(sizeSamples)/len(sizeSamples), getUrlFilename(url)))
                 os.kill(pr.pipe.pid, signal.SIGTERM)
                 ##
                 # Give it a second to finish up whatever it's doing
@@ -129,6 +129,10 @@ def downloadUrls(chan):
         while True:
             url = queue.get_nowait()
 
+            if not options('general.continue_download'):
+                logging.debugPrint(lambda : 'Deleting any files that already exist')
+                deleteDownloadedFiles(options('general.base_dir'), url)
+                
             tries = options('general.tries')
             try:
                 while not attemptDownload(options, url) and tries > 0:

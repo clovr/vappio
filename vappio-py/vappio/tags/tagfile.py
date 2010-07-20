@@ -21,6 +21,10 @@ def bunzip2File(fname):
     runSingleProgramEx('bzcat %s | tar -C %s -xv' % (fname, os.path.dirname(fname)), stdout.append, None)
     return (os.path.join(os.path.dirname(fname), i.strip()) for i in stdout)
 
+def ungzFile(fname):
+    runSingleProgramEx('gzip -dc %s > %s' % (fname, fname[:-3]))
+    return fname[:-3]
+
                        
 def isArchive(fname):
     """
@@ -28,8 +32,9 @@ def isArchive(fname):
     .tar.bz2
     .tar.gz
     .tgz
+    .gz
     """
-    return any([fname.endswith(i) for i in ['.tar.bz2', '.tar.gz', '.tgz']])
+    return any([fname.endswith(i) for i in ['.tar.bz2', '.tar.gz', '.tgz', '.gz']])
 
 def expandArchive(fname):
     """
@@ -37,8 +42,11 @@ def expandArchive(fname):
     """
     if fname.endswith('.tar.gz') or fname.endswith('.tgz'):
         return untargzFile(fname)
+    elif fname.endswith('.gz'):
+        return ungzFile(fname)
     elif fname.endswith('.tar.bz2'):
         return bunzip2File(fname)
+
     
 
 def generateFileList(files, recursive, expand):

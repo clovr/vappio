@@ -12,7 +12,7 @@ from igs.utils.functional import updateDict
 from igs.utils.errors import TryError
 from igs.cgi.request import performQuery
 
-from vappio.cluster.control import Cluster
+from vappio.cluster.control import Cluster, clusterToDict, clusterFromDict
 from vappio.cluster.misc import getInstances
 
 CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
@@ -38,28 +38,10 @@ def dump(cluster):
     clovr = pymongo.Connection().clovr
     clusters = clovr.clusters
 
-    clusters.save(dict(_id=cluster.name,
-                       name=cluster.name,
-                       ctype=fullyQualifiedName(cluster.ctype),
-                       master=cluster.ctype.instanceToDict(cluster.master),
-                       config=json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()]))))
 
-    instances = clovr.instances
-
-    ##
-    # Save exec and data nodes
-    saveIds = [instances.save(updateDict(cluster.ctype.instanceToDict(i),
-                                         dict(_id=i.instanceId,
-                                              cluster=cluster.name,
-                                              itype='execNode')))
-               for i in cluster.execNodes]
+    clusters.save(updateDict(clusterToDict(cluster),
+                             dict(_id=cluster.name)))
     
-    
-    saveIds = [instances.save(updateDict(cluster.ctype.instanceToDict(i),
-                                        dict(_id=i.instanceId,
-                                             cluster=cluster.name,
-                                             itype='dataNode')))
-               for i in cluster.dataNodes]
 
 
 
@@ -76,28 +58,19 @@ def load(name):
     if not cluster:
         raise ClusterDoesNotExist(name)
 
-    clust = Cluster(name, namedAny(cluster['ctype']), configFromMap(json.loads(cluster['config'])))
-
-    mastInst = clust.ctype.instanceFromDict(cluster['master'])
-    clust.setMaster(mastInst)
+    clust = clusterFromDict(cluster)
     
-    if name == 'local':
-        execNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='execNode'))]
-        dataNodes = [clust.ctype.instanceFromDict(i) for i in instances.find(dict(cluster=name, itype='dataNode'))]
-    elif mastInst.state == clust.ctype.Instance.RUNNING:
+    
+    if name != 'local' and clust.master.state == clust.ctype.Instance.RUNNING:
         try:
-            result = performQuery(mastInst.publicDNS, CLUSTERINFO_URL, dict(name='local'), timeout=10)
+            result = performQuery(clust.master.publicDNS, CLUSTERINFO_URL, dict(name='local'), timeout=10)
             execNodes = [clust.ctype.instanceFromDict(i) for i in result['execNodes']]
             dataNodes = [clust.ctype.instanceFromDict(i) for i in result['dataNodes']]
+            clust.addExecNodes(execNodes)
+            clust.addDataNodes(dataNodes)
         except socket.timeout:
             raise ClusterLoadIncompleteError('Failed to contact master when loading cluster', clust)
-    else:
-        execNodes = []
-        dataNodes = []
     
-
-    clust.addExecNodes(execNodes)
-    clust.addDataNodes(dataNodes)
 
     return clust
 
@@ -107,7 +80,6 @@ def cleanUp(name):
     """
     clovr = pymongo.Connection().clovr
     clovr.clusters.remove(dict(name=name))
-    clovr.instances.remove(dict(cluster=name))
     
 
 def listClusters():

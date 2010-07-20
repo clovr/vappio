@@ -22,7 +22,7 @@ from vappio.instance.config import createDataFile, createMasterDataFile, createE
 from vappio.instance.control import runSystemInstanceEx
 
 
-NUM_TRIES = 50
+NUM_TRIES = 150
 
 class ClusterError(Exception):
     pass
