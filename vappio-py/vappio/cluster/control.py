@@ -168,14 +168,6 @@ def startExecNodes(cluster, numExec, reporter=None):
 
 
 
-        ##
-        # This could be a problem in the future.  This waits for ALL of them to reach the given
-        # state but what if 1 machine takes 10 minutes to start and the rest are already started?
-        # Those other machines could be getting work and through SGE and the rest of the setup
-        # for a node is not complete yet.
-        #
-        # In the future, all node setup should probably happen through the datafile scrip that is uploaded.
-        # Alternatively, we can stream waitForState and have return nodes as they reach the state.
         slaves = runAndTerminateBad(cluster,
                                     lambda : waitForState(cluster.ctype,
                                                           NUM_TRIES,
@@ -225,7 +217,7 @@ def waitForState(ctype, tries, instances, wantState, reporter):
             instances = instancesPrime
         applyIfCallable(reporter, instances)
         if _matchState(instances):
-            return instances
+            return ctype.updateInstances(instances)
         else:
             tries -= 1
             time.sleep(30)
