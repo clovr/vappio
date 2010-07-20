@@ -38,8 +38,7 @@ export EC2_PRIVATE_KEY=/tmp/ec2-pk.pem
 # EC2 api stuff needs to go in begining of path to override what is already on the VM
 export PATH=/opt/opt-packages/ec2-api-tools-1.3-53907/bin:$PATH
 
-
-ulimit -n 8192
+ulimit -n 64000 
 
 #Globus perl5lib is causing problems. This will be deactivated until
 #it works, see task 376.
