@@ -141,6 +141,13 @@ def downloadUrls(chan):
         while True:
             url, md5 = queue.get_nowait()
 
+
+            ##
+            # Skip all this if it's already been downloaded
+            if md5 and validMD5(options, url, md5):
+                rchan.send((url, True))
+                continue
+            
             if not options('general.continue_download'):
                 logging.debugPrint(lambda : 'Deleting any files that already exist')
                 deleteDownloadedFiles(options('general.base_dir'), url)
