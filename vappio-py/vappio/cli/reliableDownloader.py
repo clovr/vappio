@@ -33,8 +33,10 @@ def runDownloader(chan):
     pr, rchan = chan.receive()
     try:
         commands.runProgramRunnerEx(pr)
+        logging.debugPrint(lambda : 'Successfully completed download')
         rchan.send(None)
     except Exception, err:
+        logging.debugPrint(lambda : 'Download failed for unknown reason')
         rchan.sendError(err)
 
 def getSizeOfFiles(files):
@@ -84,8 +86,6 @@ def attemptDownload(options, url):
     cmd = ['wget', '--quiet', '-P', options('general.base_dir')]
     if options('general.continue_download'):
         cmd.append('-c')
-    else:
-        cmd.extend(['-m', '-nd'])
 
     cmd.append(url)
     pr = commands.ProgramRunner(' '.join(cmd),
@@ -95,7 +95,7 @@ def attemptDownload(options, url):
 
     downloaderChan = threads.runThreadWithChannel(runDownloader).channel.sendWithChannel(pr)
     ##
-    # sleep for a second so the program can run
+    # sleep for a second so the wget can run
     time.sleep(1)
 
     logging.debugPrint(lambda : 'Downloading with a minimum acceptable rate of %d' % options('general.min_rate'))
@@ -120,6 +120,18 @@ def deleteDownloadedFiles(baseDir, url):
         os.remove(f)
     
 
+def validMD5(options, url, md5):
+    if md5 is not None:
+        stdout = []
+        files = getDownloadFilenames(options('general.base_dir'), url)
+        files.sort()
+        commands.runSingleProgramEx('cat %s | md5sum' % ' '.join(files), stdoutf=stdout.append, stderrf=None, log=True)
+        newMd5 = stdout[-1].split(' ', 1)[0]
+        logging.debugPrint(lambda : 'Comparing %s to %s' % (md5, newMd5))
+        return md5 == newMd5
+    else:
+        return True
+        
 def downloadUrls(chan):
     (options, queue), rchan = chan.receive()
 
@@ -127,19 +139,21 @@ def downloadUrls(chan):
     # Loop until queue is empty
     try:
         while True:
-            url = queue.get_nowait()
+            url, md5 = queue.get_nowait()
 
             if not options('general.continue_download'):
                 logging.debugPrint(lambda : 'Deleting any files that already exist')
                 deleteDownloadedFiles(options('general.base_dir'), url)
+                time.sleep(1)
                 
             tries = options('general.tries')
             try:
-                while not attemptDownload(options, url) and tries > 0:
+                while (not attemptDownload(options, url) or not validMD5(options, url, md5)) and tries > 0:
                     logging.debugPrint(lambda : 'Download failed, trying again. %d' % tries)
                     if not options('general.continue_download'):
                         logging.debugPrint(lambda : 'Deleting downloaded files')
                         deleteDownloadedFiles(options('general.base_dir'), url)
+                        time.sleep(1)
                     tries -= 1
 
                 if tries <= 0:
@@ -159,14 +173,17 @@ def downloadUrls(chan):
 
 def main(options, args):
     logging.DEBUG = options('general.debug')
-        
-    if not args:
-        raise Exception('Must pass at least one URL')
 
     queue = Queue.Queue()
-    for url in args:
-        queue.put(url)
-        
+    if not args:
+        for line in sys.stdin:
+            md5, url = line.split(' ', 1)
+            url = url.strip()
+            queue.put((url, md5))
+    else:
+        for url in args:
+            queue.put((url, None))
+
     retChans = [threads.runThreadWithChannel(downloadUrls).channel.sendWithChannel((options, queue)) for _ in range(options('general.max_threads'))]
 
     successUrls = []
