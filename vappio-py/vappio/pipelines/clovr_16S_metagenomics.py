@@ -9,7 +9,7 @@ from vappio.pipeline_tools.blast import tagToRefDBPath
 
 ##
 # Need to know where the template lives
-TEMPLATE_NAME = '16S_metagenomics'
+TEMPLATE_NAME = 'clovr_16S_metagenomics'
 
 OPTIONS = [
     ('FASTA_FILES', '', '--FASTA_FILES', 'The input file list of FASTA files', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
