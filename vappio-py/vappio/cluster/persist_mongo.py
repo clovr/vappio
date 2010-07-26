@@ -59,7 +59,7 @@ def load(name):
         raise ClusterDoesNotExist(name)
 
     clust = clusterFromDict(cluster)
-    
+
     
     if name != 'local' and clust.master.state == clust.ctype.Instance.RUNNING:
         try:

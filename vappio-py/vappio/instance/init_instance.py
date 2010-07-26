@@ -25,6 +25,7 @@ def runInit(conf, funcs):
     ##
     # If we are just cutting a release, don't do any of this
     if RELEASE_CUT not in conf('NODE_TYPE'):
+        
         ##
         # Perform any pre work first
         funcs['pre'](conf)

@@ -4,11 +4,10 @@
 # whatever cluster instances are being added to
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils.functional import compose
-from igs.utils.errors import TryError
+from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
-from vappio.cluster.control import startExecNodes
-from vappio.cluster.persist_mongo import load, dump
+from vappio.cluster import persist_mongo
 
 from vappio.tasks import task
 
@@ -19,37 +18,37 @@ OPTIONS = [
     ]
 
 
-
-def updateExecCluster(cluster, instances):
+def updateCluster(cluster):
     """
     This keeps on setting the cluster master to the new value and
     dumping it to the database
     """
-    #debugPrint(lambda : 'Updating cluster: %s %s' % (master.publicDNS, master.state))
-    insts = dict([(i.instanceId, i) for i in cluster.execNodes])
-    insts.update(dict([(i.instanceId, i) for i in instances]))
-    cluster.execNodes = insts.values()
-    cluster.addExecNodes(instances)
-    dump(cluster)
+    try:
+        cl = persist_mongo.load(cluster.name)
+        cluster = cluster.addExecNodes(cl.execNodes).addDataNodes(cl.dataNodes)
+    except persist_mongo.ClusterDoesNotExist:
+        pass
+
+    persist_mongo.dump(cluster)
 
 
 def main(options, _args):
-    cluster = load('local')
+    cluster = persist_mongo.load('local')
 
     tsk = task.updateTask(task.loadTask(options('general.task_name')
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting instances'))
 
     try:
-        startExecNodes(cluster, options('general.num'), lambda i : updateExecCluster(cluster, i))
+        cluster = cluster.startExecNodes(options('general.num'), updateCluster)
         tsk = tsk.progress().setState(task.TASK_COMPLETED)
-        dump(cluster)
-    except TryError, err:
+        updateCluster(cluster)
+    except errors.TryError, err:
         tsk = tsk.setState(task.TASK_COMPLETED).addException('An error occured attempting to start the instances: ' + err.msg +
                                                              '\nThe cluster has been started as much as possible, it may not function properly though',
                                                              err,
                                                              errors.getStacktrace())
-        dump(err.result)
+        updateCluster(err.result)
     except Exception, err:
         tsk = task.updateTask(tsk.setState(task.TASK_FAILED
                                            ).addMessage(task.MSG_ERROR,

@@ -19,8 +19,8 @@ def main(options, _args):
     cluster = load('local')
 
     if cluster.ctype.NAME == 'EC2':
-        cluster.dataNodes = cluster.ctype.updateInstances(cluster.dataNodes)
-        cluster.execNodes = cluster.ctype.updateInstances(cluster.execNodes)
+        cluster = cluster.update(dataNodes=cluster.ctype.updateInstances(cluster.dataNodes),
+                                 execNodes=cluster.ctype.updateInstances(cluster.execNodes))
 
         logging.debugPrint(lambda : 'Dumping new cluster')
         dump(cluster)

@@ -4,14 +4,13 @@
 # whatever cluster instances are being added to
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
 from igs.utils.config import configFromMap
-from igs.utils.logging import debugPrint
 from igs.utils.functional import compose
 from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
 
-from vappio.cluster.control import Cluster, startMaster
-from vappio.cluster.persist_mongo import dump
+from vappio.cluster.control import Cluster
+from vappio.cluster import persist_mongo
 
 from vappio.webservice import cluster
 
@@ -29,15 +28,18 @@ OPTIONS = [
     ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
     ]
 
-def updateCluster(cluster, mastL):
+def updateCluster(cluster):
     """
     This keeps on setting the cluster master to the new value and
     dumping it to the database
     """
-    master = mastL[0]
-    debugPrint(lambda : 'Updating cluster: %s %s' % (master.publicDNS, master.state))
-    cluster.setMaster(master)
-    dump(cluster)
+    try:
+        cl = persist_mongo.load(cluster.name)
+        cluster = cluster.addExecNodes(cl.execNodes).addDataNodes(cl.dataNodes)
+    except persist_mongo.ClusterDoesNotExist:
+        pass
+
+    persist_mongo.dump(cluster)
     
 
 
@@ -48,18 +50,22 @@ def addExecInstances(options, cl, tsk):
     # if adding them fails, then throw an TryError
     # with 
 
-    taskName = cluster.addInstances('localhost',
-                                    options('general.name'),
-                                    options('general.num'),
-                                    options('general.update_dirs'))
-    endState, tsk = blockOnTaskAndForward('localhost',
-                                          options('general.name'),
-                                          taskName,
-                                          tsk)
+    try:
+        taskName = cluster.addInstances('localhost',
+                                        options('general.name'),
+                                        options('general.num'),
+                                        options('general.update_dirs'))
+        endState, tsk = blockOnTaskAndForward('localhost',
+                                              options('general.name'),
+                                              taskName,
+                                              tsk)
+    except errors.TryError, err:
+        raise Exception('Failed to add exec instances: ' + str(err))
+    
     if endState == task.TASK_FAILED:
         raise errors.TryError('Failed to add instances to cluster', cl)
 
-    return tsk
+    return tsk, cl
 
 
 def clusterExists(host, name):
@@ -88,14 +94,14 @@ def main(options, _args):
         if not clusterExists('localhost', options('general.name')):
             cl = Cluster(options('general.name'), ctype, options)
             try:
-                startMaster(cl, lambda m : updateCluster(cl, m), devMode=False, releaseCut=False)
+                cl = cl.startMaster(updateCluster, devMode=False, releaseCut=False)
 
-                dump(cl)
+                updateCluster(cl)
 
                 tsk = task.updateTask(tsk.progress())
 
                 if options('general.num'):
-                    tsk = addExecInstances(options, cl, tsk)
+                    tsk, cl = addExecInstances(options, cl, tsk)
 
                 tsk = tsk.progress().setState(task.TASK_COMPLETED)
             except errors.TryError, err:
@@ -103,7 +109,8 @@ def main(options, _args):
                                                                    '\nThe cluster has been started as much as possible, it may not function properly though',
                                                                      err,
                                                                      errors.getStacktrace())
-                dump(err.result)
+                # err.result should be the cluster in this case
+                updateCluster(err.result)
         else:
             tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Cluster already running')
     except Exception, err:

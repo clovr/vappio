@@ -54,6 +54,9 @@ def startUpDevNode(conf):
     runSystemEx("""updateAllDirs.py --co""")
 
 def startUpMasterNode(conf):
+    if conf('dev.update_dirs', default=None):
+        runSystemEx("""updateAllDirs.py %s""" % conf('dev.update_dirs'))
+
     executePolicyDirWEx(startPolicy, '/opt/config_policies', 'MASTER')
     
     ##

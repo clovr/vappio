@@ -5,20 +5,18 @@ import time
 import os
 import json
 
-from twisted.python.reflect import fullyQualifiedName, namedAny
+from twisted.python import reflect
 
+from igs.utils import commands
+from igs.utils import ssh
 from igs.utils import logging
-
-from igs.utils.commands import runSystemEx, runCommandGens, ProgramRunError
-from igs.utils.ssh import scpToEx, runSystemSSHEx, runSystemSSH
-from igs.utils.logging import errorPrintS, errorPrint, logPrintS
-from igs.utils.functional import applyIfCallable, tryUntil, updateDict
+from igs.utils import functional
 from igs.utils.errors import TryError
 from igs.utils.config import configFromMap
 
 from igs.threading.threads import runThreadWithChannel
 
-from vappio.instance.config import createDataFile, createMasterDataFile, createExecDataFile, DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT
+from vappio.instance.config import createDataFile, createMasterDataFile, createExecDataFile, DEV_NODE, MASTER_NODE, RELEASE_CUT
 from vappio.instance.control import runSystemInstanceEx
 
 
@@ -28,7 +26,18 @@ class ClusterError(Exception):
     pass
 
 
-class Cluster:
+
+def wrapReporter(reporter):
+    def _(cluster):
+        try:
+            functional.applyIfCallable(reporter, cluster)
+            return True
+        except:
+            return False
+
+    return _
+
+class Cluster(functional.Record):
     """
     This represents a cluster
     """
@@ -44,23 +53,145 @@ class Cluster:
 
 
     def setMaster(self, master):
-        self.master = master
+        return self.update(master=master)
 
     def addExecNodes(self, execs):
-        self.execNodes = updateDict(dict([(i.instanceId, i) for i in self.execNodes]),
-                                    dict([(i.instanceId, i) for i in execs])).values()
+        return self.update(execNodes=functional.updateDict(dict([(i.instanceId, i) for i in self.execNodes]),
+                                                           dict([(i.instanceId, i) for i in execs])).values())
+
 
     def addDataNodes(self, datas):
-        self.dataNodes = updateDict(dict([(i.instanceId, i) for i in self.dataNodes]),
-                                    dict([(i.instanceId, i) for i in datas])).values()                                        
+        return self.update(dataNodes=functional.updateDict(dict([(i.instanceId, i) for i in self.dataNodes]),
+                                                           dict([(i.instanceId, i) for i in datas])).values())
+
+
+    def startCluster(self, numExec, reporter=None, devMode=False, releaseCut=False):
+        return self.startMaster(reporter, devMode, releaseCut).startExecNodes(numExec, reporter)
+
+
+    
+    def startMaster(self, reporter=None, devMode=False, releaseCut=False):
+        """
+        This starts a master on the given cluster and
+        returns the cluster with the master value set.
+        
+        reporter is a function that gets called at various points with the master.
+        The master is passed as a list with 1 element
+        
+        This mutates the cluster object
+        """
+
+        reporterW = wrapReporter(reporter)
+        mode = [MASTER_NODE]
+        if devMode: mode.append(DEV_NODE)
+        if releaseCut: mode.append(RELEASE_CUT)
+
+        masterConf = createDataFile(self.config,
+                                    mode,
+                                    outFile='/tmp/machine.tmp.conf')
+    
+        dataFile = createMasterDataFile(self.config, masterConf, os.getenv('EC2_CERT'), os.getenv('EC2_PRIVATE_KEY'))
+
+        os.remove(masterConf)
+
+        master = runInstancesWithRetry(self.ctype,
+                                       self.config('cluster.ami'),
+                                       self.config('cluster.key'),
+                                       self.config('cluster.master_type'),
+                                       self.config('cluster.master_groups'),
+                                       self.config('cluster.availability_zone', default=None),
+                                       self.config('cluster.master_bid_price', default=None),
+                                       1,
+                                       dataFile)[0]
+
+        reporterW(self.setMaster(master))
+
+        master = runAndTerminateBad(self,
+                                    lambda : waitForState(self,
+                                                          self.ctype,
+                                                          NUM_TRIES,
+                                                          [master],
+                                                          self.ctype.Instance.RUNNING,
+                                                          reporterW))[0]
+        reporterW(self.setMaster(master))
+    
+        master = runAndTerminateBad(self,
+                                    lambda : waitForSSHUp(self.config, NUM_TRIES, [master]))[0]
+
+
+        master = runAndTerminateBad(self,
+                                    lambda : waitForInstancesReady(self.config, NUM_TRIES, [master]))[0]
+
+        return self.setMaster(master)
+
+
+    def startExecNodes(self, numExec, reporter=None):
+        """
+        This starts a number of exec nodes.  It will add them to the cluster
+        and returnst he cluster
+        
+        It is valid to give 0 for numExec.
+        """
+        reporterW = wrapReporter(reporter)
+        if numExec:
+            dataFile = createExecDataFile(self.config, self.master, '/tmp/machine.conf')
+
+            slaves = runAndTerminateBad(self,
+                                        lambda : runInstancesWithRetry(self.ctype,
+                                                                       self.config('cluster.ami'),
+                                                                       self.config('cluster.key'),
+                                                                       self.config('cluster.exec_type'),
+                                                                       self.config('cluster.exec_groups'),
+                                                                       self.config('cluster.availability_zone', default=None),
+                                                                       self.config('cluster.exec_bid_price', default=None),
+                                                                       numExec,
+                                                                       dataFile))
+
+            reporterW(self.addExecNodes(slaves))
+
+
+
+            slaves = runAndTerminateBad(self,
+                                        lambda : waitForState(self,
+                                                              self.ctype,
+                                                              NUM_TRIES,
+                                                              slaves,
+                                                              self.ctype.Instance.RUNNING,
+                                                              reporterW))
+                
+            reporterW(self.addExecNodes(slaves))
+            slaves = runAndTerminateBad(self,
+                                        lambda: waitForSSHUp(self.config,
+                                                             NUM_TRIES,
+                                                             slaves))
+
+
+            slaves = runAndTerminateBad(self,
+                                        lambda : waitForInstancesReady(self.config, NUM_TRIES, slaves))
+
+            cluster = self.addExecNodes(slaves)
+            if len(slaves) != numExec:
+                raise TryError('Unable to bring up all nodes', cluster)
+                
+            return cluster
+        else:
+            return self
         
 
+    def terminate(self):
+        slaves = self.execNodes + self.dataNodes
+        if slaves:
+            self.ctype.terminateInstances(slaves)
+        self.ctype.terminateInstances([self.master])
+        return self
+        
+    
 def clusterToDict(cluster):
     """
     Converts a cluster to a dict
     """
     return dict(name=cluster.name,
-                ctype=fullyQualifiedName(cluster.ctype),
+                ctype=reflect.fullyQualifiedName(cluster.ctype),
                 config=json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()])),
                 master=cluster.ctype.instanceToDict(cluster.master),
                 execNodes=[cluster.ctype.instanceToDict(i) for i in cluster.execNodes],
@@ -70,132 +201,14 @@ def clusterFromDict(d):
     """
     Loads a cluster from a dict
     """
-    cluster = Cluster(d['name'], namedAny(d['ctype']), configFromMap(json.loads(d['config'])))
-    cluster.setMaster(cluster.ctype.instanceFromDict(d['master']))
-    cluster.addExecNodes([cluster.ctype.instanceFromDict(i) for i in d['execNodes']])
-    cluster.addDataNodes([cluster.ctype.instanceFromDict(i) for i in d['dataNodes']])
-
-    return cluster
-
-def startCluster(cluster, numExec, reporter=None, devMode=False, releaseCut=False):
-    startMaster(cluster, reporter, devMode, releaseCut)
-    startExecNodes(cluster, numExec, reporter)
-    return cluster
-                
-        
-def startMaster(cluster, reporter=None, devMode=False, releaseCut=False):
-    """
-    This starts a master on the given cluster and
-    returns the cluster with the master value set.
-
-    reporter is a function that gets called at various points with the master.
-    The master is passed as a list with 1 element
-    
-    This mutates the cluster object
-    """
-
-    mode = [MASTER_NODE]
-    if devMode: mode.append(DEV_NODE)
-    if releaseCut: mode.append(RELEASE_CUT)
-
-    masterConf = createDataFile(cluster.config,
-                                mode,
-                                outFile='/tmp/machine.tmp.conf')
-    
-    dataFile = createMasterDataFile(cluster.config, masterConf, os.getenv('EC2_CERT'), os.getenv('EC2_PRIVATE_KEY'))
-
-    os.remove(masterConf)
-
-    master = runInstancesWithRetry(cluster.ctype,
-                                   cluster.config('cluster.ami'),
-                                   cluster.config('cluster.key'),
-                                   cluster.config('cluster.master_type'),
-                                   cluster.config('cluster.master_groups'),
-                                   cluster.config('cluster.availability_zone', default=None),
-                                   cluster.config('cluster.master_bid_price', default=None),
-                                   1,
-                                   dataFile)[0]
-
-    applyIfCallable(reporter, [master])
-
-    master = runAndTerminateBad(cluster,
-                                lambda : waitForState(cluster.ctype,
-                                                      NUM_TRIES,
-                                                      [master],
-                                                      cluster.ctype.Instance.RUNNING,
-                                                      reporter))[0]
-    applyIfCallable(reporter, [master])
-    
-    master = runAndTerminateBad(cluster,
-                                lambda : waitForSSHUp(cluster.config, NUM_TRIES, [master]))[0]
-
-
-    master = runAndTerminateBad(cluster,
-                                lambda : waitForInstancesReady(cluster.config, NUM_TRIES, [master]))[0]
-
-    cluster.setMaster(master)
-
-
-    return cluster
-    
-
-def startExecNodes(cluster, numExec, reporter=None):
-    """
-    This starts a number of exec nodes.  It will add them to the cluster
-    and returnst he cluster
-
-    It is valid to give 0 for numExec.
-    """
-
-    ##
-    # Function body
-    if numExec:
-
-        dataFile = createExecDataFile(cluster.config, cluster.master, '/tmp/machine.conf')
-
-        slaves = runAndTerminateBad(cluster,
-                                    lambda : runInstancesWithRetry(cluster.ctype,
-                                                                   cluster.config('cluster.ami'),
-                                                                   cluster.config('cluster.key'),
-                                                                   cluster.config('cluster.exec_type'),
-                                                                   cluster.config('cluster.exec_groups'),
-                                                                   cluster.config('cluster.availability_zone', default=None),
-                                                                   cluster.config('cluster.exec_bid_price', default=None),
-                                                                   numExec,
-                                                                   dataFile))
-
-        applyIfCallable(reporter, slaves)
-
-
-
-        slaves = runAndTerminateBad(cluster,
-                                    lambda : waitForState(cluster.ctype,
-                                                          NUM_TRIES,
-                                                          slaves,
-                                                          cluster.ctype.Instance.RUNNING,
-                                                          reporter))
-                
-        applyIfCallable(reporter, slaves)
-        slaves = runAndTerminateBad(cluster,
-                                    lambda: waitForSSHUp(cluster.config,
-                                                         NUM_TRIES,
-                                                         slaves))
-
-
-        slaves = runAndTerminateBad(cluster,
-                                    lambda : waitForInstancesReady(cluster.config, NUM_TRIES, slaves))
-
-        cluster.addExecNodes(slaves)
-        if len(slaves) != numExec:
-            raise TryError('Unable to bring up all nodes', cluster)
-                
-        return cluster
+    cluster = Cluster(d['name'], reflect.namedAny(d['ctype']), configFromMap(json.loads(d['config'])))
+    return cluster.setMaster(cluster.ctype.instanceFromDict(d['master'])
+                             ).addExecNodes([cluster.ctype.instanceFromDict(i) for i in d['execNodes']]
+                                            ).addDataNodes([cluster.ctype.instanceFromDict(i) for i in d['dataNodes']])
 
         
-def terminateCluster(cluster):
-    cluster.ctype.terminateInstances([cluster.master] + cluster.execNodes + cluster.dataNodes)
 
-def waitForState(ctype, tries, instances, wantState, reporter):
+def waitForState(cluster, ctype, tries, instances, wantState, reporterW):
     """
     reporter can be None if one doesn't want to report anything
     """
@@ -215,7 +228,7 @@ def waitForState(ctype, tries, instances, wantState, reporter):
         instancesPrime = ctype.updateInstances(instances)
         if len(instancesPrime) == len(instances):
             instances = instancesPrime
-        applyIfCallable(reporter, instances)
+        reporterW(cluster.addExecNodes(instances))
         if _matchState(instances):
             return ctype.updateInstances(instances)
         else:
@@ -233,17 +246,17 @@ def waitForSSHUp(conf, tries, instances):
         try:
             rchan.send(_checkSSHUp(instance))
         except Exception, err:
-            errorPrint("Exception thrown: " + str(err))
+            logging.errorPrint("Exception thrown: " + str(err))
             rchan.sendError(err)
             
     def _checkSSHUp(i):
-        return runSystemSSH(i.publicDNS,
-                            'echo hello',
-                            None,
-                            None,
-                            conf('ssh.user'),
-                            conf('ssh.options'),
-                            log=logging.DEBUG)
+        return ssh.runSystemSSH(i.publicDNS,
+                                'echo hello',
+                                None,
+                                None,
+                                conf('ssh.user'),
+                                conf('ssh.options'),
+                                log=logging.DEBUG)
         
     def _sshTest(res):
         return all(c == 0 for c in res)
@@ -280,11 +293,11 @@ def waitForInstancesReady(conf, tries, who):
                                     options=conf('ssh.options'),
                                     log=logging.DEBUG)
             return True
-        except ProgramRunError:
+        except commands.ProgramRunError:
             return False
 
     try:
-        tryUntil(tries, lambda : time.sleep(30), _checkUp)
+        functional.tryUntil(tries, lambda : time.sleep(30), _checkUp)
         return who
     except TryError:
         ##
@@ -301,7 +314,7 @@ def waitForInstancesReady(conf, tries, who):
                                     options=conf('ssh.options'),
                                     log=logging.DEBUG)
                 good.append(i)
-            except ProgramRunError:
+            except commands.ProgramRunError:
                 bad.append(i)
 
         raise TryError('Not all machines read', (good, bad))
@@ -355,8 +368,8 @@ def runCommandOnCluster(cluster, command, justMaster=False):
         try:
             runSystemInstanceEx(i,
                                 command,
-                                lambda l : logPrintS('%s : %s' % (i.publicDNS, l)),
-                                errorPrintS,
+                                lambda l : logging.logPrintS('%s : %s' % (i.publicDNS, l)),
+                                logging.errorPrintS,
                                 user=cluster.config('ssh.user'),
                                 options=cluster.config('ssh.options'),
                                 log=True)
