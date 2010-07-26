@@ -2,7 +2,6 @@
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery
 
-from vappio.cluster.control import terminateCluster
 from vappio.webservice.cluster import loadCluster
 from vappio.cluster.persist_mongo import cleanUp
 
@@ -18,7 +17,7 @@ class TerminateCluster(CGIPage):
         # as much info as it can if its attempt to load cluster info fails such as
         # a remote machine being down
         cluster = loadCluster('localhost', request['name'], request['force'])
-        terminateCluster(cluster)
+        cluster.terminate()
         cleanUp(request['name'])
         return None
 
