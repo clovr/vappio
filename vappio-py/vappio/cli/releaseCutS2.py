@@ -69,7 +69,7 @@ def bundleAMI(chan):
         ami = ''.join(outp).split()[-1]
         ##
         # Make the AMI public
-        runSingleProgramEx('ec2-modify-image-attribute %s --launch-permission -a all' % ami, stdouf=sys.stdout.write, stderrf=sys.stderr.write, log=True)
+        runSingleProgramEx('ec2-modify-image-attribute %s --launch-permission -a all' % ami, stdoutf=sys.stdout.write, stderrf=sys.stderr.write, log=True)
         rchan.send(ami)
     except Exception, err:
         rchan.sendError(err)
