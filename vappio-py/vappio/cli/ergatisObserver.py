@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 ##
 # This script observes a running pipeline and feeds updates back to the associated task
+import sys
+
 from xml.dom import minidom
 
 from igs.utils.cli import buildConfigN
@@ -42,7 +44,16 @@ def pipelineProgress(workflowXML):
 def main(options, _args):
     ##
     # Let's log what's going on
-    fout = open('/tmp/ergatisObserver.log', 'a')
+    try:
+        fout = open('/tmp/ergatisObserver.log', 'a')
+    except IOError:
+        ##
+        # Better than nothing but not much better.  Not sure how to
+        # inform the user that we could not open their log file
+        # Since this is mostly for developers use hopefully they will
+        # notice the log file is not being updated
+        fout = sys.stderr
+        
     if options('general.event') == 'finish' and options('general.retval') and not int(options('general.retval')):
         completed, total = pipelineProgress(options('general.file'))
 
@@ -55,7 +66,7 @@ def main(options, _args):
         # Set to complete if the number of steps is not zero and we have completed all of them
         if total and completed == total and 'start pipeline' in options('general.name'):
             fout.write('Setting task to completed')
-            tsk = tsk.setState(task.TASK_COMPLETED)
+            tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Successful completion')
         task.updateTask(tsk)
         
         fout.write('%s finished  %s %s\n' % (options('general.name'), options('general.file'), options('general.retval')))
