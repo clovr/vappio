@@ -2,14 +2,13 @@
 # This is a series of functions for controlling the startup of an instance
 import os
 
-from igs.utils.errors import TryError
 from igs.utils.commands import runSystemEx
 from igs.utils.functional import const
 
 from igs.config_manage.policy import installPkg, installOptPkg
 
 from vappio.instance.init_instance import runInit, executePolicyDirWEx
-from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, RELEASE_CUT, configFromStream
+from vappio.instance.config import DEV_NODE, MASTER_NODE, EXEC_NODE, configFromStream
 
 
 
@@ -42,6 +41,11 @@ def startPolicy(m):
 
 def startUpDevNode(conf):
     """
+    DEPRECATED: This type is deprecated, instead we should just be using the [dev] section of
+    the config file to specify what branches and what parts of the system to load from
+    svn
+
+    
     Steps in starting a dev node:
 
     1 - Remove /usr/local/stow (this should be a config option eventually)
@@ -54,9 +58,6 @@ def startUpDevNode(conf):
     runSystemEx("""updateAllDirs.py --co""")
 
 def startUpMasterNode(conf):
-    if conf('dev.update_dirs', default=None):
-        runSystemEx("""updateAllDirs.py %s""" % conf('dev.update_dirs'))
-
     executePolicyDirWEx(startPolicy, '/opt/config_policies', 'MASTER')
     
     ##
@@ -84,6 +85,16 @@ def startUpAllNodes(conf):
     2 - List through all .py files in /opt/config_policies and run them (eventually this directory should probably
         be split up by node type)
     """
+    if conf('dev.update_dirs', default=None):
+        cmd = ['updateAllDirs.py',
+               '--clovr-branch=' + conf('dev.clovr_branch', default='trunk'),
+               '--vappio-branch=' + conf('dev.vappio_branch', default='trunk'),
+               conf('dev.update_dirs')]
+
+        runSystemEx(' '.join(cmd))
+
+
+    
     installAllStow()
     installAllOptPackages()            
     executePolicyDirWEx(startPolicy, '/opt/config_policies')
