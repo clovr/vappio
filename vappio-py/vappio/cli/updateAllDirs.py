@@ -53,7 +53,7 @@ def grabFromSVN(options, srcUrl, branch, d, dstDir):
 def main(options, _args):
     updateAll = False
     for o in OPTIONS:
-        if options('general.' + o[0]):
+        if o[0] not in ['vappio_branch', 'clovr_branch'] and options('general.' + o[0]):
             break
     else:
         updateAll = True
