@@ -15,11 +15,12 @@ from igs.threading import threads
 
 OPTIONS = [
     ('base_dir', '-b', '--base-dir', 'Base directory to download into', cli.defaultIfNone('.')),
+    ('join_name', '-j', '--join-name', 'If multiple files are downloaded, join them into the specified file name in the base directory and delete the other files.  They are joined in the order they were specified.', func.identity),
     ('min_rate', '-m', '--min-rate', 'Minimum download rate in kilobytes per second', func.compose(int, cli.notNone)),
     ('tries', '-t', '--tries', 'Number of download attempts to make', func.compose(int, cli.defaultIfNone('3'))),
     ('max_threads', '', '--max-threads', 'Maximum number of threads to download at once', func.compose(int, cli.defaultIfNone('3'))),
     ('continue_download', '-c', '--continue', 'Continue the download.  Default is to download everything from scratch', cli.defaultIfNone(False), True),
-    ('debug', '-d', '--debug', 'Turn debug on', cli.defaultIfNone(False), True)
+    ('debug', '-d', '--debug', 'Turn debug on', cli.defaultIfNone(False), True),
     ]
 
 
@@ -124,11 +125,14 @@ def validMD5(options, url, md5):
     if md5 is not None:
         stdout = []
         files = getDownloadFilenames(options('general.base_dir'), url)
-        files.sort()
-        commands.runSingleProgramEx('cat %s | md5sum' % ' '.join(files), stdoutf=stdout.append, stderrf=None, log=True)
-        newMd5 = stdout[-1].split(' ', 1)[0]
-        logging.debugPrint(lambda : 'Comparing %s to %s' % (md5, newMd5))
-        return md5 == newMd5
+        if files:
+            files.sort()
+            commands.runSingleProgramEx('cat %s | md5sum' % ' '.join(files), stdoutf=stdout.append, stderrf=None, log=True)
+            newMd5 = stdout[-1].split(' ', 1)[0]
+            logging.debugPrint(lambda : 'Comparing %s to %s' % (md5, newMd5))
+            return md5 == newMd5
+        else:
+            False
     else:
         return True
         
@@ -182,13 +186,18 @@ def main(options, args):
     logging.DEBUG = options('general.debug')
 
     queue = Queue.Queue()
+    ##
+    # Track the downloaded URL names for joining later if specified
+    urls = []
     if not args:
         for line in sys.stdin:
             md5, url = line.split(' ', 1)
             url = url.strip()
+            urls.append(url)
             queue.put((url, md5))
     else:
         for url in args:
+            urls.append(url)
             queue.put((url, None))
 
     retChans = [threads.runThreadWithChannel(downloadUrls).channel.sendWithChannel((options, queue)) for _ in range(options('general.max_threads'))]
@@ -213,7 +222,28 @@ def main(options, args):
         ##
         # If any URLs failed, exit with fail
         sys.exit(1)
-    
+    else:
+        if options('general.join_name'):
+            logging.debugPrint(lambda : 'Joining files into: ' + options('general.join_name'))
+            files = []
+            for url in urls:
+                files.extend(sorted(getDownloadFilenames(options('general.base_dir'), url)))
+
+            fout = open(os.path.join(options('general.base_dir'), options('general.join_name')), 'wb')
+            for f in files:
+                logging.debugPrint(lambda : 'Reading: ' + f)
+                fin = open(f, 'rb')
+                d = fin.read(1000000)
+                while d:
+                    fout.write(d)
+                    d = fin.read(1000000)
+                fin.close()
+
+            fout.close()
+            logging.debugPrint(lambda : 'Deleting downloaded files after join')
+            for f in files:
+                logging.debugPrint(lambda : 'Deleting: ' + f)
+                os.remove(f)
 
 if __name__ == '__main__':
     sys.exit(main(*cli.buildConfigN(OPTIONS)))

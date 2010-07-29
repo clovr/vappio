@@ -9,7 +9,7 @@ from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
 from vappio.webservice.tag import tagData, realizePhantom
 from vappio.tags.transfer import uploadTag
-from vappio.tags.tagfile import loadTagFile, isPhantom
+from vappio.tags import tagfile
 
 from vappio.tasks import task
 from vappio.tasks.utils import blockOnTaskAndForward
@@ -24,16 +24,24 @@ OPTIONS = [
 
 
 def main(options, _args):
-    srcCluster = loadCluster('localhost', options('general.src_cluster'))
-    dstCluster = loadCluster('localhost', options('general.dst_cluster'))
-    tagFileName = os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name'))
-    tagFile = loadTagFile(tagFileName)
-
     tsk = task.updateTask(task.loadTask(options('general.task_name')
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting uploadTag'))
+
+    try:
+        srcCluster = loadCluster('localhost', options('general.src_cluster'))
+        dstCluster = loadCluster('localhost', options('general.dst_cluster'))
+        tagFileName = os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name'))
+        tagFile = tagfile.loadTagFile(tagFileName)
+    except tagfile.MissingTagFileError, err:
+        tsk = tsk.setState(task.TASK_FAILED).addException('Could not find tag: ' + str(err), err, errors.getStacktrace())
+        raise
+    except Exception, err:
+        tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
+        raise        
+
     
-    if isPhantom(tagFile):
+    if tagfile.isPhantom(tagFile):
         tsk = task.updateTask(tsk.addMessage(task.MSG_SILENT, 'Tag is phantom, uploading tag'))
 
         try:
@@ -43,6 +51,16 @@ def main(options, _args):
                     user=srcCluster.config('ssh.user'),
                     options=srcCluster.config('ssh.options'),
                     log=True)
+
+            ##
+            # Upload any files this tag depends on
+            for f in tagFile('phantom.depends_on', default='').split():
+                scpToEx(dstCluster.master.publicDNS,
+                        f,
+                        f,
+                        user=srcCluster.config('ssh.user'),
+                        options=srcCluster.config('ssh.options'),
+                        log=True)
 
             tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'realizing phantom tag'))
             
