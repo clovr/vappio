@@ -6,6 +6,7 @@ from igs.utils.ssh import scpToEx
 from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
+from vappio.instance.control import runSystemInstanceEx
 from vappio.webservice.cluster import loadCluster
 from vappio.webservice.tag import tagData, realizePhantom
 from vappio.tags.transfer import uploadTag
@@ -55,6 +56,13 @@ def main(options, _args):
             ##
             # Upload any files this tag depends on
             for f in tagFile('phantom.depends_on', default='').split():
+                runSystemInstanceEx(dstCluster.master,
+                                    'mkdir -p ' + os.path.dirname(f),
+                                    stdoutf=None,
+                                    stderrf=None,
+                                    user=srcCluster.config('ssh.user'),
+                                    options=srcCluster.config('ssh.options'),
+                                    log=True)
                 scpToEx(dstCluster.master.publicDNS,
                         f,
                         f,
