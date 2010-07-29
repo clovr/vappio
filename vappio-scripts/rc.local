@@ -68,30 +68,36 @@ do_start() {
             #write again in case of new mount
             echo "VMware" > $vappio_runtime/cloud_type
 	else
-        # If this curl fails it means we are not on EC2 (hopefully)
-	    curl --connect-timeout 30 --retry 10 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null 
-	    if [ $? = "0" ]
-	    then 
-		vlog "vappio_cloud_type=EC2"
-		export vappio_cloud_type=EC2
-		echo "EC2" > $vappio_runtime/cloud_type
-		$vappio_scripts/amazonec2/start_ec2.sh
-		#write again in case of new mount
-		echo "EC2" > $vappio_runtime/cloud_type
-            else
+	    /etc/init.d/vboxadd start
+	    if [ $? == "0" ]
+		then
+		#In VirtualBox
+		vlog "vappio_cloud_type=vbox"
+		export vappio_cloud_type=vbox
+		echo "VBox" > $vappio_runtime/cloud_type
+		$vappio_scripts/vbox/start_vbox.sh
+                #write again in case of new mount
+		echo "VBox" > $vappio_runtime/cloud_type
+	    else
+                # If this curl fails it means we are not on EC2 (hopefully)
+		curl --connect-timeout 6 --retry 10 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null 
+		if [ $? = "0" ]
+		    then 
+		    vlog "vappio_cloud_type=EC2"
+		    export vappio_cloud_type=EC2
+		    echo "EC2" > $vappio_runtime/cloud_type
+		    $vappio_scripts/amazonec2/start_ec2.sh
+  		    #write again in case of new mount
+		    echo "EC2" > $vappio_runtime/cloud_type
+		else
 		#Need a check here for XEN
-		vlog "vappio_cloud_type=XEN"
-		export vappio_cloud_type=XEN
-		echo "XEN" > $vappio_runtime/cloud_type
-            fi
+		    vlog "vappio_cloud_type=XEN"
+		    export vappio_cloud_type=XEN
+		    echo "XEN" > $vappio_runtime/cloud_type
+		fi
+	    fi
 	fi
     fi
-
-    #This needs to move till after ganglia is configured
-    #vappio_node_type=`cat $vappio_runtime/node_type`
-    #vappio_cloud_type=`cat $vappio_runtime/cloud_type`
-    #gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
-    #gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/stow/ganglia/etc/gmond.conf
 
     #Check for devel1.pem
     if [ -f "$ssh_key" ] 
@@ -139,11 +145,16 @@ do_start() {
 
     vmStatus.py -1 > /tmp/vmStatus.log
 
+    #Display node types in ganglia
+    vappio_node_type=`cat $vappio_runtime/node_type`
+    vappio_cloud_type=`cat $vappio_runtime/cloud_type`
+    /usr/local/stow/ganglia-3.1.2/bin/gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/etc/gmond.conf
+    /usr/local/stow/ganglia-3.1.2/bin/gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/etc/gmond.conf
 
     ##
     # This is temporary, we just want to run this if we are in VMWare right now
     # Cannot be moved to start_vmware.sh at the moment because proper networking is needed
-    vmware-checkvm
+    vmware-checkvm || VBoxService
     if [ $? = "0" ]
     then
 
@@ -163,6 +174,7 @@ do_start() {
 	    crontab -u root $VAPPIO_HOME/vappio-scripts/crontab.conf
 	fi
     fi
+    
 
 }
 
