@@ -87,8 +87,8 @@ def startUpAllNodes(conf):
     """
     if conf('dev.update_dirs', default=None):
         cmd = ['updateAllDirs.py',
-               '--clovr-branch=' + conf('dev.clovr_branch', default='trunk'),
-               '--vappio-branch=' + conf('dev.vappio_branch', default='trunk'),
+               '--clovr-branch=' + conf('dev.clovr_branch', default=''),
+               '--vappio-branch=' + conf('dev.vappio_branch', default=''),
                conf('dev.update_dirs')]
 
         runSystemEx(' '.join(cmd))
