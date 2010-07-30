@@ -16,6 +16,7 @@ from igs.threading import threads
 OPTIONS = [
     ('base_dir', '-b', '--base-dir', 'Base directory to download into', cli.defaultIfNone('.')),
     ('join_name', '-j', '--join-name', 'If multiple files are downloaded, join them into the specified file name in the base directory and delete the other files.  They are joined in the order they were specified.', func.identity),
+    ('join_md5', '', '--join-md5', 'The md5sum of the joined file', func.identity),
     ('min_rate', '-m', '--min-rate', 'Minimum download rate in kilobytes per second', func.compose(int, cli.notNone)),
     ('tries', '-t', '--tries', 'Number of download attempts to make', func.compose(int, cli.defaultIfNone('3'))),
     ('max_threads', '', '--max-threads', 'Maximum number of threads to download at once', func.compose(int, cli.defaultIfNone('3'))),
@@ -123,19 +124,24 @@ def deleteDownloadedFiles(baseDir, url):
 
 def validMD5(options, url, md5):
     if md5 is not None:
-        stdout = []
         files = getDownloadFilenames(options('general.base_dir'), url)
         if files:
             files.sort()
-            commands.runSingleProgramEx('cat %s | md5sum' % ' '.join(files), stdoutf=stdout.append, stderrf=None, log=True)
-            newMd5 = stdout[-1].split(' ', 1)[0]
+            newMd5 = calculateMD5(files)
             logging.debugPrint(lambda : 'Comparing %s to %s' % (md5, newMd5))
             return md5 == newMd5
         else:
             False
     else:
         return True
-        
+
+
+def calculateMD5(files):
+    stdout = []
+    commands.runSingleProgramEx('cat %s | md5sum' % ' '.join(files), stdoutf=stdout.append, stderrf=None, log=True)
+    return stdout[-1].split(' ', 1)[0]
+    
+    
 def downloadUrls(chan):
     (options, queue), rchan = chan.receive()
 
@@ -200,6 +206,14 @@ def main(options, args):
             urls.append(url)
             queue.put((url, None))
 
+
+    if options('general.join_name') and options('general.join_md5'):
+        md5 = calculateMD5([os.path.join(options('general.base_dir'), options('general.join_name'))])
+        ##
+        # If they match, then no need to download and exit cleanly
+        if md5 == options('general.join_md5'):
+            return
+            
     retChans = [threads.runThreadWithChannel(downloadUrls).channel.sendWithChannel((options, queue)) for _ in range(options('general.max_threads'))]
 
     successUrls = []
