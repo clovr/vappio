@@ -1,0 +1,6 @@
+#!/bin/sh
+# Ubuntu doesn't use /etc/rc.local
+# https://help.ubuntu.com/community/RcLocalHowto
+
+##
+# We don't want this to do anything

@@ -1,0 +1,284 @@
+#!/bin/sh
+# Ubuntu doesn't use /etc/rc.local
+# https://help.ubuntu.com/community/RcLocalHowto
+
+### BEGIN INIT INFO
+# Provides:             rc.local
+# Required-Start:       
+# Required-Stop:        
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 6
+# Short-Description:    Locals tartup
+### END INIT INFO
+
+source /root/clovrEnv.sh
+
+do_start() {
+    mkdir -p $vappio_runtime
+    chmod 777 $vappio_runtime
+    touch $vappio_log
+    chmod 777 $vappio_log
+    echo -n "CloVR VM " > /etc/issue
+    cat /opt/CLOVR-RELEASE >> /etc/issue
+    echo "Running on Ubuntu Linux 9.04 \n \l" >> /etc/issue
+    echo " " >> /etc/issue
+    netcount=$(/sbin/ifconfig | grep -o "inet")
+    if [[ $netcount > 1 ]]
+    then
+	echo "To use this appliance, please use a web browser" >> /etc/issue
+	echo "from another system to navigate to " >> /etc/issue
+	echo " " >> /etc/issue
+	/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print "http://"$2"/" }' >> /etc/issue
+	echo " " >> /etc/issue       
+    else
+	echo "This appliance does not have networking configured.  Please log in to configure networking" >> /etc/issue
+    fi
+    
+    ##
+    # Input a link to an external website to reference
+    echo "For more information regarding this appliance, please visit" >> /etc/issue
+    echo "http://clovr.sf.net" >> /etc/issue
+    echo " " >> /etc/issue
+    ##
+    # Write a file saying machine is alive
+    touch /tmp/startup_complete
+
+    #This code will detect environment and set node type. Setting node
+    #type may trigger long running jobs to receive data
+    if [ -f "/var/nimbus-metadata-server-url" ]
+    then
+	vlog "vappio_cloud_type=NIMBUS"
+	export vappio_cloud_type=NIMBUS
+	echo "NIMBUS" > $vappio_runtime/cloud_type
+	$vappio_scripts/nimbus/start_nimbus.sh
+    else
+    ##
+    # If vmware-checkvm returns 1 we know we are not on VMware
+	vmware-checkvm
+	if [ $? = "0" ]
+	then
+        #In vmware
+            vlog "vappio_cloud_type=vmware"
+            export vappio_cloud_type=vmware
+            echo "VMware" > $vappio_runtime/cloud_type
+	    #wait for networking
+	    #sleep 3
+            ##
+  	    $vappio_scripts/vmware/start_vmware.sh
+            #write again in case of new mount
+            echo "VMware" > $vappio_runtime/cloud_type
+	else
+	    /etc/init.d/vboxadd start
+	    if [ $? == "0" ]
+		then
+		#In VirtualBox
+		vlog "vappio_cloud_type=vbox"
+		export vappio_cloud_type=vbox
+		echo "VBox" > $vappio_runtime/cloud_type
+		$vappio_scripts/vbox/start_vbox.sh
+                #write again in case of new mount
+		echo "VBox" > $vappio_runtime/cloud_type
+	    else
+                # If this curl fails it means we are not on EC2 (hopefully)
+		curl --connect-timeout 6 --retry 10 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null 
+		if [ $? = "0" ]
+		    then 
+		    vlog "vappio_cloud_type=EC2"
+		    export vappio_cloud_type=EC2
+		    echo "EC2" > $vappio_runtime/cloud_type
+		    $vappio_scripts/amazonec2/start_ec2.sh
+  		    #write again in case of new mount
+		    echo "EC2" > $vappio_runtime/cloud_type
+		else
+		#Need a check here for XEN
+		    vlog "vappio_cloud_type=XEN"
+		    export vappio_cloud_type=XEN
+		    echo "XEN" > $vappio_runtime/cloud_type
+		fi
+	    fi
+	fi
+    fi
+
+    #Check for devel1.pem
+    if [ -f "$ssh_key" ] 
+    then
+	echo "Found ssh key"
+	chmod 600 $ssh_key
+	chown www-data:www-data $ssh_key
+    else
+	echo "WARNING: SSH key $ssh_key not found. Grid may not work properly."
+    fi
+
+    ##
+    #To support ad-hoc virtual clusters, 
+    #set up mock hostname if we don't have one, using the clovr-IPADDR naming convention
+    #This is required so that SGE can run locally without problems
+    hostname -f
+    if [ $? != "0" ]
+    then
+	#TODO, check if on EC2 here, this is a problem
+	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
+	hostname clovr-$ipalias
+	cp /etc/hosts.orig /etc/hosts
+	echo "$ipaddr clovr-$ipalias clovr-$ipalias" >> /etc/hosts
+	touch $vappio_runtime/no_dns
+    fi
+    touch $vappio_log  
+    chmod 666 $vappio_log
+
+
+    ##
+    # If /tmp/machine.conf already exists then we do not need to make it
+    # if we are running under VMWare or a local Xen then it will need to
+    # be created at bootup (Ec2/nimbus should create it during startup process)
+    export HOME=/root
+    if [ ! -e /tmp/machine.conf ]
+    then
+	createLocalMachineConf.py --conf=$VAPPIO_HOME/vappio-conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
+	bootStrapKeys.py
+    fi
+
+    ##
+    # Start up all services on the node
+    startUpNode.py >> /tmp/startUpNode.log 2>&1
+
+    vmStatus.py -1 > /tmp/vmStatus.log
+
+    #Display node types in ganglia
+    vappio_node_type=`cat $vappio_runtime/node_type`
+    vappio_cloud_type=`cat $vappio_runtime/cloud_type`
+    /usr/local/stow/ganglia-3.1.2/bin/gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/etc/gmond.conf
+    /usr/local/stow/ganglia-3.1.2/bin/gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/etc/gmond.conf
+
+    ##
+    # This is temporary, we just want to run this if we are in VMWare right now
+    # Cannot be moved to start_vmware.sh at the moment because proper networking is needed
+    vmware-checkvm || VBoxService
+    if [ $? = "0" ]
+    then
+
+        #Mimic functions called in run_user_data on cloud platforms
+        #Allow for bypass using config
+	if [ ! -e $vappio_bootflagsdir/skip_vmwarestartnodes ]
+	    then
+	    echo "Starting as MASTER_NODE"
+	    export MASTER_NODE=$default_master_node
+	    $vappio_scripts/setup_node.sh
+	    ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	    #update home page
+	    cat /mnt/clovr_home.html.tmpl | sed -e 's/\$\;IPADDR\$\;/'"$ipaddr"'/g' > /mnt/clovr_home.html
+	    echo $ipaddr > /mnt/clovr_ip
+            ##
+            # Setup crontabs
+	    crontab -u root $VAPPIO_HOME/vappio-scripts/crontab.conf
+	fi
+    fi
+    
+
+}
+
+do_stop() {
+    ##
+    #Stop node services if still running
+    $vappio_scripts/stop_node.sh
+
+    ##
+    # Run node shutdown script
+    shutdownNode.py
+
+    ##
+    # Delete this if we are a nimbus node, won't exist if we aren't
+    rm /var/nimbus-metadata-server-url
+
+    ##
+    # Remove any subversions tuff
+    rm -rf /root/.svn
+    rm -rf /root/.subversion
+
+    ##
+    # Delete the ip address file so outside scripts can know when the system is up
+    rm /mnt/clovr_ip
+
+    ##
+    # Don't want people having our SSH keys
+#KEEPING THESE FOR NOW,NEEDED FOR VMWARE CLUSTERS
+#rm -f /root/.ssh/authorized_keys
+#rm /mnt/devel1.pem
+    rm -f /root/.ssh/known_hosts
+    ##
+    # Logs just take up space and are not needed 
+    rm -f /var/log/wtmp
+    rm -f /var/log/*.log
+    rm -f /var/log/*.log.*
+    rm -f /var/log/*.gz
+    rm -f /var/log/dmesg.*
+    rm -f /var/log/apache2/*
+    rm -f /var/log/lastlog
+    rm -f /var/log/*.gz
+
+    rm -rf /root/.cpan
+    rm -f /root/.bash_history
+    rm -f /root/.lesshst
+    rm -f /root/.Xauthority
+    rm -rf /root/.aptitude
+    rm -rf /root/.debtags
+    rm -f /root/.vimrc
+    rm -f /root/.viminfo
+    rm -f /root/.viminfo
+    rm -f /root/.gnupg
+
+    ##
+    # Remove ergatis logs
+    rm -rf /opt/ergatis/global_id_repository/logs/*
+
+    ##
+    # Remove apt cache
+    apt-get clean
+    #rm -f /var/lib/apt/lists/*
+
+    ##
+    # Remove mongo logs
+
+
+    ##
+    #Recover a naked hosts file
+    cp /etc/hosts.orig /etc/hosts
+    
+    #Recover a naked udev rules file for VMware.  VMware will continue to
+    #add new network cards if this file is saved between runs.
+    cp /etc/udev/rules.d/70-persistent-net.rules.orig /etc/udev/rules.d/70-persistent-net.rules
+
+    #TODO, save data if running under vmware
+    #for p in $harvesting_dir $staging_dir $wfworking_dir $scratch_dir /var/spool/sge /mnt/projects/clovr
+    #do
+    #echo "Removing directory $p"
+    #rm -rf $p
+    #done
+
+    #Remove swap device
+    swapoff /dev/loop0
+    losetup -d /dev/loop0
+}
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+case "$1" in
+    start)
+	do_start
+	;;
+    stop)
+	do_stop
+	;;
+    restart)
+	do_stop
+	do_start
+	;;
+    *)
+	echo $"Usage: $0 {start|stop}"
+	exit 1
+esac
+
+exit $?

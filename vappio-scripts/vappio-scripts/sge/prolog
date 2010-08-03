@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# usage: prolog sge_id hostname job_owner queue
+# Jobs submitted by the htcservice must have $htc_id defined in environment 
+# if $htc_id isn't defined we ignore the job.
+
+# this script will called like:
+#prolog                sgeworker@/home/sgeworker/production/server/bin/prolog
+#                      $host $job_owner $sge_job_id $job_name $queue
+
+
+array_job() {
+    local RV=1
+    if [ "$SGE_TASK_ID" = "undefined" ]; then
+        RV=0
+    fi
+    return $RV
+}
+
+print_eventinfo () {
+
+    # Check if this job is restarting for some reason. If it is
+    # restarting, then sleep upto 60 seconds before contine to
+    # execute the job. This is a hack to make sure the original
+    # is killed before the rescheduled job starts running.
+    # and the rescheduled job
+    #
+    if [ $RESTARTED -eq 1 ]; then
+        echo "I~~~`date`~~~This job has restarted for some reason.";
+        echo "I~~~`date`~~~Sleeping for 60 seconds to make sure the original job is killed.";
+        sleep 60;
+    fi
+
+
+    # If the environment variable SGE_TASK_ID is defined then it
+    # is an array job, so print the task id 
+    if [ "$ARRAY" = "0" ]; then
+        header="${htc_id}~~~${sge_id}~~~${start_date}"
+    else
+        header="${htc_id}~~~${sge_id}.${SGE_TASK_ID}~~~${start_date}"
+    fi
+
+    message="job started on $queue for $job_owner";
+
+    echo "I~~~prolog starting";
+    echo "I~~~htc id   sge id[.task id]   date   message   hostname"
+    echo "S~~~${header}~~~$message~~~$hostname"
+    echo "I~~~prolog ending";
+}
+
+
+# Determine our variables.
+start_date=`date`;
+hostname=$1
+job_owner=$2
+sge_id=$3
+job_name=$4
+queue=$5
+
+##
+##Import vappio config
+export vappio_root=/opt/vappio-scripts
+vappio_scripts=$vappio_root
+source $vappio_scripts/vappio_config.sh
+##
+##
+vappio_data_placement=1
+vlog "###" 
+vlog "### $0 (`whoami`)" 
+vlog "###" 
+
+if [ -n "$vappio_data_placement" ]; then
+	vappio_scripts=$vappio_root
+	#$request_cwd $command_str $command_args are already set in the environment by Workflow
+	#For commands submitted outside of workflow, these variables will be empty
+	vlog "Running $vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str \"$command_args\""
+	$vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str "$command_args" 1>> $vappio_log 2>> $vappio_log
+	ret1=$?
+	vlog "vappio_prolog return code: $ret1"
+	if [ $ret1 -ne 0 ] 
+	then
+          echo echo "I~~~vappio staging failure. See $vappio_log";
+	  exit $ret1
+	fi 
+fi
+
+# Determine if this is an array job
+array_job
+ARRAY=$?
+# Determine if this is being invoked by Ergatis/Workflow
+if [ -n "$request_cwd" ]; then
+    if [ "$ARRAY" = "0" ]; then
+        # The job is *NOT* an array job
+        EVENT_LOG="${request_cwd}/event.log"
+    else
+        # The job *IS* an array job
+        EVENT_LOG="${request_cwd}/event.log.$SGE_TASK_ID"
+    fi
+	touch $EVENT_LOG
+    if [ -w "$EVENT_LOG" ] && [ -n "$htc_id" ]; then
+        print_eventinfo >> "$EVENT_LOG" 2>&1
+    fi
+    if [ -n "$vappio_data_placement" ]; then 
+
+	#To update status to running back at master
+	#Triggers a ssh connection to the master
+	#consider throttling using transferq
+	if [ "$updatestatus" = "y" ]
+	then
+		if [ -z "$master" ]
+		then
+        		master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
+		fi
+		vlog "CMD: rsync -rlDvh -e \"$ssh_client -i $ssh_key $ssh_options\" ${request_cwd}/event.log root@$master:${request_cwd}/"
+		rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" ${request_cwd}/event.log root@$master:${request_cwd}/ 1>> $vappio_log 2>> $vappio_log
+	        ret2=$?
+	  	vlog "rsync return value: $?"
+		if [ $ret1 -ne 0 ]
+		then
+		 echo "I~~~vappio event.log capture failure. See $vappio_log";
+		 exit $ret1
+		fi
+
+	fi
+    fi
+    
+fi > /dev/null 2>&1
+
+exit  

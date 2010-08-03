@@ -1,0 +1,144 @@
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+
+vappio_scripts=/opt/vappio-scripts
+vappio_runtime=/var/vappio_runtime
+v_log() { echo [`date +'%T %D'`] $1 >> /var/log/rc.local.log; }
+touch /var/lock/subsys/local
+
+# Default values
+MASTER_NODE="localhost"
+DATA_NODE=0
+IFS=,
+localhost="localhost"
+
+localdata=`curl -f -s http://169.254.169.254/1.0/user-data`
+
+for p in $localdata
+ do
+  key=`echo $p | awk 'BEGIN{FS="="}{print $1}'`
+  value=`echo $p | awk 'BEGIN{FS="="}{print $2}'`
+  v_log "parsed $key = $value"
+  case $key in
+    MASTER_NODE)
+      MASTER_NODE=$value
+    ;;
+    DATA_NODE)
+      DATA_NODE=$value
+    ;;
+    *)
+      v_log "No support for key value ($key) ($value) from user-data"
+    ;;
+  esac
+done
+
+# if MASTER_NODE is lookup, perform lookup
+if [ $MASTER_NODE == "lookup" ]
+then
+        v_log "No curl of MASTER_NODE from user-data. DEPRECATED"
+        #DEPRECATED localdatavalue=`$vappio_scripts/amazonec2/getsimplekey.pl vappio-config sge_master`
+        #DEPRECATED MASTER_NODE=$localdatavalue
+else
+  v_log "MASTER_NODE remains $MASTER_NODE"
+fi
+
+# next, actually setup as or connect to MASTER_NODE
+# if the value is localhost, it sets up as a master
+# otherwise, it connects to the master
+case $MASTER_NODE in
+  $localhost)
+    v_log "Configuring localhost as MASTER_NODE"
+    $vappio_scripts/start_master.sh 1> /var/log/start_master.log 2> /var/log/start_master.log
+    #broadcast hostname for other listeners
+    myhostname=`hostname -f`
+    #DEPRECATED $vappio_scripts/amazonec2/putsimplekey.pl vappio-config sge_master $myhostname
+    echo "$MASTER_NODE" > $vappio_runtime/master_node
+	myhostname=`hostname -f`
+        perl -pi -e "s/host\s*=\s*\S+\s+#VAPPIOmaster/host=$myhostname #VAPPIOmaster/" /etc/ganglia/gmond.conf
+        perl -pi -e "s/bind\s*=\s*\S+\s+#VAPPIOlocal/bind=$myhostname #VAPPIOlocal/" /etc/ganglia/gmond.conf
+        /etc/init.d/gmond start
+	/etc/init.d/gmetad start
+  ;;
+  *)
+    v_log "Setting MASTER_NODE to $MASTER_NODE"
+    echo "$MASTER_NODE" > $vappio_runtime/master_node
+    # check if it's a DATA_NODE
+    case $DATA_NODE in
+      $localhost)
+        v_log "Configuring localhost as DATA_NODE"
+        $vappio_scripts/start_data.sh $MASTER_NODE 1> /var/log/start_data.log 2> /var/log/start_data.log
+        myhostname=`hostname -f`
+        masterhostname=`cat /var/vappio_runtime/master_node`
+        perl -pi -e "s/host\s*=\s*\S+\s+#VAPPIOmaster/host=$masterhostname #VAPPIOmaster/" /etc/ganglia/gmond.conf
+        perl -pi -e "s/bind\s*=\s*\S+\s+#VAPPIOlocal/bind=$myhostname #VAPPIOlocal/" /etc/ganglia/gmond.conf
+        /etc/init.d/gmond start
+
+      ;;
+      *)
+        v_log "Configuring localhost as EXEC_NODE"
+        $vappio_scripts/start_exec.sh $MASTER_NODE 1> /var/log/start_exec.log 2> /var/log/start_exec.log
+        #add cron job to shutdown at 60 mins if idle
+        min=`date +"%-M"`
+        shutdownmin=$(($min-10))
+        if [ $shutdownmin -lt 0 ]
+          then
+          shutdownmin=$((60 + $shutdownmin));
+        fi
+        echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > /root/shutdown.crontab
+        crontab -u root /root/shutdown.crontab
+
+	#Set up ganglia
+	myhostname=`hostname -f`
+	masterhostname=`cat /var/vappio_runtime/master_node`
+	perl -pi -e "s/host\s*=\s*\S+\s+#VAPPIOmaster/host=$masterhostname #VAPPIOmaster/" /etc/ganglia/gmond.conf
+	perl -pi -e "s/bind\s*=\s*\S+\s+#VAPPIOlocal/bind=$myhostname #VAPPIOlocal/" /etc/ganglia/gmond.conf
+	/etc/init.d/gmond start 
+     ;;
+     esac
+  ;;
+esac
+
+#for p in $localdata
+# do
+#  key=`echo $p | awk 'BEGIN{FS="="}{print $1}'`
+#  value=`echo $p | awk 'BEGIN{FS="="}{print $2}'`
+#  echo "parsed $key = $value" > /var/log/rc.local.log
+#  case $key in
+#	SGE_DATA) if test $value = $localhost
+#		   then
+#			echo "Configuring localhost as SGE_DATA" > /var/log/rc.local.log
+#		   else
+#			echo "Setting SGE_DATA to $value (not really)" > /var/log/rc.local.log
+#		  fi
+#	SGE_EXEC) if test $value = $localhost
+#                    then
+#			echo "Configuring localhost as SGE_EXEC" > /var/log/rc.local.log
+#		  fi
+#	MASTER_NODE) if test $value = $localhost 
+#                     then 
+#                       echo "Configuring localhost as MASTER_NODE"
+#			$vappio_scripts/start_master.sh 1> /var/log/start_master.log 2> /var/log/start_master.log
+#			#broadcast hostname for other listeners
+#			myhostname=`hostname -f`
+#			$vappio_scripts/amazonec2/putsimplekey.pl vappio-config sge_master $myhostname
+#                     else
+#			echo "Setting MASTER_NODE to $value"
+#			$vappio_scripts/start_exec.sh $value 1> /var/log/start_exec.log 2> /var/log/start_exec.log
+			#add cron job to shutdown at 60 mins if idle
+#			min=`date +"%-M"`
+#			shutdownmin=$(($min-10))
+##			if [ $shutdownmin -lt 0 ]
+#			 then
+#			        shutdownmin=$((60 + $shutdownmin));
+#			fi
+#			echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > /root/shutdown.crontab
+#			crontab -u root /root/shutdown.crontab
+#	             fi ;;        
+#	* )
+#		echo "Unknown key/value: $key = $value" > /var/log/rc.local.log 
+#esac
+# done
+  
