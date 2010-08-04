@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 ##
 # Tags data.
+import json
+
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
@@ -32,6 +34,9 @@ class TagData(CGIPage):
                 if request[i]:
                     cmd.append('--' + i)
 
+            if request['tag_metadata']:
+                cmd.append("--metadata='%s'" % (json.dumps(request['tag_metadata']).encode('string_escape'),))
+                
             cmd.extend(request['files'])
 
             cmd.append('>> /tmp/tagData.log 2>&1 &')
