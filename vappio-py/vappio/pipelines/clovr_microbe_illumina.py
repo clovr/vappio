@@ -7,14 +7,17 @@ from igs.utils.cli import notNone, defaultIfNone, restrictValues
 
 ##
 # Need to know where the template lives
-TEMPLATE_NAME = 'clovr_microbe_illumina'
+TEMPLATE_NAME = 'illumina_prok_annot'
 
 
 OPTIONS = [
-    ('INPUT_FILE', '', '--INPUT_FILE', 'The input file list of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('SHORT_PAIRED_LIST', '', '--SHORT_PAIRED_LIST', 'A comma separated list of input tags. Each tag should contain two files.', compose( lambda x : ','.join(['${dirs.tag_dir}/' + y for y in x.split()]), defaultIfNone(''))),
+    ('LONG_PAIRED_LIST', '', '--LONG_PAIRED_LIST', 'A common separated list of input tags. Each tag should contain two files', compose( lambda x : ','.join(['${dirs.tag_dir}/' + y for y in x.split()]), defaultIfNone('') ) ),
+    ('SHORT_PAIRED_FORMAT', '', '--SHORT_PAIRED_FORMAT', 'A space separated list of formats (either fasta or fastq) that relates to the space separated list of short paired lists', defaultIfNone('')),
+    ('LONG_PAIRED_FORMAT', '', '--LONG_PAIRED_FORMAT', 'A space separated list of formats (either fasta or fastq) that relates to the space separated list of long paired lists', defaultIfNone('')),
+    ('SHORT_INPUT_LIST', '', '--SHORT_INPUT_LIST', 'Input tag for non paired end short read data.', compose( lambda x : ','.join(['${dirs.tag_dir}/' + y for y in x.split()]), defaultIfNone('')) ),
+    ('LONG_INPUT_LIST', '', '--LONG_INPUT_LIST', 'Input tag for non paired long read data', compose( lambda x : ','.join(['${dirs.tag_dir}/' + y for y in x.split()]), defaultIfNone('')) ),
     ('OUTPUT_PREFIX', '', '--OUTPUT_PREFIX', 'Used in ID generation, Locus Tags, etc.', notNone),
-    ('FILE_FORMAT', '', '--FILE_FORMAT', 'Can be any of the following: fasta, fastq, fasta.gz, fastq.gz, eland, gerald', compose(restrictValues(['-fasta', '-fastq', '-fasta.gz', '-fastq.gz', '-eland', '-gerald']), notNone)),
-    ('READ_TYPE', '', '--READ_TYPE', 'Can be either -short, -shortPaired, -long, -longPaired', compose(restrictValues(['-short', '-shortPaired', '-long', '-longPaired']), notNone)),
     ('START_HASH_LENGTH', '', '--START_HASH_LENGTH', 'Starting hash size: default 19. Must be Odd.', defaultIfNone('19')),
     ('END_HASH_LENGTH', '', '--END_HASH_LENGTH', 'Ending hash size: default 31. Must be Odd.', defaultIfNone('31')),
     ('VELVETG_OPTS', '', '--VELVETG_OPTS', 'Options that will be passed onto velvetg. If using paired end reads, use at least -ins_length and -ins_length_sd. -min_contig_lgth is already set.', defaultIfNone('')),
