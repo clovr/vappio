@@ -6,6 +6,16 @@ from igs.utils.config import configFromStream, configFromMap, configFromEnv, rep
 
 from igs.utils.functional import applyIfCallable
 
+##
+# These are the different control types we can take as input.  For instance making a list, counting, string
+# string is the default.
+# BINARY is True for backwards compatibility
+BINARY = True
+STRING = 'string'
+LIST = 'list'
+COUNT = 'count'
+
+
 class MissingOptionError(Exception):
     pass
 
@@ -67,14 +77,14 @@ def buildConfigN(options, args=None, usage=None, putInGeneral=True):
     """
     def _iterBool(v):
         """
-        Adds the non erquired bool field with a default of False if
+        Adds the non erquired bool field with a default of STRING if
         it is not present
         """
         for l in v:
             if len(l) == 6:
                 yield l
             else:
-                yield tuple(list(l) + [False])
+                yield tuple(list(l) + [STRING])
                 
     
     parser = optparse.OptionParser(usage=usage)
@@ -94,10 +104,16 @@ def buildConfigN(options, args=None, usage=None, putInGeneral=True):
         if n == 'conf':
             confFunc = f
             
-        if b:
+        if b == BINARY:
             parser.add_option(s, l, dest=n, help=h, action='store_true')
-        else:
+        elif b == LIST:
+            parser.add_option(s, l, dest=n, help=h, action='append')
+        elif b == COUNT:
+            parser.add_option(s, l, dest=n, help=h, action='count')
+        elif b == STRING:
             parser.add_option(s, l, dest=n, help=h)
+        else:
+            raise Exception('Unknown option type: ' + repr(b))
 
     ops, args = parser.parse_args(args=args)
 
