@@ -41,7 +41,7 @@ def listAllTags(host, name):
     """
     Returns a list of all tags on a machine
     """
-    return dict([(t('name'), configFromMap(t, lazy=True)) for t in performQuery(host, QUERYTAG_URL, dict(name=name))])
+    return dict([(t['name'], configFromMap(t, lazy=True)) for t in performQuery(host, QUERYTAG_URL, dict(name=name))])
     
 def queryTag(host, name, tagName):
     ##
