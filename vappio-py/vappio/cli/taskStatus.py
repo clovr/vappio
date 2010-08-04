@@ -48,14 +48,14 @@ def printTask(options, t, maxTaskNameLen):
                                                                                         timestampToStr(t.timestamp))
         if showAnyMsg(options):
             for m in t.messages:
-                if m['mtype'] == task.MSG_NOTIFICATION and options('general.show_msgs') or options('general.show_all_msgs'):
+                if m['mtype'] == task.MSG_NOTIFICATION and (options('general.show_msgs') or options('general.show_all_msgs')):
                     print 'Notification - %s: %s' % (timestampToStr(m['timestamp']), m['text'])
-                elif m['mtype'] == task.MSG_ERROR and options('general.show_error_msgs') or options('general.show_all_msgs'):
+                elif m['mtype'] == task.MSG_ERROR and (options('general.show_error_msgs') or options('general.show_all_msgs')):
                     print 'Error - %s: %s' % (timestampToStr(m['timestamp']), m['text'])
                     if 'stacktrace' in m:
                         indented = '\n\t'.join(m['stacktrace'].split('\n'))
                         print 'Stacktrace:\n\t' + indented
-                elif m['mtype'] == task.MSG_SILENT and options('general.show_debug_msgs') or options('general.show_all_msgs'):
+                elif m['mtype'] == task.MSG_SILENT and (options('general.show_debug_msgs') or options('general.show_all_msgs')):
                     print 'Debug - %s: %s' % (timestampToStr(m['timestamp']), m['text'])
     
 

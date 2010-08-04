@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import os
 
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone
-from igs.utils.functional import identity
+from igs.utils import cli
+from igs.utils import functional as func
 
 from vappio.webservice.tag import tagData
 
@@ -10,16 +10,20 @@ from vappio.tasks.task import TASK_FAILED
 from vappio.tasks.utils import blockOnTask
 
 OPTIONS = [
-    ('host', '', '--host', 'Host of web services to connect to, defaults to local host', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster, defaults to local', defaultIfNone('local')),
-    ('tag_name', '', '--tag-name', 'Name of tag', notNone),
-    ('tag_base_dir', '', '--tag-base-dir', 'Base directory of the tag', identity),
-    ('recursive', '-r', '--recursive', 'Recursively include directories', defaultIfNone(False), True),
-    ('expand', '-e', '--expand', 'Expand archives', defaultIfNone(False), True),
-    ('append', '-a', '--append', 'Append listed files to tag name, ignoring duplicate files', defaultIfNone(False), True),
-    ('overwrite', '-o', '--overwrite', 'Overwrite file list if it exists', defaultIfNone(False), True),
-    ('block', '-b', '--block', 'Block on the tagging', defaultIfNone(False), True),
-    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),
+    ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
+    ('name', '', '--name', 'Name of cluster, defaults to local', cli.defaultIfNone('local')),
+    ('tag_name', '', '--tag-name', 'Name of tag', cli.notNone),
+    ('tag_base_dir', '', '--tag-base-dir', 'Base directory of the tag', func.identity),
+    ('recursive', '-r', '--recursive', 'Recursively include directories', cli.defaultIfNone(False), cli.BINARY),
+    ('expand', '-e', '--expand', 'Expand archives', cli.defaultIfNone(False), cli.BINARY),
+    ('append', '-a', '--append', 'Append listed files to tag name, ignoring duplicate files', cli.defaultIfNone(False), cli.BINARY),
+    ('overwrite', '-o', '--overwrite', 'Overwrite file list if it exists', cli.defaultIfNone(False), cli.BINARY),
+    ('block', '-b', '--block', 'Block on the tagging', cli.defaultIfNone(False), cli.BINARY),
+    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', cli.defaultIfNone(False), cli.BINARY),
+    ('metadata', '-m', '',
+     'Add metadata in a key=value notation.  Multiple options are valid.  Ex: -m filetype=fasta -m usage=referencedb',
+     cli.defaultIfNone([]),
+     cli.LIST)
     ]
 
 
@@ -42,7 +46,8 @@ def main(options, files):
                        options('general.recursive'),
                        options('general.expand'),
                        options('general.append'),
-                       options('general.overwrite'))
+                       options('general.overwrite'),
+                       dict([s.split('=', 1) for s in options('general.metadata')]))
 
     if options('general.block'):
         state = blockOnTask(options('general.host'), options('general.name'), taskName)
@@ -55,6 +60,6 @@ def main(options, files):
     
 
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS, usage='--name=cluster --tag-name=name [options] file_1 .. file_n'))
+    main(*cli.buildConfigN(OPTIONS, usage='--name=cluster --tag-name=name [options] file_1 .. file_n'))
     
 

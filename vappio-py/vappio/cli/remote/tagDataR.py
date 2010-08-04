@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone
-from igs.utils.functional import identity
+import json
+from igs.utils import cli
+from igs.utils import functional as func
 from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
@@ -9,13 +10,14 @@ from vappio.tags.tagfile import tagData
 from vappio.tasks import task
 
 OPTIONS = [
-    ('tag_name', '', '--tag-name', 'Name of the tag', notNone),
-    ('task_name', '', '--task-name', 'Name of task', notNone),
-    ('tag_base_dir', '', '--tag-base-dir', 'Base dir of tag', identity),
-    ('recursive', '-r', '--recursive', 'If file is a direcotry, recursively add files', defaultIfNone(False), True),
-    ('expand', '-e', '--expand', 'If file is an archive (.bz2, .tar.gz, .tgz), expand it', defaultIfNone(False), True),
-    ('append', '-a', '--append', 'Append files to the current file list, this will not add duplicates. The overwrite option supercedes this.', defaultIfNone(False), True),
-    ('overwrite', '-o', '--overwrite', 'Overwrite tag if it already exists', defaultIfNone(False), True)
+    ('tag_name', '', '--tag-name', 'Name of the tag', cli.notNone),
+    ('task_name', '', '--task-name', 'Name of task', cli.notNone),
+    ('tag_base_dir', '', '--tag-base-dir', 'Base dir of tag', func.identity),
+    ('recursive', '-r', '--recursive', 'If file is a direcotry, recursively add files', cli.defaultIfNone(False), cli.BINARY),
+    ('expand', '-e', '--expand', 'If file is an archive (.bz2, .tar.gz, .tgz), expand it', cli.defaultIfNone(False), cli.BINARY),
+    ('append', '-a', '--append', 'Append files to the current file list, this will not add duplicates. The overwrite option supercedes this.', cli.defaultIfNone(False), cli.BINARY),
+    ('overwrite', '-o', '--overwrite', 'Overwrite tag if it already exists', cli.defaultIfNone(False), cli.BINARY),
+    ('metadata', '', '--metadata', 'JSON Encoded dictionary representing metadata', cli.defaultIfNone('{}'))
     ]
 
 
@@ -26,6 +28,7 @@ def main(options, files):
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting tagging'))
 
+
     try:
         cluster = loadCluster('localhost', 'local')
         tagData(cluster.config('dirs.tag_dir'),
@@ -35,7 +38,8 @@ def main(options, files):
                 recursive=options('general.recursive'),
                 expand=options('general.expand'),
                 append=options('general.append'),
-                overwrite=options('general.overwrite'))
+                overwrite=options('general.overwrite'),
+                metadata=json.loads(options('general.metadata')))
         tsk = tsk.progress().setState(task.TASK_COMPLETED)
     except Exception, err:
         tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
@@ -46,5 +50,5 @@ def main(options, files):
 
 
 if __name__ == '__main__':
-    runCatchError(lambda : main(*buildConfigN(OPTIONS)),
+    runCatchError(lambda : main(*cli.buildConfigN(OPTIONS)),
                   mongoFail(dict(action='tagData')))

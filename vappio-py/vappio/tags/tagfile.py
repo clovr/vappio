@@ -70,7 +70,7 @@ def generateFileList(files, recursive, expand):
             raise IOError('%s does not exist' % f)
                 
 
-def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, overwrite, filterF=None):
+def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, overwrite, metadata=None, filterF=None):
     """
     Tag a list of files with the name.  The files can contain direcotires, and if recursive
     is set the contends of the directories will become part of the tag rather than just the name
@@ -86,6 +86,10 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
 
     This returns the tag that was created
     """
+
+    if metadata is None:
+        metadata = {}
+        
     if not os.path.exists(tagsDir):
         runSystemEx('mkdir -p ' + tagsDir)
     
@@ -125,8 +129,11 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
     ##
     # If tagBaseDir is set it means we have some metadata to write
     if tagBaseDir:
+        metadata['tag_base_dir'] = tagBaseDir
+
+    if metadata:
         outFile = open(outName + '.metadata', 'w')
-        outFile.write(json.dumps(dict(tag_base_dir=tagBaseDir)))
+        outFile.write(json.dumps(metadata, indent=1) + '\n')
         outFile.close()
 
     return loadTagFile(outName)
