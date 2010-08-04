@@ -7,7 +7,7 @@ from igs.utils.cli import notNone, defaultIfNone, restrictValues
 
 ##
 # Need to know where the template lives
-TEMPLATE_NAME = 'illumina_prok_annot'
+TEMPLATE_NAME = 'clovr_microbe_illumina'
 
 
 OPTIONS = [
