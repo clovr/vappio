@@ -41,7 +41,8 @@ def makeDirsOnCluster(cluster, dirNames):
                                 options=cluster.config('ssh.options'),
                                 log=True)
         except ProgramRunError, err:
-            raise TryError('Could not chown directory', err)
+            pass
+            ##raise TryError('Could not chown directory', err)
     
 def uploadTag(srcCluster, dstCluster, tagName, tagData):
     """
@@ -64,7 +65,8 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
     dirNames = set([os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
                                  makePathRelative(os.path.dirname(f).replace(tagBaseDir, '')))
                     for f in tagData('files')])
-    
+
+
     ##
     # Next we want to take the list of local files, remove the dirs.tag_dir and replace it
     # with the destination clusters.  We maek a list of tuples so we know the local file
