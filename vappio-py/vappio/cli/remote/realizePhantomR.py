@@ -43,6 +43,8 @@ def main(options, _args):
 
                 ##
                 # Need to fix this so it makes use of tag_options
+                metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
+                metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])                
                 tagTask = tagData('localhost',
                                   'local',
                                   options('general.tag_name'),
@@ -51,7 +53,8 @@ def main(options, _args):
                                   recursive=True,
                                   expand=True,
                                   append=False,
-                                  overwrite=True)
+                                  overwrite=True,
+                                  metadata=metadata)
 
                 endState, tsk = blockOnTaskAndForward('localhost',
                                                       'local',
