@@ -1,0 +1,6 @@
+#!/bin/bash
+
+$VAPPIO_HOME=/opt/
+
+$VAPPIO_HOME/vappio-install/recipes/setup.sh
+$VAPPIO_HOME/vappio-install/recipes/systemconfigs.sh

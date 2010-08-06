@@ -1,0 +1,8 @@
+#!/bin/sh
+
+appliance=`cat /etc/vappio/appliance_name`
+release=`cat /etc/vappio/release_name`
+bundle=`cat /etc/vappio/bundle_name`
+
+echo
+echo "$appliance virtual appliance ($bundle image, release $release)"
