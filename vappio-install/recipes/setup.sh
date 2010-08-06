@@ -12,7 +12,7 @@ apt-get -y remove wireless-tools wpasupplicant
 apt-get -y remove puppet puppet-common puppetmaster
 rm /etc/cron.d/cloudinit-updates
 
-apt-get install euca2tools
+apt-get -y install euca2tools
 apt-get -y install subversion
 
 rename 's/plymouth(\S+)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
