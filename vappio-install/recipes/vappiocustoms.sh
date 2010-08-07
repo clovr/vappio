@@ -14,7 +14,7 @@ mkdir $tmpdir $tmpdir/etc $tmpdir/root
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d $tmpdir/etc/update-motd.d
 pushd $tmpdir
 tar cvzf ../install$$.tgz .
-tar xvzf -C / ../install$$.tgz
+tar -C xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
 rm -rf $tmpdir

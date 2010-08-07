@@ -22,7 +22,7 @@ svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.profile $tmpdir/root/.profile
 pushd $tmpdir
 tar cvzf ../install$$.tgz .
-tar xvzf -C / ../install$$.tgz
+tar -C / -xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
 rm -rf $tmpdir
