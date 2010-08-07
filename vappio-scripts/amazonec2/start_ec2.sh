@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Import vappio config
 vappio_scripts=/opt/vappio-scripts
@@ -41,3 +41,5 @@ echo "OFFLINE-PENDING" > $vappio_runtime/node_type
 $vappio_scripts/run_user_data.sh
 
 $vappio_scripts/create_swap_file.sh
+
+initctl emit vappio_ec2

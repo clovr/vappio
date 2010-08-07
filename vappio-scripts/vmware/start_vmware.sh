@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Import vappio config
 vappio_scripts=/opt/vappio-scripts
@@ -59,3 +59,4 @@ else
     $vappio_scripts/prep_directories.sh 1> /dev/null 2> /dev/null
 fi
 
+initctl emit vappio_vmware

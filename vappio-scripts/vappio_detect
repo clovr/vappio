@@ -1,0 +1,53 @@
+#!/bin/bash 
+
+# Import vappio config
+source /root/clovrEnv.sh
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+#Detect platform
+platform=`virt-what | head -1`
+
+vlog "Detecting platform $platform"
+
+case $platform in
+    xen)
+	#Can be in EC2, UEC, or local Xen
+	curl --connect-timeout 1 --retry 1 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null 
+	if [ $? = "0" ]
+	then 
+	#start EC2
+	    vlog "vappio_cloud_type=EC2"
+	    export vappio_cloud_type=EC2
+	    #echo "EC2" > $vappio_runtime/cloud_type
+	    initctl emit vappio_ec2
+	    #$vappio_scripts/amazonec2/start_ec2.sh
+  	    #write again in case of new mount
+	    echo "EC2" > $vappio_runtime/cloud_type
+	else
+	#start xen
+	    vlog "vappio_cloud_type=XEN"
+	    export vappio_cloud_type=XEN
+	    initctl emit vappio_xen
+	    echo "XEN" > $vappio_runtime/cloud_type
+	fi
+	;;
+    vmware)
+	echo "VMware" > $vappio_runtime/cloud_type
+	initctl emit vappio_vmware
+	#$vappio_scripts/vmware/start_vmware.sh
+	echo "VMware" > $vappio_runtime/cloud_type
+	;;
+    vbox)
+        #In VirtualBox
+	vlog "vappio_cloud_type=vbox"
+	export vappio_cloud_type=vbox
+	initctl emit vappio_vbox
+	#$vappio_scripts/vbox/start_vbox.sh
+	echo "VBox" > $vappio_runtime/cloud_type
+	;;
+esac
+
+echo "OFFLINE" > $vappio_runtime/node_type
+
+initctl emit vappio_detect

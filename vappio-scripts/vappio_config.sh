@@ -1,8 +1,6 @@
 vappio_scripts=/opt/vappio-scripts
 vappio_runtime=/mnt/clovr/runtime/
 vappio_log=/tmp/vappio.log
-
-
 ##
 #Debugging and error reporting functions
 #Report errors to the error log
@@ -47,15 +45,18 @@ export BASH_ENV=
 export HISTFILE=
 
 ##SGE CONFIG
-export SGE_ROOT=/opt/sge
+export SGE_ROOT=/var/lib/gridengine
 export SGE_CELL=default
-export ARCH=`$SGE_ROOT/util/arch`
-sge_exec_user=guest
+export ARCH=lx26-ia64
+export SGE_ARCH=lx26-ia64
+sge_exec_user=www-data
 sgeadmin_user=sgeadmin
 apache_user=www-data # www-data under Ubuntu, apache is also common
 sge_project=$vappio_scripts/sge/global.project
 
 #SGE queues
+global_conf=$vappio_scripts/sge/global
+sched_conf=$vappio_scripts/sge/ge_sched.conf
 execq_conf=$vappio_scripts/sge/exec.q
 pipelineq_conf=$vappio_scripts/sge/pipeline.q
 harvestingq_conf=$vappio_scripts/sge/harvesting.q

@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Get Sun Grid Engine (SGE) settings
-source /opt/sge/default/common/settings.sh
-
 export BIOINF_HOME=/opt/opt-packages/bioinf-v1r4b1/
 export RDP_JAR_PATH=$BIOINF_HOME/rdp_classifier/rdp_classifier-2.0.jar
 
@@ -38,7 +35,6 @@ export EC2_PRIVATE_KEY=/tmp/ec2-pk.pem
 # EC2 api stuff needs to go in begining of path to override what is already on the VM
 export PATH=/opt/opt-packages/ec2-api-tools-1.3-53907/bin:$PATH
 
-ulimit -n 64000 
 
 #Globus perl5lib is causing problems. This will be deactivated until
 #it works, see task 376.

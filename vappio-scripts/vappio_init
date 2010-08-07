@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Import vappio config
+source /root/clovrEnv.sh
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+touch $vappio_log  
+chmod 666 $vappio_log
+mkdir -p $vappio_runtime
+chmod 777 $vappio_runtime
+
+$vappio_scripts/prep_directories.sh
+echo "OFFLINE" > $vappio_runtime/node_type 
+
+cat /etc/vappio/issue > /etc/issue
+appliance=`cat /etc/vappio/appliance_name`
+release=`cat /etc/vappio/release_name`
+bundle=`cat /etc/vappio/bundle_name`
+
+echo
+echo "$appliance virtual appliance ($bundle image, release $release)" >> /etc/issue
+echo " " >> /etc/issue
+netcount=$(/sbin/ifconfig | grep -o "inet")
+if [[ $netcount > 1 ]]
+then
+    echo "To use this appliance, please use a web browser" >> /etc/issue
+    echo "from another system to navigate to " >> /etc/issue
+    echo " " >> /etc/issue
+    /sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print "http://"$2"/" }' >> /etc/issue
+    echo " " >> /etc/issue       
+else
+    echo "This appliance does not have networking configured.  Please log in to configure networking" >> /etc/issue
+fi
+
+##
+# Input a link to an external website to reference
+echo "For more information regarding this appliance, please visit" >> /etc/issue
+echo "http://clovr.org" >> /etc/issue
+echo " " >> /etc/issue
+##
+# Write a file saying machine is alive
+touch /tmp/startup_complete
+

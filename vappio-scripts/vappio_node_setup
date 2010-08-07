@@ -1,0 +1,53 @@
+#!/bin/bash 
+
+# Import vappio config
+source /root/clovrEnv.sh
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+##
+# If /tmp/machine.conf already exists then we do not need to make it
+# if we are running under VMWare or a local Xen then it will need to
+# be created at bootup (Ec2/nimbus should create it during startup process)
+export HOME=/root
+if [ ! -e /tmp/machine.conf ]
+then
+    createLocalMachineConf.py --conf=$VAPPIO_HOME/vappio-conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
+    bootStrapKeys.py
+fi
+
+##
+# Start up all services on the node
+startUpNode.py >> /tmp/startUpNode.log 2>&1
+
+vmStatus.py -1 > /tmp/vmStatus.log
+
+##
+# This is temporary, we just want to run this if we are in VMWare right now
+# Cannot be moved to start_vmware.sh at the moment because proper networking is needed
+(which vmware-checkvm && vmware-checkvm) || (which VBoxService && VBoxService)
+if [ $? = "0" ]
+then    
+    #Mimic functions called in run_user_data on cloud platforms
+    #Allow for bypass using config
+    if [ ! -e $vappio_bootflagsdir/skip_vmwarestartnodes ]
+    then
+	echo "Starting as MASTER_NODE"
+	export MASTER_NODE=$default_master_node
+	$vappio_scripts/setup_node.sh
+	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+        #update home page
+	cat /mnt/clovr_home.html.tmpl | sed -e 's/\$\;IPADDR\$\;/'"$ipaddr"'/g' > /mnt/clovr_home.html
+	echo $ipaddr > /mnt/clovr_ip
+        ##
+        # Setup crontabs
+	crontab -u root $VAPPIO_HOME/vappio-scripts/crontab.conf
+    fi
+fi
+
+#Display node types in ganglia
+vappio_node_type=`cat $vappio_runtime/node_type`
+vappio_cloud_type=`cat $vappio_runtime/cloud_type`
+gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /etc/ganglia/gmond.conf
+gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /etc/ganglia/gmond.conf
+
