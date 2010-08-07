@@ -1,14 +1,14 @@
 #!/bin/bash
 
-etc/profile
-etc/sysctl.conf
-/etc/pamd.conf/common-session
-/root/.profile
-/etc/apt/
-/etc/security/
-/etc/cloud/ #Change /etc/cloud/cloud.cfg:disable_root: 0
-/etc/pam.d/
-/etc/sysctl.d/
+#etc/profile
+#etc/sysctl.conf
+#/etc/pamd.conf/common-session
+#/root/.profile
+#/etc/apt/
+#/etc/security/
+#/etc/cloud/ #Change /etc/cloud/cloud.cfg:disable_root: 0
+#/etc/pam.d/
+#/etc/sysctl.d/
 
 tmpdir=/tmp/$$
 rm -rf $tmpdir

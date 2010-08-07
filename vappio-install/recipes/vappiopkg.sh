@@ -11,9 +11,17 @@ rm -rf /tmp/vappio-py
 
 #install /etc/init.d/vp_cfgapt /etc/init.d/vp_cfgaptec2 /etc/init.d/vp_cfghostname
 
-/etc/init/cloud-*
-/etc/init/vappio
-/etc/vappio/
+tmpdir=/tmp/$$
+rm -rf $tmpdir
+mkdir $tmpdir $tmpdir/etc $tmpdir/root
+svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/init/ $tmpdir/etc/init
+svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio $tmpdir/etc/vappio
+svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sudoers $tmpdir/etc/sudoers
+pushd $tmpdir
+tar cvzf ../install$$.tgz .
+tar xvzf -C / ../install$$.tgz
+rm ../install$$.tgz
+popd
+rm -rf $tmpdir
 
-#add events for ec2
-#pull custom cloud-* with ec2
+

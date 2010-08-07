@@ -5,13 +5,18 @@
 #echo "base" > etc/bundle_name
 #date +%m%d%Y > etc/release_name
 
-
-/etc/init/
-/etc/hosts.orig
-/etc/sudoers
-/etc/update-motd.d/10-help-text
-/etc/issue
-/etc/vappio/bundle_name,release_name,appliance_name
-
 rm /etc/update-motd.d/51_update-motd
 rm /etc/update-motd.d/92-uec-upgrade-available
+
+tmpdir=/tmp/$$
+rm -rf $tmpdir
+mkdir $tmpdir $tmpdir/etc $tmpdir/root
+svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d $tmpdir/etc/update-motd.d
+pushd $tmpdir
+tar cvzf ../install$$.tgz .
+tar xvzf -C / ../install$$.tgz
+rm ../install$$.tgz
+popd
+rm -rf $tmpdir
+
+
