@@ -11,7 +11,7 @@ rm /etc/update-motd.d/92-uec-upgrade-available
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc $tmpdir/root
-svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d $tmpdir/etc/update-motd.d
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d $tmpdir/etc/update-motd.d
 pushd $tmpdir
 tar cvzf ../install$$.tgz .
 tar xvzf -C / ../install$$.tgz

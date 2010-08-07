@@ -14,9 +14,9 @@ rm -rf /tmp/vappio-py
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc $tmpdir/root
-svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/init/ $tmpdir/etc/init
-svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio $tmpdir/etc/vappio
-svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sudoers $tmpdir/etc/sudoers
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/init/ $tmpdir/etc/init
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio $tmpdir/etc/vappio
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sudoers $tmpdir/etc/sudoers
 pushd $tmpdir
 tar cvzf ../install$$.tgz .
 tar xvzf -C / ../install$$.tgz
