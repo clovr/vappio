@@ -1,3 +1,3 @@
 #!/bin/bash
 
-svn export vappio-install /opt/vappio-install
+svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/ /opt/vappio-install
