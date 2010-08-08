@@ -16,7 +16,7 @@ pushd $tmpdir
 echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .
 echo "Creating install$$.tgz"
-tar -C xvzf ../install$$.tgz
+tar -C / -xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
 rm -rf $tmpdir
