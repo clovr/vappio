@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo apt-get -y install subversion
+sudo svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/ /opt/vappio-install

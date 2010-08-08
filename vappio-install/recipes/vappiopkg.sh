@@ -4,7 +4,7 @@ pushd /tmp
 rm -rf vappio-py
 svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py
 export PYTHONPATH=$PYTHONPATH:/tmp/vappio-py
-updateAllDirs.py --vappio-scripts --vappio-py --vappio-conf --vappio-py-www --config_policies
+/tmp/vappio-py/vappio/cli/updateAllDirs.py --vappio-scripts --vappio-py --vappio-conf --vappio-py-www --config_policies
 popd
 rm -rf /tmp/vappio-py
 #apache config from other
@@ -18,7 +18,9 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/init/
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio $tmpdir/etc/vappio
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sudoers $tmpdir/etc/sudoers
 pushd $tmpdir
+echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .
+echo "Creating install$$.tgz"
 tar -C / -xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
