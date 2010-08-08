@@ -27,3 +27,7 @@ rm ../install$$.tgz
 popd
 rm -rf $tmpdir
 #svn export --force  root
+
+sysctl -p
+ifconfig eth0 mtu 9000
+ifconfig eth0 txqueuelen 50000

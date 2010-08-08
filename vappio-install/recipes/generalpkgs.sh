@@ -1,7 +1,7 @@
 #!/bin/sh
 
 apt-get -y install screen-profiles
-apt-get -y install wget curl apache2 binutils openjdk-6-jre diff dnsutils rsync vim csh tcsh dpkg-dev build-essential libxml2-utils 
+apt-get -y install wget curl apache2 binutils openjdk-6-jre-headless diff dnsutils rsync vim csh tcsh dpkg-dev build-essential libxml2-utils 
 
 #02-basic.sh
 

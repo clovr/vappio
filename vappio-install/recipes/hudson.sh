@@ -12,5 +12,8 @@ sudo dpkg --install /tmp/hudson.deb
 update-rc.d -f hudson remove
 #find /etc/rc*/ -type l -name *hudson* -exec rm {} \;
 source /root/clovrEnv.sh
+adduser --quiet --disabled-password --disabled-login hudson --gecos ""
 updateAllDirs.py --hudson
+
+
 
