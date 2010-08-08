@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#USAGE: vp-stop-platform [platform]
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+##
+vlog "###"
+vlog "### $0 (`whoami`)"
+vlog "###"
+
+if [ "$1" != "" ]
+then
+    platform=$1
+else
+    platform=`cat $vappio_runtime/cloud_type`
+fi
+
+vlog "SHUTDOWN PLATFORM $platform"
+if [ -d "/etc/vappio/$platform" ] 
+then
+    vlog "SHUTDOWN PLATFORM $platform"
+    run-parts --regex '^K.*' --reverse --arg stop /etc/vappio/$platform/
+else
+    vlog "Unsupported platform: $platform"
+fi

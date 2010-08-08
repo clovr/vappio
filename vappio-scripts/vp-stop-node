@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#USAGE: vp-stop-node [types]
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+##
+
+vlog "###"
+vlog "### $0 (`whoami`)"
+vlog "###"
+
+if [ "$1" != "" ]
+then
+    nodetype=$1
+else
+    nodetype=`cat $vappio_runtime/node_type`
+fi
+
+vlog "SHUTDOWN NODETYPE $nodetype"
+for n in $nodetype
+do
+    if [ -d "/etc/vappio/$n" ]
+    then
+	run-parts --regex '^K.*' --reverse --arg stop /etc/vappio/$n/
+    else
+	vlog "Unsupported node type: $n"
+    fi
+done

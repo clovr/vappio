@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#USAGE: vp-start-platform name
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+##
+
+vlog "###"
+vlog "### $0 (`whoami`)"
+vlog "###"
+
+if [ "$1" = "" ]
+then
+    echo "vp-start-platform type1"
+    exit 1
+fi
+
+platform=$1
+
+echo "$platform" > $vappio_runtime/cloud_type
+ 
+#Platform startup scripts
+if [ -d "/etc/vappio/$platform" ] 
+then
+    vlog "INIT PLATFORM $platform"
+    run-parts --regex '^S.*' --arg start /etc/vappio/$platform/
+else
+    vlog "Unsupported platform: $p"
+fi

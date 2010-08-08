@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#USAGE: vp-start-node types
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+##
+
+vlog "###"
+vlog "### $0 (`whoami`)"
+vlog "###"
+
+if [ "$1" = "" ]
+then
+    echo "vp-start-node type1 [type2 ... typen]"
+    exit 1
+fi
+
+nodetype=$1
+
+echo "$nodetype" > $vappio_runtime/node_type
+
+#Node type startup scripts
+for n in $@
+do
+    if [ -d "/etc/vappio/$n" ]
+    then
+	echo "INIT NODETYPE $n" >> /tmp/vappio.log
+	run-parts --regex '^S.*' --arg start /etc/vappio/$n/ >> /tmp/vappio.log
+    else
+	echo "Unsupported node type: $nodetype"
+    fi
+done
+
+
