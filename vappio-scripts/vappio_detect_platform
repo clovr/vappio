@@ -1,0 +1,35 @@
+#!/bin/bash 
+
+#Detect platform
+platform=`virt-what | head -1`
+
+case $platform in
+    xen)
+	#Can be in EC2, UEC, or local Xen
+	curl --connect-timeout 1 --retry 1 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ > /dev/null 
+	if [ $? = "0" ]
+	then 
+	#EC2
+	    echo "ec2"
+	    exit;
+	else
+	#xen
+	    echo "xen"
+	    exit;
+	fi
+	;;
+    vmware)
+	#In vmware
+	echo "vmware"
+	exit;
+	;;
+    vbox)
+        #In VirtualBox
+	echo "vbox"
+	exit;
+	;;
+esac
+
+echo "offline"
+
+
