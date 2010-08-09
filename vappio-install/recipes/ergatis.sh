@@ -34,12 +34,21 @@ install MIME::Lite
 install Benchmark::Timer 
 
 #set ergatis.ini 
-workflow_root
-global_saved_templates
+#workflow_root
+#global_saved_templates
 ...
 #set software config
+#Set software.config
+#Set Ergatis/IdGenerator/Config.pm
 
-wget http://cb2.igs.umaryland.edu/ergatis_clovr.tgz
-tar -C / -xvzf ergatis_clovr.tgz
+#Install Ergatis
+
+
+#Update configuration
+wget http://cb2.igs.umaryland.edu/ergatis_config.tgz
+
+#wget http://cb2.igs.umaryland.edu/ergatis_clovr.tgz
+#tar -C / -xvzf ergatis_clovr.tgz
+
 wget http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
 tar -C / -xvzf clovr_ergatis_www.tgz
