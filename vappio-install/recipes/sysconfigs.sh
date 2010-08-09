@@ -37,3 +37,6 @@ chmod 755 /etc
 sysctl -p
 ifconfig eth0 mtu 9000
 ifconfig eth0 txqueuelen 50000
+
+chmod +t /tmp/
+chmod 777 /tmp

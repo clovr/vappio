@@ -9,8 +9,6 @@ popd
 rm -rf /tmp/vappio-py
 #apache config from other
 
-#install /etc/init.d/vp_cfgapt /etc/init.d/vp_cfgaptec2 /etc/init.d/vp_cfghostname
-
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc

@@ -5,7 +5,6 @@ use Config::IniFiles;
 use File::Path;
 
 ## this use lib needed for SVN::Agent
-use SVN::Agent;
 
 umask(0022);
 
@@ -82,13 +81,12 @@ sub install_bsml {
     
     my $tmp_build_area = "$tmp_area/bsml";
 
-    print STDERR "checking out BSML\n";    
-    my $svn = SVN::Agent->new( {path => "$tmp_build_area"} );
-    $svn->checkout( $bsml_svn_co_path );
+    print STDERR "checking out BSML $bsml_svn_co_path\n";    
+    run_command("svn export --force --non-interactive $bsml_svn_co_path $tmp_build_area");
     
     print STDERR "installing BSML\n";
     chdir("$tmp_build_area/bsml-vNrNbN/") || die "couldn't cd into $tmp_build_area/bsml-vNrNbN";
-    run_command( "perl -I /home/jorvis/lib/perl5/5.8.8/ Makefile.PL INSTALL_BASE=$base SCHEMA_DOCS_DIR=$base/docs" );
+    run_command( "perl Makefile.PL INSTALL_BASE=$base SCHEMA_DOCS_DIR=$base/docs" );
     run_command( "make" );
     run_command( "make install" );
 
@@ -100,8 +98,8 @@ sub install_chado_schema {
     my $tmp_build_area = "$tmp_area/chado_schema";
 
     print STDERR "checking out Chado schema\n";    
-    my $svn = SVN::Agent->new( {path => "$tmp_build_area"} );
-    $svn->checkout( $chado_schema_svn_co_path );
+    run_command("svn export --force --non-interactive $chado_schema_svn_co_path $tmp_build_area");
+
     
     print STDERR "installing Chado schema\n";
     chdir("$tmp_build_area/chado-vNrNbN/") || die "couldn't cd into $tmp_build_area/chado-vNrNbN";
@@ -114,12 +112,11 @@ sub install_chado_prism {
     my $tmp_build_area = "$tmp_area/chado_prism";
 
     print STDERR "checking out Prism (chado)\n";    
-    my $svn = SVN::Agent->new( {path => "$tmp_build_area"} );
-    $svn->checkout( $chado_prism_svn_co_path );
-    
+    run_command("svn export --force --non-interactive $chado_prism_svn_co_path $tmp_build_area");
+
     print STDERR "installing Prism (chado)\n";
     chdir("$tmp_build_area/chado_prism-vNrNbN/") || die "couldn't cd into $tmp_build_area/chado_prism-vNrNbN";
-    run_command( "perl -I /home/jorvis/lib/perl5/5.8.8/ Makefile.PL INSTALL_BASE=$base" );
+    run_command( "perl Makefile.PL INSTALL_BASE=$base" );
     run_command( "make" );
     run_command( "make install" );
 }
@@ -130,12 +127,11 @@ sub install_coati {
     my $tmp_build_area = "$tmp_area/coati";
 
     print STDERR "checking out Coati\n";    
-    my $svn = SVN::Agent->new( {path => "$tmp_build_area"} );
-    $svn->checkout( $coati_svn_co_path );
+    run_command("svn export --force --non-interactive $coati_svn_co_path $tmp_build_area");
     
     print STDERR "installing Coati\n";
     chdir("$tmp_build_area/coati_install-vNrNbN/") || die "couldn't cd into $tmp_build_area/coati_install-vNrNbN";
-    run_command( "perl -I /home/jorvis/lib/perl5/5.8.8/ Makefile.PL INSTALL_BASE=$base" );
+    run_command( "perl Makefile.PL INSTALL_BASE=$base" );
     run_command( "make" );
     run_command( "make install" );
 
@@ -147,12 +143,11 @@ sub install_ergatis {
     my $tmp_build_area = "$tmp_area/ergatis";
 
     print STDERR "checking out Ergatis\n";    
-    my $svn = SVN::Agent->new( {path => "$tmp_build_area"} );
-    $svn->checkout( $ergatis_svn_co_path );
+    run_command("svn export --force --non-interactive $ergatis_svn_co_path $tmp_build_area");
     
     print STDERR "installing Ergatis\n";
     chdir("$tmp_build_area/ergatis-trunk/") || die "couldn't cd into $tmp_build_area/ergatis-trunk";
-    run_command( "perl -I /home/jorvis/lib/perl5/5.8.8/ Makefile.PL INSTALL_BASE=$base" );
+    run_command( "perl Makefile.PL INSTALL_BASE=$base" );
     run_command( "make" );
     run_command( "make install" );
 }
@@ -163,12 +158,11 @@ sub install_euk_prism {
     my $tmp_build_area = "$tmp_area/euk_prism";
 
     print STDERR "checking out Prism (euk)\n";    
-    my $svn = SVN::Agent->new( {path => "$tmp_build_area"} );
-    $svn->checkout( $euk_prism_svn_co_path );
-    
+    run_command("svn export --force --non-interactive $euk_prism_svn_co_path $tmp_build_area");
+       
     print STDERR "installing Prism (euk)\n";
     chdir("$tmp_build_area/euk_prism-vNrNbN/") || die "couldn't cd into $tmp_build_area/euk_prism-vNrNbN";
-    run_command( "perl -I /home/jorvis/lib/perl5/5.8.8/ Makefile.PL INSTALL_BASE=$base" );
+    run_command( "perl Makefile.PL INSTALL_BASE=$base" );
     run_command( "make" );
     run_command( "make install" );
 }
@@ -179,12 +173,11 @@ sub install_prok_prism {
     my $tmp_build_area = "$tmp_area/prok_prism";
 
     print STDERR "checking out Prism (prok)\n";    
-    my $svn = SVN::Agent->new( {path => "$tmp_build_area"} );
-    $svn->checkout( $prok_prism_svn_co_path );
+    run_command("svn export --force --non-interactive $prok_prism_svn_co_path $tmp_build_area");
     
     print STDERR "installing Prism (prok)\n";
     chdir("$tmp_build_area/prok_prism-vNrNbN/") || die "couldn't cd into $tmp_build_area/prok_prism-vNrNbN";
-    run_command( "perl -I /home/jorvis/lib/perl5/5.8.8/ Makefile.PL INSTALL_BASE=$base" );
+    run_command( "perl Makefile.PL INSTALL_BASE=$base" );
     run_command( "make" );
     run_command( "make install" );
 }
@@ -194,13 +187,12 @@ sub install_shared_prism {
  
     my $tmp_build_area = "$tmp_area/shared_prism";
 
-    print STDERR "checking out Prism (shared)\n";    
-    my $svn = SVN::Agent->new( {path => "$tmp_build_area"} );
-    $svn->checkout( $shared_prism_svn_co_path );
-    
+    print STDERR "checking out Prism (shared)\n";   
+    run_command("svn export --force --non-interactive $shared_prism_svn_co_path $tmp_build_area");
+
     print STDERR "installing Prism (shared)\n";
     chdir("$tmp_build_area/shared_prism-vNrNbN/") || die "couldn't cd into $tmp_build_area/shared_prism-vNrNbN";
-    run_command( "perl -I /home/jorvis/lib/perl5/5.8.8/ Makefile.PL INSTALL_BASE=$base" );
+    run_command( "perl Makefile.PL INSTALL_BASE=$base" );
     run_command( "make" );
     run_command( "make install" );
 }
