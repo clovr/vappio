@@ -9,12 +9,12 @@ update-rc.d -f ondemand remove
 
 apt-get -y remove landscape-client landscape-common
 apt-get -y remove apparmor apparmor-utils apport apport-symptoms ppp pppconfig pppoeconf
-apt-get -y remove gsfonts gsfonts-xll
+apt-get -y remove gsfonts gsfonts-x11
 apt-get -y remove wireless-tools wpasupplicant
 apt-get -y remove puppet puppet-common puppetmaster
-rm /etc/cron.d/cloudinit-updates
+rm -f /etc/cron.d/cloudinit-updates
 
-apt-get -y install euca2tools
+apt-get -y install euca2ools
 apt-get -y install subversion
 apt-get -y install virt-what
 

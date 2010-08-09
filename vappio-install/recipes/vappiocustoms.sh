@@ -20,5 +20,5 @@ tar -C / -xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
 rm -rf $tmpdir
-
+chmod 755 /etc
 

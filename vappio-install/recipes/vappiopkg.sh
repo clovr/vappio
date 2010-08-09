@@ -18,7 +18,6 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/init/
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio $tmpdir/etc/vappio
 
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sudoers $tmpdir/etc/sudoers
-chmod 0440 /etc/sudoers
 pushd $tmpdir
 echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .
@@ -27,5 +26,7 @@ tar -C / -xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
 rm -rf $tmpdir
+chmod 755 /etc
+chmod 0440 /etc/sudoers
 
 

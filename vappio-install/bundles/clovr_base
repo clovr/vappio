@@ -3,12 +3,12 @@
 VAPPIO_HOME=/opt
 VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 
-$VAPPIO_RECIPES/setup.sh
-$VAPPIO_RECIPES/sysconfigs.sh
-$VAPPIO_RECIPES/hpnssh.sh
-$VAPPIO_RECIPES/vappiopkg.sh
-$VAPPIO_RECIPES/vappiocustoms.sh
-$VAPPIO_RECIPES/ganglia.sh
-$VAPPIO_RECIPES/sge.sh
-$VAPPIO_RECIPES/hadoop.sh
+bash -e $VAPPIO_RECIPES/setup.sh
+bash -e $VAPPIO_RECIPES/sysconfigs.sh
+bash -e $VAPPIO_RECIPES/hpnssh.sh
+bash -e $VAPPIO_RECIPES/vappiopkg.sh
+bash -e $VAPPIO_RECIPES/vappiocustoms.sh
+bash -e $VAPPIO_RECIPES/ganglia.sh
+bash -e $VAPPIO_RECIPES/sge.sh
+bash -e $VAPPIO_RECIPES/hadoop.sh
 
