@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 ### BEGIN INIT INFO
 # Provides:          apache2
 # Required-Start:    $local_fs $remote_fs $network $syslog
