@@ -1,13 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <hudson>
-  <version>1.369</version>
-  <numExecutors>2</numExecutors>
+  <version>1.370</version>
+  <numExecutors>1</numExecutors>
   <mode>NORMAL</mode>
   <authorizationStrategy class="hudson.security.AuthorizationStrategy$Unsecured"/>
   <securityRealm class="hudson.security.SecurityRealm$None"/>
-  <systemMessage>&lt;p&gt;&lt;img src=&apos;http://sourceforge.net/apps/mediawiki/clovr/nfs/project/c/cl/clovr/7/70/MediaWikiSidebarLogo.png&apos; align=right&gt; &#xd;
-Automated testing and build page for &lt;a href=&apos;http://clovr.sf.net&apos;&gt;CloVR&lt;/a&gt;.  Additional documentation on image building is provided &lt;a href=&apos;http://clovr.sf.net&apos;&gt;here&lt;/a&gt;.&#xd;
-&lt;/p&gt;</systemMessage>
   <jdks/>
   <clouds/>
   <slaves/>
@@ -22,27 +19,13 @@ Automated testing and build page for &lt;a href=&apos;http://clovr.sf.net&apos;&
     </hudson.model.AllView>
     <listView>
       <owner class="hudson" reference="../../.."/>
-      <name>Unit tests</name>
+      <name>Platform conversion</name>
+      <description>Jobs to convert between platforms such as Xen, EC2, UEC, VMware, Virtual Box </description>
       <filterExecutors>false</filterExecutors>
       <filterQueue>false</filterQueue>
       <jobNames class="tree-set">
         <comparator class="hudson.util.CaseInsensitiveComparator"/>
-        <string>10 Ganglia and Ergatis online check</string>
-        <string>20 start_master and stop_master test</string>
-        <string>30 qhost queues test</string>
-        <string>40 qstat and qsub test</string>
-        <string>50 Data syncing scheme</string>
-        <string>60 Ergatis .config files</string>
-        <string>61 Test web services</string>
-        <string>70 Clover Sleep Pipeline</string>
-        <string>80 Clovr microbe454 Pipeline</string>
-        <string>81 Total_Metagenomics pipeline</string>
-        <string>82 16S_metagenomics pipeline</string>
-        <string>83 blastall pipeline</string>
-        <string>90 EC2 m1.large</string>
-        <string>91 EC2 m1.xlarge</string>
-        <string>92 EC2 c1.xlarge</string>
-        <string>93 start DIAG cluster test</string>
+        <string>Build vmdk image</string>
       </jobNames>
       <jobFilters/>
       <columns>
@@ -54,16 +37,17 @@ Automated testing and build page for &lt;a href=&apos;http://clovr.sf.net&apos;&
         <hudson.views.LastDurationColumn/>
         <hudson.views.BuildButtonColumn/>
       </columns>
+      <includeRegex>.*(image)</includeRegex>
     </listView>
     <listView>
       <owner class="hudson" reference="../../.."/>
-      <name>Image build</name>
-      <description>Jobs to build new images</description>
+      <name>Appliance roles</name>
       <filterExecutors>false</filterExecutors>
       <filterQueue>false</filterQueue>
       <jobNames class="tree-set">
         <comparator class="hudson.util.CaseInsensitiveComparator" reference="../../../listView/jobNames/comparator"/>
-        <string>00 Launch all jobs</string>
+        <string>Install CloVR build</string>
+        <string>Install CloVR skeleton</string>
       </jobNames>
       <jobFilters/>
       <columns>
@@ -75,9 +59,30 @@ Automated testing and build page for &lt;a href=&apos;http://clovr.sf.net&apos;&
         <hudson.views.LastDurationColumn/>
         <hudson.views.BuildButtonColumn/>
       </columns>
+      <includeRegex>^(Install).*</includeRegex>
+    </listView>
+    <listView>
+      <owner class="hudson" reference="../../.."/>
+      <name>CloVR tests</name>
+      <filterExecutors>false</filterExecutors>
+      <filterQueue>false</filterQueue>
+      <jobNames class="tree-set">
+        <comparator class="hudson.util.CaseInsensitiveComparator" reference="../../../listView/jobNames/comparator"/>
+      </jobNames>
+      <jobFilters/>
+      <columns>
+        <hudson.views.StatusColumn/>
+        <hudson.views.WeatherColumn/>
+        <hudson.views.JobColumn/>
+        <hudson.views.LastSuccessColumn/>
+        <hudson.views.LastFailureColumn/>
+        <hudson.views.LastDurationColumn/>
+        <hudson.views.BuildButtonColumn/>
+      </columns>
+      <includeRegex>^([0-9]).*</includeRegex>
     </listView>
   </views>
-  <primaryView>All</primaryView>
+  <primaryView>CloVR tests</primaryView>
   <slaveAgentPort>0</slaveAgentPort>
   <label></label>
   <nodeProperties/>
