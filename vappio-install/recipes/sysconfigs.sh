@@ -15,6 +15,7 @@ rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc $tmpdir/root
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.d $tmpdir/etc/sysctl
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cloud $tmpdir/etc/cloud
+
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt $tmpdir/etc/apt
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.conf $tmpdir/etc/sysctl.conf
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.d $tmpdir/etc/sysctl.d

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo apt-get -y install zlib1g-dev libssl-dev libgcrypt11-dev libwrap0-dev libpam0g-dev binutils
+sudo apt-get -y install zlib1g libssl-dev libgcrypt11-dev libwrap0-dev libpam0g-dev binutils
 mkdir /tmp/hpn-sshsource
 pushd /tmp/hpn-sshsource
 wget http://cb2.igs.umaryland.edu/openssh-5.1p1hpn13v5.tar.gz
