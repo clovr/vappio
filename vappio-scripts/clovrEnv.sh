@@ -15,8 +15,8 @@ export PATH=$PATH:$BIOINF_HOME/cd-hit/:$BIOINF_HOME/FastTree:$BIOINF_HOME/rdp_cl
 
 ##
 # mugsy install
-export MUGSY_INSTALL=/opt/opt-packages/mugsy_x86-64-v1r1
-export PATH=$PATH:$MUGSY_INSTALL/mugsy
+export MUGSY_INSTALL=/opt/opt-packages/mugsy_x86-64-v1r1/
+export PATH=$PATH:$MUGSY_INSTALL
 
 ##
 # Something weird for mongodb
