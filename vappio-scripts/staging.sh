@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #staging.sh $remotehostname [$file1 $file2 $directory1 $directory2... ]
 
 #Mirrors staging directory from the MASTER or DATA_NODE to an

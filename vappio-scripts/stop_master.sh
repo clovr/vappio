@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 #stop_master.sh
 #Stops a Vappio master node
 
@@ -8,14 +8,14 @@ source $vappio_scripts/vappio_config.sh
 ##
 
 # Force remove all running jobs
-$SGE_ROOT/bin/$ARCH/qdel -f -u '*'
+$SGE_ROOT/utilbin/$ARCH/qdel -f -u '*'
 
 #Should probably wait here for all jobs to finish
 
 # Remove all hosts and queues
 $vappio_scripts/sge/wipe_queues.sh
 
-$SGE_ROOT/$SGE_CELL/common/sgemaster stop
+/etc/init.d/gridengine-master stop
 
 echo "" > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 
@@ -31,7 +31,7 @@ fi
 
 ##
 # Cleaning up some files specific to the master
-rm -f /opt/sge/default/spool/qmaster/messages
+rm -f $SGE_ROOT/default/spool/qmaster/messages
 
 echo "OFFLINE" > $vappio_runtime/node_type
 date > $vappio_runtime/last_stop_master

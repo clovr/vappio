@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 #stop_exec.sh 
 #Stops a Vappio exec host

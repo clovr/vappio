@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #syncdata.sh
 #Mirrors the staging directory from the master 
 #to the virtualized grid, including DATA_NODES (in staging.q)

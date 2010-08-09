@@ -4,7 +4,9 @@
 USAGE="USAGE:$0 <master_node hostname or IP>\n
 Enter a valid hostname of a master node\n
 If you are running a CloVR VMware cluster with no DNS,\n
-you can also enter the IP address of a master node"
+you can also enter the IP address of a master node.\n
+If no hostname is provided, the script will attempt to\n
+read from $vappio_userdata/master_node";
 
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
@@ -15,7 +17,12 @@ vlog "###"
 vlog "### $0 (`whoami`)"
 vlog "###"
 
-MASTER_NODE=$1
+if [ "$1" != "" ]
+then
+    MASTER_NODE=$1
+else
+    MASTER_NODE=`cat $vappio_userdata/master_node`
+fi
 
 #capture time
 min=`date +"%-M"`
@@ -58,13 +65,6 @@ $vappio_scripts/prep_directories.sh
 #conf sgemaster
 echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 
-##
-#TODO, determine if this is stil necessary. I think the SGE spool directory has changed
-#remove local execd spool dir
-rm -rf /var/spool/sge
-mkdir /var/spool/sge
-chown $sgeadmin_user:$sgeadmin_user /var/spool/sge
-
 #start sgeexecd here or after add_host?
 myhostname=`hostname -f`
 
@@ -101,7 +101,7 @@ fi
 sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 
 #start execd
-$SGE_ROOT/$SGE_CELL/common/sgeexecd
+/etc/init.d/gridengine-exec start
 
 #add as submit host , needed to submit to staging q
 $SGE_ROOT/bin/$ARCH/qconf -as $myhostname

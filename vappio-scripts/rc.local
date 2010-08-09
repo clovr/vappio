@@ -210,10 +210,12 @@ do_stop() {
     # Logs just take up space and are not needed 
     rm -f /var/log/wtmp
     rm -f /var/log/*.log
+    rm -f /var/log/*.log.*
     rm -f /var/log/*.gz
     rm -f /var/log/dmesg.*
     rm -f /var/log/apache2/*
     rm -f /var/log/lastlog
+    rm -f /var/log/*.gz
 
     rm -rf /root/.cpan
     rm -f /root/.bash_history
@@ -229,6 +231,15 @@ do_stop() {
     ##
     # Remove ergatis logs
     rm -rf /opt/ergatis/global_id_repository/logs/*
+
+    ##
+    # Remove apt cache
+    apt-get clean
+    #rm -f /var/lib/apt/lists/*
+
+    ##
+    # Remove mongo logs
+
 
     ##
     #Recover a naked hosts file

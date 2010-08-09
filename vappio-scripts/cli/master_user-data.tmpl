@@ -10,6 +10,8 @@ vlog "###"
 
 # contextualize this node as a MASTER
 export MASTER_NODE=localhost
+echo "$MASTER_NODE" > $vappio_userdata/master_node
+echo "master" > $vappio_userdata/node_type
 
 # store the provided CLUSTER_PRIVATE_KEY into the ssh_key as defined in vappio_config
 mkdir -p `dirname $ssh_key`

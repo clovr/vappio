@@ -42,3 +42,7 @@ echo " " >> /etc/issue
 # Write a file saying machine is alive
 touch /tmp/startup_complete
 
+##
+# Set cloud type and node type
+echo "PENDING" > $vappio_runtime/cloud_type
+echo "PENDING" > $vappio_runtime/node_type

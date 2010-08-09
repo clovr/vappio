@@ -7,31 +7,31 @@ source $vappio_scripts/vappio_config.sh
 myhostname=`hostname -f`
 
 # Remove all submit hosts
-hosts=`$SGE_ROOT/bin/$ARCH/qconf -ss`
+hosts=`qconf -ss`
 for p in $hosts
 do
-    $SGE_ROOT/bin/$ARCH/qconf -ds $p 
+    qconf -ds $p 
 done
 
 # Remove all queues
-for p in `$SGE_ROOT/bin/$ARCH/qconf -sql`
+for p in `qconf -sql`
 do
-    $SGE_ROOT/bin/$ARCH/qconf -dq $p
+    qconf -dq $p
 done
 
 #kill exec hosts
-$SGE_ROOT/bin/$ARCH/qconf -kej $myhostname # shutdown execution daemon(s)
-hosts=`$SGE_ROOT/bin/$ARCH/qconf -sel`
+qconf -kej $myhostname # shutdown execution daemon(s)
+hosts=`qconf -sel`
 for p in $hosts
 do
-    $SGE_ROOT/bin/$ARCH/qconf -de $p
+    qconf -de $p
 done
 
 # remove all admin hosts
-hosts=`$SGE_ROOT/bin/$ARCH/qconf -sh`
+hosts=`qconf -sh`
 for p in $hosts
 do
-    $SGE_ROOT/bin/$ARCH/qconf -dh $p
+    qconf -dh $p
 done
 
-$SGE_ROOT/bin/$ARCH/qconf -dprj global
+qconf -dprj global

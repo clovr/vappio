@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #USAGE:vappio_epilog.sh hostname sge_job_dir
 #

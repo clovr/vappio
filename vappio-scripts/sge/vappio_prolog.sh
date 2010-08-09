@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #vappio_prolog.sh sge_job_dir command command_args
 #

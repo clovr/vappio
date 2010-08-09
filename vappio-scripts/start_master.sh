@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 #start_master.sh
 #Starts a Vappio master host
 
@@ -23,34 +23,32 @@ $vappio_scripts/prep_directories.sh
 myhostname=`hostname -f`
 echo "$myhostname" > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 
-##
-#TODO, determine if this is stil necessary. I think the SGE spool directory has changed
-#remove local execd spool dir
-rm -rf /var/spool/sge
-mkdir /var/spool/sge
-chown $sgeadmin_user:$sgeadmin_user /var/spool/sge
-
-#/etc/init.d/sgemaster start
-$SGE_ROOT/$SGE_CELL/common/sgemaster
+/etc/init.d/gridengine-master start
 
 # Remove all hosts and queues from a pre-existing save (task #100)
 # Goes here because it kills sgeexecd
 $vappio_scripts/sge/wipe_queues.sh
 
-$SGE_ROOT/$SGE_CELL/common/sgeexecd
+/etc/init.d/gridengine-exec start
 
 # add user to operator list
-$SGE_ROOT/bin/$ARCH/qconf -ao $sge_exec_user
+qconf -ao $sge_exec_user
 # add user to manager list
-$SGE_ROOT/bin/$ARCH/qconf -am $sge_exec_user
+qconf -am $sge_exec_user
 # add apache user to manager list
-$SGE_ROOT/bin/$ARCH/qconf -am $apache_user
+qconf -am $apache_user
 # add an administrative host
-$SGE_ROOT/bin/$ARCH/qconf -ah $myhostname 
+qconf -ah $myhostname 
 # add a submit host
-$SGE_ROOT/bin/$ARCH/qconf -as $myhostname
+qconf -as $myhostname
 # add project from file
-$SGE_ROOT/bin/$ARCH/qconf -Aprj $sge_project
+qconf -Aprj $sge_project
+
+#output of qconf -sconf
+$SGE_ROOT/bin/$ARCH/qconf -Mconf $global_conf
+#output of qconf -ssconf
+$SGE_ROOT/bin/$ARCH/qconf -Msconf $sched_conf
+
 ## add a queue from file
 $SGE_ROOT/bin/$ARCH/qconf -Aq $execq_conf
 $SGE_ROOT/bin/$ARCH/qconf -Aq $pipelineq_conf
@@ -82,5 +80,5 @@ $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $masterslots $execq@$myhostname
 
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
 
-echo "MASTER_NODE" > $vappio_runtime/node_type
+
 

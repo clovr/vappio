@@ -1,5 +1,7 @@
 vappio_scripts=/opt/vappio-scripts
-vappio_runtime=/mnt/clovr/runtime/
+vappio_userdata=/mnt/
+vappio_runtime=/var/vappio/runtime/
+
 vappio_log=/tmp/vappio.log
 ##
 #Debugging and error reporting functions
@@ -83,6 +85,7 @@ scratch_dir=/mnt/scratch
 
 ##SSH KEY CONFIG
 #ssh_key=/home/guest/.ssh/guest
+keys_dir=/mnt/keys
 ssh_key=/mnt/keys/devel1.pem
 #ssh-hpn is high performance ssh
 #ssh_client=/usr/local/bin/ssh-hpn
@@ -91,6 +94,7 @@ ssh_client=/usr/bin/ssh
 ssh_options="-oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 
 # VAPPIO SETUP
+default_node_type=master
 default_master_node=localhost
 
 ##Data placement config
