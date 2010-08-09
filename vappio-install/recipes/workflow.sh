@@ -9,6 +9,14 @@ mkdir $SGE_ROOT/lib
 cp drmaa.jar $SGE_ROOT/lib
 #modify sge_submitter.sh /opt/workflow-sforge/bin/sge_submitter.sh
 
+perl -pi -e 's/export SGE_ROOT=.*/export SGE_ROOT=\/var\/lib\/gridengine/' /opt/workflow-sforge/bin/sge_submitter.sh
+perl -pi -e 's/export SGE_ARCH=.*/export SGE_ARCH=lx26-ia64/' /opt/workflow-sforge/bin/sge_submitter.sh
+#export SGE_CELL=default
+#export SGE_QMASTER_PORT=6444
+#export SGE_EXECD_PORT=6445
+
+
+
 #Workflow, sge user config
 #adduser --quiet --disabled-password --disabled-login guest
 mkdir /home/www-data

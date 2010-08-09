@@ -3,8 +3,8 @@
 apt-get --force-yes -y install ganglia-monitor
 apt-get --force-yes -y install ganglia-webfrontend
 
-ln -s /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-available/ganglia
-ln -s /etc/apache2/sites-available/ganglia /etc/apache2/sites-enabled/ganglia
+ln -f -s /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-available/ganglia
+ln -f -s /etc/apache2/sites-available/ganglia /etc/apache2/sites-enabled/ganglia
 
 #cat /etc/ganglia-webfrontend/apache.conf
 #Alias /ganglia /usr/share/ganglia-webfrontend
