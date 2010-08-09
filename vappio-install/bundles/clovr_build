@@ -3,8 +3,8 @@
 VAPPIO_HOME=/opt
 VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 
-$VAPPIO_RECIPES/vappioutil.sh
-$VAPPIO_RECIPES/hudson.sh
+bash -e $VAPPIO_RECIPES/vappioutil.sh
+bash -e $VAPPIO_RECIPES/hudson.sh
 #Need grub legacy, it just works with xen
 #tried grub2 but it is a mess
 apt-get -y install qemu-kvm grub

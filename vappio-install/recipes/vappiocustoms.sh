@@ -5,8 +5,8 @@
 #echo "base" > etc/bundle_name
 #date +%m%d%Y > etc/release_name
 
-rm /etc/update-motd.d/51_update-motd
-rm /etc/update-motd.d/92-uec-upgrade-available
+rm -f /etc/update-motd.d/51_update-motd
+rm -f /etc/update-motd.d/92-uec-upgrade-available
 
 tmpdir=/tmp/$$
 rm -rf $tmpdir
