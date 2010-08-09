@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#Determine the node type 
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+vlog "###"
+vlog "### $0 (`whoami`)"
+vlog "###"
+
+#The file $vappio_userdata/node_type should be written by user_data scripts
+#or by hand in $vappio_userdata; otherwise will use default
+
+if [ -e "$vappio_userdata/node_type" ]
+then
+    cat $vappio_userdata/node_type
+else
+    echo "$default_node_type"
+fi
+
