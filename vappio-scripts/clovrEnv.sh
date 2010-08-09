@@ -14,6 +14,11 @@ export PATH=$PATH:/opt/hadoop/bin/
 export PATH=$PATH:$BIOINF_HOME/cd-hit/:$BIOINF_HOME/FastTree:$BIOINF_HOME/rdp_classifier:$BIOINF_HOME/UCLUST/:$BIOINF_HOME/MUSCLE/:$BIOINF_HOME/mafft/bin/:$BIOINF_HOME/PyNAST/bin/:$BIOINF_HOME/qiime/bin/:$BIOINF_HOME/mothur/:$BIOINF_HOME/microbiomeutil/ChimeraSlayer/
 
 ##
+# mugsy install
+export MUGSY_INSTALL=/opt/opt-packages/mugsy_x86-64-v1r1
+export PATH=$PATH:$MUGSY_INSTALL/mugsy
+
+##
 # Something weird for mongodb
 export PYTHON_EGG_CACHE=/tmp/python-eggs
 
