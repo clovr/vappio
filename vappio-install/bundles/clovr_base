@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export DEBIAN_FRONTEND=noninteractive
+
 VAPPIO_HOME=/opt
 VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 

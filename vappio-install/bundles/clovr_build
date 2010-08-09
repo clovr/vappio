@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export DEBIAN_FRONTEND=noninteractive
+
 VAPPIO_HOME=/opt
 VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 
@@ -7,13 +9,17 @@ bash -e $VAPPIO_RECIPES/vappioutil.sh
 bash -e $VAPPIO_RECIPES/hudson.sh
 #Need grub legacy, it just works with xen
 #tried grub2 but it is a mess
-apt-get -y install qemu-kvm grub
+apt-get -y install qemu-kvm 
 
 #Retrieve grub and boot sector 
 wget -c /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
+
+apt-get -y install grub-pc
 
 #chroot
 #update-initramfs
 #create grub.cfg
 #update-grub 
 #grub-install
+
+/etc/init.d/hudson start
