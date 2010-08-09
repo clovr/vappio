@@ -1,6 +1,6 @@
 #!/bin/sh
 
-invoke-rc.d apparmor kill
+invoke-rc.d apparmor stop
 update-rc.d -f apparmor remove
 update-rc.d -f x11-common remove
 update-rc.d -f landscape-client remove

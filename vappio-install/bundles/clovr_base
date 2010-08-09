@@ -13,4 +13,24 @@ bash -e $VAPPIO_RECIPES/vappiocustoms.sh
 bash -e $VAPPIO_RECIPES/ganglia.sh
 bash -e $VAPPIO_RECIPES/sge.sh
 bash -e $VAPPIO_RECIPES/hadoop.sh
+#bash -e $VAPPIO_RECIPES/gridftp.sh
+
+bash -e $VAPPIO_RECIPES/vappiosite.sh
+bash -e $VAPPIO_RECIPES/generalpkgs.sh
+bash -e $VAPPIO_RECIPES/workflow.sh
+
+bash -e $VAPPIO_RECIPES/cpanmods.sh
+
+bash -e $VAPPIO_RECIPES/ergatis.sh
+
+bash -e $VAPPIO_RECIPES/igsaengine.sh
+bash -e $VAPPIO_RECIPES/bioifxtools.sh
+bash -e $VAPPIO_RECIPES/apache.sh
+
+bash -e $VAPPIO_RECIPES/clovrmain.sh
+bash -e $VAPPIO_RECIPES/clovrsetup.sh
+
+
+bash -e $VAPPIO_RECIPES/clovrdashboard.sh
+
 
