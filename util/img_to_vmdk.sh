@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #Raw disk image to VMWare conversion
 #Allows for conversion of Xen images to VMware
@@ -15,11 +15,14 @@ if [ $# -ne 3 ]
 fi
 
 #create a new blank raw disk image of desired size, eg 10G
-rm /mnt/shared/clovrVMware.raw
-qemu-img create -f raw /mnt/shared/clovrVMware.raw 10G
+rm -f ./clovrVMware.raw
+losetup -d /dev/loop1
+losetup -d /dev/loop0
+
+qemu-img create -f raw ./clovrVMware.raw 10G
 
 #mount clovrVMware.raw as loopback device loop0
-losetup /dev/loop0 /mnt/shared/clovrVMware.raw
+losetup /dev/loop0 ./clovrVMware.raw
 
 #create a new partition with fdisk
 #scripted to create 1 large, bootable partition
@@ -44,7 +47,7 @@ fdisk -ul /dev/loop0
 
 losetup -o 32256 /dev/loop1 /dev/loop0
 
-#Now copy the image, a ready-to-go, already formatted ext3 partition into /dev/loop1
+#Now copy the image, already formatted ext3 partition into /dev/loop1
 #ie. dump release image clovr-vXbXrX.raw in loopback loop1
 
 dd if=$1 of=/dev/loop1
@@ -61,35 +64,39 @@ dd if=$1 of=/dev/loop1
 #I have a copy in /usr/local/projects/CloVR/images/grub-boot.tgz
 #This is the original boot directory from the Ubuntu 9.04 image from stacklet.com
 #which serves as the base for CloVR.
+rm -f /mnt/foo1
 mkdir /mnt/foo1
 mount /dev/loop1 /mnt/foo1
-cp grub-boot.tgz /mnt/foo1
-cd /mnt/foo1
-tar xvzf $2
+pushd /mnt/foo1
+tar xvzf $2 boot/grub
+#Write out zeros to better compress file system
+dd if=/dev/zero of=tmp/ZEROS
+rm tmp/ZEROS
 sync
-cd
+popd
 umount /mnt/foo1
 
 #Now finally install boot loader on MBR of clovrVMware.raw==loop0
 #sync
 
 grub --device-map=/dev/null << .
-device (hd0) /mnt/shared/clovrVMware.raw 
+device (hd0) /mnt/clovrVMware.raw 
 root (hd0,0)
 setup (hd0)
 quit
 .
 #unmount
 losetup -d /dev/loop1
+sleep 2
 losetup -d /dev/loop0
 
 #We now have a bootable image in raw disk format, clovrVMWare.raw
 
 #Proceed with the VMware conversion
 #Create vmdk
-qemu-img convert -f raw /mnt/shared/clovrVMware.raw -O vmdk $3
+qemu-img convert -f raw ./clovrVMware.raw -o compat6 -O vmdk $3
 
 #Simply update an existing .vmx file to reference this vmdk
 #And you are done 
 
-
+#tar -S -cvzf $3.tgz $3

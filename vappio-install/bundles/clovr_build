@@ -5,11 +5,12 @@ VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 
 $VAPPIO_RECIPES/vappioutil.sh
 $VAPPIO_RECIPES/hudson.sh
-apt-get -y install qemu-kvm
+#Need grub legacy, it just works with xen
+#tried grub2 but it is a mess
+apt-get -y install qemu-kvm grub
+
 #Retrieve grub and boot sector 
-
-wget grub-boot.tgz
-
+wget -c /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
 
 #chroot
 #update-initramfs
