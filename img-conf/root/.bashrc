@@ -89,9 +89,6 @@ alias l='ls -l'
 # Source vappio envs
 source /opt/vappio-scripts/vappio_config.sh
 
-# Get Sun Grid Engine (SGE) settings
-source $SGE_ROOT/$SGE_CELL/common/settings.sh
-
 source /root/clovrEnv.sh
 
 PATH=$PATH:./
