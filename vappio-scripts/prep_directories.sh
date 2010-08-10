@@ -27,7 +27,10 @@ if [ -d /mnt/projects/clovr ]
 then
     echo "Found CloVR project area"
 else
-    mkdir -p /mnt/projects
-    tar -C /mnt/projects -xvzf /opt/project_clovr.tgz
+    if [ -f /opt/project_clovr.tgz ]
+    then
+	mkdir -p /mnt/projects
+	tar -C /mnt/projects -xvzf /opt/project_clovr.tgz
+    fi
 fi
 # don't need to chown since files are already owned by www-data
