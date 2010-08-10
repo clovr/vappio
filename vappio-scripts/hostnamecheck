@@ -5,20 +5,42 @@ source /root/clovrEnv.sh
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
+do_start() {
 ##
 #To support ad-hoc virtual clusters, 
 #set up mock hostname if we don't have one, using the clovr-IPADDR naming convention
 #This is required so that SGE can run locally without problems
-hostname -f
-if [ $? != "0" ]
-then
+    hostname -f
+    if [ $? != "0" ]
+    then
     #TODO, check if on EC2 here, this is a problem
-    ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
-    ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
-    hostname clovr-$ipalias
+	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
+	hostname clovr-$ipalias
+	cp /etc/hosts.orig /etc/hosts
+	echo "$ipaddr clovr-$ipalias clovr-$ipalias" >> /etc/hosts
+	touch $vappio_runtime/no_dns
+    fi
+}
+
+do_stop() {
     cp /etc/hosts.orig /etc/hosts
-    echo "$ipaddr clovr-$ipalias clovr-$ipalias" >> /etc/hosts
-    touch $vappio_runtime/no_dns
-fi
+}
 
+case "$1" in
+    start)
+	do_start
+	;;
+    stop)
+	do_stop
+	;;
+    restart)
+	do_stop
+	do_start
+	;;
+    *)
+	echo $"Usage: $0 {start|stop}"
+	exit 1
+esac
 
+exit $?

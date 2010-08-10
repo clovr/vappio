@@ -12,9 +12,9 @@ bash -e $VAPPIO_RECIPES/hudson.sh
 apt-get -y install qemu-kvm 
 
 #Retrieve grub and boot sector 
-wget -c /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
+wget -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
 
-apt-get -y install grub-pc
+apt-get -y install grub
 
 #chroot
 #update-initramfs

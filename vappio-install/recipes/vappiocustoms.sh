@@ -5,6 +5,10 @@
 #echo "base" > etc/bundle_name
 #date +%m%d%Y > etc/release_name
 
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.bashrc /root/.bashrc
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init/tty1.conf /etc/init/tty1.conf
+
+
 rm -f /etc/update-motd.d/51_update-motd
 rm -f /etc/update-motd.d/92-uec-upgrade-available
 

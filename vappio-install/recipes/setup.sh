@@ -12,6 +12,8 @@ apt-get -y remove apparmor apparmor-utils apport apport-symptoms ppp pppconfig p
 apt-get -y remove gsfonts gsfonts-x11
 apt-get -y remove wireless-tools wpasupplicant
 apt-get -y remove puppet puppet-common puppetmaster
+apt-get -y remove avahi-daemon 
+
 rm -f /etc/cron.d/cloudinit-updates
 
 apt-get -y install euca2ools
@@ -20,3 +22,6 @@ apt-get -y install virt-what
 
 rename 's/plymouth(\S*)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
 rename 's/cloud-(\S*)\.conf/cloud-$1.conf.disabled/' /etc/init/cloud-*.conf
+
+rename mountall-net.conf mountall-net.conf.disabled
+rename mountall-shell.conf mountall-shell.conf.disabled

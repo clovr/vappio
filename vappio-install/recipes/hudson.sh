@@ -7,7 +7,7 @@ wget -O /tmp/key http://hudson-ci.org/debian/hudson-ci.org.key
 sudo apt-key add /tmp/key
 wget -O /tmp/hudson.deb http://hudson-ci.org/latest/debian/hudson.deb
 sudo dpkg --install /tmp/hudson.deb
-
+/etc/init.d/hudson stop
 
 perl -pi -e 's/HTTP_PORT=8080/HTTP_PORT=8888/' /etc/default/hudson
 perl -pi -e 's/MAXOPENFILES=8192/#MAXOPENFILES=8192/' /etc/default/hudson
