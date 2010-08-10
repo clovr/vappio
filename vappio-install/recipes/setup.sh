@@ -1,5 +1,9 @@
 #!/bin/sh
 
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get -y --force-yes update
+
 invoke-rc.d apparmor stop
 update-rc.d -f apparmor remove
 update-rc.d -f x11-common remove
@@ -23,5 +27,15 @@ apt-get -y install virt-what
 rename 's/plymouth(\S*)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
 rename 's/cloud-(\S*)\.conf/cloud-$1.conf.disabled/' /etc/init/cloud-*.conf
 
-rename mountall-net.conf mountall-net.conf.disabled
-rename mountall-shell.conf mountall-shell.conf.disabled
+#These are causing non-cloud boots to hang
+if [ -f /etc/init/mountall-net.conf ]
+then
+    mv -f /etc/init/mountall-net.conf /etc/init/mountall-net.conf.disabled
+fi
+if [ -f /etc/init/mountall-shell.conf ]
+then
+    mv -f /etc/init/mountall-shell.conf /etc/init/mountall-shell.conf.disabled
+fi
+
+
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/fstab /etc/fstab.orig
