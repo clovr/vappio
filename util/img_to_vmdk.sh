@@ -65,13 +65,13 @@ dd if=$1 of=/dev/loop1
 #This is the original boot directory from the Ubuntu 9.04 image from stacklet.com
 #which serves as the base for CloVR.
 rm -f /mnt/foo1
-mkdir /mnt/foo1
+mkdir -p /mnt/foo1
 mount /dev/loop1 /mnt/foo1
 pushd /mnt/foo1
 tar xvzf $2 boot/grub
 #Write out zeros to better compress file system
 dd if=/dev/zero of=tmp/ZEROS
-rm tmp/ZEROS
+rm -f tmp/ZEROS
 sync
 popd
 umount /mnt/foo1
@@ -99,4 +99,4 @@ qemu-img convert -f raw ./clovrVMware.raw -o compat6 -O vmdk $3
 #Simply update an existing .vmx file to reference this vmdk
 #And you are done 
 
-#tar -S -cvzf $3.tgz $3
+tar -S -cvzf $3.tgz $3

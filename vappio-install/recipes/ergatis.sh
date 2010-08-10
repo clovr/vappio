@@ -54,6 +54,11 @@ perl -MCPAN -e 'install SVN::Agent'
 #Set Ergatis/IdGenerator/Config.pm
 
 #Install Ergatis
+#TODO replace with build_ergatis
+
+wget https://ergatis.svn.sourceforge.net/svnroot/ergatis/trunk/components/shared/software.config
+
+build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/www/ergatis --tmp_area=/tmp --software_config=./software.config --id_generator=Cloud --log /tmp/ergatis.log 
 
 $VAPPIO_RECIPES/build_nightly.pl
 
@@ -63,5 +68,6 @@ $VAPPIO_RECIPES/build_nightly.pl
 #wget http://cb2.igs.umaryland.edu/ergatis_clovr.tgz
 #tar -C / -xvzf ergatis_clovr.tgz
 
-#wget http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
-#tar -C / -xvzf clovr_ergatis_www.tgz
+#Set website
+wget http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
+tar -C / -xvzf clovr_ergatis_www.tgz

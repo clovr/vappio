@@ -21,6 +21,7 @@ chown $sge_exec_user:$sge_exec_user $staging_dir
 chown $sge_exec_user:$sge_exec_user $wfworking_dir 
 chown $sge_exec_user:$sge_exec_user $harvesting_dir 
 
+#TODO, move this to a clovr startup script
 # untar clovr ergatis project
 if [ -d /mnt/projects/clovr ]
 then
