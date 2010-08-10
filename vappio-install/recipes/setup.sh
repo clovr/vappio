@@ -3,6 +3,7 @@
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get -y --force-yes update
+apt-get -y --force-yes upgrade
 
 invoke-rc.d apparmor stop
 update-rc.d -f apparmor remove
