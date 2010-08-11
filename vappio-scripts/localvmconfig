@@ -5,6 +5,9 @@ source /root/clovrEnv.sh
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
+#Update /etc/apt/sources.list
+cp -f /etc/apt/sources.list.orig /etc/app/sources.list
+
 ##
 # If /tmp/machine.conf already exists then we do not need to make it
 # if we are running under VMWare or a local Xen then it will need to
@@ -45,9 +48,4 @@ then
     fi
 fi
 
-#Display node types in ganglia
-vappio_node_type=`cat $vappio_runtime/node_type`
-vappio_cloud_type=`cat $vappio_runtime/cloud_type`
-gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /etc/ganglia/gmond.conf
-gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /etc/ganglia/gmond.conf
 

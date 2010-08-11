@@ -1,0 +1,39 @@
+Vappio startup sequence
+--------------------------
+
+Each script or symlink in the platform or node types directories will
+be invoked by run-parts and should not contain any '.' or file
+extensions
+
+At startup, files named S## will be invoked with a single argument, start.
+
+At shutdown, files named K## will be invoked with a single argument, stop.
+
+Two specially named script are used by the system to detect the
+platform or node types dynamically at system boot.
+
+/etc/vappio/detect_platform - returns a single platform name
+
+Example platforms: ec2, magellan, xen, vmware, vbox
+
+New platforms can be added by creating a directory with platform
+startup and shutdown scripts and adding detection logic to
+detect_platform
+
+/etc/vappio/$platform/detect_node_type - returns one or more node types
+
+Example node types: master, exec
+
+New node types can be added by creating a directory with startup and
+shutdown scripts for the node type. 
+
+The platform and node type services are automatically started at boot
+time from the service /etc/init/vappio_detect
+
+Command line utilities are also provided to start and stop a platform
+or node type
+
+/opt/vappio-scripts/vp-start-node
+/opt/vappio-scripts/vp-start-platform
+/opt/vappio-scripts/vp-stop-node
+/opt/vappio-scripts/vp-stop-platform

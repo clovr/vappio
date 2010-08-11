@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+#Display node types in ganglia
+vappio_node_type=`cat $vappio_runtime/node_type`
+vappio_cloud_type=`cat $vappio_runtime/cloud_type`
+gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/etc/gmond.conf
+gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/etc/gmond.conf

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cp /etc/apt/sources.list.ec2 /etc/apt/sources.list
+

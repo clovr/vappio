@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+#Only on EC2
+
+vappio_cloud_type=`cat $vappio_runtime/cloud_type`
+if [ "$vappio_cloud_type" == "ec2" ]
+then
+#Add to host group
+    shutdownmin=$(($min-$rolloverstart))
+    if [ $shutdownmin -lt 0 ]
+    then
+	shutdownmin=$((60 + $shutdownmin));
+    fi
+    echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > $vappio_runtime/shutdown.crontab
+    crontab -u root $vappio_runtime/shutdown.crontab
+fi
