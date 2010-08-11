@@ -1,0 +1,74 @@
+#!/bin/bash
+
+##
+# Delete this if we are a nimbus node, won't exist if we aren't
+rm /var/nimbus-metadata-server-url
+
+##
+# Remove any subversions tuff
+rm -rf /root/.svn
+rm -rf /root/.subversion
+
+##
+# Delete the ip address file so outside scripts can know when the system is up
+rm /mnt/clovr_ip
+
+##
+# Don't want people having our SSH keys
+#KEEPING THESE FOR NOW,NEEDED FOR VMWARE CLUSTERS
+#rm -f /root/.ssh/authorized_keys
+#rm /mnt/devel1.pem
+rm -f /root/.ssh/known_hosts
+
+##
+#Recover a naked hosts file
+#cp /etc/hosts.orig /etc/hosts
+
+##
+# Logs just take up space and are not needed 
+rm -f /var/log/wtmp
+rm -f /var/log/*.log
+rm -f /var/log/*.log.*
+rm -f /var/log/*.gz
+rm -f /var/log/dmesg.*
+rm -f /var/log/apache2/*
+rm -f /var/log/lastlog
+rm -f /var/log/*.gz
+
+rm -rf /root/.cpan
+rm -f /root/.bash_history
+rm -f /root/.lesshst
+rm -f /root/.Xauthority
+rm -rf /root/.aptitude
+rm -rf /root/.debtags
+rm -f /root/.vimrc
+rm -f /root/.viminfo
+rm -f /root/.viminfo
+rm -f /root/.gnupg
+
+##
+# Remove ergatis logs
+rm -rf /opt/ergatis/global_id_repository/logs/*
+
+##
+# Remove apt cache
+apt-get clean
+#rm -f /var/lib/apt/lists/*
+
+##
+# Remove mongo logs
+    
+#Recover a naked udev rules file for VMware.  VMware will continue to
+#add new network cards if this file is saved between runs.
+cp /etc/udev/rules.d/70-persistent-net.rules.orig /etc/udev/rules.d/70-persistent-net.rules
+
+#TODO, save data if running under vmware
+#for p in $harvesting_dir $staging_dir $wfworking_dir $scratch_dir /var/spool/sge /mnt/projects/clovr
+#do
+#echo "Removing directory $p"
+#rm -rf $p
+#done
+
+#Remove swap device
+swapoff /dev/loop0
+losetup -d /dev/loop0

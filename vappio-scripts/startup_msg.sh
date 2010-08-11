@@ -7,6 +7,8 @@ echo "Access the CloVR appliance from a web browser at http://$ipaddr"
 
 source /root/clovrEnv.sh
 
-vmStatus.py
-
+if [ -f /opt/vappio-py/vappio/cli/vmStatus.py ]
+then
+    /opt/vappio-py/vappio/cli/vmStatus.py
+fi
 exec bash
