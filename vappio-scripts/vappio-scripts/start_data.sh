@@ -35,7 +35,7 @@ sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 myhostname=`hostname -f`
 
 #add this host as an administrative host
-curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname"
+curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/vappio/addHost_ws.py?host=$myhostname"
 #start execd
 $SGE_ROOT/$SGE_CELL/common/sgeexecd
 

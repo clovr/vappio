@@ -4,8 +4,7 @@
 import time
 import os
 import json
-
-from twisted.python import reflect
+import socket
 
 from igs.utils import commands
 from igs.utils import ssh
@@ -16,11 +15,18 @@ from igs.utils.config import configFromMap
 
 from igs.threading.threads import runThreadWithChannel
 
-from vappio.instance.config import createDataFile, createMasterDataFile, createExecDataFile, DEV_NODE, MASTER_NODE, RELEASE_CUT
+from igs.cgi.request import performQuery
+
+from vappio.instance.config import createDataFile, createMasterDataFile, createExecDataFile, MASTER_NODE
 from vappio.instance.control import runSystemInstanceEx
+
+from vappio.cluster import persist_mongo
+from vappio.credentials import manager
 
 
 NUM_TRIES = 150
+
+CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
 
 class ClusterError(Exception):
     pass
@@ -42,35 +48,38 @@ class Cluster(functional.Record):
     This represents a cluster
     """
 
-    def __init__(self, name, ctype, config):
+    def __init__(self, name, cred, config):
         self.name = name
-        self.ctype = ctype
+        self.cred = cred
+        self.ctype = cred.ctype
         self.config = config
 
         self.master = None
         self.execNodes = []
         self.dataNodes = []
 
+        self.credInst = cred.ctype.instantiateCredential(self.config, self.cred)
+
+        functional.Record.__init__(self)
+        
 
     def setMaster(self, master):
         return self.update(master=master)
 
     def addExecNodes(self, execs):
-        return self.update(execNodes=functional.updateDict(dict([(i.instanceId, i) for i in self.execNodes]),
-                                                           dict([(i.instanceId, i) for i in execs])).values())
+        return self.update(execNodes=_combineInstances(self.execNodes, execs))
 
 
     def addDataNodes(self, datas):
-        return self.update(dataNodes=functional.updateDict(dict([(i.instanceId, i) for i in self.dataNodes]),
-                                                           dict([(i.instanceId, i) for i in datas])).values())
+        return self.update(dataNodes=_combineInstances(self.dataNodes, datas))
 
 
-    def startCluster(self, numExec, reporter=None, devMode=False, releaseCut=False):
-        return self.startMaster(reporter, devMode, releaseCut).startExecNodes(numExec, reporter)
+    def startCluster(self, numExec, reporter=None):
+        return self.startMaster(reporter).startExecNodes(numExec, reporter)
 
 
     
-    def startMaster(self, reporter=None, devMode=False, releaseCut=False):
+    def startMaster(self, reporter=None):
         """
         This starts a master on the given cluster and
         returns the cluster with the master value set.
@@ -83,18 +92,16 @@ class Cluster(functional.Record):
 
         reporterW = wrapReporter(reporter)
         mode = [MASTER_NODE]
-        if devMode: mode.append(DEV_NODE)
-        if releaseCut: mode.append(RELEASE_CUT)
 
         masterConf = createDataFile(self.config,
                                     mode,
                                     outFile='/tmp/machine.tmp.conf')
     
-        dataFile = createMasterDataFile(self.config, masterConf, os.getenv('EC2_CERT'), os.getenv('EC2_PRIVATE_KEY'))
+        dataFile = createMasterDataFile(self, masterConf)
 
         os.remove(masterConf)
 
-        master = runInstancesWithRetry(self.ctype,
+        master = runInstancesWithRetry(self,
                                        self.config('cluster.ami'),
                                        self.config('cluster.key'),
                                        self.config('cluster.master_type'),
@@ -108,7 +115,6 @@ class Cluster(functional.Record):
 
         master = runAndTerminateBad(self,
                                     lambda : waitForState(self,
-                                                          self.ctype,
                                                           NUM_TRIES,
                                                           [master],
                                                           self.ctype.Instance.RUNNING,
@@ -122,7 +128,18 @@ class Cluster(functional.Record):
         master = runAndTerminateBad(self,
                                     lambda : waitForInstancesReady(self.config, NUM_TRIES, [master]))[0]
 
-        return self.setMaster(master)
+
+        # Wait for Mongo to finish coming up
+        count = NUM_TRIES
+        while count > 0:
+            try:
+                loadCluster(self.name)
+                return self.setMaster(master)
+            except:
+                count -= 1
+                time.sleep(30)
+
+        raise TryError('Unable to load the cluster remotely, something likely failed during startup', self)
 
 
     def startExecNodes(self, numExec, reporter=None):
@@ -137,7 +154,7 @@ class Cluster(functional.Record):
             dataFile = createExecDataFile(self.config, self.master, '/tmp/machine.conf')
 
             slaves = runAndTerminateBad(self,
-                                        lambda : runInstancesWithRetry(self.ctype,
+                                        lambda : runInstancesWithRetry(self,
                                                                        self.config('cluster.ami'),
                                                                        self.config('cluster.key'),
                                                                        self.config('cluster.exec_type'),
@@ -153,7 +170,6 @@ class Cluster(functional.Record):
 
             slaves = runAndTerminateBad(self,
                                         lambda : waitForState(self,
-                                                              self.ctype,
                                                               NUM_TRIES,
                                                               slaves,
                                                               self.ctype.Instance.RUNNING,
@@ -179,19 +195,27 @@ class Cluster(functional.Record):
         
 
     def terminate(self):
-        slaves = self.execNodes + self.dataNodes
+        slaves = [i for i in self.execNodes + self.dataNodes if i.instanceId]
         if slaves:
-            self.ctype.terminateInstances(slaves)
-        self.ctype.terminateInstances([self.master])
+            self.ctype.terminateInstances(self.credInst, slaves)
+        if self.master.instanceId:
+            self.ctype.terminateInstances(self.credInst, [self.master])
         return self
         
+
+
+def _combineInstances(orig, n):
+    return functional.updateDict(functional.updateDict(dict([(i.instanceId, i) for i in orig if not i.spotRequestId]),
+                                                       dict([(i.instanceId, i) for i in n if not i.spotRequestId])),
+                                 functional.updateDict(dict([(i.spotRequestId, i) for i in orig if i.spotRequestId]),
+                                                       dict([(i.spotRequestId, i) for i in n if i.spotRequestId]))).values()
     
 def clusterToDict(cluster):
     """
     Converts a cluster to a dict
     """
     return dict(name=cluster.name,
-                ctype=reflect.fullyQualifiedName(cluster.ctype),
+                cred=cluster.cred.name,
                 config=json.dumps(dict([(k, cluster.config(k)) for k in cluster.config.keys()])),
                 master=cluster.ctype.instanceToDict(cluster.master),
                 execNodes=[cluster.ctype.instanceToDict(i) for i in cluster.execNodes],
@@ -201,14 +225,49 @@ def clusterFromDict(d):
     """
     Loads a cluster from a dict
     """
-    cluster = Cluster(d['name'], reflect.namedAny(d['ctype']), configFromMap(json.loads(d['config'])))
+    cluster = Cluster(d['name'], manager.loadCredential(d['cred']), configFromMap(json.loads(d['config'])))
     return cluster.setMaster(cluster.ctype.instanceFromDict(d['master'])
                              ).addExecNodes([cluster.ctype.instanceFromDict(i) for i in d['execNodes']]
                                             ).addDataNodes([cluster.ctype.instanceFromDict(i) for i in d['dataNodes']])
 
         
 
-def waitForState(cluster, ctype, tries, instances, wantState, reporterW):
+
+def loadCluster(name):
+    cl = persist_mongo.load(name)
+    cluster = clusterFromDict(cl)
+
+    if name != 'local' and cluster.master.state == cluster.ctype.Instance.RUNNING:
+        try:
+            result = performQuery(cluster.master.publicDNS, CLUSTERINFO_URL, dict(name='local'), timeout=10)
+            cluster = cluster.addExecNodes([cluster.ctype.instanceFromDict(i) for i in result['execNodes']])
+            cluster = cluster.addDataNodes([cluster.ctype.instanceFromDict(i) for i in result['dataNodes']])
+        except socket.timeout:
+            raise persist_mongo.ClusterLoadIncompleteError('Failed to contact master when loading cluster', cluster)
+        except Exception, err:
+            raise persist_mongo.ClusterLoadIncompleteError(str(err), cluster)
+        
+
+    return cluster
+
+def saveCluster(cluster):
+    return persist_mongo.dump(clusterToDict(cluster))
+
+
+def loadAllClusters():
+    def _(n):
+        try:
+            return loadCluster(n)
+        except persist_mongo.ClusterLoadIncompleteError, err:
+            return err.cluster
+        
+    return [_(n) for n in persist_mongo.listClusters()]
+
+def removeCluster(name):
+    return persist_mongo.cleanUp(name)
+    
+
+def waitForState(cluster, tries, instances, wantState, reporterW):
     """
     reporter can be None if one doesn't want to report anything
     """
@@ -225,12 +284,12 @@ def waitForState(cluster, ctype, tries, instances, wantState, reporterW):
         # but it doesn't show up in ec2-describe-images for a few minutes
         # We will handle this by making sure the length of previous instance and
         # this instance match, and if not
-        instancesPrime = ctype.updateInstances(instances)
+        instancesPrime = cluster.ctype.updateInstances(cluster.credInst, instances)
         if len(instancesPrime) == len(instances):
             instances = instancesPrime
         reporterW(cluster.addExecNodes(instances))
         if _matchState(instances):
-            return ctype.updateInstances(instances)
+            return cluster.ctype.updateInstances(cluster.credInst, instances)
         else:
             tries -= 1
             time.sleep(30)
@@ -320,32 +379,34 @@ def waitForInstancesReady(conf, tries, who):
         raise TryError('Not all machines read', (good, bad))
     
 
-def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, bidPrice, num, dataFile):
+def runInstancesWithRetry(cluster, ami, key, itype, groups, availzone, bidPrice, num, dataFile):
     """
     Tries to start up N instances, will try to run more if it cannot bring up all
 
     TODO: Modify this so it only tries N times and throws a TryError if it fails
     """
     if bidPrice is None:
-        instances = ctype.runInstances(ami,
-                                       key,
-                                       itype,
-                                       groups,
-                                       availzone,
-                                       num,
-                                       userDataFile=dataFile)
+        instances = cluster.ctype.runInstances(cluster.credInst,
+                                               ami,
+                                               key,
+                                               itype,
+                                               groups,
+                                               availzone,
+                                               num,
+                                               userDataFile=dataFile)
     else:
-        instances = ctype.runSpotInstances(bidPrice,
-                                           ami,
-                                           key,
-                                           itype,
-                                           groups,
-                                           availzone,
-                                           num,
-                                           userDataFile=dataFile)
+        instances = cluster.ctype.runSpotInstances(cluster.credInst,
+                                                   bidPrice,
+                                                   ami,
+                                                   key,
+                                                   itype,
+                                                   groups,
+                                                   availzone,
+                                                   num,
+                                                   userDataFile=dataFile)
         
     if len(instances) < num:
-        instances += runInstancesWithRetry(ctype,
+        instances += runInstancesWithRetry(cluster,
                                            ami,
                                            key,
                                            itype,
@@ -358,6 +419,23 @@ def runInstancesWithRetry(ctype, ami, key, itype, groups, availzone, bidPrice, n
     return instances
 
 
+
+
+def runAndTerminateBad(cluster, func):
+    """
+    This calls func and if a TryError is thrown
+    it is assumed .result is a tuple containing
+    (good, bad) list of instances.  The bad
+    instances are terminated and the good ones are
+    returned
+    """
+    try:
+        return func()
+    except TryError, err:
+        slaves, bad = err.result
+        cluster.ctype.terminateInstances(bad)
+        return slaves
+    
 def runCommandOnCluster(cluster, command, justMaster=False):
     """
     Runs a command on the cluster.  If justMaster is True (False by default), command
@@ -379,31 +457,13 @@ def runCommandOnCluster(cluster, command, justMaster=False):
             
     instances = [cluster.master]
     if not justMaster:
-       instances += cluster.execNodes + cluster.dataNodes
+        instances += cluster.execNodes + cluster.dataNodes
 
 
     chans = [runThreadWithChannel(_runCommandOnInstance).channel.sendWithChannel(i)
              for i in instances
              if i.state == cluster.ctype.Instance.RUNNING]
 
-    ##
     # Collect all threads
     for c in chans:
         c.receive()
-
-
-def runAndTerminateBad(cluster, func):
-    """
-    This calls func and if a TryError is thrown
-    it is assumed .result is a tuple containing
-    (good, bad) list of instances.  The bad
-    instances are terminated and the good ones are
-    returned
-    """
-    try:
-        return func()
-    except TryError, err:
-        slaves, bad = err.result
-        cluster.ctype.terminateInstances(bad)
-        return slaves
-    

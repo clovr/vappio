@@ -13,4 +13,4 @@
 export PERL_MM_USE_DEFAULT=1
 export PERL_AUTOINSTALL=1
 wget http://clovr.svn.sourceforge.net/viewvc/clovr/trunk/packages/cpan.packages
-cat cpan.packages | perl -ne 'chomp;split(/\s+/);print "cpan -fi \"$_[0]\"\n"' | sh
+cat cpan.packages | perl -ne 'chomp;split(/\s+/);print "perl -MCPAN -e \"install $_[0]\"\n"' | sh

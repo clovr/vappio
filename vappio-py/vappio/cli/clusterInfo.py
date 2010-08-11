@@ -2,22 +2,23 @@
 ##
 # Provides useful URLs and other information about the cluster
 
-from igs.utils.cli import buildConfigN, defaultIfNone
+from igs.utils import cli
 from igs.utils.functional import identity
 
 from vappio.webservice.cluster import loadCluster, listClusters
 
 OPTIONS = [
-    ('host', '', '--host', 'Host of web services to connect to, defaults to local host', defaultIfNone('localhost')),
+    ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
     ('name', '', '--name', 'Name of cluster', identity),
-    ('list', '-l', '--list', 'List all clusters', defaultIfNone(False), True)
+    ('partial', '-p', '--partial', 'Load partial data if a cluster is bad', identity, cli.BINARY),
+    ('list', '-l', '--list', 'List all clusters', cli.defaultIfNone(False), cli.BINARY)
     ]
 
 URL = '/vappio/clusterInfo_ws.py'
 
 def main(options, _args):
     if options('general.name'):
-        cluster = loadCluster(options('general.host'), options('general.name'))
+        cluster = loadCluster(options('general.host'), options('general.name'), options('general.partial'))
 
 
         print '*** Cluster info ***'
@@ -39,4 +40,4 @@ def main(options, _args):
         raise Exception('Failed to provide a cluster name or to list them')
 
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS))
+    main(*cli.buildConfigN(OPTIONS))

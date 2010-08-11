@@ -7,7 +7,7 @@ import os
 
 from twisted.python.reflect import namedModule
 
-from igs.utils.errors import TryError
+from igs.utils.errors import TryError, getStacktrace
 from igs.utils.logging import errorPrint
 
 from vappio.instance.config import RELEASE_CUT
@@ -70,7 +70,7 @@ def executePolicyDir(func, d, prefix=None):
                 m = namedModule(f)
                 func(m)
             except Exception, err:
-                errorRes.append((f, str(err)))
+                errorRes.append((f, str(err), getStacktrace()))
     finally:
         sys.path = oldpath
 
@@ -80,12 +80,16 @@ def executePolicyDir(func, d, prefix=None):
 
 def executePolicyDirWEx(func, d, prefix=None):
     """
-    This runs executePolicyDir but catches teh TryError and prints out
+    This runs executePolicyDir but catches the TryError and prints out
     diagnostic information. and returns safely
     """
     try:
         executePolicyDir(func, d, prefix)
     except TryError, err:
         errorPrint('Failed to execute some modules')
-        for m, e in err.result:
+        for m, e, s in err.result:
             errorPrint('Module: %15s Error: %s' % (m, e))
+            errorPrint('Stacktrace:')
+            for l in s.splitlines():
+                errorPrint(l)
+            

@@ -6,10 +6,12 @@ from vappio.credentials import persist
 
 class Credential(Record):
     """
-    Don't need anything special for this yet but assuming
-    I will
+    Represents a credentail that can actually be used (as opposed to copied outside of the machine)
     """
-    pass
+
+    def getCtype(self):
+        return reflect.fullyQualifiedName(self.ctype).split('.')[1]
+    
 
 class PublicCredential(Record):
     """
@@ -44,7 +46,7 @@ def credentialToDict(cred):
                 cert=cred.cert,
                 pkey=cred.pkey,
                 active=cred.active,
-                misc=cred.misc)
+                metadata=cred.metadata)
 
 def credentialFromDict(d):
     """
@@ -57,9 +59,9 @@ def credentialFromDict(d):
                             d['cert'],
                             d['pkey'],
                             d['active'],
-                            d['misc'])
+                            d['metadata'])
 
-def createCredential(name, desc, ctype, cert, pkey, active, misc):
+def createCredential(name, desc, ctype, cert, pkey, active, metadata):
     """
     name - a string naming the cred
     desc - a free form string describing the cred
@@ -67,12 +69,12 @@ def createCredential(name, desc, ctype, cert, pkey, active, misc):
     cert - contents of certificate data
     pkey - contents of private key data
     active - if the account this credential is attached to is active or not
-    misc - a dictionary of miscellaneous values for the credential.  this dictionary MUST be
-           convertable to json
+    metadata - a dictionary of miscellaneous values for the credential.  this dictionary MUST be
+               convertable to json
     
     *** This is subject to change as this is a first pass
     """
-    return Credential(name=name, desc=desc, ctype=ctype, cert=cert, pkey=pkey, active=active, misc=misc)
+    return Credential(name=name, desc=desc, ctype=ctype, cert=cert, pkey=pkey, active=active, metadata=metadata)
 
 def loadCredential(name):
     return credentialFromDict(persist.load(name))

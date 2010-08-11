@@ -24,14 +24,6 @@ def createDataFile(conf, mode, outFile='/tmp/machine.conf'):
                 'general.ctype=' + conf('general.ctype', default='UNKNOWN')
                 ]) + '\n')
             
-    #fout.write('\n'.join(
-    #        ['[]',
-    #         'MASTER_IP=' + masterHost,
-    #         'NODE_TYPE=' + ','.join(mode),
-    #         ##
-    #         # The cluster needs to know this
-    #         'general.ctype=' + conf('general.ctype', default='UNKNOWN')]) + '\n')
-
     fout.close()
     
     return outFile
@@ -48,15 +40,15 @@ def fixVariables(conf):
     return config.configFromMap({'NODE_TYPE': conf('NODE_TYPE').split(',')}, conf)
 
 
-def createMasterDataFile(conf, machineConf, certFile, pkFile):
+def createMasterDataFile(cluster, machineConf):
     """
     Creates a master data file as the perl start_cluster works
     """
-    template = open(conf('cluster.master_user_data_tmpl')).read()
-    clusterPrivateKey = open(conf('cluster.cluster_private_key')).read()
+    template = open(cluster.config('cluster.master_user_data_tmpl')).read()
+    clusterPrivateKey = open(cluster.config('cluster.cluster_private_key')).read()
     
     outf = []
-    runSingleProgramEx('ssh-keygen -y -f ' + conf('cluster.cluster_private_key'),
+    runSingleProgramEx('ssh-keygen -y -f ' + cluster.config('cluster.cluster_private_key'),
                        outf.append,
                        None,
                        log=logging.DEBUG)
@@ -65,11 +57,14 @@ def createMasterDataFile(conf, machineConf, certFile, pkFile):
 
     template = template.replace('<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>', clusterPrivateKey)
     template = template.replace('<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>', clusterPublicKey)
+    # Need to escape the ${ for bash
     template = template.replace('<TMPL_VAR NAME=MACHINE_CONF>', open(machineConf).read().replace('${', '\\${'))
-    template = template.replace('<TMPL_VAR NAME=CERT_FILE>', open(certFile).read())
-    template = template.replace('<TMPL_VAR NAME=PK_FILE>', open(pkFile).read())
+    template = template.replace('<TMPL_VAR NAME=CERT_FILE>', open(cluster.credInst.cert).read())
+    template = template.replace('<TMPL_VAR NAME=PK_FILE>', open(cluster.credInst.pkey).read())
+    template = template.replace('<TMPL_VAR NAME=CTYPE>', cluster.cred.getCtype())
+    template = template.replace('<TMPL_VAR NAME=METADATA>', ','.join([str(k) + '=' + str(v) for k, v in cluster.cred.metadata.iteritems()]))
 
-    outf = os.path.join(conf('general.secure_tmp'), 'master_user_data.sh')
+    outf = os.path.join(cluster.config('general.secure_tmp'), 'master_user_data.sh')
     open(outf, 'w').write(template)
 
     return outf

@@ -9,6 +9,7 @@ import subprocess
 from select import select
 
 from igs.utils.logging import logPrint
+from igs.utils import functional
 
 ##
 # How to run a process with subprocess
@@ -33,10 +34,16 @@ class ProgramRunner:
     The exit status will be in .exitCode
     """
 
-    def __init__(self, cmd, stdoutf, stderrf, log=False):
+    def __init__(self, cmd, stdoutf, stderrf, addEnv=None, env=None, log=False):
+        """
+        addEnv takes the contents of addEnv and adds them to the current environment.  env only passes what is specified
+        as the environment
+        """
         self.cmd = cmd
         self.stdoutf = stdoutf
         self.stderrf = stderrf
+        self.addEnv = addEnv
+        self.env = env
         self.log = log
         self.exitCode = None
 
@@ -50,8 +57,17 @@ class ProgramRunner:
         """
         if self.log:
             logPrint(self.cmd)
+
+
+        env = self.env
+        if self.addEnv and not self.env:
+            # Copy the current environment because we'll be modifying it
+            env = functional.updateDict(dict(os.environ), self.addEnv)
+        elif self.addEnv:
+            env = functional.updateDict(dict(self.env), self.addEnv)
+            
         pipe = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                shell=True)
+                                shell=True, env=env)
         self.pipe = pipe
                                 
         return (self.onComplete, [(pipe.stdout, self.stdoutf), (pipe.stderr, self.stderrf)])
@@ -80,9 +96,9 @@ def runProgramRunnerEx(pr):
     if code != 0:
         raise ProgramRunError(pr.cmd, code)
 
-def runSingleProgram(cmd, stdoutf, stderrf, log=False):
+def runSingleProgram(cmd, stdoutf, stderrf, addEnv=None, env=None, log=False):
     """Gives you control over where the stream data goes"""
-    pr = ProgramRunner(cmd, stdoutf, stderrf, log=log)
+    pr = ProgramRunner(cmd, stdoutf, stderrf, addEnv=addEnv, env=env, log=log)
 
     def _():
         yield pr
@@ -91,9 +107,9 @@ def runSingleProgram(cmd, stdoutf, stderrf, log=False):
 
     return pr.exitCode
 
-def runSingleProgramEx(cmd, stdoutf, stderrf, log=False):
+def runSingleProgramEx(cmd, stdoutf, stderrf, addEnv=None, env=None, log=False):
     """Gives you control over where the stream data goes"""
-    pr = ProgramRunner(cmd, stdoutf, stderrf, log=log)
+    pr = ProgramRunner(cmd, stdoutf, stderrf, addEnv=None, env=None, log=log)
 
     def _():
         yield pr
@@ -106,13 +122,13 @@ def runSingleProgramEx(cmd, stdoutf, stderrf, log=False):
     return pr.exitCode
 
 
-def runSystem(cmd, log=False):
+def runSystem(cmd, addEnv=None, env=None, log=False):
     """Simpler wrapper, looks more like os.system"""
-    return runSingleProgram(cmd, sys.stdout.write, sys.stderr.write, log=log)
+    return runSingleProgram(cmd, sys.stdout.write, sys.stderr.write, addEnv=addEnv, env=env, log=log)
 
-def runSystemEx(cmd, log=False):
+def runSystemEx(cmd, addEnv=None, env=None, log=False):
     """Wrapper around runSystem, throws an exception with error code on non zero return"""
-    code = runSystem(cmd, log=log)
+    code = runSystem(cmd, addEnv=addEnv, env=env, log=log)
     if code != 0:
         raise ProgramRunError(cmd, code)
         

@@ -80,7 +80,7 @@ then
     if echo "$masterip" | egrep -v "^($o1)(\.($o0)){2}\.($o1)$" >/dev/null; then
 	echo "valid hostname $MASTER_NODE"
 	#parse IP
-	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname"
+	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/vappio/addHost_ws.py?host=$myhostname"
     else
 	MASTER_NODE=`echo $masterip | sed 's/\./\-/g'`
 	MASTER_NODE="clovr-$MASTER_NODE"
@@ -92,10 +92,10 @@ then
 	fi
 	echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
-	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname&ipaddr=$ipaddr"
+	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/vappio/addHost_ws.py?host=$myhostname&ipaddr=$ipaddr"
     fi
 else
-    curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/add_host.cgi?host=$myhostname"
+    curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/vappio/addHost_ws.py?host=$myhostname"
 fi
 
 sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`

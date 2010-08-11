@@ -6,7 +6,7 @@
 from igs.utils import cli
 from igs.utils import logging
 
-from vappio.cluster.persist_mongo import load, dump
+from vappio.cluster import control as cluster_ctl
 
 OPTIONS = [
     ('debug', '', '--debug', 'Debugging', cli.defaultIfNone(False), True),
@@ -16,14 +16,14 @@ OPTIONS = [
 def main(options, _args):
     logging.DEBUG = options('general.debug')
     
-    cluster = load('local')
+    cluster = cluster_ctl.loadCluster('local')
 
     if cluster.ctype.NAME == 'EC2':
-        cluster = cluster.update(dataNodes=cluster.ctype.updateInstances(cluster.dataNodes),
-                                 execNodes=cluster.ctype.updateInstances(cluster.execNodes))
+        cluster = cluster.update(dataNodes=cluster.ctype.updateInstances(cluster.credInst, cluster.dataNodes),
+                                 execNodes=cluster.ctype.updateInstances(cluster.credInst, cluster.execNodes))
 
         logging.debugPrint(lambda : 'Dumping new cluster')
-        dump(cluster)
+        cluster_ctl.saveCluster(cluster)
     
 
 

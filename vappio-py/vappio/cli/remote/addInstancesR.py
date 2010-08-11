@@ -7,6 +7,7 @@ from igs.utils.functional import compose
 from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
+from vappio.cluster import control as cluster_ctl
 from vappio.cluster import persist_mongo
 
 from vappio.tasks import task
@@ -18,29 +19,30 @@ OPTIONS = [
     ]
 
 
-def updateCluster(cluster):
+def updateCluster(cl):
     """
     This keeps on setting the cluster master to the new value and
     dumping it to the database
     """
     try:
-        cl = persist_mongo.load(cluster.name)
-        cluster = cluster.addExecNodes(cl.execNodes).addDataNodes(cl.dataNodes)
+        dbCluster = cluster_ctl.loadCluster(cl.name)
+        cl = cl.addExecNodes(dbCluster.addExecNodes(cl.execNodes).execNodes
+                             ).addDataNodes(dbCluster.addDataNodes(cl.dataNodes).dataNodes)
     except persist_mongo.ClusterDoesNotExist:
         pass
 
-    persist_mongo.dump(cluster)
+    cluster_ctl.saveCluster(cl)
 
 
+    
 def main(options, _args):
-    cluster = persist_mongo.load('local')
 
     tsk = task.updateTask(task.loadTask(options('general.task_name')
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting instances'))
 
     try:
-        cluster = cluster.startExecNodes(options('general.num'), updateCluster)
+        cluster = cluster_ctl.loadCluster('local').startExecNodes(options('general.num'), updateCluster)
         tsk = tsk.progress().setState(task.TASK_COMPLETED)
         updateCluster(cluster)
     except errors.TryError, err:

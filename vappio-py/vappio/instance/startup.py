@@ -4,6 +4,7 @@ import os
 
 from igs.utils.commands import runSystemEx
 from igs.utils.functional import const
+from igs.utils import logging
 
 from igs.config_manage.policy import installPkg, installOptPkg
 
@@ -103,10 +104,16 @@ def startUpAllNodes(conf):
 
 def installAllStow():
     for p in [d for d in os.listdir('/usr/local/stow') if d[0] != '.']:
-        installPkg(p)
+        try:
+            installPkg(p)
+        except:
+            logging.errorPrint('Failed to install package: ' + p)            
         
 
 def installAllOptPackages():
     for p in [d for d in os.listdir('/opt/opt-packages') if d[0] != '.']:
-        installOptPkg(p)
+        try:
+            installOptPkg(p)
+        except:
+            logging.errorPrint('Failed to install package: ' + p)
         

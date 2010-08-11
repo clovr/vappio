@@ -11,9 +11,11 @@ from igs.utils.cli import buildConfigN
 from igs.utils.functional import identity
 from igs.utils.commands import runSystemEx, runSingleProgramEx
 
-from vappio.webservice.cluster import listClusters
+from vappio.cluster import control as cluster_ctl
 
-from vappio.ec2.control import listInstances, Instance
+from vappio.credentials import manager
+
+from igs.utils import config
 
 OPTIONS = [
     ('one_line', '-1', '--one-line', 'Give a condenced version of output in one line', identity, True),
@@ -41,7 +43,15 @@ def networkingEnabled():
 
 def getNumberOfInstances():
     try:
-        return str(len([i for i in listInstances() if i.state != Instance.TERMINATED]))
+        conf = config.configFromStream(open('/opt/vappio-conf/clovr.conf'), config.configFromEnv())
+        credentials = [(c.ctype, c.ctype.instantiateCredential(conf, c)) for c in manager.loadAllCredentials()]
+        instances = []
+        for ctype, credInst in credentials:
+            instances.extend([i.instanceId
+                              for i in ctype.listInstances(credInst)
+                              if i.state != ctype.Instance.TERMINATED])
+
+        return str(len(set(instances)))
     except:
         return 'Unknown'
 
@@ -51,7 +61,7 @@ def listClustersSafe(host):
     such as networking being down
     """
     try:
-        return listClusters(host)
+        return [c.name for c in cluster_ctl.loadAllClusters()]
     except:
         return []
     

@@ -102,9 +102,9 @@ def main(options, _args):
             fileList = uploadTag(srcCluster, dstCluster, options('general.tag_name'), tagFile)
             tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'Upload complete, tagging'))
 
-            
             metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
             metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])
+
             tagTask = tagData('localhost',
                               options('general.dst_cluster'),
                               options('general.tag_name'),

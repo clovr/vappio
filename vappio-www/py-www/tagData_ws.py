@@ -7,7 +7,7 @@ from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
 
-from vappio.cluster.persist_mongo import load
+from vappio.cluster.control import loadCluster
 
 from vappio.tasks.utils import createTaskAndSave
 
@@ -46,7 +46,7 @@ class TagData(CGIPage):
         else:
             ##
             # Forward request on
-            cluster = load(request['name'])
+            cluster = loadCluster(request['name'])
             request['name'] = 'local'
             taskName = performQuery(cluster.master.publicDNS, URL, request)
 

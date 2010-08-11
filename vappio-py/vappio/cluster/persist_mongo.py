@@ -1,7 +1,6 @@
 ##
 # Routines for managing cluster informatino in mongo
 import json
-import socket
 
 import pymongo
 
@@ -12,10 +11,7 @@ from igs.utils.functional import updateDict
 from igs.utils.errors import TryError
 from igs.cgi.request import performQuery
 
-from vappio.cluster.control import Cluster, clusterToDict, clusterFromDict
-from vappio.cluster.misc import getInstances
 
-CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
 
 class ClusterDoesNotExist(Exception):
     pass
@@ -39,8 +35,8 @@ def dump(cluster):
     clusters = clovr.clusters
 
 
-    clusters.save(updateDict(clusterToDict(cluster),
-                             dict(_id=cluster.name)))
+    clusters.save(updateDict(cluster,
+                             dict(_id=cluster['name'])))
     
 
 
@@ -58,21 +54,8 @@ def load(name):
     if not cluster:
         raise ClusterDoesNotExist(name)
 
-    clust = clusterFromDict(cluster)
 
-    
-    if name != 'local' and clust.master.state == clust.ctype.Instance.RUNNING:
-        try:
-            result = performQuery(clust.master.publicDNS, CLUSTERINFO_URL, dict(name='local'), timeout=10)
-            execNodes = [clust.ctype.instanceFromDict(i) for i in result['execNodes']]
-            dataNodes = [clust.ctype.instanceFromDict(i) for i in result['dataNodes']]
-            clust.addExecNodes(execNodes)
-            clust.addDataNodes(dataNodes)
-        except socket.timeout:
-            raise ClusterLoadIncompleteError('Failed to contact master when loading cluster', clust)
-    
-
-    return clust
+    return cluster
 
 def cleanUp(name):
     """

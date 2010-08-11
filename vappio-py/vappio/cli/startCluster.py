@@ -12,27 +12,21 @@ OPTIONS = [
     ('conf_name', '', '--conf-name', 'Config name, defaults to clovr.conf', defaultIfNone('clovr.conf')),
     ('name', '', '--name', 'Name of cluster', notNone),
     ('num', '', '--num', 'Number of exec nodes to start', int),
-    ('ctype', '', '--ctype', 'Type of cluster', compose(restrictValues(['ec2', 'nimbus', 'local']), notNone)),
+    ('cred', '', '--cred', 'Credential to use', notNone),
     ('block', '-b', '--block', 'Block until cluster is up', identity, True),
-    ('dev_mode', '-d', '--dev_mode', 'Dev mode or not', identity, True),
-    ('release_cut', '', '--release_cut', 'Want to cut a release', identity, True),
     ('update_dirs', '', '--update_dirs', 'Want to update scripts dirs once instance is up', identity, True),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),
     ]
 
-
-        
-
-
 def main(options, _args):
     ##
     # Just do nothing if ctype is local or name is local
-    if options('general.ctype') != 'local' and options('general.name') != 'local':
+    if options('general.cred') != 'local' and options('general.name') != 'local':
         taskName = startCluster(options('general.host'),
                                 options('general.name'),
                                 options('general.conf_name'),
                                 options('general.num'),
-                                options('general.ctype'),
+                                options('general.cred'),
                                 options('general.update_dirs'))
 
         if options('general.block'):

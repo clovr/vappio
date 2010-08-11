@@ -43,8 +43,10 @@ def main(options, _args):
 
                 ##
                 # Need to fix this so it makes use of tag_options
+
                 metadataKeys = [k.split('.', 1)[1] for k in tf.keys() if k.startswith('metadata.')]
                 metadata = dict([(k, tf('metadata.' + k)) for k in metadataKeys])                
+
                 tagTask = tagData('localhost',
                                   'local',
                                   options('general.tag_name'),

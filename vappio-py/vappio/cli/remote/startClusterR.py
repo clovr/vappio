@@ -2,14 +2,15 @@
 ##
 # This adds instances to the current cluster.  This should run on the master node of
 # whatever cluster instances are being added to
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone, restrictValues
+from igs.utils import cli
 from igs.utils.config import configFromMap
-from igs.utils.functional import compose
+from igs.utils import functional as func
 from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
 
 from vappio.cluster.control import Cluster
+from vappio.cluster import control as cluster_ctl
 from vappio.cluster import persist_mongo
 
 from vappio.webservice import cluster
@@ -17,29 +18,32 @@ from vappio.webservice import cluster
 from vappio.tasks import task
 from vappio.tasks.utils import blockOnTaskAndForward
 
-from vappio.ec2 import control as ec2control
+from vappio.credentials import manager
+from vappio.credentials import persist as cred_persist
 
 OPTIONS = [
-    ('conf', '', '--conf', 'Name of config file to use', compose(lambda x : '${env.VAPPIO_HOME}/vappio-conf/' + x, notNone)),
-    ('name', '', '--name', 'Name of the cluster', notNone),
-    ('task_name', '', '--task-name', 'Name of task associated with this', notNone),
-    ('ctype', '', '--ctype', 'Type of cluster to start', compose(restrictValues(['ec2', 'nimbus']), notNone)),
-    ('num', '', '--num', 'Number of nodes to create', compose(int, notNone)),
-    ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
+    ('conf', '', '--conf', 'Name of config file to use', func.compose(lambda x : '${env.VAPPIO_HOME}/vappio-conf/' + x, cli.notNone)),
+    ('name', '', '--name', 'Name of the cluster', cli.notNone),
+    ('task_name', '', '--task-name', 'Name of task associated with this', cli.notNone),
+    ('cred', '', '--cred', 'Credentials to use', cli.notNone),
+    ('num', '', '--num', 'Number of nodes to create', func.compose(int, cli.notNone)),
+    ('update_dirs', '', '--update_dirs', 'Update scritps directories', cli.defaultIfNone(False), True),
     ]
 
-def updateCluster(cluster):
+def updateCluster(cl):
     """
     This keeps on setting the cluster master to the new value and
     dumping it to the database
     """
     try:
-        cl = persist_mongo.load(cluster.name)
-        cluster = cluster.addExecNodes(cl.execNodes).addDataNodes(cl.dataNodes)
+        dbCluster = cluster_ctl.loadCluster(cl.name)
+        cl = cl.addExecNodes(dbCluster.execNodes).addDataNodes(dbCluster.dataNodes)
     except persist_mongo.ClusterDoesNotExist:
         pass
+    except persist_mongo.ClusterLoadIncompleteError:
+        pass
 
-    persist_mongo.dump(cluster)
+    cluster_ctl.saveCluster(cl)
     
 
 
@@ -82,19 +86,28 @@ def main(options, _args):
                      'exec_groups': [f.strip() for f in options('cluster.exec_groups').split(',')],
                      }
          }, options)
-    ctype = ec2control
 
     tsk = task.updateTask(task.loadTask(options('general.task_name')
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting master'))
 
     try:
+        tsk = task.updateTask(tsk.addMessage(task.MSG_NOTIFICATION, 'Loading credential...'))
+        cred = manager.loadCredential(options('general.cred'))
+    except cred_persist.CredentialDoesNotExistError, err:
+        tsk = task.updateTask(tsk.setState(task.TASK_FAILED).addException('Credential does not exist: ' + options('general.cred'), err, errors.getStacktrace()))
+        raise
+    except Exception, err:
+        tsk = task.updateTask(tsk.setState(task.TASK_FAILED).addException('Unknown error loading credential: ' + str(err), err, errors.getStacktrace()))
+        raise
+        
+    try:
         ##
         # Try to load the cluster.  If it does not exist, continue and make it, if it does exist noop
         if not clusterExists('localhost', options('general.name')):
-            cl = Cluster(options('general.name'), ctype, options)
+            cl = Cluster(options('general.name'), cred, options)
             try:
-                cl = cl.startMaster(updateCluster, devMode=False, releaseCut=False)
+                cl = cl.startMaster(updateCluster)
 
                 updateCluster(cl)
 
@@ -121,5 +134,5 @@ def main(options, _args):
     tsk = task.updateTask(tsk)
         
 if __name__ == '__main__':
-    runCatchError(lambda : main(*buildConfigN(OPTIONS)),
+    runCatchError(lambda : main(*cli.buildConfigN(OPTIONS)),
                   mongoFail(dict(action='startCluster')))
