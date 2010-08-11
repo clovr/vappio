@@ -16,6 +16,10 @@ sleep 1
 mount -o ttl=3 -t vmhgfs .host:$userdata_dir $userdata_mp -o uid=33 -o gid=33 -o fmask=000 -o dmask=000
 mount -o ttl=3 -t vmhgfs .host:/keys $keysdir -o uid=33 -o gid=33 -o fmask=077 -o dmask=077
 
+grep "^postgres" /etc/passwd
+if [ $? = 0 ]
+then
 # Postgres specific shared area
-mount -o ttl=3 -t vmhgfs .host:$postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid
+    mount -o ttl=3 -t vmhgfs .host:$postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid
+fi
 
