@@ -21,6 +21,8 @@ do_start() {
 	echo "$ipaddr clovr-$ipalias clovr-$ipalias" >> /etc/hosts
 	touch $vappio_runtime/no_dns
     fi
+    #Temp workaround needed to support edits by vappio scripts
+    #chmod a+w /etc/hosts
 }
 
 do_stop() {
