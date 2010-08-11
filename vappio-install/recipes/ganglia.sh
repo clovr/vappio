@@ -10,8 +10,8 @@ ln -f -s /etc/apache2/sites-available/ganglia /etc/apache2/sites-enabled/ganglia
 #Alias /ganglia /usr/share/ganglia-webfrontend
 #add to /etc/apache2/sites-available/default
 
-update-rc.d -f ganglia-monitor remove
-update-rc.d -f gmetad remove
+#update-rc.d -f ganglia-monitor remove
+#update-rc.d -f gmetad remove
 
 perl -pi -e 's/memory_limit.*/memory_limit = 1024M/' /etc/php5/apache2/php.ini
 perl -pi -e 's/max_execution_time.*/max_execution_time = 180/' /etc/php5/apache2/php.ini

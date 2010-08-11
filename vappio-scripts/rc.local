@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Ubuntu doesn't use /etc/rc.local
 # https://help.ubuntu.com/community/RcLocalHowto
 
