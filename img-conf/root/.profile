@@ -20,9 +20,9 @@ echo "Access the CloVR appliance from a web browser at http://$ipaddr"
 if [ "$SCREENME" ]; then
     screen -list | grep clovr-login
     if [ "$?" == "0" ]; then
-	exec screen -rd clovr-login	
+	exec screen -s /bin/bash -rd clovr-login	
     else
-	exec screen -S clovr-login startup_msg.sh
+	exec screen -s /bin/bash -S clovr-login startup_msg.sh
     fi
 fi
 
