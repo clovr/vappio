@@ -17,6 +17,10 @@ perl -pi -e 's/memory_limit.*/memory_limit = 1024M/' /etc/php5/apache2/php.ini
 perl -pi -e 's/max_execution_time.*/max_execution_time = 180/' /etc/php5/apache2/php.ini
 perl -pi -e 's/max_input_time.*/max_input_time = 180/' /etc/php5/apache2/php.ini
 
+/etc/init.d/gmetad restart
+/etc/init.d/ganglia-monitor restart
+
 /etc/init.d/apache2 restart
 
 #TODO, missing customizations
+#set /etc/ganglia

@@ -35,8 +35,7 @@ tar -C / -xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
 chmod 755 /etc
-#rm -rf $tmpdir
-#svn export --force  root
+rm -rf $tmpdir
 
 sysctl -p
 ifconfig eth0 mtu 9000
@@ -44,3 +43,12 @@ ifconfig eth0 txqueuelen 50000
 
 chmod +t /tmp/
 chmod 777 /tmp
+
+#Allow root login
+perl -pi -e 's/command=".*"\s+//' /root/.ssh/authorized_keys  
+/etc/init.d/ssh restart
+
+#Enable autologin for terminal
+apt-get -y install mingetty
+perl -pi -e 's/^exec.*/exec \/sbin\/mingetty \-\-autologin root tty1/' /etc/init/tty1.conf
+
