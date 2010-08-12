@@ -70,7 +70,8 @@ umask(0022);
 # there are other modules, but they would need to be added to the script
 my %ID_GENERATORS = (
 		     igs => "IGSIdGenerator",
-		     default => "DefaultIdGenerator"
+		     default => "DefaultIdGenerator",
+                     cloud => "CloudIdGenerator"
 		    );
 
 my %opts = &parse_options();
@@ -377,7 +378,7 @@ sub svn_checkout {
     my ($path, $repository) = @_;
     mkdir($path) or die "Unable to create svn co " . $path.": $!";
 #    my $svn_cmd = "svn co --trust-server-cert --non-interactive $repository $path";  # reqs SVN >= 1.6
-    my $svn_cmd = "svn co --non-interactive $repository $path";
+    my $svn_cmd = "svn export --trust-server-cert --force --non-interactive $repository $path";
     run_command( $svn_cmd );
 }
 

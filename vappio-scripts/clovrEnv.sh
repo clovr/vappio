@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export BIOINF_HOME=/opt/opt-packages/bioinf-v1r4b1/
 export RDP_JAR_PATH=$BIOINF_HOME/rdp_classifier/rdp_classifier-2.0.jar

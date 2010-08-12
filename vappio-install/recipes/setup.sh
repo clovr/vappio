@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 export DEBIAN_FRONTEND=noninteractive
 
+ln -sf /bin/bash /bin/sh
 apt-get -y --force-yes update
 apt-get -y --force-yes upgrade
 

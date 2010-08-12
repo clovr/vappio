@@ -57,9 +57,18 @@ cpan -i SVN::Agent
 #Install Ergatis
 #TODO replace with build_ergatis
 
-wget -C /tmp https://ergatis.svn.sourceforge.net/svnroot/ergatis/trunk/components/shared/software.config
+wget -P /tmp https://ergatis.svn.sourceforge.net/svnroot/ergatis/trunk/components/shared/software.config
 
-$VAPPIO_RECIPES/build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/www/ergatis --tmp_area=/tmp --software_config=/tmp/software.config --id_generator=Cloud --log /tmp/ergatis.log 
+rm -r /tmp/software.config
+apt-get -y install g++
+$VAPPIO_RECIPES/build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/www/ergatis --tmp_area=/tmp --software_config=/tmp/software.config --id_generator=cloud --log /tmp/ergatis.log 
+
+mkdir -p /opt/ergatis/global_id_repository/logs
+chmod -R 777 /opt/ergatis/global_id_repository
+
+#install ergatis.ini and software.config
+
+
 
 #Update configuration
 #wget http://cb2.igs.umaryland.edu/ergatis_config.tgz
@@ -68,6 +77,7 @@ $VAPPIO_RECIPES/build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/
 #tar -C / -xvzf ergatis_clovr.tgz
 
 #Set website
+rm -r clovr_ergatis_www.tgz
 wget http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
 tar -C / -xvzf clovr_ergatis_www.tgz
 

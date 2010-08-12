@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ##
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
@@ -17,7 +17,7 @@ masternode=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 if [ "$hostname" != "$masternode" ]
 then
     vlog "Submitting qsub command"
-    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync n -q $repositoryq $vappio_scripts/syncrepository.sh $hostname"
+    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync n -q $repositoryq $vappio_scripts/syncrepository.sh $hostname"
     vlog "CMD: $cmd"
     $cmd 1>> $vappio_log 2>> $vappio_log
 else

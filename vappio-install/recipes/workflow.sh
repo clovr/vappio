@@ -7,12 +7,13 @@ chown www-data:www-data /opt/workflow-sforge/idfile
 SGE_ROOT=/var/lib/gridengine
 mkdir $SGE_ROOT/lib
 cp drmaa.jar $SGE_ROOT/lib
+cp drmaa.jar /opt/workflow-sforge/jars/
 #modify switch.sh for dramma.jar
 #modify sge_submitter.sh /opt/workflow-sforge/bin/sge_submitter.sh
 
 perl -pi -e 's/export SGE_ROOT=.*/export SGE_ROOT=\/var\/lib\/gridengine/' /opt/workflow-sforge/bin/sge_submitter.sh
 perl -pi -e 's/export SGE_ARCH=.*/export SGE_ARCH=lx26-ia64/' /opt/workflow-sforge/bin/sge_submitter.sh
-perl -pe -e 's/\/opt\/sge/\/var\/lib\/gridengine/' /opt/workflow-sforge/bin/switch.sh
+perl -pe -e 's/\/opt\/sge/\/\/opt\/workflow-sforge\/jars\/drmaa.jar\:var\/lib\/gridengine/' /opt/workflow-sforge/bin/switch.sh
 #export SGE_CELL=default
 #export SGE_QMASTER_PORT=6444
 #export SGE_EXECD_PORT=6445

@@ -75,7 +75,7 @@ then
 
 	vlog "Submitting staging job for $wfxml@$myhost to wf.q" 
 	#Get iterator input, workflow xml and final.config from the master to the exec host
-        cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $wfq $stagingwf_script $myhost $wfxml"
+        cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $stagingwf_script $myhost $wfxml"
 	vlog "CMD: $cmd" 
 	$cmd 1>> $vappio_log 2>> $vappio_log
 	ret1=$?

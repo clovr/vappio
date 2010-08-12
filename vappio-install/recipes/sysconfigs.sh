@@ -24,7 +24,11 @@ svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/pam.d $tmpdir/etc/pam.d
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/security $tmpdir/etc/security
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/perl $tmpdir/etc/perl
+
+#Contains SCREENME envvar for triggering screen on login
+#TODO, this can cause problems for all shells spawned by SGE, make sure this is not set outside of login console
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.profile $tmpdir/root/.profile
+
 pushd $tmpdir
 tar cvzf ../install$$.tgz .
 tar -C / -xvzf ../install$$.tgz

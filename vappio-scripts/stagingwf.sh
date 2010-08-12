@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #USAGE: staging.wf.sh [remotehost] [workflow_xml]
 #The input workflow XML must the absolute path to a single group from an Ergatis iterator.
