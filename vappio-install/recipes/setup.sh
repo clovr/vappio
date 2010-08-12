@@ -25,6 +25,9 @@ apt-get -y remove avahi-daemon
 #Remove start up messages
 rm -f /etc/update-motd.d/51_update-motd
 rm -f /etc/update-motd.d/92-uec-upgrade-available
+#Add basic help
+
+
 
 rm -f /etc/cron.d/cloudinit-updates
 

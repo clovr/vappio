@@ -1,8 +1,13 @@
 #!/bin/sh
 
-appliance=`cat /etc/vappio/appliance_name`
-release=`cat /etc/vappio/release_name`
-bundle=`cat /etc/vappio/bundle_name`
-
-echo
-echo "$appliance virtual appliance ($bundle image, release $release)"
+if [ -d "/etc/vappio" ]
+then
+    appliance=`cat /etc/vappio/appliance_name`
+    release=`cat /etc/vappio/release_name`
+    bundle=`cat /etc/vappio/bundle_name`
+    echo
+    echo "$appliance virtual appliance ($bundle image, release $release)"
+else
+    echo "Welcome to the CloVR VM"
+    echo " * Documentation: http://clovr.org"
+fi
