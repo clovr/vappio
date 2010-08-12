@@ -5,12 +5,13 @@
 mkdir /mnt/foo1
 losetup -f $1
 mount /dev/loop0 /mnt/foo1
-dd if=/dev/zero of=/mnt/foo1/tmp/ZEROS
+dd if=/dev/zero of=/mnt/foo1/tmp/ZEROS > /dev/null 2> /dev/null
 rm /mnt/foo1/tmp/ZEROS
 umount /mnt/foo1 
 rm -rf /mnt/foo1
 losetup -d /dev/loop0
+chmod 666 $1
 fname=`basename $1`
-tar -S -cvzf $2 $1
+tar -S -cvzf $2 $fname
 
 
