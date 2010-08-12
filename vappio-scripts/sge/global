@@ -1,5 +1,5 @@
 #global:
-execd_spool_dir              /opt/sge/default/spool
+execd_spool_dir              /var/spool/gridengine/execd
 mailer                       /bin/mail
 xterm                        /usr/bin/X11/xterm
 load_sensor                  none

@@ -28,3 +28,5 @@ do
 	vlog "Unsupported node type: $n"
     fi
 done
+
+echo "OFFLINE" > $vappio_runtime/node_type
