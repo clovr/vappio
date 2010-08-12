@@ -8,22 +8,9 @@ VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 apt-get -y update
 
 bash -e $VAPPIO_RECIPES/vappioutil.sh
+
 bash -e $VAPPIO_RECIPES/buildutils.sh
 
 bash -e $VAPPIO_RECIPES/hudson.sh
-#Need grub legacy, it just works with xen
-#tried grub2 but it is a mess
-apt-get -y install qemu-kvm 
-
-#Retrieve grub and boot sector 
-wget -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
-
-apt-get -y install grub
-
-#chroot
-#update-initramfs
-#create grub.cfg
-#update-grub 
-#grub-install
 
 /etc/init.d/hudson start
