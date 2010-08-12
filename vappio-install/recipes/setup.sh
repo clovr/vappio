@@ -22,6 +22,10 @@ apt-get -y remove wireless-tools wpasupplicant
 apt-get -y remove puppet puppet-common puppetmaster
 apt-get -y remove avahi-daemon 
 
+#Remove start up messages
+rm -f /etc/update-motd.d/51_update-motd
+rm -f /etc/update-motd.d/92-uec-upgrade-available
+
 rm -f /etc/cron.d/cloudinit-updates
 
 apt-get -y install euca2ools
