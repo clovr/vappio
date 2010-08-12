@@ -2,7 +2,9 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+#Default dash shell breaks many a shell script
 ln -sf /bin/bash /bin/sh
+
 apt-get -y --force-yes update
 apt-get -y --force-yes upgrade
 
@@ -26,6 +28,7 @@ apt-get -y install euca2ools
 apt-get -y install subversion
 apt-get -y install virt-what
 
+#Disable cloud services by default
 rename 's/plymouth(\S*)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
 rename 's/cloud-(\S*)\.conf/cloud-$1.conf.disabled/' /etc/init/cloud-*.conf
 
@@ -39,5 +42,5 @@ then
     mv -f /etc/init/mountall-shell.conf /etc/init/mountall-shell.conf.disabled
 fi
 
-
+#Copy virgin fstab so we can boot
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/fstab /etc/fstab.orig

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#Set up some basic system settings to taste
+#Including ulimit, kernel params
+#Enable root logins and passwordless console
+
 #etc/profile
 #etc/sysctl.conf
 #/etc/pamd.conf/common-session
