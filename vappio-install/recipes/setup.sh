@@ -24,10 +24,12 @@ apt-get -y remove avahi-daemon
 
 #Remove start up messages
 rm -f /etc/update-motd.d/51_update-motd
+rm -f /etc/update-motd.d/90-updates-available
+rm -f /etc/update-motd.d/91-release-upgrade
 rm -f /etc/update-motd.d/92-uec-upgrade-available
+
 #Add basic help
-
-
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d/10-help-text /etc/update-motd.d/10-help-text
 
 rm -f /etc/cron.d/cloudinit-updates
 
