@@ -1,5 +1,12 @@
 #!/bin/bash
 
+
+apt-get -y install xstow
+
+#Needed for vappio API
+apt-get -y install python-setuptools
+easy_install pymongo
+
 pushd /tmp
 rm -rf vappio-py
 svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py

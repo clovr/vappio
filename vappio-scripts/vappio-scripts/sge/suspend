@@ -1,4 +1,0 @@
-#!/bin/sh
-kill -l SIGSTOP $6
-
-echo "$1 $2 $3 $4 $5 $6" > /tmp/suspend

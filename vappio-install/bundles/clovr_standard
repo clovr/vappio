@@ -1,9 +1,11 @@
-#!/bin/bash
+#!/bin/bash -e
 
 export DEBIAN_FRONTEND=noninteractive
 
 VAPPIO_HOME=/opt
 VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
+
+apt-get -y update
 
 bash -e $VAPPIO_RECIPES/cpanmods.sh
 bash -e $VAPPIO_RECIPES/vappiosite.sh
