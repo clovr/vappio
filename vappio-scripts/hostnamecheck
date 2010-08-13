@@ -5,10 +5,19 @@ do_start() {
 #To support ad-hoc virtual clusters, 
 #set up mock hostname if we don't have one, using the clovr-IPADDR naming convention
 #This is required so that SGE can run locally without problems
-    hostname -f
+    nodns=0
+    myhostname=`hostname -f`
     if [ $? != "0" ]
     then
-    #TODO, check if on EC2 here, this is a problem
+	nodns = 1
+    else
+	ping -c 1 myhostname
+	if [ $? != 0 ]
+	    nodns = 1
+	fi
+    fi
+    if [ $nodns = "1" ]
+    then
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 	ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
 	hostname clovr-$ipalias
