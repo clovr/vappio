@@ -66,5 +66,5 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 
 #Set up ntp cron job
 apt-get -y install ntpdate
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cron.hourly/ntpdate.sh /etc/cron.hourly/ntpdate.sh
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/ntpdate.sh /etc/init.d/ntpdate.sh
 
