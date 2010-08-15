@@ -15,14 +15,16 @@ if [ $# -ne 3 ]
 fi
 
 #create a new blank raw disk image of desired size, eg 10G
-rm -f ./clovrVMware.raw
+mkdir /mnt/$$
+clovrraw=/mnt/$$/vmdk.raw
+rm -f $clovrraw
 losetup -d /dev/loop1
 losetup -d /dev/loop0
 
-qemu-img create -f raw ./clovrVMware.raw 10G
+qemu-img create -f raw $clovrraw 10G
 
 #mount clovrVMware.raw as loopback device loop0
-losetup /dev/loop0 ./clovrVMware.raw
+losetup /dev/loop0 $clovrraw
 
 #create a new partition with fdisk
 #scripted to create 1 large, bootable partition
@@ -49,7 +51,7 @@ losetup -o 32256 /dev/loop1 /dev/loop0
 
 #Now copy the image, already formatted ext3 partition into /dev/loop1
 #ie. dump release image clovr-vXbXrX.raw in loopback loop1
-
+#TODO, mount file as parition and resizefs -M to minimum size first
 dd if=$1 of=/dev/loop1
 
 #could stop at this point and format blank partition as ext3
@@ -64,10 +66,10 @@ dd if=$1 of=/dev/loop1
 #I have a copy in /usr/local/projects/CloVR/images/grub-boot.tgz
 #This is the original boot directory from the Ubuntu 9.04 image from stacklet.com
 #which serves as the base for CloVR.
-rm -f /mnt/foo1
-mkdir -p /mnt/foo1
-mount /dev/loop1 /mnt/foo1
-pushd /mnt/foo1
+rm -f /mnt/$$/foo1
+mkdir -p /mnt/$$/foo1
+mount /dev/loop1 /mnt/$$/foo1
+pushd /mnt/$$/foo1
 tar xvzf $2 boot/grub
 #Write out zeros to better compress file system
 dd if=/dev/zero of=tmp/ZEROS
@@ -75,13 +77,13 @@ sync
 rm -f tmp/ZEROS
 sync
 popd
-umount /mnt/foo1
-v
-#Now finally install boot loader on MBR of clovrVMware.raw==loop0
+umount /mnt/$$/foo1
+
+#Now finally install boot loader on MBR of $clovrraw==loop0
 #sync
 
 grub --device-map=/dev/null << .
-device (hd0) /mnt/clovrVMware.raw 
+device (hd0) $clovrraw
 root (hd0,0)
 setup (hd0)
 quit
@@ -91,13 +93,11 @@ losetup -d /dev/loop1
 sleep 2
 losetup -d /dev/loop0
 
-#We now have a bootable image in raw disk format, clovrVMWare.raw
-
-#Proceed with the VMware conversion
+#We now have a bootable image in raw disk format
 #Create vmdk
-qemu-img convert -f raw ./clovrVMware.raw -o compat6 -O vmdk $3
+qemu-img convert -f raw $clovrraw -o compat6 -O vmdk $3
+rm -rf $clovrraw
+#This vmdk can be used with the VMware or Virtualbox
+#For VMware, simply update an existing .vmx file to reference this vmdk
 
-#Simply update an existing .vmx file to reference this vmdk
-#And you are done 
 
-tar -S -cvzf $3.tgz $3

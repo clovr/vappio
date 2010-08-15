@@ -1,0 +1,139 @@
+#!/usr/bin/vmplayer
+.encoding = "windows-1252"
+
+config.version = "8"
+virtualHW.version = "6"
+
+# Selected operating system for your virtual machine
+guestOS = "ubuntu-64"
+
+# displayName is your own name for the virtual machine
+displayName = ";NAME;"
+
+# Number of virtual CPUs. Your virtual machine will not
+# work if this number is higher than the number of your physical CPUs
+numvcpus = "1"
+
+# Memory size and other memory settings
+memsize = "2012"
+MemAllowAutoScaleDown = "FALSE"
+MemTrimRate = "-1"
+
+# Unique ID for the virtual machine will be created
+uuid.action = "create"
+
+####### ide-disks ##################### 
+ide0:0.present = "TRUE"
+ide0:0.fileName = ";VMDK;"
+ide0:0.mode = "persistent"
+ide0:0.startConnected = "TRUE"
+ide0:0.writeThrough = "TRUE"
+
+
+####### scsi-controllers ################## 
+#scsi0.present = "TRUE" 
+#scsi0.virtualDev = "buslogic" 
+#scsi1.present = "TRUE" 
+#scsi1.virtualDev = "lsilogic" 
+
+####### scsi-disks ##################### 
+
+####### nics ########################## 
+ethernet0.present = "TRUE"
+ethernet0.connectionType = "bridged"
+ethernet0.generatedAddressOffset = "0"
+ethernet0.virtualDev = "vlance"
+
+####### sound ######################### 
+
+####### usb ########################### 
+
+####### floppies ####################### 
+
+####### ports ######################### 
+
+virtualHW.productCompatibility = "hosted"
+tools.upgrade.policy = "manual"
+
+uuid.location = "56 4d 8a 43 a0 8e e9 7e-d6 61 2d 16 6c 47 ed 80"
+uuid.bios = "56 4d 8a 43 a0 8e e9 7e-d6 61 2d 16 6c 47 ed 80"
+ide0:0.redo = ""
+
+extendedConfigFile = "start_clovr.vmxf"
+
+sharedFolder.maxNum = "3"
+sharedFolder0.present = "TRUE"
+sharedFolder0.enabled = "TRUE"
+sharedFolder0.readAccess = "TRUE"
+sharedFolder0.writeAccess = "TRUE"
+sharedFolder0.hostPath = "./shared"
+sharedFolder0.guestName = "shared"
+sharedFolder0.expiration = "session"
+
+isolation.tools.hgfs.disable = "FALSE"
+
+checkpoint.vmState = ""
+vmotion.checkpointFBSize = "16777216"
+
+ethernet0.startConnected = "TRUE"
+tools.syncTime = "FALSE"
+debugStub.linuxOffsets = "0x0,0xffffffff,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0"
+gui.fullScreenAtPowerOn = "FALSE"
+gui.viewModeAtPowerOn = "windowed"
+
+ethernet0.addressType = "generated"
+
+tools.remindInstall = "FALSE"
+
+ethernet0.generatedAddress = "00:0c:29:47:ed:80"
+
+hgfs.mapRootShare = "TRUE"
+hgfs.linkRootShare = "TRUE"
+
+ide0:1.present = "TRUE"
+ide0:1.autodetect = "TRUE"
+ide0:1.deviceType = "cdrom-raw"
+
+ide0:1.fileName = "auto detect"
+
+ide0:1.startConnected = "TRUE"
+scsi0:0.present = "FALSE"
+scsi0:1.present = "FALSE"
+scsi0:2.present = "FALSE"
+scsi0:3.present = "FALSE"
+scsi0:4.present = "FALSE"
+scsi0:5.present = "FALSE"
+scsi0:6.present = "FALSE"
+scsi1:0.present = "FALSE"
+scsi1:1.present = "FALSE"
+scsi1:2.present = "FALSE"
+scsi1:3.present = "FALSE"
+scsi1:4.present = "FALSE"
+scsi1:5.present = "FALSE"
+scsi1:6.present = "FALSE"
+sound.present = "FALSE"
+usb.present = "FALSE"
+floppy0.present = "FALSE"
+floppy1.present = "FALSE"
+parallel0.present = "FALSE"
+serial0.present = "FALSE"
+serial1.present = "FALSE"
+cleanShutdown = "TRUE"
+replay.supported = "FALSE"
+replay.filename = ""
+sharedFolder1.present = "TRUE"
+sharedFolder1.enabled = "TRUE"
+sharedFolder1.readAccess = "TRUE"
+sharedFolder1.writeAccess = "TRUE"
+sharedFolder1.hostPath = "./keys"
+sharedFolder1.guestName = "keys"
+sharedFolder1.expiration = "never"
+sharedFolder2.present = "TRUE"
+sharedFolder2.enabled = "TRUE"
+sharedFolder2.readAccess = "TRUE"
+sharedFolder2.writeAccess = "TRUE"
+sharedFolder2.hostPath = "./user_data"
+sharedFolder2.guestName = "user_data"
+sharedFolder2.expiration = "never"
+
+ethernet0.pciSlotNumber = "16"
