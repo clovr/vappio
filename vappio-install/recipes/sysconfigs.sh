@@ -22,7 +22,7 @@ svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt $tmpdir/etc/apt
 
 #Make non-EC apt the default
-cp /etc/apt.sources.orig /etc/apt.sources
+cp /etc/apt/sources.list.orig /etc/apt/sources.list
 
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.conf $tmpdir/etc/sysctl.conf
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.d $tmpdir/etc/sysctl.d
