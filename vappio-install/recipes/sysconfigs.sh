@@ -19,8 +19,11 @@ rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc $tmpdir/root
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.d $tmpdir/etc/sysctl
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cloud $tmpdir/etc/cloud
-
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt $tmpdir/etc/apt
+
+#Make non-EC apt the default
+cp /etc/apt.sources.orig /etc/apt.sources
+
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.conf $tmpdir/etc/sysctl.conf
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.d $tmpdir/etc/sysctl.d
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/profile $tmpdir/etc/profile
@@ -30,7 +33,7 @@ svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/perl $tmpdir/etc/perl
 
 #Contains SCREENME envvar for triggering screen on login
-#TODO, this can cause problems for all shells spawned by SGE, make sure this is not set outside of login console
+#TODO, this can cause problems for all shells spawned by SGE, make sure SCREENME is not set outside of login console
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.profile $tmpdir/root/.profile
 
 pushd $tmpdir
@@ -42,8 +45,13 @@ chmod 755 /etc
 rm -rf $tmpdir
 
 sysctl -p
-ifconfig eth0 mtu 9000
-ifconfig eth0 txqueuelen 50000
+
+#This causes errors on vmware
+#ifconfig eth0 mtu 9000
+#ifconfig eth0 txqueuelen 50000
+
+#Heavy disk IO can trigger hung task warnings in the VM
+echo 0 > /proc/sys/kernel/hung_task_timeout_secs
 
 chmod +t /tmp/
 chmod 777 /tmp
@@ -55,4 +63,8 @@ perl -pi -e 's/command=".*"\s+//' /root/.ssh/authorized_keys
 #Enable autologin for terminal
 apt-get -y install mingetty
 perl -pi -e 's/^exec.*/exec \/sbin\/mingetty \-\-autologin root tty1/' /etc/init/tty1.conf
+
+#Setup hostname, TODO, move to init.d
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-scripts/hostnamecheck /opt/vappio-scripts/hostnamecheck
+/opt/vappio-scripts/hostnamecheck start
 

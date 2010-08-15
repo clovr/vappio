@@ -28,6 +28,15 @@ rm -f /etc/update-motd.d/90-updates-available
 rm -f /etc/update-motd.d/91-release-upgrade
 rm -f /etc/update-motd.d/92-uec-upgrade-available
 
+#Remove unneccessary cron jobs
+rm -f /etc/cron.daily/mlocate
+rm -f /etc/cron.daily/popularity-contest
+rm -f /etc/cron.daily/bsdmainutils
+rm -r /etc/cron.monthly/standard
+
+#Disable slow framebuffer
+echo "blacklist vga16fb" > /etc/modprobe.d/blacklist-framebuffer
+
 #Add basic help
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d/10-help-text /etc/update-motd.d/10-help-text
 
@@ -36,6 +45,7 @@ rm -f /etc/cron.d/cloudinit-updates
 apt-get -y install euca2ools
 apt-get -y install subversion
 apt-get -y install virt-what
+apt-get -y install unzip
 
 #Disable cloud services by default
 rename 's/plymouth(\S*)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
@@ -53,3 +63,8 @@ fi
 
 #Copy virgin fstab so we can boot
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/fstab /etc/fstab.orig
+
+#Set up ntp cron job
+apt-get -y install ntpdate
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cron.hourly/ntpdate.sh /etc/cron.hourly/ntpdate.sh
+
