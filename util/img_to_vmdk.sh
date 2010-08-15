@@ -71,11 +71,12 @@ pushd /mnt/foo1
 tar xvzf $2 boot/grub
 #Write out zeros to better compress file system
 dd if=/dev/zero of=tmp/ZEROS
+sync
 rm -f tmp/ZEROS
 sync
 popd
 umount /mnt/foo1
-
+v
 #Now finally install boot loader on MBR of clovrVMware.raw==loop0
 #sync
 
