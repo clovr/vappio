@@ -32,7 +32,7 @@ rm -f /etc/update-motd.d/92-uec-upgrade-available
 rm -f /etc/cron.daily/mlocate
 rm -f /etc/cron.daily/popularity-contest
 rm -f /etc/cron.daily/bsdmainutils
-rm -r /etc/cron.monthly/standard
+rm -f /etc/cron.monthly/standard
 
 #Disable slow framebuffer
 echo "blacklist vga16fb" > /etc/modprobe.d/blacklist-framebuffer
