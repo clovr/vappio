@@ -5,5 +5,5 @@ deb-src http://us-east-1.ec2.archive.ubuntu.com/ubuntu/ lucid-updates main unive
 deb http://security.ubuntu.com/ubuntu lucid-security main universe
 deb-src http://security.ubuntu.com/ubuntu lucid-security main universe
 deb http://archive.canonical.com/ lucid partner
-deb http://archive.cloudera.com/debian lucid-cdh3 contrib
-deb-src http://archive.cloudera.com/debian lucid-cdh3 contrib
+#deb http://archive.cloudera.com/debian lucid-cdh3 contrib
+#deb-src http://archive.cloudera.com/debian lucid-cdh3 contrib
