@@ -2,7 +2,7 @@
 
 ##
 # Delete this if we are a nimbus node, won't exist if we aren't
-rm /var/nimbus-metadata-server-url
+rm -f /var/nimbus-metadata-server-url
 
 ##
 # Remove any subversions tuff
@@ -12,6 +12,9 @@ rm -rf /root/.subversion
 ##
 # Delete the ip address file so outside scripts can know when the system is up
 rm /mnt/clovr_ip
+
+## Rm vappio files
+rm -rf /var/vappio/runtime/*
 
 ##
 # Don't want people having our SSH keys

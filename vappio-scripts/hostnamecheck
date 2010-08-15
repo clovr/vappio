@@ -24,6 +24,7 @@ do_start() {
 	hostname clovr-$ipalias
 	cp /etc/hosts.orig /etc/hosts
 	echo "$ipaddr clovr-$ipalias clovr-$ipalias" >> /etc/hosts
+	#If vappio is installed, mark no_dns
 	if [ -f "/opt/vappio-scripts/vappio_config.sh" ]
 	then
 	    vappio_scripts=/opt/vappio-scripts
