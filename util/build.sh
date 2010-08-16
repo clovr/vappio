@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #USAGE: build.sh image.img name1 name2 ... namen
 #eg. build.sh clovr_skeleton.img clovr_base clovr_standard
@@ -9,13 +9,26 @@
 #so utildir and recipedir should already be populated
 
 #TODO run on nightly cron
-#build.sh clovr_base clovr_build clovr_standard
+#echo << . > /etc/init.d/cron.nightly/clovrbuild
+##!/bin/bash
+#/opt/vappio-util/vp-bootstrap-install
+#/opt/vappio-install/recipes/clovr_build
+#/opt/vappio-util/build.sh /mnt/image.img clovr_base clovr_build clovr_standard
+#.
+#chmod +x /etc/init.d/cron.nightly/clovrbuild
 
 #for testing on leatherface.igs.umaryland.edu
 #mount /dev/sdb1 /mnt
 #b=clovr_build
 #image=/mnt/image.img
 #bname=
+
+mountpoint /mnt
+if [ $? != 0 ]
+then
+    echo "/mnt must be an external mount with sufficient free space. mount this volume first"
+    exit 1
+fi
 
 recipedir=/opt/vappio-install/bundles
 utildir=/opt/vappio-util
