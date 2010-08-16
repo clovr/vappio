@@ -1,0 +1,87 @@
+#!/bin/bash
+
+#USAGE: build.sh image.img name1 name2 ... namen
+#eg. build.sh clovr_skeleton.img clovr_base clovr_standard
+
+#Takes a skeleton image (image.img) and applies recipes name1 ... namen
+#creating one output directory per image
+#Assumes to be run on a box that has clovr_build recipe applied
+#so utildir and recipedir should already be populated
+
+#TODO run on nightly cron
+#build.sh clovr_base clovr_build clovr_standard
+
+#for testing on leatherface.igs.umaryland.edu
+#mount /dev/sdb1 /mnt
+#b=clovr_build
+#image=/mnt/image.img
+#bname=
+
+recipedir=/opt/vappio-install/bundles
+utildir=/opt/vappio-util
+
+image=$1
+bname=`basename $image`
+
+#remaining arguments are recipe names
+shift
+
+wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
+wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-3.2.6.tar.gz
+wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
+
+defaultname=`date "+%Y%m%d"`
+
+for $b in $*
+do
+    mkdir -p /mnt/$$/$b
+    mkdir -p /mnt/$$/$b.live
+    currimg=/mnt/$$/$b/$bname
+    cp $image $currimg
+    devname=`losetup --show -f $currimg`
+    mount $devname /mnt/$$/$b.live
+
+    #Set up some things for the chroot jail
+    export recipedir=$recipedir
+    export b=$b
+    mount --bind /proc /mnt/$$/$b.live/proc
+    mount --bind /sys /mnt/$$/$b.live/sys
+    mount --bind /dev /mnt/$$/$b.live/dev
+    #Set up resolv.conf so networking works in chroot
+    cp /etc/resolv.conf /mnt/$$/$b.live/etc/resolv.conf
+    cp /etc/apt/sources.list.orig /mnt/$$/$b.live/etc/apt/sources.list
+
+    #Apply recipe
+    wget -c -P /mnt/$$/$b.live/tmp http://vappio.svn.sourceforge.net/viewvc/vappio/trunk/vappio-install/vp-bootstrap-install
+    chroot /mnt/$$/$b.live bash -e /tmp/vp-bootstrap-install
+    chroot /mnt/$$/$b.live $recipedir/$b
+
+    #Exit from chroot
+    umount /mnt/$$/$b.live/proc
+    umount /mnt/$$/$b.live/sys
+    umount /mnt/$$/$b.live/dev
+    umount /mnt/$$/$b.live
+    sync
+    losetup -d $devname
+    #cleanup img
+    /opt/vappio-util/img_run.sh $currimg /opt/vappio-util/cleanupimg
+    #releaseCut scripts here
+
+    #Build xen
+    #create example clovr-xen.conf and bundle kernel image
+    echo "Create $currimg"
+
+    #Build VMware/VBox
+    cp $currimg $currimg.vmbundle
+    /opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz 
+    /opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vboxtools-3.2.6.tar.gz
+    /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
+    echo "Created $currimg.vmdk"
+    #/opt/vappio-util/bundle_vmwarevbox.sh ./image.vmdk vmware_bundle/start_clovr.vmx.template vmware_bundle/start_clovr.vmx clovr_vmware_testing
+
+    #The clouds should be able to use $currimg
+    #Build EC2
+    #Build Magellan
+    #Build DIAG
+done
+
