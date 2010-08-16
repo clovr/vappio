@@ -65,7 +65,7 @@ do_start() {
 }
 
 do_stop() {
-
+    echo ""
 }
 
 # Import vappio config

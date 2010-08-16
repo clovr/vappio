@@ -1,11 +1,10 @@
 #!/bin/bash
 
 
-which gstats > /dev/null
-if [ $? != 0 ]
-then
-	gstats | grep -v gexec
-fi
-
+#which gstats > /dev/null
+#if [ $? != 0 ]
+#then
+#	gstats | grep -v gexec
+#fi
 #grep top info here: load, cpu, mem, 
 
