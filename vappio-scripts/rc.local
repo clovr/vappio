@@ -19,8 +19,10 @@ do_start() {
     touch $vappio_log
     chmod 777 $vappio_log
     echo -n "CloVR VM " > /etc/issue
-    cat /opt/CLOVR-RELEASE >> /etc/issue
-    echo "Running on Ubuntu Linux 9.04 \n \l" >> /etc/issue
+    if [ -f "/opt/CLOVR-RELEASE" ]
+    then
+	cat /opt/CLOVR-RELEASE >> /etc/issue
+    fi
     echo " " >> /etc/issue
     netcount=$(/sbin/ifconfig | grep -o "inet")
     if [[ $netcount > 1 ]]
