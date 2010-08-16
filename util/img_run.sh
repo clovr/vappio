@@ -2,7 +2,7 @@
 
 #USAGE: img_run.sh image.img cleanupscript.sh
 
-devname=`losetup --show -f image.img`
+devname=`losetup --show -f $1`
 rm -rf /mnt/$$
 mkdir /mnt/$$
 
