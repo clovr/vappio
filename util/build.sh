@@ -32,7 +32,7 @@ wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
 
 defaultname=`date "+%Y%m%d"`
 
-for $b in $*
+for b in $*
 do
     mkdir -p /mnt/$$/$b
     mkdir -p /mnt/$$/$b.live
