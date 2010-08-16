@@ -69,7 +69,7 @@ do
 
     #Build xen
     #create example clovr-xen.conf and bundle kernel image
-    echo "Create $currimg"
+    echo "Created $currimg"
 
     #Build VMware/VBox
     cp $currimg $currimg.vmbundle

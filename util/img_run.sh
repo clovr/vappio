@@ -25,6 +25,9 @@ umount /mnt/$$/sys
 umount /mnt/$$/dev
 umount /mnt/$$
 
+rmdir /mnt/$$
+
 losetup -d $devname
+
 
 exit
