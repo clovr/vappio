@@ -31,4 +31,4 @@ perl -pi -e 's/command=".*"\s+//' /root/.ssh/authorized_keys
 /etc/init.d/ssh restart
 popd
 rm -rf /tmp/hpn-sshsource
-
+rm -rf $tmpdir

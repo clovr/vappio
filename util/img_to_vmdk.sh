@@ -97,6 +97,7 @@ losetup -d /dev/loop0
 #Create vmdk
 qemu-img convert -f raw $clovrraw -o compat6 -O vmdk $3
 rm -rf $clovrraw
+rmdir /mnt/$$
 #This vmdk can be used with the VMware or Virtualbox
 #For VMware, simply update an existing .vmx file to reference this vmdk
 
