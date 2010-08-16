@@ -16,12 +16,15 @@ mount --bind /dev /mnt/$$/dev
 bname=`basename $2`
 cp $2 /mnt/$$/tmp/$bname
 #Run the command
-chroot /mnt/$$ bash /mnt/$$/tmp/$bname
+chroot /mnt/$$ bash /tmp/$bname
+
+sync
 
 umount /mnt/$$/proc
 umount /mnt/$$/sys
 umount /mnt/$$/dev
 umount /mnt/$$
+
 losetup -d $devname
 
 exit
