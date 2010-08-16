@@ -57,10 +57,10 @@ do_start() {
 
 
     #Display node types in ganglia
-    vappio_node_type=`cat $vappio_runtime/node_type`
-    vappio_cloud_type=`cat $vappio_runtime/cloud_type`
-    /usr/local/stow/ganglia-3.1.2/bin/gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/etc/gmond.conf
-    /usr/local/stow/ganglia-3.1.2/bin/gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/etc/gmond.conf
+    #vappio_node_type=`cat $vappio_runtime/node_type`
+    #vappio_cloud_type=`cat $vappio_runtime/cloud_type`
+    #/usr/local/stow/ganglia-3.1.2/bin/gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/etc/gmond.conf
+    #/usr/local/stow/ganglia-3.1.2/bin/gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/etc/gmond.conf
 
 }
 
