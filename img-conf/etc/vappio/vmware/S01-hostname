@@ -1,1 +1,1 @@
-/opt/vappio-scripts/hostnamecheck
+/etc/init.d/hostnamecheck

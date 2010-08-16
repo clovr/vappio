@@ -65,6 +65,6 @@ apt-get -y install mingetty
 perl -pi -e 's/^exec.*/exec \/sbin\/mingetty \-\-autologin root tty1/' /etc/init/tty1.conf
 
 #Setup hostname, TODO, move to init.d
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-scripts/hostnamecheck /opt/vappio-scripts/hostnamecheck
-/opt/vappio-scripts/hostnamecheck start
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/hostnamecheck /etc/init.d/hostnamecheck
+/etc/init.d/hostnamecheck start
 
