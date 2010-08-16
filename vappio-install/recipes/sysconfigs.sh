@@ -21,9 +21,6 @@ svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cloud $tmpdir/etc/cloud
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt $tmpdir/etc/apt
 
-#Make non-EC apt the default
-cp /etc/apt/sources.list.orig /etc/apt/sources.list
-
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.conf $tmpdir/etc/sysctl.conf
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.d $tmpdir/etc/sysctl.d
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/profile $tmpdir/etc/profile
@@ -67,4 +64,7 @@ perl -pi -e 's/^exec.*/exec \/sbin\/mingetty \-\-autologin root tty1/' /etc/init
 #Setup hostname
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/hostnamecheck /etc/init.d/hostnamecheck
 /etc/init.d/hostnamecheck start
+
+#Make non-EC apt the default
+cp /etc/apt/sources.list.orig /etc/apt/sources.list
 
