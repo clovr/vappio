@@ -18,17 +18,16 @@ fi
 mkdir /mnt/$$
 clovrraw=/mnt/$$/vmdk.raw
 rm -f $clovrraw
-losetup -d /dev/loop1
-losetup -d /dev/loop0
 
 qemu-img create -f raw $clovrraw 10G
 
 #mount clovrVMware.raw as loopback device loop0
-losetup /dev/loop0 $clovrraw
+$deva=`losetup --show -f $clovrraw`
+$devb=`losetup -f`
 
 #create a new partition with fdisk
 #scripted to create 1 large, bootable partition
-fdisk /dev/loop0 << .
+fdisk $deva << .
 n
 p
 1
@@ -42,17 +41,17 @@ w
 #now we have a virtual hard drive aka /dev/loop0==/dev/hda
 #We need partition 1 like /dev/hda1==/dev/loop1
 
-fdisk -ul /dev/loop0
+fdisk -ul $deva
 
 #Take sector start and covert to bytes 63*512=32256
 #Now mount this partition as /dev/loop1
 
-losetup -o 32256 /dev/loop1 /dev/loop0
+losetup -o 32256 $devb $deva
 
 #Now copy the image, already formatted ext3 partition into /dev/loop1
 #ie. dump release image clovr-vXbXrX.raw in loopback loop1
 #TODO, mount file as parition and resizefs -M to minimum size first
-dd if=$1 of=/dev/loop1
+dd if=$1 of=$devb
 
 #could stop at this point and format blank partition as ext3
 #mkfs.ext3 /dev/loop1
@@ -68,7 +67,7 @@ dd if=$1 of=/dev/loop1
 #which serves as the base for CloVR.
 rm -f /mnt/$$/foo1
 mkdir -p /mnt/$$/foo1
-mount /dev/loop1 /mnt/$$/foo1
+mount $devb /mnt/$$/foo1
 pushd /mnt/$$/foo1
 tar xvzf $2 boot/grub
 #Write out zeros to better compress file system
@@ -90,9 +89,9 @@ setup (hd0)
 quit
 .
 #unmount
-losetup -d /dev/loop1
+losetup -d $devb
 sleep 2
-losetup -d /dev/loop0
+losetup -d $deva
 
 #We now have a bootable image in raw disk format
 #Create vmdk
