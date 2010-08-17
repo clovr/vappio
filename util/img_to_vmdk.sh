@@ -22,8 +22,8 @@ rm -f $clovrraw
 qemu-img create -f raw $clovrraw 10G
 
 #mount clovrVMware.raw as loopback device loop0
-$deva=`losetup --show -f $clovrraw`
-$devb=`losetup -f`
+deva=`losetup --show -f $clovrraw`
+devb=`losetup -f`
 
 #create a new partition with fdisk
 #scripted to create 1 large, bootable partition
