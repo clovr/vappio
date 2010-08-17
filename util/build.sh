@@ -13,7 +13,7 @@
 ##!/bin/bash
 #/opt/vappio-util/vp-bootstrap-install
 #/opt/vappio-install/recipes/clovr_build
-#/opt/vappio-util/build.sh /mnt/image.img clovr_base clovr_build clovr_standard
+#/opt/vappio-util/build.sh /mnt/image.img clovr_base 
 #.
 #chmod +x /etc/init.d/cron.nightly/clovrbuild
 

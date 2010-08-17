@@ -78,6 +78,7 @@ rm -f tmp/ZEROS
 sync
 popd
 umount /mnt/$$/foo1
+fmdir /mnt/$$/foo1
 
 #Now finally install boot loader on MBR of $clovrraw==loop0
 #sync
