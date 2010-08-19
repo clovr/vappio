@@ -46,6 +46,7 @@ apt-get -y install euca2ools
 apt-get -y install subversion
 apt-get -y install virt-what
 apt-get -y install unzip
+apt-get -y install screen
 
 #Disable cloud services by default
 rename 's/plymouth(\S*)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
