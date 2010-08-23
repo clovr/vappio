@@ -36,6 +36,15 @@ else
     nodetype="OFFLINE"
     cloudtype=`cat $vappio_runtime/cloud_type`;
 fi
+
+#Wait for vappio boot process to complete
+while [ $nodetype = 'PENDING' ]
+then
+ echo -n '.'
+ nodetype=`cat $vappio_runtime/node_type`
+ sleep 1
+fi 
+
 ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 
 # set a fancy prompt (non-color, unless we know we "want" color)
