@@ -30,6 +30,7 @@ then
     exit 1
 fi
 
+
 recipedir=/opt/vappio-install/bundles
 utildir=/opt/vappio-util
 
@@ -62,6 +63,7 @@ do
     mount --bind /dev /mnt/$$/$b.live/dev
     #Set up resolv.conf so networking works in chroot
     cp /etc/resolv.conf /mnt/$$/$b.live/etc/resolv.conf
+    cp /etc/hostname /mnt/$$/$b.live/etc/hostname
     cp /etc/apt/sources.list.orig /mnt/$$/$b.live/etc/apt/sources.list
 
     #Apply recipe
