@@ -39,11 +39,11 @@ fi
 
 #Wait for vappio boot process to complete
 while [ $nodetype = 'PENDING' ]
-then
+do
  echo -n '.'
  nodetype=`cat $vappio_runtime/node_type`
  sleep 1
-fi 
+done 
 
 ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 
