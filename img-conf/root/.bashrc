@@ -44,7 +44,7 @@ xterm-color)
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
     ;;
 *)
-    PS1='$cloudtype $nodetype \h \w\$ '
+    PS1='`cat $vappio_runtime/cloud_type` `cat $vappio_runtime/node_type` \h \w\$ '
     ;;
 esac
 # Comment in the above and uncomment this below for a color prompt
