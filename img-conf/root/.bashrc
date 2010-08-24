@@ -33,7 +33,7 @@ if [ -f "$vappio_runtime/node_type" ]; then
     nodetype=`cat $vappio_runtime/node_type`;
     cloudtype=`cat $vappio_runtime/cloud_type`;
 else
-    nodetype="OFFLINE"
+    nodetype="PENDING"
     cloudtype=`cat $vappio_runtime/cloud_type`;
 fi
 
@@ -53,7 +53,7 @@ xterm-color)
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
     ;;
 *)
-    PS1='$cloud_type $node_type \h \w\$ '
+    PS1='$cloud_type $nodetype \h \w\$ '
     ;;
 esac
 # Comment in the above and uncomment this below for a color prompt

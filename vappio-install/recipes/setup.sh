@@ -2,6 +2,8 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+echo "DPkg:Options {\"--force-confnew\";};" > /etc/apt/apt.conf.d/local-dpkg_force-confnew
+
 #Default dash shell breaks many a shell script
 ln -sf /bin/bash /bin/sh
 
