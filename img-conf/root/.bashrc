@@ -44,7 +44,7 @@ do
  nodetype=`cat $vappio_runtime/node_type`
  sleep 1
 done 
-
+echo 
 ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 hostn=`hostname`
 

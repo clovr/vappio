@@ -2,7 +2,7 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
-echo "DPkg:Options {\"--force-confnew\";};" > /etc/apt/apt.conf.d/local-dpkg_force-confnew
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d /etc/apt/apt.conf.d/
 
 #Default dash shell breaks many a shell script
 ln -sf /bin/bash /bin/sh
