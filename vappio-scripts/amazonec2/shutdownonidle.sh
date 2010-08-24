@@ -8,10 +8,18 @@
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
+nodetype=`cat $vappio_runtime/node_type`
+#Don't shutdown master
+if [ $nodetype = "MASTER" ]
+then
+    exit 0
+fi
+
+#Support for manual override
 myhostname=`hostname -f`
 master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 /usr/bin/curl -f -s http://$master/noautoshutdown
-if [ $? == 0 ]
+if [ $? = 0 ]
 then
     vlog "SKIPPING AUTOSHUTDOWN. MANUAL OVERRIDE"
     exit 0
