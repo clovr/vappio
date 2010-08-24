@@ -1,0 +1,79 @@
+<VirtualHost *:80>
+	ServerAdmin webmaster@localhost
+
+	DocumentRoot /var/www
+	<Directory />
+		Options +FollowSymLinks
+		AllowOverride None
+	</Directory>
+	<Directory /var/www/>
+		Options +Indexes +FollowSymLinks +MultiViews
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+	<Directory "/usr/lib/cgi-bin">
+		AllowOverride None
+		Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+        # ergatis installation
+        <Directory "/var/www/ergatis/cgi/">
+                # Do not mix +/- with absolute options
+                Options +ExecCGI +Indexes +FollowSymLinks +MultiViews
+                AddHandler cgi-script .cgi .pl
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+        # sybil installation
+        <Directory "/var/www/sybil/current/cgi/">
+            # Do not mix +/- with absolute options
+            Options +ExecCGI +Indexes +FollowSymLinks +MultiViews
+            AddHandler cgi-script .cgi .pl 
+            AllowOverride None
+            Order allow,deny
+            allow from all
+       </Directory>
+
+        <Directory "/var/www/vappio/">
+            # Do not mix +/- with absolute options
+            Options +ExecCGI +Indexes +FollowSymLinks +MultiViews
+            AddHandler cgi-script .cgi .pl .py
+            AllowOverride None
+            PassEnv PYTHONPATH
+            PassEnv VAPPIO_HOME
+            PassEnv EC2_HOME
+        SetEnv HOME /var/www
+#            PassEnv HOME
+            PassEnv JAVA_HOME
+            PassEnv PYTHON_EGG_CACHE
+            # I'm fearful of the security concerns of these, this is temporary
+            PassEnv EC2_CERT
+            PassEnv EC2_PRIVATE_KEY
+            Order allow,deny
+            allow from all
+       </Directory>
+                                                                                                                        
+	ErrorLog /var/log/apache2/error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog /var/log/apache2/access.log combined
+
+    Alias /doc/ "/usr/share/doc/"
+    <Directory "/usr/share/doc/">
+        Options +Indexes +MultiViews +FollowSymLinks
+        AllowOverride None
+        Order deny,allow
+        Deny from all
+        Allow from 127.0.0.0/255.0.0.0 ::1/128
+    </Directory>
+
+</VirtualHost>

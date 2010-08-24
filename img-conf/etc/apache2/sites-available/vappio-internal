@@ -1,0 +1,28 @@
+NameVirtualHost *:8080
+Listen 8080
+<VirtualHost *:8080>
+        ServerAdmin root@localhost
+
+        DocumentRoot /var/www/vappio-internal/
+
+        #Below will cause ALL files in dir to be executed as cgi
+        #ScriptAlias / /var/www/vappio-internal/
+
+        <Directory /var/www/vappio-internal>
+                # Do not mix +/- with absolute options
+                Options ExecCGI -Indexes FollowSymLinks MultiViews
+                AddHandler cgi-script .cgi .pl
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+
+        ErrorLog /var/log/apache2/vappio-internal.error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog /var/log/apache2/vappio-internal.access.log combined
+
+</VirtualHost>
