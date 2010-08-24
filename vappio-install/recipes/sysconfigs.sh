@@ -32,7 +32,7 @@ svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-
 #Contains SCREENME envvar for triggering screen on login
 #TODO, this can cause problems for all shells spawned by SGE, make sure SCREENME is not set outside of login console
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.autologin $tmpdir/root/.autologin
-svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.clovr-screen $tmpdir/root/.clovr-login
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.clovr-login $tmpdir/root/.clovr-login
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.profile $tmpdir/root/.profile
 
 
