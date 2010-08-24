@@ -79,7 +79,7 @@ def logExport(configDir, repo, repoPath, outputPath, branch, exportType):
 # Repository implementations
 class Subversion:
     def checkout(self, options, repo, repoPath, outputPath, branch):
-        fullPath = os.path.join(rep.repoUrl, branch, repoPath)
+        fullPath = os.path.join(repo.repoUrl, branch, repoPath)
         stderr = []
         try:
             commands.runSingleProgramEx('svn co %s %s' % (fullPath, outputPath),
@@ -88,20 +88,25 @@ class Subversion:
                                         log=logging.DEBUG)
         except commands.ProgramRunError:
             if 'refers to a file, not a directory' in ''.join(stderr):
-                tmpPath = os.path.basename(os.path.join(options('general.codir'), repoPath))
+                tmpPath = os.path.dirname(os.path.join(options('general.codir'), repoPath))
                 commands.runSystemEx('mkdir -p ' + tmpPath, log=logging.DEBUG)
-                commands.runSingleProgramEx('svn co %s %s' % (fullPath, tmpDir),
+                commands.runSingleProgramEx('svn co %s %s' % (os.path.dirname(fullPath), tmpPath),
                                             stdoutf=None,
                                             stderrf=logging.errorPrintS,
                                             log=logging.DEBUG)
                 commands.runSystemEx('ln -s %s %s' % (os.path.join(options('general.codir'), repoPath),
-                                                      outputPath))
+                                                      outputPath),
+                                     log=logging.DEBUG)
+            else:
+                for l in stderr:
+                    logging.errorPrintS(l)
+                raise
 
-        logExport(options('general.config_dir'), repo, repopath, outputPath, branch, CHECKOUT)
+        logExport(options('general.config_dir'), repo, repoPath, outputPath, branch, CHECKOUT)
 
     
     def export(self, options, repo, repoPath, outputPath, branch):
-        fullPath = os.path.join(rep.repoUrl, branch, repoPath)
+        fullPath = os.path.join(repo.repoUrl, branch, repoPath)
         commands.runSingleProgramEx('svn export %s %s' % (fullPath, outputPath),
                                     stdoutf=None,
                                     stderrf=logging.errorPrintS,
@@ -142,23 +147,27 @@ def loadRepositories(configDir):
     """
     repos = {}
     for line in open(os.path.join(configDir, 'repositories')):
-        repoName, repoType, repoUrl = line.split('\t')
-        repos[repoName] = Record(name=repoName,
-                                 rType=REPOSITORY_MAP[repoType](),
-                                 repoUrl=repoUrl,
-                                 exportType=EXPORT)
+        repoName, repoType, repoUrl = line.strip().split('\t')
+        repos[repoName] = func.Record(name=repoName,
+                                      rType=REPOSITORY_MAP[repoType](),
+                                      repoUrl=repoUrl,
+                                      exportType=EXPORT)
 
     branches = []
     for line in open(os.path.join(configDir, 'branches')):
-        repoName, repoBranch = line.split('\t')
+        repoName, repoBranch = line.strip().split('\t')
         repos[repoName] = repos[repoName].update(branch=repoBranch)
         branches.append(repoName)
 
     if set(branches) != set(repos.keys()):
         raise Exception('You must have all the same repos in branches that you do in repositories')
 
-    for line in open(os.path.join(configDir, 'checkouts')):
-        repos[line] = repos[line].update(exportType=CHECKOUT)
+    try:
+        for line in open(os.path.join(configDir, 'checkouts')):
+            repos[line.strip()] = repos[line.strip()].update(exportType=CHECKOUT)
+    except IOError:
+        # File may not exist, ignore
+        pass
 
     return repos
 
@@ -188,7 +197,7 @@ def main(options, args):
     else:
         exportFunc = repo.rType.export
 
-    exportFunc(options, repo, repopath, outputPath, branch)
+    exportFunc(options, repo, repoPath, outputPath, branch)
 
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS, usage='usage: %prog [options] PROJECT REPOPATH OUTPUTPATH\nDO NOT USE LEADING SLASHES FOR REPOPATH'))
