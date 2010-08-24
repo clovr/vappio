@@ -31,7 +31,10 @@ svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-
 
 #Contains SCREENME envvar for triggering screen on login
 #TODO, this can cause problems for all shells spawned by SGE, make sure SCREENME is not set outside of login console
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.autologin $tmpdir/root/.autologin
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.clovr-screen $tmpdir/root/.clovr-screen
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.profile $tmpdir/root/.profile
+
 
 pushd $tmpdir
 tar cvzf ../install$$.tgz .
@@ -49,6 +52,7 @@ sysctl -p
 
 #Heavy disk IO can trigger hung task warnings in the VM
 echo 0 > /proc/sys/kernel/hung_task_timeout_secs
+echo 0 > /proc/sys/kernel/softlockup_thresh
 
 chmod +t /tmp/
 chmod 777 /tmp
@@ -59,7 +63,9 @@ perl -pi -e 's/command=".*"\s+//' /root/.ssh/authorized_keys
 
 #Enable autologin for terminal
 apt-get -y install mingetty
-perl -pi -e 's/^exec.*/exec \/sbin\/mingetty \-\-autologin root tty1/' /etc/init/tty1.conf
+rm -f /etc/init/tty1.conf
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init/tty1.conf /etc/init/tty1.conf
+#perl -pi -e 's/^exec.*/exec \/sbin\/mingetty \-\-autologin root tty1/' /etc/init/tty1.conf
 
 #Setup hostname
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/hostnamecheck /etc/init.d/hostnamecheck

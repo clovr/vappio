@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ -f /opt/vappio-py/vappio/cli/vmStatus.py ]
+then
+  source /root/clovrEnv.sh
+  /opt/vappio-py/vappio/cli/vmStatus.py
+fi
+cat /etc/motd
+export SCREENME=
+exec bash
