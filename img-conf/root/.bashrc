@@ -31,10 +31,8 @@ source /opt/vappio-scripts/vappio_config.sh
 
 if [ -f "$vappio_runtime/node_type" ]; then
     nodetype=`cat $vappio_runtime/node_type`;
-    cloudtype=`cat $vappio_runtime/cloud_type`;
 else
     nodetype="PENDING"
-    cloudtype=`cat $vappio_runtime/cloud_type`;
 fi
 
 #Wait for vappio boot process to complete
@@ -47,6 +45,8 @@ done
 echo 
 ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 hostn=`hostname`
+nodetype=`cat $vappio_runtime/node_type`;
+cloudtype=`cat $vappio_runtime/cloud_type`;
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in

@@ -237,11 +237,6 @@ sub clear_install_area {
         rmtree("$base/$subdir");
     }
     
-    for my $file ( qw( software.config ) ) {
-        if ( -e "$base/$file" ) {
-            unlink( "$base/$file" );
-        }
-    }
 };
 
 sub install_ergatis {

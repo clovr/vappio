@@ -6,6 +6,18 @@ apt-get -y --force-yes install apache2
 
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/apache2 /etc/init.d/apache2
 
-wget http://cb2.igs.umaryland.edu/clovr_apache_config.tgz
-tar -C / -xvzf clovr_apache_config.tgz
 /etc/init.d/apache2 stop
+
+#TODO, break configs out of default into separate sites
+tmpdir=/tmp/$$
+rm -rf $tmpdir
+mkdir $tmpdir $tmpdir/etc
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apache2 $tmpdir/etc/apache2
+pushd $tmpdir
+tar cvzf ../install$$.tgz .
+tar -C / -xvzf ../install$$.tgz
+rm ../install$$.tgz
+popd
+chmod 755 /etc
+rm -rf $tmpdir
+

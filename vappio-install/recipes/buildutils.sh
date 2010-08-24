@@ -3,6 +3,7 @@
 #Need grub legacy, it just works with xen
 #tried grub2 but it is a mess
 apt-get -y install grub
+update-grub
 apt-get -y install qemu-kvm 
 
 #virtualbox utilities, need VBoxManage

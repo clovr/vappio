@@ -47,8 +47,10 @@ cpan -i SVN::Agent
 
 #Install software.config
 rm -r /tmp/software.config
-wget -P /tmp https://ergatis.svn.sourceforge.net/svnroot/ergatis/trunk/components/shared/software.config
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/software.config /tmp/software.config
 
+#Get sourceforge SVN certs because SVN sucks and refuses to let you do this with a command line option
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.subversion /root/.subversion
 #Install Ergatis
 apt-get -y install g++
 $VAPPIO_RECIPES/build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/www/ergatis --tmp_area=/tmp --software_config=/tmp/software.config --id_generator=cloud --log /tmp/ergatis.log 
@@ -68,7 +70,7 @@ ln -s /opt/clovr_pipelines/workflow/project_saved_templates /opt/ergatis/global_
 #tar -C / -xvzf ergatis_clovr.tgz
 
 #Configure website
-rm -r clovr_ergatis_www.tgz
-wget http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
-tar -C / -xvzf clovr_ergatis_www.tgz
+rm -f /tmp/clovr_ergatis_www.tgz
+wget -P /tmp http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
+tar -C / -xvzf /tmp/clovr_ergatis_www.tgz
 
