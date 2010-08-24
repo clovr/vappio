@@ -36,6 +36,11 @@ else
 fi
 
 #Wait for vappio boot process to complete
+if [ $nodetype = 'PENDING' ]
+then
+    echo -n "Node is $nodetype. Waiting for setup to finish."
+fi
+
 while [ $nodetype = 'PENDING' ]
 do
  echo -n '.'
