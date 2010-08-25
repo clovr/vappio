@@ -107,7 +107,7 @@ class Subversion:
     
     def export(self, options, repo, repoPath, outputPath, branch):
         fullPath = os.path.join(repo.repoUrl, branch, repoPath)
-        commands.runSingleProgramEx('svn export %s %s' % (fullPath, outputPath),
+        commands.runSingleProgramEx('svn export --force %s %s' % (fullPath, outputPath),
                                     stdoutf=None,
                                     stderrf=logging.errorPrintS,
                                     log=logging.DEBUG)

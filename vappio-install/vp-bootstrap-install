@@ -1,5 +1,4 @@
 #!/bin/bash
 sudo apt-get -y install subversion
-# Clean up any installs that are no longer needed
-sudo apt-get -y autoremove
+
 sudo svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/ /opt/vappio-install

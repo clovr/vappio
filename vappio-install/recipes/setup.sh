@@ -2,6 +2,16 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+# Bootstrap checkoutObject
+# Checkout the environment and load it
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/environment /etc/environment
+source /etc/environment
+
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py /opt/vappio-py
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio-checkout /etc/vappio-checkout
+
+# Keeping this old style until we are more stable
+#checkoutObject.py vappio img-conf/etc/apt/apt.conf.d /etc/apt/apt.conf.d
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d /etc/apt/apt.conf.d/
 
 #Default dash shell breaks many a shell script
@@ -69,5 +79,6 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 
 #Set up ntp cron job
 apt-get -y install ntpdate
+#checkoutObject.py vappio img-conf/etc/init.d/ntpdate.sh /etc/init.d/ntpdate.sh
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/ntpdate.sh /etc/init.d/ntpdate.sh
 
