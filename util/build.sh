@@ -43,6 +43,7 @@ shift
 wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
 wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-3.2.6.tar.gz
 wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
+wget -c -P /mnt http://cb2.igs.umaryland.edu/shared.tgz
 
 defaultname=`date "+%Y%m%d"`
 
@@ -92,8 +93,10 @@ do
     /opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vboxtools-3.2.6.tar.gz
     /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
     echo "Created $currimg.vmdk"
-    #/opt/vappio-util/bundle_vmwarevbox.sh ./image.vmdk vmware_bundle/start_clovr.vmx.template vmware_bundle/start_clovr.vmx clovr_vmware_testing
-
+    #releaseCutS2.py --version beta-v1r33b1 --remote-name <hostname_buildbox_runs_on> -i clovr.9-04.x86-64.beta-v1r33b1.img -c /path/to/ec2/cert.pem -k /path/to/ec2/pk.pem -u <ec2_account> --access_key <access_key> --secret_access_key <secret_access_key> -d /export/tmp -r x86_64 --debug
+    #Need to break this into multiple steps like
+    #Add shared.tgz and vmware_bundle/start_clovr.vmx to myvmwarebundledir
+    #bundle_vmwarevbox.sh ./image.vmdk myvmwarebundledir/
     #The clouds should be able to use $currimg
     #Build EC2
     #Build Magellan
