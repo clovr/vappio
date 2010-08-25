@@ -36,6 +36,7 @@ utildir=/opt/vappio-util
 
 image=$1
 bname=`basename $image`
+namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
 
 #remaining arguments are recipe names
 shift
@@ -98,23 +99,16 @@ do
     /opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vboxtools-3.2.6.tar.gz
     /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
     echo "Created $currimg.vmdk"
-    mkdir $bname
-    cd $bname
+    mkdir $namepfx
+    cd $namepfx
     #Create ovf bundle
-    /opt/vappio-util/bundle_ovf.sh $currimg.vmdk $bname $bname.ovf ~/$bname
+    /opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf ~/$namepfx
     #Add vmx file
-    /opt/vappio-util/bundle_vmx.sh ".\/$bname.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $bname
+    /opt/vappio-util/bundle_vmx.sh ".\/$bname.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
     #Add shared folder 
     svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared shared
     popd
-    tar cvzf $bname.tgz $bname
-    #releaseCutS2.py --version beta-v1r33b1 --remote-name <hostname_buildbox_runs_on> -i clovr.9-04.x86-64.beta-v1r33b1.img -c /path/to/ec2/cert.pem -k /path/to/ec2/pk.pem -u <ec2_account> --access_key <access_key> --secret_access_key <secret_access_key> -d /export/tmp -r x86_64 --debug
-    #Need to break this into multiple steps like
-    #Add shared.tgz and vmware_bundle/start_clovr.vmx to myvmwarebundledir
-    #bundle_vmwarevbox.sh ./image.vmdk myvmwarebundledir/
-    #The clouds should be able to use $currimg
-    #Build EC2
-    #Build Magellan
-    #Build DIAG
+    tar cvzf $namepfx.tgz $namepfx
+    #The clouds EC2,Magellan,DIAG should be able to use $currimg
 done
 
