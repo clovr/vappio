@@ -59,8 +59,8 @@ OPTIONS = [
      func.identity),
     ('checkout', '', '--co', 'Force a checkout', func.identity, cli.BINARY),
     ('export', '', '--export', 'Force an export, mutually exclusive with --checkout', func.identity, cli.BINARY),
-    ('config_dir', '-c', '--config-dir', 'Directory to look for config files, defaults to $VAPPIO_REPO_CONF',
-     func.compose(cli.notNone, cli.defaultIfNone(os.getenv('VAPPIO_REPO_CONF')))),
+    ('config_dir', '-c', '--config-dir', 'Directory to look for config files, defaults to $VAPPIO_REPO_CONF then /etc/vappio-checkout',
+     func.compose(cli.defaultIfNone('/etc/vappio-checkout'), cli.defaultIfNone(os.getenv('VAPPIO_REPO_CONF')))),
     ('debug', '-d', '--debug', 'Turn debugging information on', func.identity, cli.BINARY),
     ]
 
