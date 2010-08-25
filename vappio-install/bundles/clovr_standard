@@ -7,6 +7,15 @@ VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 
 apt-get -y update
 
+bash -e $VAPPIO_RECIPES/setup.sh
+bash -e $VAPPIO_RECIPES/sysconfigs.sh
+bash -e $VAPPIO_RECIPES/hpnssh.sh
+bash -e $VAPPIO_RECIPES/vappiopkg.sh
+bash -e $VAPPIO_RECIPES/vappiocustoms.sh
+bash -e $VAPPIO_RECIPES/ganglia.sh
+bash -e $VAPPIO_RECIPES/sge.sh
+bash -e $VAPPIO_RECIPES/hadoop.sh
+
 bash -e $VAPPIO_RECIPES/cpanmods.sh
 bash -e $VAPPIO_RECIPES/vappiosite.sh
 bash -e $VAPPIO_RECIPES/clovrsetup.sh
