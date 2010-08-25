@@ -1,9 +1,10 @@
 #!/bin/bash
 if [ -f /opt/vappio-py/vappio/cli/vmStatus.py ]
 then
-  source /root/clovrEnv.sh
-  /opt/vappio-py/vappio/cli/vmStatus.py
+    echo 
+    #source /root/clovrEnv.sh
+    #/opt/vappio-py/vappio/cli/vmStatus.py
 fi
-cat /etc/motd
+cat /etc/issue
 export SCREENME=
 exec bash
