@@ -2,6 +2,8 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+apt-get -y install subversion
+
 # Bootstrap checkoutObject
 # Checkout the environment and load it
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/environment /etc/environment
@@ -55,7 +57,6 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 rm -f /etc/cron.d/cloudinit-updates
 
 apt-get -y install euca2ools
-apt-get -y install subversion
 apt-get -y install virt-what
 apt-get -y install unzip bzip2 gzip
 apt-get -y install screen
