@@ -18,7 +18,11 @@ VBoxManage -q sharedfolder add $2 --name keys --hostpath $4/keys/
 VBoxManage -q sharedfolder add $2 --name user_data --hostpath $4/user_data/
 VBoxManage -q sharedfolder add $2 --name pg_data --hostpath $4/pg_data/
 
-#The OVF export will create the vmdk file
+#Create ovf
 VBoxManage -q export $2 -o $3
+#The OVF export will create a vmdk file but VMware no like
+#will not mount rw and throws write errors, ata1 drdy err indf
+cp $1 .
+chmod 777 $2
 #Manifest file causes problems on import
 rm -f $3.mf

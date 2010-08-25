@@ -94,21 +94,6 @@ do
     echo "Created $currimg"
 
     #Build VMware/VBox
-    cp $currimg $currimg.vmbundle
-    /opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz 
-    /opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vboxtools-3.2.6.tar.gz
-    /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
-    echo "Created $currimg.vmdk"
-    mkdir $namepfx
-    cd $namepfx
-    #Create ovf bundle
-    /opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf ~/$namepfx
-    #Add vmx file
-    /opt/vappio-util/bundle_vmx.sh ".\/$bname.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
-    #Add shared folder 
-    svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared shared
-    popd
-    tar cvzf $namepfx.tgz $namepfx
-    #The clouds EC2,Magellan,DIAG should be able to use $currimg
+    /opt/vappio_util/create_bundle.sh $currimg $nampfx
 done
 
