@@ -52,15 +52,15 @@ from igs.utils import logging
 
 OPTIONS = [
     ('codir', '', '--co-dir',
-     'Directory to put files in case of a check out.  If not set, defaults to $TMPDIR, if that is not set defaults to /tmp',
-     func.compose(cli.defaultIfNone('/tmp'), cli.defaultIfNone(os.getenv('TMPDIR')))),
+     'Directory to put files in case of a check out.  If not set, defaults to $VAPPIO_CO_DIR, if that is not set defaults to /opt/co-dir',
+     func.compose(cli.defaultIfNone('/opt/co-dir'), cli.defaultIfNone(os.getenv('VAPPIO_CO_DIR')))),
     ('branch', '-b', '--branch',
      'Override the branch specified in config files',
      func.identity),
     ('checkout', '', '--co', 'Force a checkout', func.identity, cli.BINARY),
     ('export', '', '--export', 'Force an export, mutually exclusive with --checkout', func.identity, cli.BINARY),
     ('config_dir', '-c', '--config-dir', 'Directory to look for config files, defaults to $VAPPIO_REPO_CONF',
-     func.compose(cli.notNone, cli.defaultIfNone(os.getenv('VAPPIO_CONF_DIR')))),
+     func.compose(cli.notNone, cli.defaultIfNone(os.getenv('VAPPIO_REPO_CONF')))),
     ('debug', '-d', '--debug', 'Turn debugging information on', func.identity, cli.BINARY),
     ]
 
@@ -146,7 +146,7 @@ def loadRepositories(configDir):
     Everything but the logs is loaded here
     """
     repos = {}
-    for line in open(os.path.join(configDir, 'repositories')):
+    for line in (l for l in open(os.path.join(configDir, 'repositories')) if l.strip()):
         repoName, repoType, repoUrl = line.strip().split('\t')
         repos[repoName] = func.Record(name=repoName,
                                       rType=REPOSITORY_MAP[repoType](),
@@ -154,7 +154,7 @@ def loadRepositories(configDir):
                                       exportType=EXPORT)
 
     branches = []
-    for line in open(os.path.join(configDir, 'branches')):
+    for line in (l for l in open(os.path.join(configDir, 'branches')) if l.strip()):
         repoName, repoBranch = line.strip().split('\t')
         repos[repoName] = repos[repoName].update(branch=repoBranch)
         branches.append(repoName)
@@ -163,7 +163,7 @@ def loadRepositories(configDir):
         raise Exception('You must have all the same repos in branches that you do in repositories')
 
     try:
-        for line in open(os.path.join(configDir, 'checkouts')):
+        for line in (l for l in open(os.path.join(configDir, 'checkouts')) if l.strip()):
             repos[line.strip()] = repos[line.strip()].update(exportType=CHECKOUT)
     except IOError:
         # File may not exist, ignore
