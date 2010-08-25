@@ -58,6 +58,7 @@ $VAPPIO_RECIPES/build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/
 
 mkdir -p /opt/ergatis/global_id_repository/logs
 chmod -R 777 /opt/ergatis/global_id_repository
+touch /opt/ergatis/global_id_repository/valid_id_repository
 
 #Install symlink to clovr project_saved_repository
 rm -rf /opt/ergatis/global_saved_templates

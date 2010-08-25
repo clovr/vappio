@@ -62,7 +62,6 @@ perl -pi -e 's/command=".*"\s+//' /root/.ssh/authorized_keys
 /etc/init.d/ssh restart
 
 #Enable autologin for terminal
-apt-get -y install mingetty
 rm -f /etc/init/tty1.conf
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init/tty1.conf /etc/init/tty1.conf
 #perl -pi -e 's/^exec.*/exec \/sbin\/mingetty \-\-autologin root tty1/' /etc/init/tty1.conf

@@ -11,6 +11,7 @@ vlog "###"
 source $vappio_scripts/vmware/vmware_config.sh
 
 do_start() {
+    
 # Generic Shared area
     mount -o ttl=3 -t vmhgfs .host:$shared_dir $shared_mp -o uid=33 -o gid=33
     sleep 1
