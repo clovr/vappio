@@ -1,0 +1,11 @@
+[]
+depends_on=/mnt/staging/tags_extra/clovr-prok-db.dlist
+
+[cluster.ec2]
+command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-prok-db.tar.gz --join-md5=01099dfcccc01cb20c1da871028aa31c < ${phantom.depends_on}
+tag_options=-e
+
+[cluster.UNKNOWN]
+command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-prok-db.tar.gz --join-md5=01099dfcccc01cb20c1da871028aa31c < ${phantom.depends_on}
+tag_options=-e
+

@@ -1,0 +1,7 @@
+[cluster.ec2]
+command=echo 0630e6963c57903a16d7a3f4a0dba9d3 http://core_set_aligned.imputed.fasta.s3.amazonaws.com/core_set_aligned.imputed.fasta.tar.gz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
+tag_options=-e
+
+[cluster.UNKNOWN]
+command=echo 0630e6963c57903a16d7a3f4a0dba9d3 http://core_set_aligned.imputed.fasta.s3.amazonaws.com/core_set_aligned.imputed.fasta.tar.gz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
+tag_options=-e

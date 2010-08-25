@@ -1,0 +1,7 @@
+default=0
+timeout=10
+title vmlinuz-2.6.32-21-server
+root (hd0,0) 
+kernel /boot/vmlinuz-2.6.32-21-server root=/dev/sda1 ro 
+initrd /boot/initrd.img-2.6.32-21-server
+
