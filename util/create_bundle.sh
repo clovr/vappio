@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#USAGE:create_bundle.sh image.img
+#USAGE:create_bundle.sh image.img name
 currimg=$1
 namepfx=$2
 cp $currimg $currimg.vmbundle
@@ -10,7 +10,7 @@ cp $currimg $currimg.vmbundle
 echo "Created $currimg.vmdk"
 mkdir $namepfx
 chmod 777 $namepfx
-cd $namepfx
+pushd $namepfx
 #Create ovf bundle
 /opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf ~/$namepfx
 #Add vmx file

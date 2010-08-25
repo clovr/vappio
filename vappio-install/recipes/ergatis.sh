@@ -46,7 +46,7 @@ cpan -i Benchmark::Timer
 cpan -i SVN::Agent
 
 #Install software.config
-rm -r /tmp/software.config
+rm -f /tmp/software.config
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/software.config /tmp/software.config
 
 #Get sourceforge SVN certs because SVN sucks and refuses to let you do this with a command line option
