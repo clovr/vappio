@@ -19,8 +19,6 @@ fi
 
 nodetype=$1
 
-echo "$nodetype" > $vappio_runtime/node_type
-
 #Node type startup scripts
 for n in $@
 do
@@ -32,6 +30,9 @@ do
 	echo "Unsupported node type: $nodetype"
     fi
 done
+
+echo "$nodetype" > $vappio_runtime/node_type
+
 
 
 

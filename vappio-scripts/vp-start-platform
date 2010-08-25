@@ -19,8 +19,6 @@ fi
 
 platform=$1
 
-echo "$platform" > $vappio_runtime/cloud_type
- 
 #Platform startup scripts
 if [ -d "/etc/vappio/$platform" ] 
 then
@@ -29,3 +27,6 @@ then
 else
     vlog "Unsupported platform: $p"
 fi
+
+echo "$platform" > $vappio_runtime/cloud_type
+ 

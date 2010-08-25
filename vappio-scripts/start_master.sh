@@ -80,4 +80,3 @@ $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $masterslots $execq@$myhostname
 
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
 
-echo "MASTER_NODE" > $vappio_runtime/node_type

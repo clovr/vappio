@@ -155,5 +155,4 @@ then
     crontab -u root $vappio_runtime/shutdown.crontab
 fi
 
-echo "EXEC_NODE" > $vappio_runtime/node_type
 

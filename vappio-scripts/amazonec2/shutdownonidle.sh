@@ -10,7 +10,7 @@ source $vappio_scripts/vappio_config.sh
 
 nodetype=`cat $vappio_runtime/node_type`
 #Don't shutdown master
-if [ $nodetype = "MASTER" ]
+if [ $nodetype = "master" ]
 then
     exit 0
 fi
