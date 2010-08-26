@@ -1,3 +1,3 @@
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/usr/games:/opt/vappio-py/vappio/cli:$PATH"
+PATH="/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/opt/vappio-py/vappio/cli:$PATH"
 PYTHONPATH="/opt/vappio-py"
 VAPPIO_HOME="/opt"
