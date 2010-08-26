@@ -2,6 +2,7 @@
 
 #USAGE: bundle_ovf.sh image.vmdk name output.ovf sharedpath
 
+#Clean up any old vms with the same name
 VBoxManage -q unregistervm $2 
 VBoxManage -q closemedium $1
 VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium none

@@ -62,8 +62,8 @@ apt-get -y install unzip bzip2 gzip
 apt-get -y install screen
 
 #Disable cloud services by default
-rename 's/plymouth(\S*)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
-rename 's/cloud-(\S*)\.conf/cloud-$1.conf.disabled/' /etc/init/cloud-*.conf
+rename -f 's/plymouth(\S*)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
+rename -f 's/cloud-(\S*)\.conf/cloud-$1.conf.disabled/' /etc/init/cloud-*.conf
 
 #These are causing non-cloud boots to hang
 if [ -f /etc/init/mountall-net.conf ]
