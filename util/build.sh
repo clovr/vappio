@@ -38,14 +38,12 @@ image=$1
 bname=`basename $image`
 defaultname=`date "+%Y%m%d"`
 namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
-#bname=$defaultname
-#namepfx=$defaultname
+bname=$defaultname.img
+namepfx=$defaultname
 
 #remaining arguments are recipe names
 shift
 
-wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
-wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-3.2.6.tar.gz
 wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /mnt/boot
 pushd /mnt
@@ -97,6 +95,6 @@ do
     echo "Created $currimg"
 
     #Build VMware/VBox
-    /opt/vappio_util/create_bundle.sh $currimg $nampfx
+    /opt/vappio-util/create_bundle.sh $currimg $nampfx
 done
 
