@@ -72,6 +72,7 @@ pushd /mnt/$$/foo1
 tar xvzf $2 boot/grub
 #Write out zeros to better compress file system
 dd if=/dev/zero of=tmp/ZEROS
+echo "Ignore error. We are zeroing out the new image"
 sync
 rm -f tmp/ZEROS
 sync

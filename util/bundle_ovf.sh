@@ -2,6 +2,12 @@
 
 #USAGE: bundle_ovf.sh image.vmdk name output.ovf sharedpath
 
+VBoxManage -q unregistervm $2 
+VBoxManage -q closemedium $1
+VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium none
+
+rm -rf ~/.VirtualBox/Machines/$2
+
 VBoxManage -q createvm --name $2 --register
 
 VBoxManage -q modifyvm $2 --ostype "Ubuntu_64" --memory 2048 --boot1 disk --nic1 bridged
