@@ -36,7 +36,10 @@ utildir=/opt/vappio-util
 
 image=$1
 bname=`basename $image`
+defaultname=`date "+%Y%m%d"`
 namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
+#bname=$defaultname
+#namepfx=$defaultname
 
 #remaining arguments are recipe names
 shift
@@ -51,7 +54,7 @@ popd
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx /mnt/start_clovr.tmpl.vmx
 #wget -c -P /mnt http://cb2.igs.umaryland.edu/shared.tgz
 
-defaultname=`date "+%Y%m%d"`
+
 
 for b in $*
 do
