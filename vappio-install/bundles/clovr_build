@@ -6,6 +6,7 @@ VAPPIO_HOME=/opt
 VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 
 apt-get -y update
+$VAPPIO_HOME/vappio-install/vp-bootstrap-install
 
 bash -e $VAPPIO_RECIPES/setup.sh
 bash -e $VAPPIO_RECIPES/sysconfigs.sh

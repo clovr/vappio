@@ -4,6 +4,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 VAPPIO_HOME=/opt
 VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
+$VAPPIO_HOME/vappio-install/vp-bootstrap-install
 
 apt-get -y update
 
