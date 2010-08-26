@@ -23,7 +23,7 @@ case $platform in
 	echo "vmware"
 	exit;
 	;;
-    vbox)
+    virtualbox)
         #In VirtualBox
 	echo "vbox"
 	exit;

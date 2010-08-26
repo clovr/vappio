@@ -24,5 +24,5 @@ VBoxManage -q export $2 -o $3
 #will not mount rw and throws write errors, ata1 drdy err indf
 cp $1 .
 chmod 777 $2
-#Manifest file causes problems on import
-rm -f $3.mf
+#Manifest file may cause problems on import
+rm -f $2.mf

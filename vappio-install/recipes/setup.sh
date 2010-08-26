@@ -49,7 +49,7 @@ rm -f /etc/cron.daily/bsdmainutils
 rm -f /etc/cron.monthly/standard
 
 #Disable slow framebuffer
-echo "blacklist vga16fb" > /etc/modprobe.d/blacklist-framebuffer
+echo "blacklist vga16fb" > /etc/modprobe.d/blacklist-framebuffer.conf
 
 #Add basic help
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d/10-help-text /etc/update-motd.d/10-help-text

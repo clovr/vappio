@@ -12,14 +12,18 @@ source $vappio_scripts/vbox/vbox_config.sh
 
 do_start() {
 # Generic Shared area
+    mkdir -p $shared_mp
+    mkdir -p $userdata_mp
+    mkdir -p $keysdir
     mount -o ttl=3 -t vboxsf $shared_dir $shared_mp -o uid=33 -o gid=33
     mount -o ttl=3 -t vboxsf $userdata_dir $userdata_mp -o uid=33 -o gid=33 -o fmask=000 -o dmask=000
     mount -o ttl=3 -t vboxsf keys $keysdir -o uid=33 -o gid=33 -o fmask=077 -o dmask=077
     
-    grep "^postgres" /etc/passwd
+    grep "^postgres" /etc/passwd 
     if [ $? = 0 ]
     then
 # Postgres specific shared area
+	mkdir -p $postgres_data_dir_mp
 	mount -o ttl=3 -t vboxsf $postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid
     fi
 }

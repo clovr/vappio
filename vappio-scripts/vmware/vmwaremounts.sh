@@ -11,7 +11,9 @@ vlog "###"
 source $vappio_scripts/vmware/vmware_config.sh
 
 do_start() {
-    
+    mkdir -p $shared_mp
+    mkdir -p $userdata_mp
+    mkdir -p $keysdir
 # Generic Shared area
     mount -o ttl=3 -t vmhgfs .host:$shared_dir $shared_mp -o uid=33 -o gid=33
     sleep 1
@@ -22,6 +24,7 @@ do_start() {
     if [ $? = 0 ]
     then
 # Postgres specific shared area
+	mkdir -p $postgres_data_dir_mp
 	mount -o ttl=3 -t vmhgfs .host:$postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid
     fi
 }

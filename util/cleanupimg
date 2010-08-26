@@ -64,7 +64,8 @@ apt-get clean
     
 #Recover a naked udev rules file for VMware.  VMware will continue to
 #add new network cards if this file is saved between runs.
-cp /etc/udev/rules.d/70-persistent-net.rules.orig /etc/udev/rules.d/70-persistent-net.rules
+#cp /etc/udev/rules.d/70-persistent-net.rules.orig /etc/udev/rules.d/70-persistent-net.rules
+rm /etc/udev/rules.d/70-persistent-net.rules
 
 #TODO, save data if running under vmware
 #for p in $harvesting_dir $staging_dir $wfworking_dir $scratch_dir /var/spool/sge /mnt/projects/clovr
