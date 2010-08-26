@@ -19,6 +19,11 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 #Default dash shell breaks many a shell script
 ln -sf /bin/bash /bin/sh
 
+#Runlevel on EC2 is 4. 
+#Default ubuntu is 2
+#Can reset in init/rc-sysinit.conf or inittab
+#echo "DEFAULT_RUNLEVEL=4" > /etc/inittab
+
 apt-get -y --force-yes update
 apt-get -y --force-yes upgrade
 

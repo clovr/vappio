@@ -10,6 +10,7 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 #.
 
 apt-get -y install gcc
+apt-get -y install libgd2-xpm-dev
 export PERL_MM_USE_DEFAULT=1
 export PERL_AUTOINSTALL=1
 wget -c -P /tmp http://clovr.svn.sourceforge.net/viewvc/clovr/trunk/packages/cpan.packages
