@@ -35,9 +35,10 @@ recipedir=/opt/vappio-install/bundles
 utildir=/opt/vappio-util
 
 image=$1
-bname=`basename $image`
+#bname=`basename $image`
+#namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
+
 defaultname=`date "+%Y%m%d"`
-namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
 bname=$defaultname.img
 namepfx=$defaultname
 
@@ -95,6 +96,6 @@ do
     echo "Created $currimg"
 
     #Build VMware/VBox
-    /opt/vappio-util/create_bundle.sh $currimg $nampfx
+    /opt/vappio-util/create_bundle.sh $currimg $namepfx
 done
 

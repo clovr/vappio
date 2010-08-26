@@ -21,7 +21,7 @@ pushd $namepfx
 #Create ovf bundle
 /opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf ~/$namepfx
 #Add vmx file
-/opt/vappio-util/bundle_vmx.sh ".\/$currimg.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
+/opt/vappio-util/bundle_vmx.sh ".\/$namepfx.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
 #Add shared folder 
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared shared
 chmod 777 shared
@@ -32,7 +32,7 @@ chmod 777 user_data
 popd
 #The OVF export will create a vmdk file but VMware no like
 #will not mount rw and throws write errors, ata1 drdy err indf
-cp $currimg.vmdk $namepfx/
+cp $currimg.vmdk $namepfx/$namepfx.vmdk
 chmod 777 $namepfx
 #Manifest file may cause problems on import
 rm -f $namepfx/$namepfx.mf
