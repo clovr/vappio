@@ -24,10 +24,10 @@ mainmem.backing = "swap"
 
 tmpDirectory = "/dev/shm"
 sched.mem.pshare.enable = "FALSE"
-MemTrimRate = "0"
-MemAllowAutoScaleDown = "FALSE"
-prefvmx.useRecommendedLockedMemSize = "TRUE"
-prefvmx.minVmMemPct = "100" 
+
+#MemTrimRate = "0"
+#prefvmx.useRecommendedLockedMemSize = "TRUE"
+#prefvmx.minVmMemPct = "100" 
 
 # Unique ID for the virtual machine will be created
 uuid.action = "create"

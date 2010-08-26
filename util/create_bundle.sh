@@ -21,7 +21,7 @@ pushd $namepfx
 #Create ovf bundle
 /opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf ~/$namepfx
 #Add vmx file
-/opt/vappio-util/bundle_vmx.sh ".\/$bname.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
+/opt/vappio-util/bundle_vmx.sh ".\/$currimg.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
 #Add shared folder 
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared shared
 chmod 777 shared
