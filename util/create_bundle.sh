@@ -2,17 +2,17 @@
 
 #USAGE:create_bundle.sh image.img name
 
-wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
+#wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
 #wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-3.2.6.tar.gz
-wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-install.tgz
+#wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-install.tgz
 
 currimg=$1
 namepfx=$2
 cp $currimg $currimg.vmbundle
-/opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz 
-/opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vboxtools-install.tgz
-/opt/vappio-util/img_run.sh $currimg.vmbundle /
-/opt/vappio-util/img_run.sh $currimg.vmbundle /mnt/VBoxLinuxAdditions-amd64.run
+#/opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz 
+#/opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vboxtools-install.tgz
+/opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vmware.sh
+/opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vbox.sh
 /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
 echo "Created $currimg.vmdk"
 mkdir $namepfx
