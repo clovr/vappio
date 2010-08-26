@@ -7,7 +7,13 @@ apt-get -y install grub
 apt-get -y install qemu-kvm 
 
 #virtualbox utilities, need VBoxManage
-apt-get -y install virtualbox-ose
+#apt-get -y install virtualbox-ose
+
+wget -q http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | sudo apt-key add -
+
+sudo add-apt-repository "deb http://download.virtualbox.org/virtualbox/debian lucid non-free"
+apt-get update
+apt-get -y install virtualbox-3.2
 
 #Retrieve grub and boot sector 
 wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
