@@ -27,32 +27,40 @@ if [ -z "$debian_chroot" -a -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-source /opt/vappio-scripts/vappio_config.sh
-
-if [ -f "$vappio_runtime/node_type" ]; then
-    nodetype=`cat $vappio_runtime/node_type`;
-else
-    nodetype="PENDING"
-fi
-
-#Wait for vappio boot process to complete
-if [ $nodetype = 'PENDING' ]
+#Handle vappio stuff
+if [ -f "/opt/vappio-scripts/vappio_config.sh" ]
 then
-    echo -n "Node is $nodetype. Waiting for setup to finish."
+    source /opt/vappio-scripts/vappio_config.sh
+
+    if [ -f "$vappio_runtime/node_type" ]; then
+	nodetype=`cat $vappio_runtime/node_type`;
+    else
+	nodetype="PENDING"
+    fi
+    
+    #Wait for vappio boot process to complete
+    if [ $nodetype = 'PENDING' ]
+    then
+	echo -n "Node is $nodetype. Waiting for setup to finish."
+    fi
+    
+    while [ $nodetype = 'PENDING' ]
+    do
+	echo -n '.'
+	nodetype=`cat $vappio_runtime/node_type`
+	sleep 1
+    done 
+    echo 
+    hostn=`hostname`
+    if [ -f "$vappio_runtime/node_type" ]
+    then
+	nodetype=`cat $vappio_runtime/node_type`;
+    fi
+    if [ -f "$vappio_runtime/cloud_type" ]
+    then
+	cloudtype=`cat $vappio_runtime/cloud_type`;
+    fi
 fi
-
-while [ $nodetype = 'PENDING' ]
-do
- echo -n '.'
- nodetype=`cat $vappio_runtime/node_type`
- sleep 1
-done 
-echo 
-ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
-hostn=`hostname`
-nodetype=`cat $vappio_runtime/node_type`;
-cloudtype=`cat $vappio_runtime/cloud_type`;
-
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
 xterm-color)
