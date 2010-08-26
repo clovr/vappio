@@ -1,5 +1,7 @@
 #!/bin/bash 
 
+export DEBIAN_FRONTEND=noninteractive
+
 #Need grub legacy, it just works with xen
 #tried grub2 but it is a mess
 apt-get -y install grub

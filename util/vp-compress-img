@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #USAGE:./vp-compress-img image.img image.img.tgz
+#Requires you are in the same directory as image.img
 
 mkdir /mnt/foo1
 losetup -f $1
