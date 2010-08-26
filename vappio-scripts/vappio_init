@@ -19,14 +19,13 @@ appliance=`cat /etc/vappio/appliance_name`
 release=`cat /etc/vappio/release_name`
 bundle=`cat /etc/vappio/bundle_name`
 
-echo
+echo >> /etc/issue
 echo "$appliance,$bundle image, release $release" >> /etc/issue
 echo " " >> /etc/issue
 netcount=$(/sbin/ifconfig | grep -o "inet")
 if [[ $netcount > 1 ]]
 then
-    echo "To use this appliance, please use a web browser" >> /etc/issue
-    echo "from another system to navigate to " >> /etc/issue
+    echo "Access the appliance using a web browser at " >> /etc/issue
     echo " " >> /etc/issue
     /sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print "http://"$2"/" }' >> /etc/issue
     echo " " >> /etc/issue       
@@ -36,7 +35,7 @@ fi
 
 ##
 # Input a link to an external website to reference
-echo "For more information regarding this appliance, please visit" >> /etc/issue
+echo "For more information visit" >> /etc/issue
 echo "http://clovr.org" >> /etc/issue
 echo " " >> /etc/issue
 ##

@@ -74,11 +74,13 @@ do
     cp /etc/resolv.conf /mnt/$$/$b.live/etc/resolv.conf
     cp /etc/hostname /mnt/$$/$b.live/etc/hostname
     cp /etc/apt/sources.list.orig /mnt/$$/$b.live/etc/apt/sources.list
-
     #Apply recipe
     wget -c -P /mnt/$$/$b.live/tmp http://vappio.svn.sourceforge.net/viewvc/vappio/trunk/vappio-install/vp-bootstrap-install
     chroot /mnt/$$/$b.live bash -e /tmp/vp-bootstrap-install
     chroot /mnt/$$/$b.live $recipedir/$b
+
+    echo "$namepfx" > /mnt/$$/$b.live/etc/vappio/release_name
+    echo "$b" > /mnt/$$/$b.live/etc/vappio/bundle_name
 
     #Exit from chroot
     umount /mnt/$$/$b.live/proc

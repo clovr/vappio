@@ -5,6 +5,7 @@
 #S. Angiuoli 12/09
 
 #This must all be performed as root or sudo-ed
+#TODO, set -e except for zeros step
 
 # img_to_vmdk.sh <path_to_xen_image> <path_to_grub_tarball> <path_to_output_vmdk>
 
@@ -24,6 +25,12 @@ qemu-img create -f raw $clovrraw 10G
 #mount clovrVMware.raw as loopback device loop0
 deva=`losetup --show -f $clovrraw`
 devb=`losetup -f`
+
+if [ "$devb" = "" ]
+then
+    echo "No available loopback devices"
+    exit 2
+fi
 
 #create a new partition with fdisk
 #scripted to create 1 large, bootable partition

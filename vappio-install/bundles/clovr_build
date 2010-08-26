@@ -15,4 +15,3 @@ bash -e $VAPPIO_RECIPES/vappiopkg.sh
 bash -e $VAPPIO_RECIPES/hudson.sh
 sudo bash -e $VAPPIO_RECIPES/buildutils.sh
 
-

@@ -11,6 +11,7 @@ vlog "###"
 source $vappio_scripts/vbox/vbox_config.sh
 
 do_start() {
+    chmod 777 /tmp
 # Generic Shared area
     mkdir -p $shared_mp
     mkdir -p $userdata_mp

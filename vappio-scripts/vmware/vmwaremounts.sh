@@ -11,6 +11,8 @@ vlog "###"
 source $vappio_scripts/vmware/vmware_config.sh
 
 do_start() {
+    chmod 777 /tmp
+
     mkdir -p $shared_mp
     mkdir -p $userdata_mp
     mkdir -p $keysdir
