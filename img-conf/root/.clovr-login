@@ -7,4 +7,4 @@ then
 fi
 cat /etc/issue
 export SCREENME=
-exec bash
+exec /bin/bash
