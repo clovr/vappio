@@ -57,6 +57,12 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/
 for b in $*
 do
     namepfx="$b-$defaultname"
+    i=1
+    while [ -d "$namepfx" ]
+    do
+	i=`expr $i + 1`;
+	namepfx="$b-$defaultname-$i"
+    done
     mkdir -p /mnt/$$/$b
     mkdir -p /mnt/$$/$b.live
     currimg=/mnt/$$/$b/$bname
