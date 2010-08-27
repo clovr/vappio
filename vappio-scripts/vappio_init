@@ -13,15 +13,6 @@ chmod 777 $vappio_runtime
 $vappio_scripts/prep_directories.sh
 echo "OFFLINE" > $vappio_runtime/node_type 
 
-cat /etc/vappio/issue > /etc/issue
-cat /etc/vappio/issue > /etc/issue.net
-appliance=`cat /etc/vappio/appliance_name`
-release=`cat /etc/vappio/release_name`
-bundle=`cat /etc/vappio/bundle_name`
-
-echo >> /etc/issue
-echo "$appliance,$bundle image, release $release" >> /etc/issue
-echo " " >> /etc/issue
 netcount=$(/sbin/ifconfig | grep -o "inet")
 if [[ $netcount > 1 ]]
 then

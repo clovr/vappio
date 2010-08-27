@@ -12,3 +12,13 @@
 ### END INIT INFO
 
 #All vappio startup is now in /etc/vappio
+
+cat /etc/vappio/issue > /etc/issue
+cat /etc/vappio/issue > /etc/issue.net
+appliance=`cat /etc/vappio/appliance_name`
+release=`cat /etc/vappio/release_name`
+bundle=`cat /etc/vappio/bundle_name`
+
+echo >> /etc/issue
+echo "$appliance,$bundle image, release $release" >> /etc/issue
+echo " " >> /etc/issue

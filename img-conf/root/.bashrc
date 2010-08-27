@@ -44,6 +44,7 @@ then
     if [ "$nodetype" = 'PENDING' ]
     then
 	echo -n "Node is $nodetype. Waiting for setup to finish."
+	wait=1
     fi
     
     while [ "$nodetype" = 'PENDING' ]
