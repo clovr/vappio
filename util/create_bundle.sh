@@ -43,4 +43,6 @@ chmod 777 $namepfx
 rm -f $namepfx/$namepfx.mf
 
 tar -S -cvzf $namepfx.tgz $namepfx
-zip -r $namepfx.zip $namepfx
+
+#Zip does not support large files and 7z does not preserve file permissions
+#zip -r $namepfx.zip $namepfx

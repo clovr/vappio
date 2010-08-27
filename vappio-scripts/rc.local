@@ -20,5 +20,5 @@ release=`cat /etc/vappio/release_name`
 bundle=`cat /etc/vappio/bundle_name`
 
 echo >> /etc/issue
-echo "$appliance,$bundle image, release $release" >> /etc/issue
+echo "$appliance,$bundle, $release" >> /etc/issue
 echo " " >> /etc/issue
