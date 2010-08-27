@@ -30,12 +30,14 @@ chmod 777 keys
 mkdir user_data
 chmod 777 user_data
 popd
-#The OVF export will create a vmdk file but VMware no like
+#The OVF export will create a vmdk file but VMware 
 #will not mount rw and throws write errors, ata1 drdy err indf
-
+echo "Moving $currimg.vmdk $namepfx/$namepfx.vmdk"
 mv $currimg.vmdk $namepfx/$namepfx.vmdk
+currimgbname=`basename $currimg`
+rm $namepfx/$currimg.vmdk
 
-perl -pi -e 's/href=\".*\.vmdk\"/href="$namepfx.vmdk"/' $namepfx/$namepfx.ovf
+perl -pi -e "s/href=\".*\.vmdk\"/href=\"$namepfx.vmdk\"/" $namepfx/$namepfx.ovf
 chmod 777 $namepfx
 #Manifest file may cause problems on import
 rm -f $namepfx/$namepfx.mf

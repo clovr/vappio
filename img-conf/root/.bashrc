@@ -39,12 +39,12 @@ then
     fi
     
     #Wait for vappio boot process to complete
-    if [ $nodetype = 'PENDING' ]
+    if [ "$nodetype" = 'PENDING' ]
     then
 	echo -n "Node is $nodetype. Waiting for setup to finish."
     fi
     
-    while [ $nodetype = 'PENDING' ]
+    while [ "$nodetype" = 'PENDING' ]
     do
 	echo -n '.'
 	nodetype=`cat $vappio_runtime/node_type`
