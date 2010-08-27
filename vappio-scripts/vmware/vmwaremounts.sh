@@ -18,7 +18,7 @@ do_start() {
     mkdir -p $keysdir
 # Generic Shared area
     mount -o ttl=3 -t vmhgfs .host:$shared_dir $shared_mp -o uid=33 -o gid=33
-    sleep 1
+    sleep 2
     mount -o ttl=3 -t vmhgfs .host:$userdata_dir $userdata_mp -o uid=33 -o gid=33 -o fmask=000 -o dmask=000
     mount -o ttl=3 -t vmhgfs .host:/keys $keysdir -o uid=33 -o gid=33 -o fmask=077 -o dmask=077
     

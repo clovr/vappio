@@ -33,6 +33,7 @@ popd
 #The OVF export will create a vmdk file but VMware no like
 #will not mount rw and throws write errors, ata1 drdy err indf
 mv $currimg.vmdk $namepfx/$namepfx.vmdk
+perl -pi -e 's/href=\".*\.vmdk\"/href="$namepfx.vmdk"/' $namepfx/$namepfx.ovf
 chmod 777 $namepfx
 #Manifest file may cause problems on import
 rm -f $namepfx/$namepfx.mf
