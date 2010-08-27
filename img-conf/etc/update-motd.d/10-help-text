@@ -2,13 +2,5 @@
 
 if [ -d "/etc/vappio" ]
 then
-    appliance=`cat /etc/vappio/appliance_name`
-    release=`cat /etc/vappio/release_name`
-    bundle=`cat /etc/vappio/bundle_name`
-    
-    cat /etc/vappio/issue > /etc/issue
-    cat /etc/vappio/issue > /etc/issue.net
-    echo "$appliance,$bundle image, release $release" >> /etc/issue
-    #Reuse pre-login text here
-    cat /etc/issue
+    cat /etc/vappio/issue
 fi
