@@ -13,6 +13,8 @@ cloud-init-cfg config-misc
 cloud-init-cfg config-ssh
 cloud-init-cfg config-mounts
 
+chmod 777 /mnt
+
 #Run user-data scripts
 #This can specify the node type and master node by writing the file
 #$vappio_userdata/node_type
