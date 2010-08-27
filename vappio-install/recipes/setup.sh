@@ -2,6 +2,10 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt $tmpdir/etc/apt
+#Make non-EC apt the default
+cp /etc/apt/sources.list.orig /etc/apt/sources.list
+
 apt-get -y install subversion
 
 chmod 777 /tmp
