@@ -1,3 +1,5 @@
+#Or mirror.anl.gov
+
 deb http://mirror.umoss.org/ubuntu/ lucid main universe
 deb-src http://mirror.umoss.org/ubuntu/ lucid main universe
 deb http://mirror.umoss.org/ubuntu/ lucid-updates main universe

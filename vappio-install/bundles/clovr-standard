@@ -33,3 +33,5 @@ bash -e $VAPPIO_RECIPES/clovrmain.sh
 bash -e $VAPPIO_RECIPES/clovrdashboard.sh
 
 bash -e $VAPPIO_RECIPES/apache.sh
+
+bash -e $VAPPIO_RECIPES/hudson.sh
