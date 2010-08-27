@@ -1,7 +1,7 @@
-deb http://archive.ubuntu.com/ubuntu/ lucid main universe
-deb-src http://archive.ubuntu.com/ubuntu/ lucid main universe
-deb http://archive.ubuntu.com/ubuntu/ lucid-updates main universe
-deb-src http://archive.ubuntu.com/ubuntu/ lucid-updates main universe
+deb http://mirror.umoss.org/ubuntu/ lucid main universe
+deb-src http://mirror.umoss.org/ubuntu/ lucid main universe
+deb http://mirror.umoss.org/ubuntu/ lucid-updates main universe
+deb-src http://mirror.umoss.org/ubuntu/ lucid-updates main universe
 deb http://security.ubuntu.com/ubuntu lucid-security main universe
 deb-src http://security.ubuntu.com/ubuntu lucid-security main universe
 deb http://archive.canonical.com/ lucid partner
