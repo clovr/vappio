@@ -40,7 +40,6 @@ image=$1
 
 defaultname=`date "+%Y%m%d"`
 bname=$defaultname.img
-namepfx=$defaultname
 
 #remaining arguments are recipe names
 shift
@@ -57,6 +56,7 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/
 
 for b in $*
 do
+    namepfx="$b-$defaultname"
     mkdir -p /mnt/$$/$b
     mkdir -p /mnt/$$/$b.live
     currimg=/mnt/$$/$b/$bname
