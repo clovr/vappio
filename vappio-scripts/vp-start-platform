@@ -23,7 +23,7 @@ platform=$1
 if [ -d "/etc/vappio/$platform" ] 
 then
     vlog "INIT PLATFORM $platform"
-    run-parts --regex '^S.*' --arg start /etc/vappio/$platform/
+    run-parts --regex '^S.*' --arg start /etc/vappio/$platform/ >> /tmp/vappio.log
 else
     vlog "Unsupported platform: $p"
 fi

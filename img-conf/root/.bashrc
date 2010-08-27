@@ -27,7 +27,9 @@ if [ -z "$debian_chroot" -a -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-#Handle vappio stuff
+#Wait for vappio setup to complete
+#This will spin at login until we leave pending state
+#Ctrl-C this loop is harmless but image will not be ready for use
 if [ -f "/opt/vappio-scripts/vappio_config.sh" ]
 then
     source /opt/vappio-scripts/vappio_config.sh
@@ -47,7 +49,10 @@ then
     while [ "$nodetype" = 'PENDING' ]
     do
 	echo -n '.'
-	nodetype=`cat $vappio_runtime/node_type`
+	if [ -f "$vappio_runtime/node_type" ]
+	then
+	    nodetype=`cat $vappio_runtime/node_type`
+	fi
 	sleep 1
     done 
     echo 

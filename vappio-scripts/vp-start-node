@@ -25,7 +25,7 @@ do
     if [ -d "/etc/vappio/$n" ]
     then
 	echo "INIT NODETYPE $n" >> /tmp/vappio.log
-	run-parts --regex '^S.*' --arg start /etc/vappio/$n/ >> /tmp/vappio.log
+	run-parts --regex '^S.*' --arg start /etc/vappio/$n/ >> /tmp/vappio.log 
     else
 	echo "Unsupported node type: $nodetype"
     fi

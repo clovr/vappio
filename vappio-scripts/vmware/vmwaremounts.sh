@@ -15,6 +15,9 @@ do_start() {
     mkdir -p $shared_mp
     mkdir -p $userdata_mp
     mkdir -p $keysdir
+    chmod 777 $userdata_mp
+    chmod 777 $shared_mp
+    chmod 777 $keysdir
 # Generic Shared area
     mount -o ttl=3 -t vmhgfs .host:$shared_dir $shared_mp -o uid=33 -o gid=33
     sleep 2
