@@ -13,7 +13,7 @@ cp drmaa.jar /opt/workflow-sforge/jars/
 
 perl -pi -e 's/export SGE_ROOT=.*/export SGE_ROOT=\/var\/lib\/gridengine/' /opt/workflow-sforge/bin/sge_submitter.sh
 perl -pi -e 's/export SGE_ARCH=.*/export SGE_ARCH=lx26-ia64/' /opt/workflow-sforge/bin/sge_submitter.sh
-perl -pi -e 's/\/opt\/sge/\/\/opt\/workflow-sforge\/jars\/drmaa.jar\:var\/lib\/gridengine/' /opt/workflow-sforge/switch.sh
+perl -pi -e 's/\/opt\/sge/\/\/opt\/workflow-sforge\/jars\/drmaa.jar\:/\/var\/lib\/gridengine/' /opt/workflow-sforge/switch.sh
 #export SGE_CELL=default
 #export SGE_QMASTER_PORT=6444
 #export SGE_EXECD_PORT=6445
