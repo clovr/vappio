@@ -27,13 +27,14 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 
 #Update grid request
 wget -P /tmp http://cb2.igs.umaryland.edu/gridrequest.tgz
-tar -C /usr/local/share/perl/5.10.1 -xvzf gridrequest.tgz
+tar -C /usr/local/share/perl/5.10.1 -xvzf /tmp/gridrequest.tgz
 
+#All these changes are now in the tgz
 #modify switch.sh for dramma.jar
 #modify sge_submitter.sh /opt/workflow-sforge/bin/sge_submitter.sh
-perl -pi -e 's/export SGE_ROOT=.*/export SGE_ROOT=\/var\/lib\/gridengine/' /opt/workflow-sforge/bin/sge_submitter.sh
-perl -pi -e 's/export SGE_ARCH=.*/export SGE_ARCH=lx26-ia64/' /opt/workflow-sforge/bin/sge_submitter.sh
-perl -pi -e 's/\/opt\/sge/\/\/opt\/workflow-sforge\/jars\/drmaa.jar\:/\/var\/lib\/gridengine/' /opt/workflow-sforge/switch.sh
+#perl -pi -e 's/export SGE_ROOT=.*/export SGE_ROOT=\/var\/lib\/gridengine/' /opt/workflow-sforge/bin/sge_submitter.sh
+#perl -pi -e 's/export SGE_ARCH=.*/export SGE_ARCH=lx26-ia64/' /opt/workflow-sforge/bin/sge_submitter.sh
+#perl -pi -e 's/opt\/sge/\/\/opt\/workflow-sforge\/jars\/drmaa.jar\:/var\/lib\/gridengine/' /opt/workflow-sforge/switch.sh
 
 #export SGE_CELL=default
 #export SGE_QMASTER_PORT=6444
@@ -43,7 +44,7 @@ perl -pi -e 's/\/opt\/sge/\/\/opt\/workflow-sforge\/jars\/drmaa.jar\:/\/var\/lib
 
 #Workflow, sge user config
 #adduser --quiet --disabled-password --disabled-login guest
-mkdir /home/www-data
+mkdir -p /home/www-data
 chown www-data:www-data /home/www-data
 chmod 755 /home/www-data
 #in /etc/passwd
