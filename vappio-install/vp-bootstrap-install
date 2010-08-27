@@ -2,3 +2,9 @@
 sudo apt-get -y install subversion
 
 sudo svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/ /opt/vappio-install
+
+#Update utilities directory if already installed
+if [ -d "/opt/vappio-util" ]
+then
+    /opt/vappio-install/recipes/vappioutil.sh
+fi

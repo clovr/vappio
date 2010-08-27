@@ -131,6 +131,7 @@ serial1.present = "FALSE"
 cleanShutdown = "TRUE"
 replay.supported = "FALSE"
 replay.filename = ""
+
 sharedFolder1.present = "TRUE"
 sharedFolder1.enabled = "TRUE"
 sharedFolder1.readAccess = "TRUE"

@@ -35,11 +35,12 @@ popd
 echo "Moving $currimg.vmdk $namepfx/$namepfx.vmdk"
 mv $currimg.vmdk $namepfx/$namepfx.vmdk
 currimgbname=`basename $currimg`
-rm $namepfx/$currimg.vmdk
+rm $namepfx/$currimgbname.vmdk
 
 perl -pi -e "s/href=\".*\.vmdk\"/href=\"$namepfx.vmdk\"/" $namepfx/$namepfx.ovf
 chmod 777 $namepfx
 #Manifest file may cause problems on import
 rm -f $namepfx/$namepfx.mf
 
-tar cvzf $namepfx.tgz $namepfx
+tar -S -cvzf $namepfx.tgz $namepfx
+zip -r $namepfx.zip $namepfx

@@ -2,6 +2,7 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+apt-get -y install zip
 #Need grub legacy, it just works with xen
 #tried grub2 but it is a mess
 apt-get -y install grub

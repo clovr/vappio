@@ -63,6 +63,7 @@ do
 	i=`expr $i + 1`;
 	namepfx="$b-$defaultname-$i"
     done
+    echo "Building $namepfx"
     mkdir -p /mnt/$$/$b
     mkdir -p /mnt/$$/$b.live
     currimg=/mnt/$$/$b/$bname

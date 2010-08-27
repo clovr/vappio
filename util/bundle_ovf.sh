@@ -27,4 +27,4 @@ VBoxManage sharedfolder add $2 --name user_data --hostpath $4/user_data/
 VBoxManage sharedfolder add $2 --name pg_data --hostpath $4/pg_data/
 
 #Create ovf
-VBoxManage -q export $2 -o $3
+VBoxManage export $2 -o $3
