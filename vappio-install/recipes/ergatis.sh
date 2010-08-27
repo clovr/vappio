@@ -71,6 +71,7 @@ ln -s /opt/clovr_pipelines/workflow/project_saved_templates /opt/ergatis/global_
 #tar -C / -xvzf ergatis_clovr.tgz
 
 #Configure website
+#TODO update ergatis.ini
 rm -f /tmp/clovr_ergatis_www.tgz
 wget -P /tmp http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
 tar -C / -xvzf /tmp/clovr_ergatis_www.tgz
