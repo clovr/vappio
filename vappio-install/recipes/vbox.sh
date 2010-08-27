@@ -15,4 +15,5 @@ apt-get -y install linux-headers-`uname -r`
 #Originally pulled installer from mount /dev/cdrom1 /mnt
 #MUST USE SUDO or something strange happens
 sudo bash /tmp/VBoxLinuxAdditions-amd64.run
+depmod -a
 mv /bin/uname.orig /bin/uname
