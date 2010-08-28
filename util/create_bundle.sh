@@ -1,6 +1,6 @@
 #!/bin/bash
-
-#USAGE:create_bundle.sh image.img name
+#Packages a raw disk image as a vmdk for VMware and VirtualBox
+USAGE="vp-package-release image.img name"
 
 #wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
 #wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-3.2.6.tar.gz
@@ -41,8 +41,10 @@ perl -pi -e "s/href=\".*\.vmdk\"/href=\"$namepfx.vmdk\"/" $namepfx/$namepfx.ovf
 chmod 777 $namepfx
 #Manifest file may cause problems on import
 rm -f $namepfx/$namepfx.mf
+sync
 
-tar -S -cvzf $namepfx.tgz $namepfx
+#Need to ignore errors from tar due to sparse files
+tar -S -cvzf $namepfx.tgz $namepfx || true
 
 #Zip does not support large files and 7z does not preserve file permissions
 #zip -r $namepfx.zip $namepfx

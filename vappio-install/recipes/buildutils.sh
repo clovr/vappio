@@ -9,6 +9,8 @@ apt-get -y install grub
 #update-grub
 apt-get -y install qemu-kvm 
 
+echo "max_loop=128" > /etc/modprobe.d/loop.conf
+
 #virtualbox utilities, need VBoxManage
 #apt-get -y install virtualbox-ose
 

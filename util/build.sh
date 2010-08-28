@@ -45,7 +45,6 @@ then
 else
     defaultname=`date "+%Y%m%d"`
 fi
-bname=$defaultname.img
 
 #remaining arguments are recipe names
 shift
@@ -72,7 +71,7 @@ do
     echo "Building $namepfx"
     mkdir -p /mnt/$$/$b
     mkdir -p /mnt/$$/$b.live
-    currimg=/mnt/$$/$b/$bname
+    currimg=/mnt/$$/$b/$namepfx.img
     cp $image $currimg
     devname=`losetup --show -f $currimg`
     mount $devname /mnt/$$/$b.live
