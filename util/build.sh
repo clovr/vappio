@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
-#USAGE: build.sh image.img name1 name2 ... namen
+USAGE="vp-build image.img bundlename1 name2 ... namen"
+
 #eg. build.sh clovr_skeleton.img clovr_base clovr_standard
 
 #Takes a skeleton image (image.img) and applies recipes name1 ... namen

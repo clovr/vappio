@@ -6,8 +6,9 @@ do_start() {
 #set up mock hostname if we don't have one, using the clovr-IPADDR naming convention
 #This is required so that SGE can run locally without problems
     nodns=0
+    cp /etc/hosts.orig /etc/hosts
     myhostname=`hostname -f`
-    if [ $? != "0" ]
+    if [ $? != "0" ] || [ `echo $myhostname | grep clovr-` != "" ]
     then
 	nodns=1
     else

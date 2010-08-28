@@ -1,7 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash 
 
-#USAGE:buildall.sh [image.img]
-#Defaults to /mnt/image.img. Make sure /mnt has enough free space
+USAGE="vp-buildall [image.img]
+Defaults to /mnt/image.img. 
+Make sure /mnt is an external mount with plenty of free space"
 
 if [ "$1" = "" ]
 then
