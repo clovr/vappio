@@ -51,7 +51,8 @@ do
     echo "#\!/bin/bash" > $n/shared/user-scripts/01-starthudson
     echo "/etc/init.d/hudson start" > $n/shared/user-scripts/01-starthudson
     chmod a+rx $n/shared/user-scripts/01-starthudson
-
+    #TODO - set 24hr shutdown
+    
     #Boot the image
     ~/vp-launch-headless $n vmware
     nipaddr=`cat $n/shared/clovr_ip`

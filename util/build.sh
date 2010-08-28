@@ -38,7 +38,12 @@ image=$1
 #bname=`basename $image`
 #namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
 
-defaultname=`date "+%Y%m%d"`
+if [ $BUILD_ID != "" ]
+then
+    defaultname=`echo "$BUILD_ID" | sed 's/_/-/'`
+else
+    defaultname=`date "+%Y%m%d"`
+fi
 bname=$defaultname.img
 
 #remaining arguments are recipe names
