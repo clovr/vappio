@@ -19,7 +19,8 @@ source $vappio_scripts/vappio_config.sh
 #See /usr/lib/python2.6/dist-packages/cloudinit/UserDataHandler.py
 if [ -d "$user_data_scripts" ]
 then
-    run-parts --regex '.*' "$user_data_scripts"
+    echo "Running user-scripts in $user_data_scripts"
+    run-parts -v "$user_data_scripts"
 fi
 
 #(2) Machine conf and bootstrap keys
