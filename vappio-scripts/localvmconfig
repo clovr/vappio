@@ -14,6 +14,15 @@ source $vappio_scripts/vappio_config.sh
 #opt/packages (same)
 #localuserdata (vmware,vbox,xen only)
 
+#(1) User scripts
+#TODO,split user data file into $user_data_scripts
+#See /usr/lib/python2.6/dist-packages/cloudinit/UserDataHandler.py
+if [ -d "$user_data_scripts" ]
+then
+    run-parts --regex '.*' "$user_data_scripts"
+fi
+
+#(2) Machine conf and bootstrap keys
 ##
 # If /tmp/machine.conf already exists then we do not need to make it
 # if we are running under VMWare or a local Xen then it will need to
@@ -25,6 +34,7 @@ then
     bootStrapKeys.py
 fi
 
+#(3) Startup services
 ##
 # Start up all services on the node
 startUpNode.py >> /tmp/startUpNode.log 2>&1

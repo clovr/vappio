@@ -31,7 +31,9 @@ ln -sf /bin/bash /bin/sh
 #echo "DEFAULT_RUNLEVEL=4" > /etc/inittab
 
 apt-get -y --force-yes update
-apt-get -y --force-yes upgrade
+
+#We could automatically upgrade but will make this manual for now
+#apt-get -y --force-yes upgrade
 
 invoke-rc.d apparmor stop
 update-rc.d -f apparmor remove

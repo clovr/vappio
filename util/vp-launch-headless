@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#Launch a VM in headless mode and return the IP address
+USAGE="vp-launch-headless [vm_bundle_directory] [vmware|vbox]"
+#
+
+if [ -d "$1" ] && [ -f $1/start_clovr.vmx ]
+then
+    echo "Starting VM in $1"
+else
+    echo $USAGE
+    exit 1
+fi
+
+xhost + 
+xhost +LOCAL:
+export DISPLAY=:0.0
+
+if [ "$2" = "vbox" ]
+then
+    VBoxManage
+else
+    vmplayer $1/start_clovr.vmx &
+fi
+
+ipstat=`stat -t $1/shared/clovr_ip`
+ipstatnew=`stat -t $1/shared/clovr_ip`
+
+while [ "$ipstat" = "$ipstatnew" ]
+do
+    echo -n "."
+    ipstatnew=`stat -t $1/shared/clovr_ip`
+    sleep 5
+done
+
+echo 
+cat $1/shared/clovr_ip

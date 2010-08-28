@@ -96,6 +96,8 @@ ssh_options="-oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUse
 # VAPPIO SETUP
 default_node_type=master
 default_master_node=localhost
+user_data_file=/mnt/user-data.txt
+user_data_scripts=/mnt/user-scripts
 
 ##Data placement config
 ##Staging

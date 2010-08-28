@@ -1,0 +1,84 @@
+#!/bin/bash
+
+USAGE="vp-autobuild [buildvm]"
+hudsonport=8888
+
+if [ "$1" = "" ]
+then
+    buildvm="/data/sangiuoli/clovr-base-20100827-3"
+fi
+
+#Check if buildvm is running
+if [ -d "$buildvm/start_clovr.vmx.lck" ]
+then
+    echo "VM $1 is already running"
+else
+    vp-launch-headless $1 vmware
+    sleep 10 #wait for hudson to finish booting
+fi
+
+ipaddr=`cat $buildvm/shared/clovr_ip`
+
+#Check for hudson
+curl http://$ipaddr:$hudsonport > /dev/null
+if [ $? != 0 ]
+then
+    echo "Hudson not found at $ipaddr:$hudsonport"
+    exit 1;
+fi
+
+ls $buildvm/shared/clovr-*.tgz > /tmp/$$.builds
+
+#Launch hudson builds
+curl http://$ipaddr:8888/job/Build\%20all\%20bundle\%20image/build
+
+ls $buildvm/shared/clovr-*.tgz > /tmp/$$.newbuilds
+diff=`diff /tmp/$$.builds /tmp/$$.newbuilds`
+while [ "$diff" = "" ] 
+do
+    echo -n "."
+    sleep 60
+    ls $buildvm/shared/clovr-*.tgz > /tmp/$$.newbuilds
+done
+#Launch hudson tests
+newbundles=`diff /tmp/$$.builds /tmp/$$.newbuilds | grep ">" | perl -ne 's/\>\s+//;s/\.tgz$//;print'`
+for $n $newbundles
+do
+    #Modify start up process to install hudson
+    mkdir $n/shared/user-scripts
+    chmod 777 $n/shared/user-scripts
+    ln -s /opt/vappio-install/recipes/hudson.sh $n/shared/user-scripts/01-installhudson
+    echo "#\!/bin/bash" > $n/shared/user-scripts/01-starthudson
+    echo "/etc/init.d/hudson start" > $n/shared/user-scripts/01-starthudson
+    chmod a+rx $n/shared/user-scripts/01-starthudson
+
+    #Boot the image
+    ~/vp-launch-headless $n vmware
+    nipaddr=`cat $n/shared/clovr_ip`
+    sleep 10 #wait for hudson to start
+
+    #Launch the tests
+    curl http://$nipaddr:$hudsonport > /dev/null
+    if [ $? != 0 ]
+    then
+	echo "Hudson not found at $nipaddr:$hudsonport"
+    else
+	curl http://$ipaddr:8888/job/00\%20Launch\%20all\%20jobs/build
+    fi
+    
+done
+
+##SCRATCH
+#for imgname `ls $newimagesdir`
+#do
+#    VBoxManage list runningvms | grep $imgname
+#    if [ $? != 0 ]
+#    then
+	#Import and Launch
+#	VBoxMange import $imgname/$imgname.ovf
+	#Launch
+#	VBoxHeadless --startvm $imgname --vrdp=off
+	#Set up shared folders
+	
+	#Read shared/clovr_ip and announce
+#done
