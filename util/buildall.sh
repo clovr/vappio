@@ -23,7 +23,7 @@ then
 fi
 
 /opt/vappio-install/vp-bootstrap-install
-/opt/vappio-install/recipes/clovr_build
+/opt/vappio-install/bundles/clovr_build
 bundles=`ls /opt/vappio-install/bundles`
 for b in $bunfles
 do
