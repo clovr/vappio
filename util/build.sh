@@ -38,7 +38,7 @@ image=$1
 #bname=`basename $image`
 #namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
 
-if [ $BUILD_ID != "" ]
+if [ "$BUILD_ID" != "" ]
 then
     defaultname=`echo "$BUILD_ID" | sed 's/_/-/'`
 else
