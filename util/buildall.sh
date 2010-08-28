@@ -24,6 +24,7 @@ fi
 
 /opt/vappio-install/vp-bootstrap-install
 bundles=`ls /opt/vappio-install/bundles | grep -`
+echo "Bundles $bundles"
 for b in $bunfles
 do
     echo "Building $b"
