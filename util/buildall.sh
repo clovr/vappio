@@ -22,7 +22,7 @@ then
     exit 1
 fi
 
-/opt/vappio-util/vp-bootstrap-install
+/opt/vappio-install/vp-bootstrap-install
 /opt/vappio-install/recipes/clovr_build
 bundles=`ls /opt/vappio-install/bundles`
 for b in $bunfles
