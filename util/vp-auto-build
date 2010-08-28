@@ -18,16 +18,16 @@ else
     mkdir $buildvm/shared/user-scripts
     chmod 777 $buildvm/shared/user-scripts
     echo "#!/bin/bash" > $buildvm/shared/user-scripts/01-starthudson
-    echo "/etc/init.d/hudson start" > $buildvm/shared/user-scripts/01-starthudson
+    echo "/etc/init.d/hudson start" >> $buildvm/shared/user-scripts/01-starthudson
     chmod a+rx $buildvm/shared/user-scripts/01-starthudson
-    vp-launch-headless $buildvm vmware
+    ~/vp-launch-headless $buildvm vmware
     sleep 10 #wait for hudson to finish booting
 fi
 
 ipaddr=`cat $buildvm/shared/clovr_ip`
 
 #Check for hudson
-curl http://$ipaddr:$hudsonport > /dev/null
+curl --silent http://$ipaddr:$hudsonport > /dev/null
 if [ $? != 0 ]
 then
     echo "Hudson not found at $ipaddr:$hudsonport"
@@ -37,8 +37,8 @@ fi
 ls $buildvm/shared/clovr-*.tgz > /tmp/$$.builds
 
 #Check if build in progress
-buildinprogress=`curl http://$ipaddr:$hudsonport/view/Platform%20conversion/rssLatest | xpath -e '//entry/title/text()'  | grep "Build all bundle image" | grep "(null)"`
-if [ $buildinprogress != "" ]
+buildinprogress=`curl --silent http://$ipaddr:$hudsonport/view/Platform%20conversion/rssLatest | xpath -e '//entry/title/text()'  | grep "Build all bundle image" | grep "(null)"`
+if [ "$buildinprogress" != "" ]
 then
     echo "Build in progress at http://$ipaddr:8888"
     echo "Ignoring these builds for launching new tests"
@@ -46,7 +46,7 @@ then
 else
 #Launch hudson builds
     echo "Launching build all at http://$ipaddr:8888"
-    curl http://$ipaddr:8888/job/Build\%20all\%20bundle\%20image/build
+    curl --silent http://$ipaddr:8888/job/Build\%20all\%20bundle\%20image/build
 fi
 
 ls $buildvm/shared/clovr-*.tgz > /tmp/$$.newbuilds
@@ -76,12 +76,12 @@ do
     sleep 10 #wait for hudson to start
 
     #Launch the tests
-    curl http://$nipaddr:$hudsonport > /dev/null
+    curl --silent http://$nipaddr:$hudsonport > /dev/null
     if [ $? != 0 ]
     then
 	echo "Hudson not found at $nipaddr:$hudsonport"
     else
-	curl http://$ipaddr:8888/job/00\%20Launch\%20all\%20jobs/build
+	curl --silent http://$nipaddr:8888/job/00\%20Launch\%20all\%20jobs/build
     fi
     
 done

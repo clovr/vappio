@@ -18,6 +18,7 @@ export DISPLAY=:0.0
 
 if [ "$2" = "vbox" ]
 then
+    #TODO, implement
     VBoxManage
 else
     vmplayer $1/start_clovr.vmx &
