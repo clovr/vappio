@@ -66,7 +66,7 @@ do
     if [ "$zfile" != "" ]
     then
         #Zipped sparse files provide faster copy
-	image=`tar -C /mnt/$$/$b.live -xvzf $image` || true
+	image=`tar -C /mnt/$$/$b.live -xvzf $image | perl -ne 's/\s+//g;print'` || true
 	if [ -f "/mnt/$$/$b.live/$image" ]
 	then
 	    mv /mnt/$$/$b.live/$image $currimage
