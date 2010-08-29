@@ -62,7 +62,22 @@ do
     mkdir -p /mnt/$$/$b
     mkdir -p /mnt/$$/$b.live
     currimg=/mnt/$$/$b/$namepfx.img
-    cp --sparse=always $image $currimg
+    #Copy image
+    if [ `file $image | grep gzip` != "" ]
+    then
+        #Zipped sparse files provide faster copy
+	ibname=`basename $image`
+	tar -C /mnt/$$/$b.live xvzf $image
+	if [ -f "/mnt/$$/$b.live/$ibname" ]
+	then
+	    mv /mnt/$$/$b.live/$ibname $currimage
+	else
+	    echo "Bad compressed image $image. Can't fine $ibname in output"
+	    exit 1
+	fi
+    else
+	cp --sparse=always $image $currimg
+    fi
     devname=`losetup --show -f $currimg`
     mount $devname /mnt/$$/$b.live
 
