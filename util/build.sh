@@ -64,7 +64,7 @@ do
     currimg=/mnt/$$/$b/$namepfx.img
     #Copy image
     zfile=`file $image | grep gzip` || true
-    if [ "$zile" != "" ]
+    if [ "$zfile" != "" ]
     then
         #Zipped sparse files provide faster copy
 	ibname=`basename $image`
