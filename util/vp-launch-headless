@@ -26,12 +26,17 @@ fi
 
 ipstat=`stat -t $1/shared/clovr_ip`
 ipstatnew=`stat -t $1/shared/clovr_ip`
-
+timeout=60 #5 minutes
 while [ "$ipstat" = "$ipstatnew" ]
 do
     echo -n "."
     ipstatnew=`stat -t $1/shared/clovr_ip`
     sleep 5
+    count=`expr $count + 1`
+    if [ $count > $timeout ]
+    then
+	echo "Machine boot not detected, exiting"
+	exit 1
 done
 
 echo 
