@@ -11,7 +11,7 @@ pushd /mnt
 tar cvzf grub-boot.tgz boot
 popd
 
-cp $currimg $currimg.vmbundle
+cp --sparse=always $currimg $currimg.vmbundle
 /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vmware.sh
 /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vbox.sh
 /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
