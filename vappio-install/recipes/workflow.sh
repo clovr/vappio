@@ -17,6 +17,7 @@ pushd /tmp/$$
 wget http://search.cpan.org/CPAN/authors/id/T/TH/THARSCH/Schedule-DRMAAc-0.81.tar.gz
 tar xvzf Schedule-DRMAAc-0.81.tar.gz 
 cd Schedule-DRMAAc-0.81
+export SGE_ROOT=/var/lib/gridengine
 ln -s /usr/include/drmaa.h
 perl Makefile.PL 
 make

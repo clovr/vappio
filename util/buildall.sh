@@ -29,5 +29,11 @@ echo "Bundles $bundles"
 for b in $bundles
 do
     echo "Building $b"
-    /opt/vappio-util/build.sh $image $b
+    #Trigger build through hudson or command line
+    if [ "$HUDSON_URL" != "" ]
+    then
+	curl --silent http://$HUDSON_URL/job/Build\%$b\%20image/build
+    else
+	/opt/vappio-util/build.sh $image $b
+    fi
 done

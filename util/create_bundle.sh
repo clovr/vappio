@@ -2,15 +2,16 @@
 #Packages a raw disk image as a vmdk for VMware and VirtualBox
 USAGE="vp-release image.img name"
 
-#wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
-#wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-3.2.6.tar.gz
-#wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-install.tgz
-
 currimg=$1
 namepfx=$2
+
+wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /mnt/boot
+pushd /mnt
+tar cvzf grub-boot.tgz boot
+popd
+
 cp $currimg $currimg.vmbundle
-#/opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz 
-#/opt/vappio-util/img_add_tgz.sh $currimg.vmbundle /mnt/vboxtools-install.tgz
 /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vmware.sh
 /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vbox.sh
 /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
@@ -21,6 +22,7 @@ pushd $namepfx
 #Create ovf bundle
 /opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf ~/$namepfx
 #Add vmx file
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx /mnt/start_clovr.tmpl.vmx
 /opt/vappio-util/bundle_vmx.sh ".\/$namepfx.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
 #Add shared folder 
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared shared
