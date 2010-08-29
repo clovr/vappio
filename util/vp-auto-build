@@ -34,57 +34,17 @@ then
     exit 1;
 fi
 
-ls $buildvm/shared/clovr-*.tgz > /tmp/$$.builds
-
 #Check if build in progress
 buildinprogress=`curl --silent http://$ipaddr:$hudsonport/view/Platform%20conversion/rssLatest | xpath -e '//entry/title/text()'  | grep "Build all bundle image" | grep "(null)"`
 if [ "$buildinprogress" != "" ]
 then
     echo "Build in progress at http://$ipaddr:8888"
-    echo "Ignoring these builds for launching new tests"
-    cat /tmp/$$.builds
 else
 #Launch hudson builds
     echo "Launching build all at http://$ipaddr:8888"
     curl --silent http://$ipaddr:8888/job/Build\%20all\%20bundle\%20image/build
 fi
 
-ls $buildvm/shared/clovr-*.tgz > /tmp/$$.newbuilds
-diff=`diff /tmp/$$.builds /tmp/$$.newbuilds`
-while [ "$diff" = "" ] 
-do
-    echo -n "."
-    sleep 60
-    ls $buildvm/shared/clovr-*.tgz > /tmp/$$.newbuilds
-done
-#Launch hudson tests
-newbundles=`diff /tmp/$$.builds /tmp/$$.newbuilds | grep ">" | perl -ne 's/\>\s+//;s/\.tgz$//;print'`
-for $n $newbundles
-do
-    #Modify start up process to install hudson
-    mkdir $n/shared/user-scripts
-    chmod 777 $n/shared/user-scripts
-    ln -s /opt/vappio-install/recipes/hudson.sh $n/shared/user-scripts/01-installhudson
-    echo "#\!/bin/bash" > $n/shared/user-scripts/02-starthudson
-    echo "/etc/init.d/hudson start" > $n/shared/user-scripts/02-starthudson
-    chmod a+rx $n/shared/user-scripts/01-starthudson
-    #TODO - set 24hr shutdown
-    
-    #Boot the image
-    ~/vp-launch-headless $n vmware
-    nipaddr=`cat $n/shared/clovr_ip`
-    sleep 10 #wait for hudson to start
-
-    #Launch the tests
-    curl --silent http://$nipaddr:$hudsonport > /dev/null
-    if [ $? != 0 ]
-    then
-	echo "Hudson not found at $nipaddr:$hudsonport"
-    else
-	curl --silent http://$nipaddr:8888/job/00\%20Launch\%20all\%20jobs/build
-    fi
-    
-done
 
 ##SCRATCH
 #for imgname `ls $newimagesdir`
