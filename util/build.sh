@@ -63,7 +63,8 @@ do
     mkdir -p /mnt/$$/$b.live
     currimg=/mnt/$$/$b/$namepfx.img
     #Copy image
-    if [ `file $image | grep gzip` != "" ]
+    zfile=`file $image | grep gzip`
+    if [ "$zile" != "" ]
     then
         #Zipped sparse files provide faster copy
 	ibname=`basename $image`
