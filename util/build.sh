@@ -24,6 +24,18 @@ USAGE="vp-build image.img bundlename1 name2 ... namen"
 #image=/mnt/image.img
 #bname=
 
+handlekill() {
+    kill 0
+    mounts=`ls /mnt/$$/*.live`
+    for $b in $mounts
+    do
+	umount /mnt/$$/$b.live/proc
+	umount /mnt/$$/$b.live/sys
+	umount /mnt/$$/$b.live/dev
+	umount -d /mnt/$$/$b.live
+    done
+}
+
 mountpoint /mnt
 if [ $? != 0 ]
 then
@@ -50,7 +62,7 @@ shift
 
 #Setup to kill background jobs
 
-trap "kill 0" SIGINT SIGTERM EXIT
+trap handlekill SIGINT SIGTERM EXIT
 
 for b in $*
 do
