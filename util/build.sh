@@ -77,6 +77,7 @@ do
 	    exit 1
 	fi
     else
+	echo "Copying $image to $currimg"
 	cp --sparse=always $image $currimg
     fi
     devname=`losetup --show -f $currimg`
