@@ -48,6 +48,10 @@ fi
 #remaining arguments are recipe names
 shift
 
+#Setup to kill background jobs
+
+trap "kill 0" SIGINT SIGTERM EXIT
+
 for b in $*
 do
     namepfx="$b-$defaultname"

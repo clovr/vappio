@@ -38,10 +38,9 @@ wget http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.zip
 unzip ec2-ami-tools.zip
 popd
 
-
-
 svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
 
 sudo apt-get -y install apt-cacher apache2 
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher
 sudo invoke-rc.d apt-cacher restart
 sudo invoke-rc.d apache2 restart
