@@ -17,3 +17,7 @@ apt-get -y install linux-headers-`uname -r`
 sudo bash /tmp/VBoxLinuxAdditions-amd64.run
 depmod -a
 mv /bin/uname.orig /bin/uname
+update-rc.d -f vboxadd-x11 remove
+update-rc.d -f vboxadd-service remove
+update-rc.d -f vboxadd remove
+update-rc.d -f vboxdrv remove
