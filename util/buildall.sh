@@ -6,15 +6,13 @@ Make sure /mnt is an external mount with plenty of free space"
 
 if [ "$1" = "" ]
 then
-    if [ -f "/mnt/image.img.tgz" ]
-    then
+    #if [ -f "/mnt/image.img.tgz" ]
+    #then
 	#This is broken, downstream segfault on chroot
+	#loopback w/ chroot does not support sparse files
 	#image="/mnt/image.img.tgz"
-	echo "Not supported"
-	exit 1
-    else
-	image="/mnt/image.img"
-    fi
+    image="/mnt/image.img"
+    
 else
     image=$1
 fi

@@ -34,6 +34,7 @@ handlekill() {
 	umount $b/dev
 	umount -d $b
     done
+    exit 1
 }
 
 mountpoint /mnt
