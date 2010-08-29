@@ -6,7 +6,12 @@ Make sure /mnt is an external mount with plenty of free space"
 
 if [ "$1" = "" ]
 then
-    image="/mnt/image.img"
+    if [ -f "/mnt/image.img.tgz" ]
+    then
+	image="/mnt/image.img.tgz"
+    else
+	image="/mnt/image.img"
+    fi
 else
     image=$1
 fi
