@@ -14,4 +14,5 @@ apt-get -y install libgd2-xpm-dev
 export PERL_MM_USE_DEFAULT=1
 export PERL_AUTOINSTALL=1
 wget -c -P /tmp http://clovr.svn.sourceforge.net/viewvc/clovr/trunk/packages/cpan.packages
+#TODO see if we can skip force
 cat /tmp/cpan.packages | grep -v "libxml-perl" | perl -ne 'chomp;split(/\s+/);print "cpan -fi \"$_[0]\"\n"' | bash -e
