@@ -36,7 +36,8 @@ do
     if [ $count > $timeout ]
     then
 	echo "Machine boot not detected, exiting"
-	exit 1
+	exit 1;
+    fi
 done
 
 echo 
