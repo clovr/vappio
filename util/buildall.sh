@@ -8,7 +8,10 @@ if [ "$1" = "" ]
 then
     if [ -f "/mnt/image.img.tgz" ]
     then
-	image="/mnt/image.img.tgz"
+	#This is broken, downstream segfault on chroot
+	#image="/mnt/image.img.tgz"
+	echo "Not supported"
+	exit 1
     else
 	image="/mnt/image.img"
     fi
