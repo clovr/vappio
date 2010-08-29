@@ -12,7 +12,7 @@ else
     exit 1
 fi
 
-if [ -d "$buildvm/start_clovr.vmx.lck" ]
+if [ -d "$1/start_clovr.vmx.lck" ]
 then
     echo "VM $buildvm is already running"
     exit 1
