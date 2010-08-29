@@ -1,5 +1,7 @@
 #!/bin/bash 
 
+USAGE="vp-create-vmdk image.img grub_install.tgz image.vmdk"
+
 #Raw disk image to VMWare conversion
 #Allows for conversion of Xen images to VMware
 #S. Angiuoli 12/09
@@ -7,20 +9,21 @@
 #This must all be performed as root or sudo-ed
 #TODO, set -e except for zeros step
 
-USAGE="vp-create-vmdk image.img grub_install.tgz image.vmdk"
-
 if [ $# -ne 3 ] 
     then
     echo "Usage: img_to_vmdk.sh <path_to_xen_image> <path_to_grub_tarball> <path_to_output_vmdk>"
     exit 2
 fi
 
+imgsize="10G" #size in #G
+
 #create a new blank raw disk image of desired size, eg 10G
 mkdir /mnt/$$
 clovrraw=/mnt/$$/vmdk.raw
 rm -f $clovrraw
 
-qemu-img create -f raw $clovrraw 10G
+echo "Creating $imgsize raw disk image $clovrraw"
+qemu-img create -f raw $clovrraw $imgsize
 
 #mount clovrVMware.raw as loopback device loop0
 deva=`losetup --show -f $clovrraw`
@@ -58,7 +61,8 @@ losetup -o 32256 $devb $deva
 #Now copy the image, already formatted ext3 partition into /dev/loop1
 #ie. dump release image clovr-vXbXrX.raw in loopback loop1
 #TODO, mount file as parition and resizefs -M to minimum size first
-dd if=$1 of=$devb
+echo "Creating new image in $devb"
+dd if=$1 of=$devb bs=32768
 
 #could stop at this point and format blank partition as ext3
 #mkfs.ext3 /dev/loop1
@@ -77,9 +81,10 @@ mkdir -p /mnt/$$/foo1
 mount $devb /mnt/$$/foo1
 pushd /mnt/$$/foo1
 tar xvzf $2 boot/grub
+echo "Zeroing out filesystem to aid compression"
 #Write out zeros to better compress file system
-dd if=/dev/zero of=tmp/ZEROS || true
-echo "Ignore error. We are zeroing out the new image"
+dd if=/dev/zero of=tmp/ZEROS bs=32768 || true
+echo "Ignore out of space error, this is ok"
 sync
 rm -f tmp/ZEROS
 sync
@@ -103,6 +108,7 @@ losetup -d $deva
 
 #We now have a bootable image in raw disk format
 #Create vmdk
+echo "Creating vmdk $3"
 qemu-img convert -f raw $clovrraw -o compat6 -O vmdk $3
 rm -rf $clovrraw
 rmdir /mnt/$$

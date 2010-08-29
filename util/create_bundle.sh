@@ -1,6 +1,6 @@
 #!/bin/bash
 #Packages a raw disk image as a vmdk for VMware and VirtualBox
-USAGE="vp-release image.img name"
+USAGE="vp-bundle-release image.img name"
 
 currimg=$1
 namepfx=$2
