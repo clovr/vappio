@@ -31,7 +31,6 @@ then
     exit 1
 fi
 
-
 recipedir=/opt/vappio-install/bundles
 utildir=/opt/vappio-util
 
@@ -68,7 +67,7 @@ do
     then
         #Zipped sparse files provide faster copy
 	ibname=`basename $image`
-	tar -C /mnt/$$/$b.live xvzf $image
+	tar -C /mnt/$$/$b.live -xvzf $image || true
 	if [ -f "/mnt/$$/$b.live/$ibname" ]
 	then
 	    mv /mnt/$$/$b.live/$ibname $currimage
