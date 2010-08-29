@@ -3,16 +3,16 @@
 #USAGE:./vp-compress-img image.img image.img.tgz
 #Requires you are in the same directory as image.img
 
-mkdir /mnt/foo1
-losetup -f $1
-mount /dev/loop0 /mnt/foo1
-dd if=/dev/zero of=/mnt/foo1/tmp/ZEROS > /dev/null 2> /dev/null
-rm /mnt/foo1/tmp/ZEROS
+mkdir -p /mnt/$$
+devname=`losetup --show -f $1`
+mount $devname /mnt/$$
+dd if=/dev/zero of=/mnt/$$/tmp/ZEROS > /dev/null 2> /dev/null
+rm /mnt/$$/tmp/ZEROS
 umount /mnt/foo1 
 rm -rf /mnt/foo1
-losetup -d /dev/loop0
+losetup -d $devname
 chmod 666 $1
 fname=`basename $1`
-tar -S -cvzf $2 $fname
+tar -S -cvzf $2 $fname || true
 
 
