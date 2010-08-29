@@ -76,6 +76,8 @@ do
     cp /etc/resolv.conf /mnt/$$/$b.live/etc/resolv.conf
     cp /etc/hostname /mnt/$$/$b.live/etc/hostname
     cp /etc/apt/sources.list.orig /mnt/$$/$b.live/etc/apt/sources.list
+    #Set up apt proxy to speed up downloads
+    svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy /mnt/$$/$b.live/etc/apt.conf.d/01proxy
     #Apply recipe
     wget -c -P /mnt/$$/$b.live/tmp http://vappio.svn.sourceforge.net/viewvc/vappio/trunk/vappio-install/vp-bootstrap-install
     chroot /mnt/$$/$b.live bash -e /tmp/vp-bootstrap-install

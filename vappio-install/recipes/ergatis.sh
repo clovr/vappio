@@ -42,7 +42,7 @@ cpan -i "C/CJ/CJFIELDS/BioPerl-1.6.1.tar.gz"
 cpan -i Aspect
 cpan -i MIME::Lite
 # have had to force in the past
-cpan -i Benchmark::Timer
+cpan -fi Benchmark::Timer
 cpan -i SVN::Agent
 
 #Install software.config
