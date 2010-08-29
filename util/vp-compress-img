@@ -8,8 +8,8 @@ devname=`losetup --show -f $1`
 mount $devname /mnt/$$
 dd if=/dev/zero of=/mnt/$$/tmp/ZEROS > /dev/null 2> /dev/null
 rm /mnt/$$/tmp/ZEROS
-umount /mnt/foo1 
-rm -rf /mnt/foo1
+umount /mnt/$$ 
+rm -rf /mnt/$$
 losetup -d $devname
 chmod 666 $1
 fname=`basename $1`
