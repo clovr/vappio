@@ -8,7 +8,8 @@ SGE_ROOT=/var/lib/gridengine
 mkdir $SGE_ROOT/lib
 cp drmaa.jar $SGE_ROOT/lib
 cp drmaa.jar /opt/workflow-sforge/jars/
-apt-get install libdrmaa1.0
+apt-get -y install libdrmaa1.0 libdrmaa-dev
+
 ln -s /usr/lib $SGE_ROOT/lib/lx26-ia64
 
 mkdir /tmp/$$

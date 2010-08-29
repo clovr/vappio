@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#USAGE: bundle_ovf.sh image.vmdk name output.ovf sharedpath
+USAGE="vp-bundle-ovf image.vmdk name output.ovf sharedpath"
 
 #Clean up any old vms with the same name
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 #Raw disk image to VMWare conversion
 #Allows for conversion of Xen images to VMware
@@ -7,7 +7,7 @@
 #This must all be performed as root or sudo-ed
 #TODO, set -e except for zeros step
 
-# img_to_vmdk.sh <path_to_xen_image> <path_to_grub_tarball> <path_to_output_vmdk>
+USAGE="vp-create-vmdk image.img grub_install.tgz image.vmdk"
 
 if [ $# -ne 3 ] 
     then
@@ -78,7 +78,7 @@ mount $devb /mnt/$$/foo1
 pushd /mnt/$$/foo1
 tar xvzf $2 boot/grub
 #Write out zeros to better compress file system
-dd if=/dev/zero of=tmp/ZEROS
+dd if=/dev/zero of=tmp/ZEROS || true
 echo "Ignore error. We are zeroing out the new image"
 sync
 rm -f tmp/ZEROS

@@ -1,6 +1,6 @@
 #!/bin/bash
 #Packages a raw disk image as a vmdk for VMware and VirtualBox
-USAGE="vp-package-release image.img name"
+USAGE="vp-release image.img name"
 
 #wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
 #wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-3.2.6.tar.gz
