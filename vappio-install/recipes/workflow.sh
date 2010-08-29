@@ -5,7 +5,7 @@ tar -C / -xvzf wf_clovr.tgz
 chmod 777 /opt/workflow-sforge/idfile
 chown www-data:www-data /opt/workflow-sforge/idfile
 SGE_ROOT=/var/lib/gridengine
-mkdir $SGE_ROOT/lib
+mkdir -p $SGE_ROOT/lib
 cp drmaa.jar $SGE_ROOT/lib
 cp drmaa.jar /opt/workflow-sforge/jars/
 apt-get -y install libdrmaa1.0 libdrmaa-dev

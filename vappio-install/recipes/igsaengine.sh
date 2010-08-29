@@ -4,7 +4,7 @@ mkdir -p /usr/local/bioinf/BER
 tar -C /usr/local/bioinf/BER -xvzf /tmp/ber-20051118.tgz
 
 wget -P /tmp https://sourceforge.net/projects/ber/files/ber/ber-20051118/praze-20051118.tgz/download
-mkdir /tmp/praze
+mkdir -p /tmp/praze
 tar -C /tmp/praze -xvzf /tmp/praze-20051118.tgz
 cd /tmp/praze
 make
