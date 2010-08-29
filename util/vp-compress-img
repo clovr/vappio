@@ -13,6 +13,8 @@ rm -rf /mnt/foo1
 losetup -d $devname
 chmod 666 $1
 fname=`basename $1`
+dname=`dirname $1`
+pushd $dname
 tar -S -cvzf $2 $fname || true
-
+popd
 
