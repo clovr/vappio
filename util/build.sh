@@ -27,7 +27,7 @@ USAGE="vp-build image.img bundlename1 name2 ... namen"
 handlekill() {
     kill $(jobs -p)
     mounts=`ls /mnt/$$/*.live`
-    for $b in $mounts
+    for b in $mounts
     do
 	umount /mnt/$$/$b.live/proc
 	umount /mnt/$$/$b.live/sys
