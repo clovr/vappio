@@ -62,7 +62,7 @@ do
     mkdir -p /mnt/$$/$b
     mkdir -p /mnt/$$/$b.live
     currimg=/mnt/$$/$b/$namepfx.img
-    cp $image $currimg
+    cp --sparse=always $image $currimg
     devname=`losetup --show -f $currimg`
     mount $devname /mnt/$$/$b.live
 
