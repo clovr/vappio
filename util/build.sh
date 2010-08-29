@@ -29,10 +29,10 @@ handlekill() {
     mounts=`ls -d /mnt/$$/*.live`
     for b in $mounts
     do
-	umount /mnt/$$/$b.live/proc
-	umount /mnt/$$/$b.live/sys
-	umount /mnt/$$/$b.live/dev
-	umount -d /mnt/$$/$b.live
+	umount $b/proc
+	umount $b/sys
+	umount $b/dev
+	umount -d $b
     done
 }
 
