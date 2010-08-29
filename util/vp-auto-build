@@ -5,7 +5,7 @@ hudsonport=8888
 
 if [ "$1" = "" ]
 then
-    buildvm="/data/sangiuoli/clovr-build"
+    buildvm="/data/clovr-build"
 else
     buildvm=$1
 fi
