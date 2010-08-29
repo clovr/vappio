@@ -91,6 +91,7 @@ do
     chroot /mnt/$$/$b.live bash -e /tmp/vp-bootstrap-install
     chroot /mnt/$$/$b.live $recipedir/$b
 
+    mkdir -p /mnt/$$/$b.live/etc/vappio/
     echo "$namepfx" > /mnt/$$/$b.live/etc/vappio/release_name
     echo "$b" > /mnt/$$/$b.live/etc/vappio/bundle_name
 
