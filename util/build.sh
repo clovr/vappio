@@ -49,16 +49,6 @@ fi
 #remaining arguments are recipe names
 shift
 
-wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
-svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /mnt/boot
-pushd /mnt
-tar cvzf grub-boot.tgz boot
-popd
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx /mnt/start_clovr.tmpl.vmx
-#wget -c -P /mnt http://cb2.igs.umaryland.edu/shared.tgz
-
-
-
 for b in $*
 do
     namepfx="$b-$defaultname"
