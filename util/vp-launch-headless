@@ -12,34 +12,40 @@ else
     exit 1
 fi
 
-xhost + 
-xhost +LOCAL:
-export DISPLAY=:0.0
-
-if [ "$2" = "vbox" ]
+if [ -d "$buildvm/start_clovr.vmx.lck" ]
 then
-    #TODO, implement
-    VBoxManage
+    echo "VM $buildvm is already running"
+    exit 1
 else
-    vmplayer $1/start_clovr.vmx &
-fi
-
-ipstat=`stat -t $1/shared/clovr_ip`
-ipstatnew=`stat -t $1/shared/clovr_ip`
-timeout=60 #5 minutes
-count=1
-while [ "$ipstat" = "$ipstatnew" ]
-do
-    echo -n "."
-    ipstatnew=`stat -t $1/shared/clovr_ip`
-    sleep 5
-    count=`expr $count + 1`
-    if [ $count -gt $timeout ]
+    xhost + 
+    xhost +LOCAL:
+    export DISPLAY=:0.0
+    
+    if [ "$2" = "vbox" ]
     then
-	echo "Machine boot not detected, exiting"
-	exit 1;
+    #TODO, implement
+	VBoxManage
+    else
+	vmplayer $1/start_clovr.vmx &
     fi
-done
-
-echo 
-cat $1/shared/clovr_ip
+    
+    ipstat=`stat -t $1/shared/clovr_ip`
+    ipstatnew=`stat -t $1/shared/clovr_ip`
+    timeout=60 #5 minutes
+    count=1
+    while [ "$ipstat" = "$ipstatnew" ]
+    do
+	echo -n "."
+	ipstatnew=`stat -t $1/shared/clovr_ip`
+	sleep 5
+	count=`expr $count + 1`
+	if [ $count -gt $timeout ]
+	then
+	    echo "Machine boot not detected, exiting"
+	    exit 1;
+	fi
+    done
+    
+    echo 
+    cat $1/shared/clovr_ip
+fi
