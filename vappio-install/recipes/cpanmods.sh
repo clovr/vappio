@@ -16,3 +16,7 @@ export PERL_AUTOINSTALL=1
 wget -c -P /tmp http://clovr.svn.sourceforge.net/viewvc/clovr/trunk/packages/cpan.packages
 #TODO see if we can skip force
 cat /tmp/cpan.packages | grep -v "libxml-perl" | perl -ne 'chomp;split(/\s+/);print "cpan -i \"$_[0]\"\n"' | bash -e
+
+#Some modules fail tests and won't install without force
+cpan -fi Grid::Request
+cpan -fi Text::Editor::Easy
