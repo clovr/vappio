@@ -3,5 +3,5 @@
 export VAPPIO_HOME=/opt
 export PYTHONPATH=$PYTHONPATH:$VAPPIO_HOME/vappio-py
 source /root/clovrEnv.sh
-updateAllDirs.py --pipelines
+updateAllDirs.py --clovr_pipelines
 
