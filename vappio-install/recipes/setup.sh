@@ -25,6 +25,10 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 #Default dash shell breaks many a shell script
 ln -sf /bin/bash /bin/sh
 
+#Update permissions on /tmp and /mnt
+chmod 777 /tmp
+chmod 777 /mnt
+
 #Runlevel on EC2 is 4. 
 #Default ubuntu is 2
 #Can reset in init/rc-sysinit.conf or inittab
