@@ -4,8 +4,15 @@
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
+master=`cat /var/lib/gridengine/default/common/act_qmaster`
+perl -pi -e "s/^\s+host\s+=\s+\S+/ host = $master/" /etc/ganglia/gmond.conf
+
+/etc/init.d/ganglia-monitor start
+
 #Display node types in ganglia
 vappio_node_type=`cat $vappio_runtime/node_type`
 vappio_cloud_type=`cat $vappio_runtime/cloud_type`
-gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /usr/local/etc/gmond.conf
-gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /usr/local/etc/gmond.conf
+gmetric -n NODE_TYPE -v "$vappio_node_type" -t string -c /etc/ganglia/gmond.conf
+gmetric -n CLOUD_TYPE -v "$vappio_cloud_type" -t string -c /etc/ganglia/gmond.conf
+gmetric -n SGE_MASTER -v "$master" -t string -c /etc/ganglia/gmond.conf
+
