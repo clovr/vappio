@@ -155,6 +155,6 @@ do
     #Build VMware/VBox
     /opt/vappio-util/create_bundle.sh $currimg $namepfx
     mv $currimg $namepfx.img
-    tar -S -cvzf $namepfx.img.tgz $namepfx.img || true
+    /opt/vappio-util/vp-compress.img $namepfx.img.tgz $namepfx.img || true
 done
 

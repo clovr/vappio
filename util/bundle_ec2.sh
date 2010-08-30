@@ -34,18 +34,21 @@ if [ -f "/mnt/ec2bundles/$imgname.manifest.xml" ]
 then
     echo "Found manifest, /mnt/ec2bundles/$imgname.manifest.xml, skipping ec2-bundle-image"
 else
+    echo "Bundling image $imgname"
     $EC2_AMITOOL_HOME/bin/ec2-bundle-image -c /mnt/keys/cert-*.pem -k /mnt/keys/pk-*.pem -u $user --kernel aki-0b4aa462  -i $image -d /mnt/ec2bundles -p $imgname -r x86_64
 fi
 
 #If not Access Denied, bucket does not exist
-s3manifest=`curl --silent http://s3.amazonaws.com/$imgname | grep Access`
+s3manifest=`curl --silent http://s3.amazonaws.com/$imgname | grep Access` || true
 if [ "$s3manifest" = "" ]
 then
     #Upload bundle
+    echo "Uploading $imgname to S3"
     $EC2_AMITOOL_HOME/bin/ec2-upload-bundle -b $imgname -m /mnt/ec2bundles/$imgname.manifest.xml -a $account -s $secretkey
 fi
 
 export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
 export EC2_APITOOL_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
 export JAVA_HOME=/usr
+echo "Registering on EC2 $imgname/$imgname.manifest.xml"
 $EC2_APITOOL_HOME/bin/ec2-register $imgname/$imgname.manifest.xml -K /mnt/keys/pk-*.pem -C /mnt/keys/cert-*.pem -n $imgname
