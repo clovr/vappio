@@ -8,7 +8,9 @@ cp /etc/apt/sources.list.orig /etc/apt/sources.list
 
 apt-get -y install subversion
 
+#Update permissions on /tmp and /mnt
 chmod 777 /tmp
+chmod 777 /mnt
 
 # Bootstrap checkoutObject
 # Checkout the environment and load it
@@ -24,10 +26,6 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 
 #Default dash shell breaks many a shell script
 ln -sf /bin/bash /bin/sh
-
-#Update permissions on /tmp and /mnt
-chmod 777 /tmp
-chmod 777 /mnt
 
 #Runlevel on EC2 is 4. 
 #Default ubuntu is 2
