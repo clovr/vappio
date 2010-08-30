@@ -107,6 +107,12 @@ do
     mount --bind /proc /mnt/$$/$b.live/proc
     mount --bind /sys /mnt/$$/$b.live/sys
     mount --bind /dev /mnt/$$/$b.live/dev
+    touch /mnt/$$/$b.live/var/run/utmp 
+    touch /mnt/$$/$b.live/var/run/btmp
+    touch /mnt/$$/$b.live/var/run/wtmp
+    touch /mnt/$$/$b.live/var/run/lastlog
+    chgrp -v utmp /mnt/$$/$b.live/var/run/utmp /mnt/$$/$b.live/var/log/lastlog
+    chmod -v 664 /mnt/$$/$b.live/var/run/utmp /mnt/$$/$b.live/var/log/lastlog
     #Set up resolv.conf so networking works in chroot
     cp /etc/resolv.conf /mnt/$$/$b.live/etc/resolv.conf
     cp /etc/hostname /mnt/$$/$b.live/etc/hostname
