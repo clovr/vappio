@@ -119,11 +119,19 @@ do
     cp /etc/apt/sources.list.orig /mnt/$$/$b.live/etc/apt/sources.list
     #Set up apt proxy to speed up downloads
     mkdir -p  /mnt/$$/$b.live/etc/apt.conf.d
-    svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy /mnt/$$/$b.live/etc/apt.conf.d/01proxy
+    #Check for apt proxy
+    curl http://localhost:3142
+    if [ $? = 0 ]
+    then
+	svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy /mnt/$$/$b.live/etc/apt.conf.d/01proxy
+    fi
     #Apply recipe
     wget -c -P /mnt/$$/$b.live/tmp http://vappio.svn.sourceforge.net/viewvc/vappio/trunk/vappio-install/vp-bootstrap-install
     chroot /mnt/$$/$b.live bash -e /tmp/vp-bootstrap-install
     chroot /mnt/$$/$b.live $recipedir/$b
+    
+    #Remove apt proxy
+    rm -f /mnt/$$/$b.live/etc/apt.conf.d/01proxy
 
     mkdir -p /mnt/$$/$b.live/etc/vappio/
     echo "$namepfx" > /mnt/$$/$b.live/etc/vappio/release_name

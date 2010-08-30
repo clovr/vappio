@@ -47,4 +47,5 @@ fi
 
 export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
 export EC2_APITOOL_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
+export JAVA_HOME=/usr
 $EC2_APITOOL_HOME/bin/ec2-register $imgname/$imgname.manifest.xml -K /mnt/keys/pk-*.pem -C /mnt/keys/cert-*.pem -n $imgname
