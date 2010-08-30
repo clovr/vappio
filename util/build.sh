@@ -6,17 +6,8 @@ USAGE="vp-build image.img bundlename1 name2 ... namen"
 
 #Takes a skeleton image (image.img) and applies recipes name1 ... namen
 #creating one output directory per image
-#Assumes to be run on a box that has clovr_build recipe applied
-#so utildir and recipedir should already be populated
 
-#TODO run on nightly cron
-#echo << . > /etc/init.d/cron.nightly/clovrbuild
-##!/bin/bash
-#/opt/vappio-util/vp-bootstrap-install
-#/opt/vappio-install/recipes/clovr_build
-#/opt/vappio-util/build.sh /mnt/image.img clovr_base 
-#.
-#chmod +x /etc/init.d/cron.nightly/clovrbuild
+#Assumes to be run on a box that already has clovr-build recipe
 
 #for testing on leatherface.igs.umaryland.edu
 #mount /dev/sdb1 /mnt
@@ -29,14 +20,10 @@ handlekill() {
     mounts=`ls -d /mnt/$$/*.live`
     for b in $mounts
     do
-	mountpoint $b
-	if [ $? != 0 ]
-	then
-	    umount $b/proc
-	    umount $b/sys
-	    umount $b/dev
-	    umount -d $b
-	fi
+	umount $b/proc || true
+	umount $b/sys || true
+	umount $b/dev || true
+	umount -d $b || true
     done
 }
 

@@ -18,7 +18,15 @@ wget -q http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | s
 
 sudo add-apt-repository "deb http://download.virtualbox.org/virtualbox/debian lucid non-free"
 apt-get update
+
 apt-get -y install virtualbox-3.2
+#Install dkms, uninstall
+dkms uninstall -m vboxguest -v 3.2.8 || true
+dkms uninstall -m vboxvideo -v 3.2.8 || true
+dkms uninstall -m vboxsf -v 3.2.8 || true 
+dkms uninstall -m vboxnetflt -v 3.2.8 || true 
+dkms uninstall -m vboxnetadp -v 3.2.8 || true 
+dkms uninstall -m vboxdrv -v 3.2.8 || true
 
 #Retrieve grub and boot sector 
 wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz

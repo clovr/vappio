@@ -42,4 +42,13 @@ do
     else
 	/opt/vappio-util/build.sh $image $b
     fi
+    #Only upload clovr-standard to ec2 for now
+    if [ "$b" = "clovr-standard" ]
+    then
+	defaultname=`echo "$BUILD_ID" | sed 's/_/-/'`
+	if [ -f "/mnt/clovr-standard-$defaultname.img" ]
+	then
+	    /opt/vappio-util/bundle_ec2.sh /mnt/clovr-standard-$defaultname.img
+	fi
+    fi
 done

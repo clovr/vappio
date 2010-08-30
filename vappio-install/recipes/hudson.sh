@@ -2,7 +2,6 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
-
 apt-get -y install openjdk-6-jre daemon gcj-4.4-base gcj-4.4-jre-headless gcj-4.4-jre-lib libgcj-common libgcj10
 apt-get -y install libxml-xpath-perl
 wget -O /tmp/key http://hudson-ci.org/debian/hudson-ci.org.key
