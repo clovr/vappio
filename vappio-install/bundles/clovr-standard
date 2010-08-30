@@ -18,17 +18,26 @@ bash -e $VAPPIO_RECIPES/ganglia.sh
 bash -e $VAPPIO_RECIPES/sge.sh
 bash -e $VAPPIO_RECIPES/hadoop.sh
 
+#catch all for cpanmod
 bash -e $VAPPIO_RECIPES/cpanmods.sh
 bash -e $VAPPIO_RECIPES/vappiosite.sh
 bash -e $VAPPIO_RECIPES/clovrsetup.sh
+#catch all for apt pkgs
 bash -e $VAPPIO_RECIPES/generalpkgs.sh
 
 bash -e $VAPPIO_RECIPES/workflow.sh
 bash -e $VAPPIO_RECIPES/ergatis.sh
 
 bash -e $VAPPIO_RECIPES/igsaengine.sh
-bash -e $VAPPIO_RECIPES/bioifxtools.sh
-bash -e $VAPPIO_RECIPES/clovrmain.sh
+
+#was bash -e $VAPPIO_RECIPES/bioifxtools.sh
+bash -e $VAPPIO_RECIPES/biolinux.sh
+bash -e $VAPPIO_RECIPES/ubuntuifxpkgs.sh
+
+#was bash -e $VAPPIO_RECIPES/clovrmain.sh
+bash -e $VAPPIO_RECIPES/clovroptpackages.sh
+bash -e $VAPPIO_RECIPES/clovrstow.sh
+bash -e $VAPPIO_RECIPES/clovrpipelines.sh
 
 bash -e $VAPPIO_RECIPES/clovrdashboard.sh
 
