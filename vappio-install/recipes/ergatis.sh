@@ -53,6 +53,9 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappi
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.subversion /root/.subversion
 #Install Ergatis
 apt-get -y install g++
+printenv
+export HOME=/root/
+export USER=root
 sudo -E $VAPPIO_RECIPES/build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/www/ergatis --tmp_area=/tmp --software_config=/tmp/software.config --id_generator=cloud --log /tmp/ergatis.log 
 #Ergatis/IdGenerator/Config.pm should be set
 
