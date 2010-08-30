@@ -8,13 +8,13 @@ vlog "###"
 vlog "### $0 (`whoami`)"
 vlog "###"
 
+chmod 777 /mnt
+chmod 777 /tmp
+
 cloud-init start
 cloud-init-cfg config-misc
 cloud-init-cfg config-ssh
 cloud-init-cfg config-mounts
-
-chmod 777 /mnt
-chmod 777 /tmp
 
 #Run user-data scripts
 #This can specify the node type and master node by writing the file
