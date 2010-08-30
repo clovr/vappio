@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Need the developmental headers in place in order to use easy_install
-apt-get y install python-dev
+apt-get -y install python-dev
 
 apt-get -y install python-numpy
 
