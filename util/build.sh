@@ -107,7 +107,7 @@ do
     #Set up apt proxy to speed up downloads
     mkdir -p  /mnt/$$/$b.live/etc/apt.conf.d
     #Check for apt proxy
-    curl http://localhost:3142
+    curl http://localhost:3142 > /dev/null
     if [ $? = 0 ]
     then
 	svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy /mnt/$$/$b.live/etc/apt.conf.d/01proxy
