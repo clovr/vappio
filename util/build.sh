@@ -66,7 +66,7 @@ shift
 
 #Setup to kill background jobs
 
-trap handlekill SIGINT SIGTERM EXIT
+trap handlekill SIGINT SIGTERM
 
 for b in $*
 do
