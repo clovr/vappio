@@ -42,5 +42,3 @@ svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-pac
 
 sudo apt-get -y install apt-cacher apache2 
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher
-sudo invoke-rc.d apt-cacher restart
-sudo invoke-rc.d apache2 restart

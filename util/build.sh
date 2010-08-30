@@ -29,12 +29,15 @@ handlekill() {
     mounts=`ls -d /mnt/$$/*.live`
     for b in $mounts
     do
-	umount $b/proc
-	umount $b/sys
-	umount $b/dev
-	umount -d $b
+	mountpoint $b
+	if [ $? != 0 ]
+	then
+	    umount $b/proc
+	    umount $b/sys
+	    umount $b/dev
+	    umount -d $b
+	fi
     done
-    exit 1
 }
 
 mountpoint /mnt
