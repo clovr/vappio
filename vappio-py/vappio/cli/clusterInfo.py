@@ -16,16 +16,20 @@ OPTIONS = [
 
 URL = '/vappio/clusterInfo_ws.py'
 
+def instanceToList(i):
+    return [i.instanceId or i.spotInstanceId or 'Undefined', i.publicDNS or 'Undefined', i.state or 'Undefined']
+
+
 def main(options, _args):
     if options('general.name'):
         cluster = loadCluster(options('general.host'), options('general.name'), options('general.partial'))
 
 
-        print '\t'.join(['MASTER', cluster.master.publicDNS, cluster.master.state])
+        print '\t'.join(['MASTER'] + instanceToList(cluster.master))
         for e in cluster.execNodes:
-            print '\t'.join(['EXEC', e.instanceId or e.spotInstanceId or 'Undefined', e.publicDNS or 'Undefined', e.state or 'Undefined'])
+            print '\t'.join(['EXEC'] + instanceToList(e))
         for e in cluster.dataNodes:
-            print '\t'.join(['DATA', e.instanceId or e.spotInstanceId or 'Undefined', e.publicDNS or 'Undefined', e.state or 'Undefined'])
+            print '\t'.join(['DATA'] + instanceToList(e))
 
         print '\t'.join(['GANGLIA', 'http://%s/ganglia' % cluster.master.publicDNS])
         print '\t'.join(['ERGATIS', 'http://%s/ergatis' % cluster.master.publicDNS])
