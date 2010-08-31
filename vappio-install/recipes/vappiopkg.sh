@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 apt-get -y install xstow
 
 #Needed for vappio API
