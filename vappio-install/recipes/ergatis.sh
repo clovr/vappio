@@ -56,7 +56,8 @@ apt-get -y install g++
 printenv
 export HOME=/root/
 export USER=root
-sudo -E $VAPPIO_RECIPES/build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/www/ergatis --tmp_area=/tmp --software_config=/tmp/software.config --id_generator=cloud --log /tmp/ergatis.log 
+mkdir -p /tmp/ergatis_install
+sudo -E $VAPPIO_RECIPES/build_ergatis.pl --install_base=/opt/ergatis --htdocs_area=/var/www/ergatis --tmp_area=/tmp/ergatis_install --software_config=/tmp/software.config --id_generator=cloud --log /tmp/ergatis.log 
 #Ergatis/IdGenerator/Config.pm should be set
 
 mkdir -p /opt/ergatis/global_id_repository/logs

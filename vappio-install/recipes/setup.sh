@@ -9,8 +9,9 @@ cp /etc/apt/sources.list.orig /etc/apt/sources.list
 echo -n > /etc/hostname
 
 apt-get -y install subversion
-
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/rcS /etc/default/rcS
 #Update permissions on /tmp and /mnt
+
 chmod 777 /tmp
 chmod 777 /mnt
 
