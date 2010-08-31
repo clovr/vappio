@@ -224,7 +224,8 @@ sub clear_co_area {
     my $base = shift;
     
     _log("Removing and recreating tmp_area $tmp_area");
-    mkdir($tmp_area) || die "failed to create temp directory: $tmp_area";
+    mkdir($tmp_area);
+    #|| die "failed to create temp directory: $tmp_area";
 }
 
 sub clear_install_area {
