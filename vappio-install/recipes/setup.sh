@@ -6,6 +6,8 @@ svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-
 #Make non-EC apt the default
 cp /etc/apt/sources.list.orig /etc/apt/sources.list
 
+echo -n > /etc/hostname
+
 apt-get -y install subversion
 
 #Update permissions on /tmp and /mnt
