@@ -23,9 +23,9 @@ def main(options, _args):
 
         print '\t'.join(['MASTER', cluster.master.publicDNS, cluster.master.state])
         for e in cluster.execNodes:
-            print '\t'.join(['EXEC', e.publicDNS, e.state])
+            print '\t'.join(['EXEC', e.instanceId or e.spotInstanceId or 'Undefined', e.publicDNS or 'Undefined', e.state or 'Undefined'])
         for e in cluster.dataNodes:
-            print '\t'.join(['DATA', e.publicDNS, e.state])
+            print '\t'.join(['DATA', e.instanceId or e.spotInstanceId or 'Undefined', e.publicDNS or 'Undefined', e.state or 'Undefined'])
 
         print '\t'.join(['GANGLIA', 'http://%s/ganglia' % cluster.master.publicDNS])
         print '\t'.join(['ERGATIS', 'http://%s/ergatis' % cluster.master.publicDNS])
