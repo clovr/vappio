@@ -47,7 +47,7 @@ then
 	wait=1
     fi
     hostn=`hostname`
-    while [ "$nodetype" = 'PENDING' ] || [ "hostn" = "(none)" ]
+    while [ "$nodetype" = 'PENDING' ] || [ "$hostn" = "(none)" ]
     do
 	echo -n '.'
 	if [ -f "$vappio_runtime/node_type" ]
