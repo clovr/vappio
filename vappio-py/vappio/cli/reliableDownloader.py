@@ -31,6 +31,16 @@ SAMPLE_RATE = 5
 
 MAX_SAMPLE_SIZE = 10
 
+
+def deleteFile(fname):
+    """
+    This deletes a file then waits until the file is removed from the file system
+    before returning
+    """
+    os.remove(fname)
+    while os.path.exists(fname):
+        time.sleep(1)
+
 def runDownloader(chan):
     pr, rchan = chan.receive()
     try:
@@ -119,7 +129,7 @@ def deleteDownloadedFiles(baseDir, url):
     files = getDownloadFilenames(baseDir, url)
     for f in files:
         logging.debugPrint(lambda : 'Deleting: ' + f)
-        os.remove(f)
+        deleteFile(f)
     
 
 def validMD5(options, url, md5):
@@ -257,7 +267,7 @@ def main(options, args):
             logging.debugPrint(lambda : 'Deleting downloaded files after join')
             for f in files:
                 logging.debugPrint(lambda : 'Deleting: ' + f)
-                os.remove(f)
+                deleteFile(f)
 
 if __name__ == '__main__':
     sys.exit(main(*cli.buildConfigN(OPTIONS)))
