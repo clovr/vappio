@@ -51,6 +51,7 @@ export SGE_ROOT=/var/lib/gridengine
 export SGE_CELL=default
 export ARCH=lx26-ia64
 export SGE_ARCH=lx26-ia64
+
 sge_exec_user=www-data
 sgeadmin_user=sgeadmin
 apache_user=www-data # www-data under Ubuntu, apache is also common
@@ -146,3 +147,7 @@ waitonharvest=y
 #$vappio_bootflags/skip_vmwarestartnodes  - bypass setup_node.sh and start_master.sh when under vmware
 vappio_bootflagsdir=/mnt/config
 
+if [ -f /root/clovrEnv.sh ]
+then
+    source /root/clovrEnv.sh
+fi

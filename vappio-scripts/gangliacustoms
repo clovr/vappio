@@ -5,7 +5,7 @@ vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
 master=`cat /var/lib/gridengine/default/common/act_qmaster`
-perl -pi -e "s/^\s+host\s+=\s+\S+/ host = $master/" /etc/ganglia/gmond.conf
+perl -pi -e "s/^\s+host\s+=.*/ host = $master/" /etc/ganglia/gmond.conf
 
 /etc/init.d/ganglia-monitor start
 

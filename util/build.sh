@@ -119,6 +119,8 @@ do
     
     #Remove apt proxy
     rm -f /mnt/$$/$b.live/etc/apt.conf.d/01proxy
+    #Reset hostname
+    echo -n > /mnt/$$/$b.live/etc/hostname
 
     mkdir -p /mnt/$$/$b.live/etc/vappio/
     echo "$namepfx" > /mnt/$$/$b.live/etc/vappio/release_name

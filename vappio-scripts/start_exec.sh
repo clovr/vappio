@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 # Expected to be run as
 # start_exec.sh $MASTER_NODE
 USAGE="USAGE:$0 <master_node hostname or IP>\n
@@ -17,7 +17,7 @@ vlog "###"
 vlog "### $0 (`whoami`)"
 vlog "###"
 
-if [ "$1" != "" ]
+if [ "$1" != "" ] && [ "$1" != "start" ]
 then
     MASTER_NODE=$1
 else
@@ -80,7 +80,7 @@ then
     if echo "$masterip" | egrep -v "^($o1)(\.($o0)){2}\.($o1)$" >/dev/null; then
 	echo "valid hostname $MASTER_NODE"
 	#parse IP
-	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/vappio/addHost_ws.py?host=$myhostname"
+	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE/vappio/addHost_ws.py?host=$myhostname"
     else
 	MASTER_NODE=`echo $masterip | sed 's/\./\-/g'`
 	MASTER_NODE="clovr-$MASTER_NODE"
@@ -92,10 +92,10 @@ then
 	fi
 	echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
-	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/vappio/addHost_ws.py?host=$myhostname&ipaddr=$ipaddr"
+	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE/vappio/addHost_ws.py?host=$myhostname&ipaddr=$ipaddr"
     fi
 else
-    curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE:8080/vappio/addHost_ws.py?host=$myhostname"
+    curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE/vappio/addHost_ws.py?host=$myhostname"
 fi
 
 sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
