@@ -15,6 +15,11 @@ export PERL_MM_USE_DEFAULT=1
 export PERL_AUTOINSTALL=1
 wget -c -P /tmp http://clovr.svn.sourceforge.net/viewvc/clovr/trunk/packages/cpan.packages
 
+cpan -i YAML
+
+#Consider using a caching server to speed up installs
+#http://search.cpan.org/~jettero/CPAN-CachingProxy-1.4002/
+
 cat /tmp/cpan.packages | grep -v "libxml-perl" | perl -ne 'chomp;split(/\s+/);print "cpan -i \"$_[0]\"\n"' | bash -e
 
 #Some modules fail tests and won't install without force
