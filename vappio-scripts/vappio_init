@@ -31,6 +31,7 @@ echo "http://clovr.org" >> /etc/issue
 echo " " >> /etc/issue
 ##
 # Write a file saying machine is alive
+chmod 777 /tmp
 touch /tmp/startup_complete
 
 ##
