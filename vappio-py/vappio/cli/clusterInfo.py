@@ -21,21 +21,19 @@ def main(options, _args):
         cluster = loadCluster(options('general.host'), options('general.name'), options('general.partial'))
 
 
-        print '*** Cluster info ***'
-        print 'Master IP: %s' % cluster.master.publicDNS
-        print 'State: %s' % cluster.master.state
-        print 'There are %3d exec nodes up' % len(cluster.execNodes)
-        print '%3d are in "running" state' % len([c for c in cluster.execNodes if c.state == cluster.ctype.Instance.RUNNING])
-        print 'There are %3d data nodes up' % len(cluster.dataNodes)
-        print '%3d are in "running" state' % len([c for c in cluster.dataNodes if c.state == cluster.ctype.Instance.RUNNING])
-        print
-        print 'Useful URLs'
-        print 'Ganglia: http://%s/ganglia' % cluster.master.publicDNS
-        print 'Ergatis: http://%s/ergatis' % cluster.master.publicDNS
-        print 'SSH: ssh %s %s@%s' % (cluster.config('ssh.options'), cluster.config('ssh.user'), cluster.master.publicDNS)
+        print '\t'.join(['MASTER', cluster.master.publicDNS, cluster.master.state])
+        for e in cluster.execNodes:
+            print '\t'.join(['EXEC', e.publicDNS, e.state])
+        for e in cluster.dataNodes:
+            print '\t'.join(['DATA', e.publicDNS, e.state])
+
+        print '\t'.join(['GANGLIA', 'http://%s/ganglia' % cluster.master.publicDNS])
+        print '\t'.join(['ERGATIS', 'http://%s/ergatis' % cluster.master.publicDNS])
+        print '\t'.join(['SSH', 'ssh %s %s@%s' % (cluster.config('ssh.options'), cluster.config('ssh.user'), cluster.master.publicDNS)])
+
     elif options('general.list'):
-        print '*** Available Clusters ***'
-        print ' '.join(listClusters(options('general.host')))
+        for c in listClusters(options('general.host')):
+            print '\t'.join(['CLUSTER', c])
     else:
         raise Exception('Failed to provide a cluster name or to list them')
 
