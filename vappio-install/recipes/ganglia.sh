@@ -3,6 +3,10 @@
 apt-get --force-yes -y install ganglia-monitor
 apt-get --force-yes -y install ganglia-webfrontend
 
+/etc/init.d/ganglia-monitor stop
+/etc/init.d/gmetad stop
+/etc/init.d/apache2 stop
+
 update-rc.d -f ganglia-monitor remove
 update-rc.d -f gmetad remove
 
