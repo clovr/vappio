@@ -46,8 +46,8 @@ then
 	echo -n "Node is $nodetype. Waiting for setup to finish."
 	wait=1
     fi
-    
-    while [ "$nodetype" = 'PENDING' ]
+    hostn=`hostname`
+    while [ "$nodetype" = 'PENDING' ] || [ "hostn" = "(none)" ]
     do
 	echo -n '.'
 	if [ -f "$vappio_runtime/node_type" ]
@@ -57,7 +57,6 @@ then
 	sleep 1
     done 
     echo 
-    hostn=`hostname`
     if [ -f "$vappio_runtime/node_type" ]
     then
 	nodetype=`cat $vappio_runtime/node_type`;
@@ -67,6 +66,8 @@ then
 	cloudtype=`cat $vappio_runtime/cloud_type`;
     fi
 fi
+hostn=`hostname`
+
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
 xterm-color)
