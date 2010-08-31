@@ -31,6 +31,10 @@ else
     then
 	mkdir -p /mnt/projects
 	tar -C /mnt/projects -xvzf /opt/project_clovr.tgz
+        # don't need to chown since files are already owned by www-data
     fi
 fi
-# don't need to chown since files are already owned by www-data
+
+
+touch /tmp/python-eggs
+chmod 777 /tmp/python-eggs
