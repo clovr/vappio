@@ -7,7 +7,7 @@
 #
 # This file belongs to the "initscripts" package.
 
-TMPTIME=infinity
+TMPTIME=7
 SULOGIN=no
 DELAYLOGIN=no
 UTC=yes

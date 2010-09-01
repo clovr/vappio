@@ -74,6 +74,24 @@ rm /etc/udev/rules.d/70-persistent-net.rules
 #rm -rf $p
 #done
 
+#Cleanup tmp
+pushd /tmp
+rm -f .X*-lock
+EXCEPT='! -name .
+            ! ( -path ./lost+found -uid 0 )
+            ! ( -path ./quota.user -uid 0 )
+            ! ( -path ./aquota.user -uid 0 )
+            ! ( -path ./quota.group -uid 0 )
+            ! ( -path ./aquota.group -uid 0 )
+            ! ( -path ./.journal -uid 0 )
+            ! ( -path ./.clean -uid 0 )
+            ! ( -path "./...security*" -uid 0 )'
+
+# Remove all old files, then all empty directories
+find . -depth -xdev $EXCEPT ! -type d -delete
+find . -depth -xdev $EXCEPT -type d -empty -delete
+popd
+
 #Remove swap device
 swapoff /dev/loop0
 losetup -d /dev/loop0
