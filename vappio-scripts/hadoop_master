@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+import sys
+
+from igs.config_manage.policy import *
+
+if sys.argv[1] == 'start':
+    executeTemplate('/etc/hadoop/conf/core-site.xml.tmpl')
+    executeTemplate('/etc/hadoop/conf/hdfs-site.xml.tmpl')
+    executeTemplate('/etc/hadoop/conf/mapred-site.xml.tmpl')
+    run('/etc/init.d/hadoop-0.20-namenode start')
+    run('/etc/init.d/hadoop-0.20-datanode start')
+    run('/etc/init.d/hadoop-0.20-jobtracker start')
+    run('/etc/init.d/hadoop-0.20-tasktracker start')
+elif sys.argv[1] == 'stop':
+    run('/etc/init.d/hadoop-0.20-datanode stop')
+    run('/etc/init.d/hadoop-0.20-tasktracker stop')
+    run('/etc/init.d/hadoop-0.20-jobtracker stop')
+    run('/etc/init.d/hadoop-0.20-namenode stop')
+elif sys.argv[1] == 'restart':
+    run('/etc/init.d/hadoop-0.20-datanode stop')
+    run('/etc/init.d/hadoop-0.20-tasktracker stop')
+    run('/etc/init.d/hadoop-0.20-jobtracker stop')
+    run('/etc/init.d/hadoop-0.20-namenode stop')
+    
+    run('/etc/init.d/hadoop-0.20-namenode start')
+    run('/etc/init.d/hadoop-0.20-datanode start')
+    run('/etc/init.d/hadoop-0.20-jobtracker start')
+    run('/etc/init.d/hadoop-0.20-tasktracker start')
+else:
+    raise Exception('Unknown argument: ' + sys.argv[1])
