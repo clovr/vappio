@@ -10,6 +10,8 @@ vappio_cloud_type=`cat $vappio_runtime/cloud_type`
 if [ "$vappio_cloud_type" == "ec2" ]
 then
 #Add to host group
+    #capture time
+    min=`date +"%-M"`
     shutdownmin=$(($min-$rolloverstart))
     if [ $shutdownmin -lt 0 ]
     then

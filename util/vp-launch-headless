@@ -29,8 +29,8 @@ else
 	vmplayer $1/start_clovr.vmx &
     fi
     
-    ipstat=`stat -t $1/shared/clovr_ip`
-    ipstatnew=`stat -t $1/shared/clovr_ip`
+    ipstat=`stat -t $1/shared/clovr_ip 2> /dev/null`
+    ipstatnew=`stat -t $1/shared/clovr_ip 2> /dev/null`
     timeout=60 #5 minutes
     count=1
     while [ "$ipstat" = "$ipstatnew" ]

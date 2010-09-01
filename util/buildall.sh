@@ -39,7 +39,7 @@ do
     curl http://localhost:8888 > /dev/null
     if [ $? = 0 ]
     then
-	curl http://localhost:8888/job/Build\%$b\%20image/buildWithParameters?IMAGE_NAME=$image
+	curl http://localhost:8888/job/Build\%20$b\%20image/buildWithParameters?IMAGE_NAME=$image
     else
 	/opt/vappio-util/build.sh $image $b
     fi
