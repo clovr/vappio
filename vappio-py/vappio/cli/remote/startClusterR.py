@@ -22,7 +22,7 @@ from vappio.credentials import manager
 from vappio.credentials import persist as cred_persist
 
 OPTIONS = [
-    ('conf', '', '--conf', 'Name of config file to use', func.compose(lambda x : '${env.VAPPIO_HOME}/vappio-conf/' + x, cli.notNone)),
+    ('conf', '', '--conf', 'Name of config file to use', func.compose(lambda x : '/mnt/vappio-conf/' + x, cli.notNone)),
     ('name', '', '--name', 'Name of the cluster', cli.notNone),
     ('task_name', '', '--task-name', 'Name of task associated with this', cli.notNone),
     ('cred', '', '--cred', 'Credentials to use', cli.notNone),

@@ -29,7 +29,7 @@ fi
 # if we are running under VMWare or a local Xen then it will need to
 # be created at bootup (Ec2/nimbus should create it during startup process)
 export HOME=/root
-createLocalMachineConf.py --conf=$VAPPIO_HOME/vappio-conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
+createLocalMachineConf.py --conf=/mnt/vappio-conf/clovr.conf -o /tmp/machine.conf > /tmp/startUpNode.log 2>&1
 bootStrapKeys.py
 
 #(3) Startup services

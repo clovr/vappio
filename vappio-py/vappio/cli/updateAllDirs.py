@@ -85,7 +85,7 @@ def main(options, _args):
         ##    
         # Only want to do this one when specified
         if options('general.vappio_conf'):
-            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-conf', '/opt/vappio-conf')
+            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-conf', '/mnt/vappio-conf')
 
         if options('general.hudson') or updateAll:
             grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'hudson/hudson-config/jobs', '/var/lib/hudson/jobs')
