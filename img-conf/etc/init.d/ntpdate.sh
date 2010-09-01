@@ -1,3 +1,3 @@
 #!/bin/bash
-ntpdate pool.ntp.org > /dev/null
+/usr/sbin/ntpdate pool.ntp.org > /dev/null
 exit 0
