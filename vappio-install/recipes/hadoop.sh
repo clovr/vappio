@@ -13,7 +13,7 @@ sudo apt-get  --force-yes -y install sun-java6-jdk
 #sudo apt-get --force-yes -y install sun-java6-jdk
 #sudo update-java-alternatives -s java-6-sun
 apt-get -y install hadoop
-
+source /root/clovrEnv.sh
 checkoutObject.py vappio img-conf/etc/hadoop/conf/core-site.xml.tmpl /etc/hadoop/conf/core-site.xml.tmpl
 checkoutObject.py vappio img-conf/etc/hadoop/conf/hdfs-site.xml.tmpl /etc/hadoop/conf/hdfs-site.xml.tmpl
 checkoutObject.py vappio img-conf/etc/hadoop/conf/mapred-site.xml.tmpl /etc/hadoop/conf/mapred-site.xml.tmpl
