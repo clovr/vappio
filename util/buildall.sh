@@ -36,19 +36,11 @@ for b in $bundles
 do
     echo "Building $b"
     #Trigger build through hudson or command line
-    if [ "$HUDSON_URL" != "" ]
+    curl http://localhost:8888 > /dev/null
+    if [ $? = 0 ]
     then
-	curl --silent http://$HUDSON_URL/job/Build\%$b\%20image/build
+	curl --silent http://localhost/job/Build\%$b\%20image/buildWithParameters?IMAGE=$image
     else
 	/opt/vappio-util/build.sh $image $b
-    fi
-    #Only upload clovr-standard to ec2 for now
-    if [ "$b" = "clovr-standard" ]
-    then
-	defaultname=`echo "$BUILD_ID" | sed 's/_/-/'`
-	if [ -f "/mnt/clovr-standard-$defaultname.img" ]
-	then
-	    /opt/vappio-util/bundle_ec2.sh /mnt/clovr-standard-$defaultname.img
-	fi
     fi
 done

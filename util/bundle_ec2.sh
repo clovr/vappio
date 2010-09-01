@@ -1,8 +1,16 @@
 #!/bin/bash -e
 
-USAGE="vp-bundle-ec2 image.img"
+USAGE="vp-bundle-ec2 [image.img|imagedir]"
+#image.img - bundle and upload to EC2
+#imagedir  - bundle and upload imagedir.img to EC2 and write AMI to imagedir/clovr.conf
 
-image=$1
+if [ -d "$1" ]
+then
+    imagedir=$1
+    image="$1.img"
+else
+    image=$1
+fi
 
 if [ ! -f "$image" ]
 then
@@ -51,4 +59,11 @@ export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
 export EC2_APITOOL_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
 export JAVA_HOME=/usr
 echo "Registering on EC2 $imgname/$imgname.manifest.xml"
-$EC2_APITOOL_HOME/bin/ec2-register $imgname/$imgname.manifest.xml -K /mnt/keys/pk-*.pem -C /mnt/keys/cert-*.pem -n $imgname
+ami=`$EC2_APITOOL_HOME/bin/ec2-register $imgname/$imgname.manifest.xml -K /mnt/keys/pk-*.pem -C /mnt/keys/cert-*.pem -n $imgname | perl -ne '/^IMAGE\s+(ami-\S+)/;print $1,"\n"'`
+
+if [ -d "$imagedir" ]
+then
+    perl -pi -e "s/^ami=.*/ami=$ami/" $imagedir/clovr.conf
+else
+    echo "Update clovr.conf on the image to reference this AMI: $ami"
+fi
