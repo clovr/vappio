@@ -100,4 +100,5 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 apt-get -y install ntpdate
 #checkoutObject.py vappio img-conf/etc/init.d/ntpdate.sh /etc/init.d/ntpdate.sh
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/ntpdate.sh /etc/init.d/ntpdate.sh
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cron.hourly/ntpdate /etc/cron.hourly/ntpdate
 

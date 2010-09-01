@@ -20,3 +20,4 @@ sudo bash -e $VAPPIO_RECIPES/buildutils.sh
 #<numExecutors>2</numExecutors>
 #Set default view to platform conversion
 #<primaryView>CloVR tests</primaryView>
+svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml.clovr-build /var/lib/hudson/config.xml
