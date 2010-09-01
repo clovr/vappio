@@ -12,4 +12,4 @@ apt-get -y install libcairo2-dev rhino
 
 apt-get -y install subversion
 
-
+apt-get -y install libreadline5-dev
