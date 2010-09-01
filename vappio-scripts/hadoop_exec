@@ -4,6 +4,9 @@ import sys
 
 from igs.config_manage.policy import *
 
+if len(sys.argv) < 2:
+    raise Exception('Must provide start|stop|restart')
+
 if sys.argv[1] == 'start':
     executeTemplate('/etc/hadoop/conf/core-site.xml.tmpl')
     executeTemplate('/etc/hadoop/conf/hdfs-site.xml.tmpl')
