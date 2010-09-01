@@ -110,7 +110,7 @@ do
     curl http://localhost:3142 > /dev/null
     if [ $? = 0 ]
     then
-	svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy /mnt/$$/$b.live/etc/apt.conf.d/01proxy
+	svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy /mnt/$$/$b.live/etc/apt/apt.conf.d/01proxy
     fi
     #Apply recipe
     wget -c -P /mnt/$$/$b.live/tmp http://vappio.svn.sourceforge.net/viewvc/vappio/trunk/vappio-install/vp-bootstrap-install
@@ -118,7 +118,7 @@ do
     chroot /mnt/$$/$b.live $recipedir/$b
     
     #Remove apt proxy
-    rm -f /mnt/$$/$b.live/etc/apt.conf.d/01proxy
+    rm -f /mnt/$$/$b.live/etc/apt/apt.conf.d/01proxy
     #Reset hostname
     echo -n > /mnt/$$/$b.live/etc/hostname
 

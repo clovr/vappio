@@ -25,7 +25,9 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 
 # Keeping this old style until we are more stable
 #checkoutObject.py vappio img-conf/etc/apt/apt.conf.d /etc/apt/apt.conf.d
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d /etc/apt/apt.conf.d/
+
+#Force keeping our config files
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/05dpkg_forceconfnew /etc/apt/apt.conf.d/05dpkg_forceconfnew
 
 #Default dash shell breaks many a shell script
 ln -sf /bin/bash /bin/sh
