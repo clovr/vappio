@@ -2,6 +2,7 @@ import time
 
 from igs.utils.logging import logPrint, errorPrint, debugPrint
 from igs.utils import logging
+from igs.utils import errors
 
 from vappio.webservice.task import loadTask
 
@@ -70,3 +71,24 @@ def createTaskAndSave(tType, numTasks, initialMsg=None):
         tsk = tsk.addMessage(task.MSG_NOTIFICATION, initialMsg)
     task.saveTask(tsk)
     return name
+
+
+def runTask(taskName, f):
+    """
+    This takes a task name and a function. It runs the function, if the function does not throw an exception
+    then it loads the task and marks it as completed.  If an exception is thrown it loads the task and
+    marks it as failed and logs the exception in the task.
+
+    runTask will fail if the task does not exist
+    """
+
+    try:
+        f()
+    except Exception, err:
+        task.updateTask(task.loadTask(tastkName
+                                      ).setState(task.TASK_FAILED
+                                                 ).addException(str(err), err, errors.getStackTrace()))
+
+    task.updateTask(task.loadTask(taskName).setState(task.TASK_COMPLETED))
+    
+        

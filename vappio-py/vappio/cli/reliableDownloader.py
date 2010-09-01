@@ -48,7 +48,7 @@ def runDownloader(chan):
         logging.debugPrint(lambda : 'Successfully completed download')
         rchan.send(None)
     except Exception, err:
-        logging.debugPrint(lambda : 'Download failed for unknown reason')
+        logging.debugPrint(lambda : 'Download failed for unknown reason: ' + str(err))
         rchan.sendError(err)
 
 def getSizeOfFiles(files):
