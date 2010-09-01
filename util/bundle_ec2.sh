@@ -63,7 +63,8 @@ ami=`$EC2_APITOOL_HOME/bin/ec2-register $imgname/$imgname.manifest.xml -K /mnt/k
 
 if [ -d "$imagedir" ]
 then
-    perl -pi -e "s/^ami=.*/ami=$ami/" $imagedir/clovr.conf
+    echo "Writing $ami to $imagedir/clovr.conf"
+    perl -pi -e "s/^ami=.*/ami=$ami/" $imagedir/shared/clovr.conf
 else
     echo "Update clovr.conf on the image to reference this AMI: $ami"
 fi
