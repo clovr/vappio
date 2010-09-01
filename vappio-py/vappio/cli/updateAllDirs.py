@@ -14,7 +14,7 @@ OPTIONS = [
     ('vappio_scripts', '', '--vappio-scripts', 'Update vappio-scripts', defaultIfNone(False), True),
     ('clovr_pipelines', '', '--clovr_pipelines', 'Update clovr_pipelines', defaultIfNone(False), True),
     ('vappio_py_www', '', '--vappio-py-www', 'Update vappio-www/py-ww', defaultIfNone(False), True),
-    ('vappio_conf', '', '--vappio-conf', 'Update vappio/conf', defaultIfNone(False), True),
+    #('vappio_conf', '', '--vappio-conf', 'Update vappio/conf', defaultIfNone(False), True),
     ('hudson', '', '--hudson', 'Update hudson', defaultIfNone(False), True),
     ('clovr_www', '', '--clovr-www', 'CloVR web gui', defaultIfNone(False), True),
     ('co', '', '--co', 'Check out rather than export', defaultIfNone(False), True),
@@ -84,8 +84,8 @@ def main(options, _args):
             grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-www/py-www', '/var/www/vappio')
         ##    
         # Only want to do this one when specified
-        if options('general.vappio_conf'):
-            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-conf', '/mnt/vappio-conf')
+        # if options('general.vappio_conf'):
+        #     grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-conf', '/mnt/vappio-conf')
 
         if options('general.hudson') or updateAll:
             grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'hudson/hudson-config/jobs', '/var/lib/hudson/jobs')
