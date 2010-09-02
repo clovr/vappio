@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+##
+# Takes a series of key-value pairs as input, validates that each tag contains nothing but fasta files
+# and passes the input to stdout.  An exception is thrown if the given TAG does not contain fasta files
+#
+# This simply checks the first non-whitespace character of each file for '>' and assumes it is a fasta
+# file if it contains that
+import sys
+
+from vappio.webservice import tag
+
+def isFasta(f):
+    for line in open(f):
+        if line.strip() and line.strip()[0] == '>':
+            return True
+        elif line.strip():
+            return False
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+for line in sys.stdin:
+    _, tagName = line.split('=', 1)
+    tagFile = tag.queryTag('localhost', 'local', tagName)
+    for f in tagFile('files'):
+        if not isFasta(f):
+            raise Exception('Not a fasta file: ' + f)
+
+        sys.stdout.write(line)
+
+    
