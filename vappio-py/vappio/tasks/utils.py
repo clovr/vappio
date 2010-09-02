@@ -97,4 +97,4 @@ def runTaskMain(func, options, args, optionsTaskName='general.task_name'):
     This is a little cheat function to wrap up running a task around what
     a standard main function looks like
     """
-    return runTask(o(optionsTaskName), lambda : func(o, a))
+    return runTask(options(optionsTaskName), lambda : func(options, args))
