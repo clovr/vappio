@@ -129,7 +129,9 @@ do
     #Exit from chroot
     umount /mnt/$$/$b.live/proc
     umount /mnt/$$/$b.live/sys
+    sleep 2
     umount /mnt/$$/$b.live/dev
+    sleep 2
     umount /mnt/$$/$b.live
     sync
     losetup -d $devname
