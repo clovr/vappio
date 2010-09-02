@@ -60,7 +60,8 @@ export EC2_APITOOL_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
 export JAVA_HOME=/usr
 echo "Registering on EC2 $imgname/$imgname.manifest.xml"
 ami=`$EC2_APITOOL_HOME/bin/ec2-register $imgname/$imgname.manifest.xml -K /mnt/keys/pk-*.pem -C /mnt/keys/cert-*.pem -n $imgname | perl -ne '/^IMAGE\s+(ami-\S+)/;print $1,"\n"'`
-$EC2_APITOOL_HOME/bin/ec2-modify-image-attribute $ami --launch-permission -a all
+echo "AMI: $ami"
+$EC2_APITOOL_HOME/bin/ec2-modify-image-attribute -C /mnt/keys/cert-*.pem -K /mnt/keys/pk-*.pem $ami --launch-permission -a all
 if [ -d "$imagedir" ]
 then
     echo "Writing $ami to $imagedir/clovr.conf"
