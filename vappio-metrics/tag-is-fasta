@@ -24,7 +24,7 @@ if sys.stdin.readline().strip() != 'kv':
 sys.stdout.write('kv\n')
 
 for line in sys.stdin:
-    _, tagName = line.split('=', 1)
+    _, tagName = line.split('=', 1).strip()
     tagFile = tag.queryTag('localhost', 'local', tagName)
     for f in tagFile('files'):
         if not isFasta(f):
