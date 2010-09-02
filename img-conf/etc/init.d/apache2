@@ -15,7 +15,7 @@
 #SVA clovr edit
 source /root/clovrEnv.sh
 ENV="env -i LANG=C PATH=$PATH:/usr/local/bin:/usr/bin:/bin PYTHONPATH=$PYTHONPATH VAPPIO_HOME=$VAPPIO_HOME EC2_HOME=$EC2_HOME HOME=$HOME EC2_HOME=$EC2_HOME EC2_CERT=$EC2_CERT EC2_PRIVATE_KEY=$EC2_PRIVATE_KEY JAVA_HOME=$JAVA_HOME PYTHON_EGG_CACHE=$PYTHON_EGG_CACHE"
-
+ulimit -n 1000000
 #ENV="env -i LANG=C PATH=/usr/local/bin:/usr/bin:/bin"
 
 #[ $(ls -1 /etc/apache2/sites-enabled/ | wc -l | sed -e 's/ *//;') -eq 0 ] && \
