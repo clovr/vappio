@@ -2,7 +2,6 @@
 import json
 from igs.utils import cli
 from igs.utils import functional as func
-from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
