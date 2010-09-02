@@ -14,8 +14,6 @@ TEMPLATE_NAME = 'clovr_microbe_illumina'
 OPTIONS = [
     ('SHORT_PAIRED_LIST', '', '--SHORT_PAIRED_LIST', 'A comma separated list of input tags. Each tag should contain two files.', compose( lambda x : ','.join(['${dirs.tag_dir}/' + y for y in x and re.split('[\s,]+', x) or []]), defaultIfNone(''))),
     ('LONG_PAIRED_LIST', '', '--LONG_PAIRED_LIST', 'A common separated list of input tags. Each tag should contain two files', compose( lambda x : ','.join(['${dirs.tag_dir}/' + y for y in x and re.split('[\s,]+', x) or []]), defaultIfNone('') ) ),
-    ('SHORT_PAIRED_FORMAT', '', '--SHORT_PAIRED_FORMAT', 'A space separated list of formats (either fasta or fastq) that relates to the space separated list of short paired lists', defaultIfNone('')),
-    ('LONG_PAIRED_FORMAT', '', '--LONG_PAIRED_FORMAT', 'A space separated list of formats (either fasta or fastq) that relates to the space separated list of long paired lists', defaultIfNone('')),
     ('SHORT_INPUT_LIST', '', '--SHORT_INPUT_LIST', 'Input tag for non paired end short read data.', compose( lambda x : ','.join(['${dirs.tag_dir}/' + y for y in x.split()]), defaultIfNone('')) ),
     ('LONG_INPUT_LIST', '', '--LONG_INPUT_LIST', 'Input tag for non paired long read data', compose( lambda x : ','.join(['${dirs.tag_dir}/' + y for y in x.split()]), defaultIfNone('')) ),
     ('OUTPUT_PREFIX', '', '--OUTPUT_PREFIX', 'Used in ID generation, Locus Tags, etc.', notNone),
