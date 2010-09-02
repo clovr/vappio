@@ -2,7 +2,7 @@
 ##
 # This adds instances to the current cluster.  This should run on the master node of
 # whatever cluster instances are being added to
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils import cli
 from igs.utils.functional import compose
 from igs.utils import errors
 
@@ -11,11 +11,12 @@ from vappio.cluster import control as cluster_ctl
 from vappio.cluster import persist_mongo
 
 from vappio.tasks import task
+from vappio.tasks import utils as task_utils
 
 OPTIONS = [
-    ('task_name', '', '--task-name', 'Name of task', notNone),
-    ('num', '', '--num', 'Number of nodes to create', compose(int, notNone)),
-    ('update_dirs', '', '--update_dirs', 'Update scritps directories', defaultIfNone(False), True),
+    ('task_name', '', '--task-name', 'Name of task', cli.notNone),
+    ('num', '', '--num', 'Number of nodes to create', compose(int, cli.notNone)),
+    ('update_dirs', '', '--update_dirs', 'Update scritps directories', cli.defaultIfNone(False), True),
     ]
 
 
@@ -51,15 +52,11 @@ def main(options, _args):
                                                              err,
                                                              errors.getStacktrace())
         updateCluster(err.result)
-    except Exception, err:
-        tsk = task.updateTask(tsk.setState(task.TASK_FAILED
-                                           ).addMessage(task.MSG_ERROR,
-                                                        'An error occured attempting to start the cluster:\n' + str(err) + '\nExiting...'))
-        raise
 
     tsk = task.updateTask(tsk)        
     
 
 if __name__ == '__main__':
-    runCatchError(lambda : main(*buildConfigN(OPTIONS)),
+    runCatchError(lambda : task_utils.runTaskMain(*cli.buildConfigN(OPTIONS),
+                                                   main),
                   mongoFail(dict(action='addInstances')))

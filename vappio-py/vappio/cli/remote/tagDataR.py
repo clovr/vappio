@@ -8,6 +8,7 @@ from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
 from vappio.tags.tagfile import tagData
 from vappio.tasks import task
+from vappio.tasks import utils as task_utils
 
 OPTIONS = [
     ('tag_name', '', '--tag-name', 'Name of the tag', cli.notNone),
@@ -29,26 +30,21 @@ def main(options, files):
                                                    ).addMessage(task.MSG_SILENT, 'Starting tagging'))
 
 
-    try:
-        cluster = loadCluster('localhost', 'local')
-        tagData(cluster.config('dirs.tag_dir'),
-                options('general.tag_name'),
-                options('general.tag_base_dir'),
-                files,
-                recursive=options('general.recursive'),
-                expand=options('general.expand'),
-                append=options('general.append'),
-                overwrite=options('general.overwrite'),
-                metadata=json.loads(options('general.metadata')))
-        tsk = tsk.progress().setState(task.TASK_COMPLETED)
-    except Exception, err:
-        tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
-
-    tsk = task.updateTask(tsk)
-
-    
+    cluster = loadCluster('localhost', 'local')
+    tagData(cluster.config('dirs.tag_dir'),
+            options('general.tag_name'),
+            options('general.tag_base_dir'),
+            files,
+            recursive=options('general.recursive'),
+            expand=options('general.expand'),
+            append=options('general.append'),
+            overwrite=options('general.overwrite'),
+            metadata=json.loads(options('general.metadata')))
+    tsk = tsk.progress().setState(task.TASK_COMPLETED)
+    task.updateTask(tsk)
 
 
 if __name__ == '__main__':
-    runCatchError(lambda : main(*cli.buildConfigN(OPTIONS)),
+    runCatchError(lambda : task_utils.runTaskMain(*cli.buildConfigN(OPTIONS),
+                                                   main),
                   mongoFail(dict(action='tagData')))

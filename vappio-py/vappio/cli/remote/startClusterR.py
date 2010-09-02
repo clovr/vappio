@@ -16,7 +16,7 @@ from vappio.cluster import persist_mongo
 from vappio.webservice import cluster
 
 from vappio.tasks import task
-from vappio.tasks.utils import blockOnTaskAndForward
+from vappio.tasks import utils as task_utils
 
 from vappio.credentials import manager
 from vappio.credentials import persist as cred_persist
@@ -59,10 +59,10 @@ def addExecInstances(options, cl, tsk):
                                         options('general.name'),
                                         options('general.num'),
                                         options('general.update_dirs'))
-        endState, tsk = blockOnTaskAndForward('localhost',
-                                              options('general.name'),
-                                              taskName,
-                                              tsk)
+        endState, tsk = task_utils.blockOnTaskAndForward('localhost',
+                                                         options('general.name'),
+                                                         taskName,
+                                                         tsk)
     except errors.TryError, err:
         raise Exception('Failed to add exec instances: ' + str(err))
     
@@ -97,9 +97,6 @@ def main(options, _args):
     except cred_persist.CredentialDoesNotExistError, err:
         tsk = task.updateTask(tsk.setState(task.TASK_FAILED).addException('Credential does not exist: ' + options('general.cred'), err, errors.getStacktrace()))
         raise
-    except Exception, err:
-        tsk = task.updateTask(tsk.setState(task.TASK_FAILED).addException('Unknown error loading credential: ' + str(err), err, errors.getStacktrace()))
-        raise
         
     try:
         ##
@@ -126,13 +123,10 @@ def main(options, _args):
                 updateCluster(err.result)
         else:
             tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Cluster already running')
-    except Exception, err:
-        tsk = tsk.setState(task.TASK_FAILED).addException('An error occured attempting to start the cluster: ' + str(err), err, errors.getStacktrace())
-        tsk = task.updateTask(tsk)
-        raise
     
     tsk = task.updateTask(tsk)
         
 if __name__ == '__main__':
-    runCatchError(lambda : main(*cli.buildConfigN(OPTIONS)),
+    runCatchError(lambda : task_utils.runTaskMain(*cli.buildConfigN(OPTIONS),
+                                                   main),
                   mongoFail(dict(action='startCluster')))

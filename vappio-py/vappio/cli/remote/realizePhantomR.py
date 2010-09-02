@@ -11,7 +11,7 @@ from vappio.webservice.tag import tagData
 from vappio.tags import tagfile
 
 from vappio.tasks import task
-from vappio.tasks.utils import blockOnTaskAndForward
+from vappio.tasks import utils as task_utils
 
 OPTIONS = [
     ('tag_name', '', '--tag-name', 'Name of the tag', notNone),
@@ -34,40 +34,36 @@ def main(options, _args):
         if not tagfile.hasFiles(tf) and tagfile.isPhantom(tf):
             outDir = os.path.join(cluster.config('dirs.upload_dir'), options('general.tag_name'))
 
-            try:
-                runSystemEx('mkdir -p ' + outDir)
-                tagfile.realizePhantom(ctype,
+            runSystemEx('mkdir -p ' + outDir)
+            tagfile.realizePhantom(ctype,
                                        outDir,
                                        tf)
-                tsk = tsk.progress()
+            tsk = tsk.progress()
 
-                ##
-                # Need to fix this so it makes use of tag_options
+            # Need to fix this so it makes use of tag_options
 
-                metadataKeys = [k.split('.', 1)[1] for k in tf.keys() if k.startswith('metadata.')]
-                metadata = dict([(k, tf('metadata.' + k)) for k in metadataKeys])                
+            metadataKeys = [k.split('.', 1)[1] for k in tf.keys() if k.startswith('metadata.')]
+            metadata = dict([(k, tf('metadata.' + k)) for k in metadataKeys])                
 
-                tagTask = tagData('localhost',
-                                  'local',
-                                  options('general.tag_name'),
-                                  outDir,
-                                  [outDir],
-                                  recursive=True,
-                                  expand=True,
-                                  append=False,
-                                  overwrite=True,
-                                  metadata=metadata)
+            tagTask = tagData('localhost',
+                              'local',
+                              options('general.tag_name'),
+                              outDir,
+                              [outDir],
+                              recursive=True,
+                              expand=True,
+                              append=False,
+                              overwrite=True,
+                              metadata=metadata)
 
-                endState, tsk = blockOnTaskAndForward('localhost',
-                                                      'local',
-                                                      tagTask,
-                                                      tsk)
-                if endState == task.TASK_FAILED:
-                    tsk = tsk.setState(task.TASK_FAILED)
-                else:
-                    tsk = tsk.progress().setState(task.TASK_COMPLETED)
-            except Exception, err:
-                tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
+            endState, tsk = task_utils.blockOnTaskAndForward('localhost',
+                                                             'local',
+                                                             tagTask,
+                                                             tsk)
+            if endState == task.TASK_FAILED:
+                raise Exception('tagData call failed: ' + tagTask)
+            else:
+                tsk = tsk.progress().setState(task.TASK_COMPLETED)
         else:
             ##
             # Skip the two steps that happened in there
@@ -75,13 +71,13 @@ def main(options, _args):
 
     except tagfile.MissingTagFileError, err:
         tsk = tsk.setState(task.TASK_FAILED).addException('Unable to load tagfile: ' + str(err), err, errors.getStacktrace())
-    except Exception, err:
-        tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())
+        raise
         
     tsk = task.updateTask(tsk)
 
 
 
 if __name__ == '__main__':
-    runCatchError(lambda : main(*buildConfigN(OPTIONS)),
+    runCatchError(lambda : task_utils.runTaskMain(*buildConfigN(OPTIONS),
+                                                   main),
                   mongoFail(dict(action='realizePhantom')))

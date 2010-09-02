@@ -18,6 +18,3 @@ checkoutObject.py vappio img-conf/etc/hadoop/conf/core-site.xml.tmpl /etc/hadoop
 checkoutObject.py vappio img-conf/etc/hadoop/conf/hdfs-site.xml.tmpl /etc/hadoop/conf/hdfs-site.xml.tmpl
 checkoutObject.py vappio img-conf/etc/hadoop/conf/mapred-site.xml.tmpl /etc/hadoop/conf/mapred-site.xml.tmpl
 
-# svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/hadoop/conf/core-site.xml.tmpl /etc/hadoop/conf/core-site.xml.tmpl
-# svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/hadoop/conf/hdfs-site.xml.tmpl /etc/hadoop/conf/hdfs-site.xml.tmpl
-# svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/hadoop/conf/mapred-site.xml.tmpl /etc/hadoop/conf/mapred-site.xml.tmpl

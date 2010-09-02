@@ -92,3 +92,9 @@ def runTask(taskName, f):
     task.updateTask(task.loadTask(taskName).setState(task.TASK_COMPLETED))
     
         
+def runTaskMain(options, args, func, optionsTaskName='general.task_name'):
+    """
+    This is a little cheat function to wrap up running a task around what
+    a standard main function looks like
+    """
+    return runTask(o(optionsTaskName), lambda : func(o, a))
