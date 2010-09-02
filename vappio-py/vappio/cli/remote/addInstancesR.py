@@ -57,6 +57,6 @@ def main(options, _args):
     
 
 if __name__ == '__main__':
-    runCatchError(lambda : task_utils.runTaskMain(*cli.buildConfigN(OPTIONS),
-                                                   main),
+    runCatchError(lambda : task_utils.runTaskMain(main,
+                                                  *cli.buildConfigN(OPTIONS)),
                   mongoFail(dict(action='addInstances')))

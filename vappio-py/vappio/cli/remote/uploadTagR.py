@@ -13,7 +13,7 @@ from vappio.tags.transfer import uploadTag
 from vappio.tags import tagfile
 
 from vappio.tasks import task
-from vappio.tasks utils as task_utils
+from vappio.tasks import utils as task_utils
 
 OPTIONS = [
     ('tag_name', '', '--tag-name', 'Name of tag to transfer', notNone),

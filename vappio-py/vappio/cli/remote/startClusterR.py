@@ -98,35 +98,34 @@ def main(options, _args):
         tsk = task.updateTask(tsk.setState(task.TASK_FAILED).addException('Credential does not exist: ' + options('general.cred'), err, errors.getStacktrace()))
         raise
         
-    try:
-        ##
-        # Try to load the cluster.  If it does not exist, continue and make it, if it does exist noop
-        if not clusterExists('localhost', options('general.name')):
-            cl = Cluster(options('general.name'), cred, options)
-            try:
-                cl = cl.startMaster(updateCluster)
 
-                updateCluster(cl)
+    # Try to load the cluster.  If it does not exist, continue and make it, if it does exist noop
+    if not clusterExists('localhost', options('general.name')):
+        cl = Cluster(options('general.name'), cred, options)
+        try:
+            cl = cl.startMaster(updateCluster)
+            
+            updateCluster(cl)
 
-                tsk = task.updateTask(tsk.progress())
+            tsk = task.updateTask(tsk.progress())
+            
+            if options('general.num'):
+                tsk, cl = addExecInstances(options, cl, tsk)
 
-                if options('general.num'):
-                    tsk, cl = addExecInstances(options, cl, tsk)
-
-                tsk = tsk.progress().setState(task.TASK_COMPLETED)
-            except errors.TryError, err:
-                tsk = tsk.setState(task.TASK_COMPLETED).addException('An error occured attempting to start the cluster:\n' + err.msg +
-                                                                   '\nThe cluster has been started as much as possible, it may not function properly though',
-                                                                     err,
-                                                                     errors.getStacktrace())
-                # err.result should be the cluster in this case
-                updateCluster(err.result)
-        else:
-            tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Cluster already running')
+            tsk = tsk.progress().setState(task.TASK_COMPLETED)
+        except errors.TryError, err:
+            tsk = tsk.setState(task.TASK_COMPLETED).addException('An error occured attempting to start the cluster:\n' + err.msg +
+                                                                 '\nThe cluster has been started as much as possible, it may not function properly though',
+                                                                 err,
+                                                                 errors.getStacktrace())
+            # err.result should be the cluster in this case
+            updateCluster(err.result)
+    else:
+        tsk = tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Cluster already running')
     
     tsk = task.updateTask(tsk)
         
 if __name__ == '__main__':
-    runCatchError(lambda : task_utils.runTaskMain(*cli.buildConfigN(OPTIONS),
-                                                   main),
+    runCatchError(lambda : task_utils.runTaskMain(main,
+                                                  *cli.buildConfigN(OPTIONS)),
                   mongoFail(dict(action='startCluster')))

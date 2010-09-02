@@ -78,6 +78,6 @@ def main(options, _args):
 
 
 if __name__ == '__main__':
-    runCatchError(lambda : task_utils.runTaskMain(*buildConfigN(OPTIONS),
-                                                   main),
+    runCatchError(lambda : task_utils.runTaskMain(main,
+                                                  *buildConfigN(OPTIONS)),
                   mongoFail(dict(action='realizePhantom')))
