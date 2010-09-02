@@ -2,10 +2,10 @@
 depends_on=/mnt/staging/tags_extra/clovr-refseqdb.dlist
 
 [cluster.ec2]
-command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-refseqdb --join-md5=0261e07559f4a007b9024e84ec584c01 < ${phantom.depends_on}
+command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-refseqdb.tar.gz --join-md5=0261e07559f4a007b9024e84ec584c01 < ${phantom.depends_on}
 tag_options=-e
 
 [cluster.UNKNOWN]
-command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-refseqdb --join-md5=0261e07559f4a007b9024e84ec584c01 < ${phantom.depends_on}
+command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-refseqdb.tar.gz --join-md5=0261e07559f4a007b9024e84ec584c01 < ${phantom.depends_on}
 tag_options=-e
 
