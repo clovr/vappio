@@ -16,6 +16,8 @@ def isFasta(f):
         elif line.strip():
             return False
 
+    return False
+
 # Ensure we are dealing with kv pairs
 if sys.stdin.readline().strip() != 'kv':
     raise Exception('Header needs to be kv')
