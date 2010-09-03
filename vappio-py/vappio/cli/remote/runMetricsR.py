@@ -28,7 +28,7 @@ def splitAndSanitizeMetrics(metrics):
     Right now this does a trivial split on '|', this should be fixed though
     """
     def sanitize(m):
-        if m[0] in ['.', '\'', '"']:
+        if m[0] in ['.', '\'', '"', '/']:
             raise InvalidMetricNameError('Metric cannot start with funny characters: ' + m)
 
         return os.path.join('/opt', 'vappio-metrics', m)

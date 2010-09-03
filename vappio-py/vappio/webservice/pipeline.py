@@ -9,6 +9,7 @@ from vappio.webservice.cluster import loadCluster
 PIPELINESTATUS_URL = '/vappio/pipelineStatus_ws.py'
 RUNPIPELINE_URL = '/vappio/runPipeline_ws.py'
 DOWNLOADPIPELINEOUTPUT_URL = '/vappio/downloadPipelineOutput_ws.py'
+RUNMETRICS_URL = '/vappio/runMetrics_ws.py'
 
 def pipelineStatus(host, name, pred=lambda _ : True):
     """
@@ -57,3 +58,9 @@ def downloadPipelineOutput(host, name, pipelineName, outputDir, overwrite):
                                                                pipeline_name=pipelineName,
                                                                output_dir=outputDir,
                                                                overwrite=overwrite))
+
+def runMetrics(host, name, conf, metrics):
+    return performQuery(host, RUNMETRICS_URL, dict(name=name,
+                                                   conf=conf
+                                                   metrics=metrics))
+

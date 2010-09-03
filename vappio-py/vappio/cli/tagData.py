@@ -52,7 +52,7 @@ def main(options, files):
     if options('general.block'):
         state = blockOnTask(options('general.host'), options('general.name'), taskName)
         if state == TASK_FAILED:
-            raise Exception('Tagging data filed')
+            raise Exception('Tagging data failed')
 
     if options('general.print_task_name'):
         print taskName
