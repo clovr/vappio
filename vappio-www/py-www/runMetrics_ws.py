@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import json
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
@@ -23,8 +24,8 @@ class RunMetrics(CGIPage):
 
             cmd = ['runMetricsR.py',
                    '--task-name=' + taskName,
-                   '--conf=' + json.dumps(request['conf']).encode('string_escape'),
-                   '--metrics=' + request['metrics'].encode('string_escape'),
+                   '--conf=\'%s\'' % (json.dumps(request['conf']).encode('string_escape'),),
+                   '--metrics=\'%s\'' % (str(request['metrics']).encode('string_escape'),),
                    '>> /tmp/runMetricsR.py 2>&1 &',
                    ]
 
