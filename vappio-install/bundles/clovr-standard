@@ -24,7 +24,7 @@ bash -e $VAPPIO_RECIPES/vappiosite.sh
 bash -e $VAPPIO_RECIPES/clovrsetup.sh
 #catch all for apt pkgs
 bash -e $VAPPIO_RECIPES/generalpkgs.sh
-
+bash -e $VAPPIO_RECIPES/rpkg.sh
 bash -e $VAPPIO_RECIPES/workflow.sh
 bash -e $VAPPIO_RECIPES/ergatis.sh
 
