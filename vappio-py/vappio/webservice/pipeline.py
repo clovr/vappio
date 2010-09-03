@@ -61,6 +61,6 @@ def downloadPipelineOutput(host, name, pipelineName, outputDir, overwrite):
 
 def runMetrics(host, name, conf, metrics):
     return performQuery(host, RUNMETRICS_URL, dict(name=name,
-                                                   conf=conf
+                                                   conf=conf,
                                                    metrics=metrics))
 
