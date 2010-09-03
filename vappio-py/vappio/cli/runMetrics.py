@@ -14,20 +14,20 @@ OPTIONS = [
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end',
      cli.defaultIfNone(False), cli.BINARY),
     ('pipeline', '', '--pipeline-name', 'Name of pipeline to run against', func.identity),
-    ('conf', '-c', '--conf', 'Add config options, multiple allowed in style -c key=value -c key=value',
-     func.identity, cli.LIST)
+    ('config', '-c', '', 'Add config options, multiple allowed in style -c key=value -c key=value',
+     cli.defaultIfNone([]), cli.LIST)
     ]
 
 
 def main(options, args):
-    metrics = args
-    conf = dict([v.split('=', 1) for v in options('general.conf', default=[])])
+    metrics = args[0]
+    conf = dict([v.split('=', 1) for v in options('general.config', default=[])])
     if options('general.pipeline'):
         metrics = 'get-pipeline-conf | ' + metrics
         conf['PIPELINE_NAME'] = options('general.pipeline')
 
     taskName = pipeline.runMetrics(options('general.host'), options('general.name'), conf, metrics)
-
+    
     if options('general.block'):
         state = blockOnTask(options('general.host'), options('general.name'), taskName)
         if state == TASK_FAILED:

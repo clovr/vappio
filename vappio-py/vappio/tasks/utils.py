@@ -87,7 +87,7 @@ def runTask(taskName, f):
     except Exception, err:
         task.updateTask(task.loadTask(taskName
                                       ).setState(task.TASK_FAILED
-                                                 ).addException(str(err), err, errors.getStackTrace()))
+                                                 ).addException(str(err), err, errors.getStacktrace()))
 
     task.updateTask(task.loadTask(taskName).setState(task.TASK_COMPLETED))
     

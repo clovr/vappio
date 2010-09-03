@@ -12,11 +12,14 @@ from vappio.tasks import utils as task_utils
 
 OPTIONS = [
     ('task_name', '', '--task-name', 'Task name', cli.notNone),
-    ('conf', '', '--conf', 'JSON Encoded configuration', cli.notNone),
+    ('config', '', '--conf', 'JSON Encoded configuration', cli.notNone),
     ('metrics', '', '--metrics', 'String representing metrics to run', cli.notNone)
     ]
 
 class InvalidMetricNameError(Exception):
+    pass
+
+class MetricError(Exception):
     pass
 
 def splitAndSanitizeMetrics(metrics):
@@ -42,7 +45,7 @@ def runMetrics(conf, metrics):
     next should not be run.
     """
     def run(m, stdin):
-        pipe = subprocess.Popen(self.cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        pipe = subprocess.Popen(m, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         stdoutData, stderrData = pipe.communicate(stdin)
 
@@ -54,7 +57,7 @@ def runMetrics(conf, metrics):
 
         return stdoutData
 
-    stdin = '\n'.join([k + '=' + v for k, v in conf.iteritems()])
+    stdin = '\n'.join(['kv'] + [k + '=' + v for k, v in conf.iteritems()])
     for m in metrics:
         stdin = run(m, stdin)
 
@@ -69,15 +72,14 @@ def main(options, _args):
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting to run metric'))
 
-    conf = json.loads(options('general.conf'))
+    conf = json.loads(options('general.config'))
     metrics = options('general.metrics')
-
-    print conf
-    print metrics
 
     metricsSS = splitAndSanitizeMetrics(metrics)
 
-    runMetrics(metricsSS)
+    output = runMetrics(conf, metricsSS)
+
+    task.updateTask(tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Completed').addMessage(task.MSG_SILENT, output))
 
 
 if __name__ == '__main__':
