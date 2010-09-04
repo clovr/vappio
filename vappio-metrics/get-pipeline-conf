@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+##
+# Takes key-value input and passes it on along with pipeline config
+import sys
+
+from vappio.webservice import pipeline
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+pipelineName = sys.argv[1]
+
+for line in sys.stdin:
+    sys.stdout.write(line.strip() + '\n')
+
+pl = pipeline.pipelineStatus('localhost', 'local', lambda p : p.name == pipelineName)[0]
+sys.stdout.write('\n'.join([k + '=' + str(pl.config(k)).encode('string_escape') for k in pl.config.keys()]))
+
+
+
