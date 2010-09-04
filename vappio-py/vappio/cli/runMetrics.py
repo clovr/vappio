@@ -23,8 +23,10 @@ def main(options, args):
     metrics = args[0]
     conf = dict([v.split('=', 1) for v in options('general.config', default=[])])
     if options('general.pipeline'):
-        metrics = 'get-pipeline-conf | ' + metrics
-        conf['PIPELINE_NAME'] = options('general.pipeline')
+        if metrics:
+            metrics = 'get-pipeline-conf %s | %s | set-pipeline-conf %s' % (options('general.pipeline'), metrics, options('general.pipeline'))
+        else:
+            metrics = 'get-pipeline-conf %s | set-pipeline-conf %s' % (options('general.pipeline'), options('general.pipeline'))
 
     taskName = pipeline.runMetrics(options('general.host'), options('general.name'), conf, metrics)
     
