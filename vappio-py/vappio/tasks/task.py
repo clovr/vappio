@@ -17,6 +17,7 @@ TASK_FAILED = 'failed'
 
 MSG_ERROR = 'error'
 MSG_NOTIFICATION = 'notification'
+MSG_RESULT = 'result'
 ##
 # silent messages are for debugging purposes
 MSG_SILENT = 'silent'
@@ -36,6 +37,22 @@ class Task(Record):
                                                           name=reflect.fullyQualifiedName(reflect.getClass(exc)),
                                                           stacktrace=stacktrace,
                                                           timestamp=t)])
+
+    def addNotification(self, msg):
+        return self.addMessage(MSG_NOTIFICATION, msg)
+
+    def addResult(self, result):
+        """
+        Adds some kind of result to the task that can be pulled out
+        """
+        t = time.time()
+        return self.update(timestamp=t,
+                           messages=self.messages + [dict(mtype=MSG_RESULT,
+                                                          result=result,
+                                                          timestamp=t)])
+
+    def getResults(self):
+        return [m for m in self.messages if m['mtype'] == MSG_RESULT]
     
     def getMessages(self):
         return self.messages

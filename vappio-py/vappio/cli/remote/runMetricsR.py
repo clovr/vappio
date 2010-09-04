@@ -79,7 +79,7 @@ def main(options, _args):
 
     output = runMetrics(conf, metricsSS)
 
-    task.updateTask(tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Completed').addMessage(task.MSG_SILENT, output))
+    task.updateTask(tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Completed').addResult(output))
 
 
 if __name__ == '__main__':

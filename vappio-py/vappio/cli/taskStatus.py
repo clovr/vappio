@@ -57,6 +57,8 @@ def printTask(options, t, maxTaskNameLen):
                         print 'Stacktrace:\n\t' + indented
                 elif m['mtype'] == task.MSG_SILENT and (options('general.show_debug_msgs') or options('general.show_all_msgs')):
                     print 'Debug - %s: %s' % (timestampToStr(m['timestamp']), m['text'])
+                elif options('general.show_all_msgs'):
+                    print '%s - %s: %s' % (m['mtype'].title(), timestampToStr(m['timestamp']), repr(m))
     
 
 
