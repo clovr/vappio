@@ -64,6 +64,14 @@ OPTIONS = [
     ('debug', '-d', '--debug', 'Turn debugging information on', func.identity, cli.BINARY),
     ]
 
+
+class CheckoutModifiedError(Exception):
+    """
+    Trying to do another check out when modifications exist
+    """
+    pass
+
+
 ##
 # Misc useful functions
 def logExport(configDir, repo, repoPath, outputPath, branch, exportType):
@@ -73,34 +81,55 @@ def logExport(configDir, repo, repoPath, outputPath, branch, exportType):
                                exportType,
                                repoPath,
                                outputPath]) + '\n')
-         
 
+         
 ##
 # Repository implementations
 class Subversion:
+
+    def _raiseIfCheckout(self, path):
+            outp = []
+            commands.runSingleProgramEx('svn status ' + path, stdoutf=outp.append, stderrf=None, log=False)
+            # If outp contains some output it means modifications have been made
+            if outp:
+                raise CheckoutModifiedError('There are modifications to %s, please commit them or revert them before continuing' % path)
+
+    
     def checkout(self, options, repo, repoPath, outputPath, branch):
         fullPath = os.path.join(repo.repoUrl, branch, repoPath)
         stderr = []
         try:
+            # Test to see if it's already checked out, if not continue
+            self._raiseIfCheckout(outputPath)
             commands.runSingleProgramEx('svn co %s %s' % (fullPath, outputPath),
                                         stdoutf=None,
                                         stderrf=stderr.append,
                                         log=logging.DEBUG)
+        except CheckoutModifiedError:
+            logging.errorPrint('You have uncommited changes to %s, please revert changes or commit them' % outputPath)
+            raise
         except commands.ProgramRunError:
-            if 'refers to a file, not a directory' in ''.join(stderr):
-                tmpPath = os.path.dirname(os.path.join(options('general.codir'), repoPath))
-                commands.runSystemEx('mkdir -p ' + tmpPath, log=logging.DEBUG)
-                commands.runSingleProgramEx('svn co %s %s' % (os.path.dirname(fullPath), tmpPath),
-                                            stdoutf=None,
-                                            stderrf=logging.errorPrintS,
-                                            log=logging.DEBUG)
-                commands.runSystemEx('ln -s %s %s' % (os.path.join(options('general.codir'), repoPath),
-                                                      outputPath),
-                                     log=logging.DEBUG)
-            else:
-                for l in stderr:
-                    logging.errorPrintS(l)
-                raise
+                if 'refers to a file, not a directory' in ''.join(stderr):
+                    try:
+                        tmpPath = os.path.dirname(os.path.join(options('general.codir'), repoPath))
+                        self._raiseIfCheckout(tmpPath)
+                        commands.runSystem('rm -rf ' + tmpPath, log=True)
+                        commands.runSystemEx('mkdir -p ' + tmpPath, log=logging.DEBUG)
+                        commands.runSingleProgramEx('svn co %s %s' % (os.path.dirname(fullPath), tmpPath),
+                                                    stdoutf=None,
+                                                    stderrf=logging.errorPrintS,
+                                                    log=logging.DEBUG)
+                        commands.runSystem('rm -rf ' + outputPath, log=True)
+                        commands.runSystemEx('ln -s %s %s' % (os.path.join(options('general.codir'), repoPath),
+                                                              outputPath),
+                                             log=logging.DEBUG)
+                    except CheckoutModifiedError:
+                        logging.errorPrint('You have uncommited changes to %s, please revert changes or commit them' % tmpPath)
+                        raise
+                else:
+                    for l in stderr:
+                        logging.errorPrintS(l)
+                    raise
 
         logExport(options('general.config_dir'), repo, repoPath, outputPath, branch, CHECKOUT)
 
