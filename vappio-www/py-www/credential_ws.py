@@ -5,7 +5,7 @@ from igs.cgi.request import readQuery, performQuery
 
 from vappio.credentials import manager
 
-from vappio.webservices.cluster import loadCluster
+from vappio.webservice.cluster import loadCluster
 
 URL = '/vappio/credential_ws.py'
 
