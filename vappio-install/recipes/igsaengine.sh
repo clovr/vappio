@@ -1,9 +1,9 @@
 # Installing BER, praze, cdbfasta   Task 135
-wget -P /tmp https://sourceforge.net/projects/ber/files/ber/ber-20051118/ber-20051118.tgz/download
+wget -O /tmp/ber-20051118.tgz -P /tmp https://sourceforge.net/projects/ber/files/ber/ber-20051118/ber-20051118.tgz/download
 mkdir -p /usr/local/bioinf/BER
 tar -C /usr/local/bioinf/BER -xvzf /tmp/ber-20051118.tgz
 
-wget -P /tmp https://sourceforge.net/projects/ber/files/ber/ber-20051118/praze-20051118.tgz/download
+wget -O /tmp/praze-20051118.tgz -P /tmp https://sourceforge.net/projects/ber/files/ber/ber-20051118/praze-20051118.tgz/download
 mkdir -p /tmp/praze
 tar -C /tmp/praze -xvzf /tmp/praze-20051118.tgz
 cd /tmp/praze
