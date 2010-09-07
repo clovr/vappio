@@ -36,9 +36,11 @@ def loadCluster(host, name, partial=False):
     return clusterFromDict(result)
 
 
-def addInstances(host, name, num, updateDirs):
+def addInstances(host, name, num, updateDirs=False):
     """
     Add instance to a cluster
+
+    updateDirs is being deprecated
     """
     cluster = loadCluster(host, name)
     return performQuery(cluster.master.publicDNS, ADDINSTANCES_URL, dict(num=num,
