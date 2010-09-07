@@ -12,5 +12,5 @@ def saveCredential(host, name, cred):
                                                    
 
 
-def listCredentials(host, name):
+def loadCredentials(host, name):
     return [manager.publicCredentialFromDict(c) for c in performQuery(host, CREDENTIAL_URL, dict(name=name))]

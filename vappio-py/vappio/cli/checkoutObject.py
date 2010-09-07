@@ -113,13 +113,13 @@ class Subversion:
                     try:
                         tmpPath = os.path.dirname(os.path.join(options('general.codir'), repoPath))
                         self._raiseIfCheckout(tmpPath)
-                        commands.runSystem('rm -rf ' + tmpPath, log=True)
+                        commands.runSystem('rm -rf ' + tmpPath, log=logging.DEBUG)
                         commands.runSystemEx('mkdir -p ' + tmpPath, log=logging.DEBUG)
                         commands.runSingleProgramEx('svn co %s %s' % (os.path.dirname(fullPath), tmpPath),
                                                     stdoutf=None,
                                                     stderrf=logging.errorPrintS,
                                                     log=logging.DEBUG)
-                        commands.runSystem('rm -rf ' + outputPath, log=True)
+                        commands.runSystem('rm -rf ' + outputPath, log=logging.DEBUG)
                         commands.runSystemEx('ln -s %s %s' % (os.path.join(options('general.codir'), repoPath),
                                                               outputPath),
                                              log=logging.DEBUG)
