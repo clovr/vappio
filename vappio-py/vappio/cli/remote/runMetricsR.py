@@ -53,6 +53,7 @@ def runMetrics(conf, metrics):
 
         # Raise an exception if there was an error
         if exitCode != 0:
+            print 'raising?'
             raise MetricError('Metric failed', m, stdoutData, stderrData)
 
         return stdoutData
@@ -79,7 +80,7 @@ def main(options, _args):
 
     output = runMetrics(conf, metricsSS)
 
-    task.updateTask(tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Completed').addResult(output))
+    task.updateTask(tsk.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Completed').addResult(output).progress())
 
 
 if __name__ == '__main__':
