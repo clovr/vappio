@@ -19,12 +19,14 @@ for line in sys.stdin:
     if k in kv:
         kv[k] = v
 
-if [v for kv.values() if not v]:
+if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
 
 cl = cluster.loadCluster('localhost', kv['cluster.CLUSTER_NAME'])
 
-diffInstances = kv['pipeline.WANT_EXEC_INSTANCES'] - len(cl.execNodes)
+wantInstances = int(kv['pipeline.WANT_EXEC_INSTANCES'])
+
+diffInstances = wantInstances - len(cl.execNodes)
 
 if diffInstances > 0:
     taskName = cluster.addInstances('localhost', kv['cluster.CLUSTER_NAME'], diffInstances)
