@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+import sys
+
+from vappio.webservice import cluster
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+kv = {'cluster.CLUSTER_NAME': None,
+      'pipeline.WANT_EXEC_INSTANCES': None
+      }
+
+for line in sys.stdin:
+    k, v = line.strip().split('=', 1)
+    if k in kv:
+        kv[k] = v
+
+if [v for kv.values() if not v]:
+    raise Exception('Not all expected values present in config')
+
+cl = cluster.loadCluster('localhost', kv['cluster.CLUSTER_NAME'])
+
+diffInstances = kv['pipeline.WANT_EXEC_INSTANCES'] - len(cl.execNodes)
+
+if diffInstances > 0:
+    taskName = cluster.addInstances('localhost', kv['cluster.CLUSTER_NAME'], diffInstances)
+
+sys.stdout.write('pipeline.ADD_INSTANCES_TASKNAME=%s\n' % taskName)
+
+    
