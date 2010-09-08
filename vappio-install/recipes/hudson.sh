@@ -11,7 +11,7 @@ sudo apt-key add /tmp/key
 wget -O /tmp/hudson.deb http://download.hudson-labs.org/debian/hudson_1.374_all.deb
 sudo dpkg --install /tmp/hudson.deb
 
-if [ "$BUILD_ID" = "" ]
+if [ "$BUILD_ID" != "" ]
 then
     /etc/init.d/hudson stop
 fi
