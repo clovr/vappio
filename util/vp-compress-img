@@ -15,6 +15,7 @@ chmod 666 $1
 fname=`basename $1`
 dname=`dirname $1`
 pushd $dname
+#Sparse files cause compatibility problems on windows
 tar -S -cvzf $2 $fname || true
 popd
 

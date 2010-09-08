@@ -1,13 +1,23 @@
 #!/bin/bash -e
 
-USAGE="vp-build image.img bundlename1 name2 ... namen"
+USAGE="vp-build image.img bundlename1 name2 ... namen\n
+ To cleanup an aborted build run\n 
+ vp-build -c image.img"
 
+#
 #eg. build.sh clovr_skeleton.img clovr_base clovr_standard
+#
 
 #Takes a skeleton image (image.img) and applies recipes name1 ... namen
 #creating one output directory per image
 
 #Assumes to be run on a box that already has clovr-build recipe
+
+#Failed builds may leave mounts and loopback devices
+#To cleanup, run
+#vp-build [-c cleanup bad build] image.img
+#To clean up all builds on the box
+#find /mnt -name image.img -exec /opt/vappio-util/vp-build -c {} \;
 
 #for testing on leatherface.igs.umaryland.edu
 #mount /dev/sdb1 /mnt
@@ -27,6 +37,47 @@ handlekill() {
     done
 }
 
+while getopts "ch" options; do
+  case $options in
+    c ) clear=1
+	  shift;;
+    h ) echo -e $USAGE
+	  exit 1;;
+    \? ) echo -e $USAGE
+         exit 1;;
+  esac
+done
+
+image=$1
+
+if [ "$image" = "" ]
+then
+    echo -e $USAGE
+    exit 1;
+fi
+
+if [ "$clear" = 1 ]
+then
+    
+    echo "Cleaning up build of $image"
+    devs=`losetup -j $image | perl -ne 'm|^(/dev/loop\d+)|;print $1,"\n"'`
+    for devname in $devs
+    do
+	mountdir=`df $devname | tail -1 | perl -ne 'split(/\s+/);print join("\t",@_)' | cut -f 6`
+	if [ "$mountdir" != "/dev" ]
+	then
+	    echo "$image mounted as $devname,$mountdir"
+	    umount -d $mountdir/dev || true
+	    umount -d $mountdir/sys || true
+	    umount -d $mountdir/proc || true
+	    umount -d $mountdir/ || true
+	fi
+	losetup -d $devname || true
+    done
+    exit;
+
+fi
+
 mountpoint /mnt
 if [ $? != 0 ]
 then
@@ -37,7 +88,7 @@ fi
 recipedir=/opt/vappio-install/bundles
 utildir=/opt/vappio-util
 
-image=$1
+
 #bname=`basename $image`
 #namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
 

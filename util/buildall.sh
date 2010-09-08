@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -e
 
 USAGE="vp-buildall [image.img]
 Defaults to /mnt/image.img. 
