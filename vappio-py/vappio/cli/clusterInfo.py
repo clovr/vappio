@@ -17,7 +17,7 @@ OPTIONS = [
 URL = '/vappio/clusterInfo_ws.py'
 
 def instanceToList(i):
-    return [i.instanceId or i.spotInstanceId or 'Undefined', i.publicDNS or 'Undefined', i.state or 'Undefined']
+    return [i.instanceId or i.spotRequestId or 'Undefined', i.publicDNS or 'Undefined', i.state or 'Undefined']
 
 
 def main(options, _args):

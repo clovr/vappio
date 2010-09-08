@@ -11,6 +11,12 @@ if sys.argv[1] == 'start':
     executeTemplate('/etc/hadoop/conf/core-site.xml.tmpl')
     executeTemplate('/etc/hadoop/conf/hdfs-site.xml.tmpl')
     executeTemplate('/etc/hadoop/conf/mapred-site.xml.tmpl')
+    
+    #
+    # Reset dfs on reboot, this should probably be fixed in future
+    run('rm -rf /tmp/hadoop-root /mnt/hadoop', ignoreError=True)
+    run('hadoop namenode -format', ignoreError=True)
+
     run('/etc/init.d/hadoop-0.20-namenode start')
     run('/etc/init.d/hadoop-0.20-datanode start')
     run('/etc/init.d/hadoop-0.20-jobtracker start')
