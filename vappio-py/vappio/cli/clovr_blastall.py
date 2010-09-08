@@ -149,7 +149,8 @@ def tagInputIfNeeded(inputFile):
                            False,
                            False,
                            False,
-                           True)
+                           True,
+                           {})
         blockOnTaskAndFail('local', taskName, 'Tagging input failed')
     else:
         debugPrint(lambda : 'Input tag exists')
@@ -174,7 +175,8 @@ def tagDatabaseFiles(databasePath):
                            False,
                            False,
                            False,
-                           True)
+                           True,
+                           {})
         blockOnTaskAndFail('local', taskName, 'Tagging input failed')
     return tagName
 
