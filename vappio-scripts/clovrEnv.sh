@@ -29,6 +29,9 @@ export QIIME_CONFIG_FP=$BIOINF_HOME/qiime/.qiime_config
 ## Qiime needs the BLASTMAT env set
 export BLASTMAT=/usr/share/ncbi/data/
 
+## Crossbow environmental variables
+export CROSSBOW_HOME=/opt/opt-packages/crossbow-0.1.7
+
 ##
 # These are temporary right now, trying to figure out the best way to 
 # allow a cluster to start up its own children
