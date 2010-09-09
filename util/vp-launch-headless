@@ -12,24 +12,41 @@ else
     exit 1
 fi
 
-if [ -d "$1/start_clovr.vmx.lck" ]
+ipstat=`stat -t $1/shared/clovr_ip 2> /dev/null`
+
+if [ "$2" = "vbox" ]
 then
-    echo "VM $buildvm is already running"
-    exit 1
-else
-    xhost + 
-    xhost +LOCAL:
-    export DISPLAY=:0.0
-    
-    if [ "$2" = "vbox" ]
+    bname=`basename $1`
+    VBoxManage showvminfo $bname
+    if [ $? = 1 ]
     then
-    #TODO, implement
-	VBoxManage
+	VBoxManage import $1/$bname.ovf
+    fi
+	#Update networking
+    VBoxManage modifyvm $bname --bridgeadapter1 eth0
+    VBoxManage sharedfolder remove $bname --name shared || true
+    VBoxManage sharedfolder remove $bname --name keys || true
+    VBoxManage sharedfolder remove $bname --name user_data || true
+    VBoxManage sharedfolder remove $bname --name pg_data || true
+    VBoxManage sharedfolder add $bname --name shared --hostpath $1/shared/ 
+    VBoxManage sharedfolder add $bname --name keys --hostpath $1/keys/ 
+    VBoxManage sharedfolder add $bname --name user_data --hostpath $1/user_data/
+    VBoxManage sharedfolder add $bname --name pg_data --hostpath $1/pg_data/
+	#Update shared folders
+    VBoxHeadless -s $bname
+else
+    if [ -d "$1/start_clovr.vmx.lck" ]
+    then
+	echo "VM $buildvm is already running"
+	exit 1
     else
+	xhost + 
+	xhost +LOCAL:
+	export DISPLAY=:0.0
 	vmplayer $1/start_clovr.vmx &
     fi
+fi
     
-    ipstat=`stat -t $1/shared/clovr_ip 2> /dev/null`
     ipstatnew=`stat -t $1/shared/clovr_ip 2> /dev/null`
     timeout=60 #5 minutes
     count=1

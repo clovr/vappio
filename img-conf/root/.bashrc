@@ -47,7 +47,7 @@ then
 	echo -n "Node is $nodetype. Waiting for setup to finish."
 	wait=1
     fi
-    while [ "$nodetype" = 'PENDING' ] || [ "$hostn" = "(none)" ]
+    while [ "$nodetype" = 'PENDING' ] || [ "$nodetype" = "" ] || [ "$hostn" = "(none)" ]
     do
 	echo -n '.'
 	if [ -f "$vappio_runtime/node_type" ]

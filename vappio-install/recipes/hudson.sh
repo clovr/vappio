@@ -13,6 +13,7 @@ sudo dpkg --install /tmp/hudson.deb
 
 if [ "$BUILD_ID" != "" ]
 then
+    echo "Restart Hudson for changes to take effect"
     /etc/init.d/hudson stop
 fi
 

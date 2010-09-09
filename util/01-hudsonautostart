@@ -1,0 +1,5 @@
+#!/bin/bash
+
+/etc/init.d/hudson start
+sleep 25
+curl --silent http://localhost:8888/job/00\%20Launch\%20all\%20jobs/build
