@@ -42,7 +42,15 @@
 #
 # Example:
 # vappio branches/testing-branch checkout foo/bar/baz /opt/foo-baz
-
+#
+# For the most part everything is simple with exports since there is no need to track changes to be pushed back to the repository, so an
+# export simply --forces.
+# A checkout is more complicated though for the following reasons:
+# 1) You cannot checkout a single file (in SVN) because a single file cannot keep track of its state
+# 2) Someone could check out a whole directory and then check out a file into of that directory
+#
+# To solve (1), when something is checked out, it is checked out into a secondary location and then symlinked in.  This happens for single
+# files an
 
 import os
 from igs.utils import commands
@@ -136,6 +144,7 @@ class Subversion:
     
     def export(self, options, repo, repoPath, outputPath, branch):
         fullPath = os.path.join(repo.repoUrl, branch, repoPath)
+        self._raiseIfCheckout(outputPath)
         commands.runSingleProgramEx('svn export --force %s %s' % (fullPath, outputPath),
                                     stdoutf=None,
                                     stderrf=logging.errorPrintS,
