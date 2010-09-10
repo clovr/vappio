@@ -7,7 +7,7 @@ from igs.utils.commands import runSystemEx
 
 from vappio.tasks.utils import createTaskAndSave
 
-from vappio.webservices.cluster import loadCluster
+from vappio.webservice.cluster import loadCluster
 
 URL = '/vappio/downloadTag_ws.py'
 
