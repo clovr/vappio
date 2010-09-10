@@ -1,0 +1,11 @@
+[]
+depends_on=/mnt/staging/tags_extra/clovr-eggnogdb.dlist
+
+
+[cluster.ec2]
+command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} < ${phantom.depends_on}
+tag_options=-e
+
+[cluster.UNKNOWN]
+command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} < ${phantom.depends_on}
+tag_options=-e
