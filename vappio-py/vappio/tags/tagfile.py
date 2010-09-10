@@ -5,6 +5,7 @@ import json
 
 from igs.utils.config import configFromMap, configFromStream, configToDict
 from igs.utils.commands import runSystemEx, runSingleProgramEx
+from igs.utils import functional as func
 
 
 class MissingTagFileError(Exception):
@@ -132,6 +133,10 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
         metadata['tag_base_dir'] = tagBaseDir
 
     if metadata:
+        if os.path.exists(outName + '.metadata'):
+            tmd = json.loads(open(outName + '.metadata').read())
+            metadata = func.updateDict(tmd, metadata)
+
         outFile = open(outName + '.metadata', 'w')
         outFile.write(json.dumps(metadata, indent=1) + '\n')
         outFile.close()
