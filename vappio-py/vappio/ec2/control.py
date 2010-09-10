@@ -2,7 +2,7 @@
 # This has functions wrapping ec2 functionality.  This is currently implemented
 # by wrapping the ec2-api tools binaries but it could be replaced by something like Boto.
 # The reason binaries are being wrapped here is because the nimbus clouds require a specific
-# version of the tools and it would be easier to use a single code-base for controlling thigns
+# version of the tools and it would be easier to use a single code-base for controlling things
 # with EC2 (the nimbus stuff can just call this).  For that reason, the ec2-bins are wrapped
 # otherwise we could get into a situationw here Boto implements one version of the tools and
 # it does not work on NIMBUS but on ec2 or vice versa.
@@ -10,7 +10,7 @@ import os
 
 from igs.utils import logging
 from igs.utils.logging import errorPrint
-from igs.utils.commands import runProgramRunnerEx, ProgramRunner
+from igs.utils import commands
 from igs.utils import functional
 
 ##
@@ -40,7 +40,7 @@ class Instance:
                  launch,
                  availabilityZone,
                  monitor,
-                 spotRequestId,
+                spotRequestId,
                  bidPrice):
 
         self.instanceId = instanceId
@@ -104,8 +104,8 @@ def instanceFromDict(d):
                     d['bidPrice'])
 
     
-def ctorProgramRunner(cmd, stdoutf=logging.OUTSTREAM.write, stderrf=logging.ERRSTREAM.write, log=False):
-    return ProgramRunner(cmd, stdoutf, stderrf, log=log)
+def runWithCred(cred, cmd, stdoutf=logging.OUTSTREAM.write, stderrf=logging.ERRSTREAM.write, log=False):
+    return commands.runSingleProgramEx(' '.join(cmd), stdoutf, stderrf, log=log, addEnv=cred.env)
 
 
 def parseInstanceLine(line):
@@ -167,28 +167,32 @@ def instantiateCredential(conf, cred):
         open(certFile, 'w').write(cred.cert)
     if not os.path.exists(keyFile) or open(keyFile).read() != cred.pkey:
         open(keyFile, 'w').write(cred.pkey)
-    newCred = functional.Record(cert=certFile, pkey=keyFile, ec2URL=None)
+    newCred = functional.Record(cert=certFile, pkey=keyFile, ec2URL=None, env=None)
     if 'ec2_url' in cred.metadata:
         return newCred.update(ec2URL=cred.metadata['ec2_url'])
     else:
         return newCred
 
 def addCredInfo(cmd, cred):
-    cmd.extend(['-K', cred.pkey, '-C', cred.cert])
+    # Copy cmd since we'll be modifying it
+    cmd = list(cmd)
+    cmdName = cmd.pop(0)
+    credOptions = []
+    credOptions.extend(['-K', cred.pkey, '-C', cred.cert])
     if cred.ec2URL:
-        cmd.extend(['-U', cred.ec2URL])
+        credOptions.extend(['-U', cred.ec2URL])
+    return [cmdName] + credOptions + cmd
     
-def runInstancesA(cred,
-                  instances,
-                  amiId,
-                  key,
-                  instanceType,
-                  groups,
-                  availabilityZone=None,
-                  number=None,
-                  userData=None,
-                  userDataFile=None,
-                  log=False):
+def runInstances(cred,
+                 amiId,
+                 key,
+                 instanceType,
+                 groups,
+                 availabilityZone=None,
+                 number=None,
+                 userData=None,
+                 userDataFile=None,
+                 log=False):
     """
     This returns a ProgramRunner that can be used asychronously
 
@@ -201,6 +205,7 @@ def runInstancesA(cred,
     userData - optional user data string to send
     userDataFile - optional user data file to send
     """
+    instances = []
     def _instanceParse(line):
         instance = parseInstanceLine(line)
         if instance:
@@ -212,8 +217,6 @@ def runInstancesA(cred,
            amiId,
            '-k ' + key,
            '-t ' + instanceType]
-
-    addCredInfo(cmd, cred)
 
     if availabilityZone:
         cmd.append('-z %s' % availabilityZone)
@@ -232,26 +235,21 @@ def runInstancesA(cred,
     if userDataFile:
         cmd.append('-f ' + userDataFile)
 
-    return ctorProgramRunner(' '.join(cmd), _instanceParse, log=log)
+    runWithCred(cred, addCredInfo(cmd, cred), _instanceParse, log=log)
 
-def runInstances(cred, *args, **kwargs):
-    """Blocking version of runInstancesA, this returns a list of instances"""
-    instances = []
-    runProgramRunnerEx(runInstancesA(cred, instances, *args, **kwargs))
     return instances
 
-def runSpotInstancesA(cred,
-                      instances,
-                      bidPrice,
-                      amiId,
-                      key,
-                      instanceType,
-                      groups,
-                      availabilityZone=None,
-                      number=None,
-                      userData=None,
-                      userDataFile=None,
-                      log=False):
+def runSpotInstances(cred,
+                     bidPrice,
+                     amiId,
+                     key,
+                     instanceType,
+                     groups,
+                     availabilityZone=None,
+                     number=None,
+                     userData=None,
+                     userDataFile=None,
+                     log=False):
     """
     instances - a list that will be populated with the running instances - weak sauce, work on fixing this
     bidPrice - Maximum bid price for a spot instance
@@ -263,6 +261,7 @@ def runSpotInstancesA(cred,
     userData - optional user data string to send
     userDataFile - optional user data file to send
     """
+    instances = []
     def _instanceParse(line):
         instance = parseInstanceLine(line)
         if instance:
@@ -277,8 +276,6 @@ def runSpotInstancesA(cred,
            '-k ' + key,
            '--instance-type ' + instanceType]
 
-    addCredInfo(cmd, cred)
-    
     if availabilityZone:
         cmd.append('-z %s' % availabilityZone)
 
@@ -296,43 +293,34 @@ def runSpotInstancesA(cred,
     if userDataFile:
         cmd.append('-f ' + userDataFile)
 
-    return ctorProgramRunner(' '.join(cmd), _instanceParse, log=log)
+    runWithCred(cred, addCredInfo(cmd, cred), _instanceParse, log=log)
 
-def runSpotInstances(cred, *args, **kwargs):
-    """Blocking version of runSpotInstancesA, this returns a list of instances"""
-    instances = []
-    runProgramRunnerEx(runSpotInstancesA(cred, instances, *args, **kwargs))
     return instances
 
-def listInstancesA(cred, instances, log=False):
+
+def listInstances(cred, log=False):
     """List all currently running instances"""
+    instances = []
     def _instanceParse(line):
         instance = parseInstanceLine(line)
         if instance:
             instances.append(instance)
 
     cmd = ['ec2-describe-instances']
-    addCredInfo(cmd, cred)
-    return ctorProgramRunner(' '.join(cmd), _instanceParse, log=log)
-
-def listInstances(cred, log=False):
-    """Blocking version, returns list of instances"""
-    instances = []
-    runProgramRunnerEx(listInstancesA(cred, instances, log=log))
+    runWithCred(cred, addCredInfo(cmd, cred), _instanceParse, log=log)
     return instances
-                 
-def terminateInstancesA(cred, instances, log=False):
-    """Asynchronous, terminate all instances that match the filter function"""
-    cmd = ['ec2-terminate-instances']
-    addCredInfo(cmd, cred)
-    cmd.extend([i.instanceId for i in instances])
-    return ctorProgramRunner(' '.join(cmd), log=log)
 
 def terminateInstances(cred, instances, log=False):
-    runProgramRunnerEx(terminateInstancesA(cred, instances, log=log))
-    
-    
-def updateInstancesA(cred, retInst, instances, log=False):
+    """Asynchronous, terminate all instances that match the filter function"""
+    cmd = ['ec2-terminate-instances']
+    cmd.extend([i.instanceId for i in instances])
+    runWithCred(cred, addCredInfo(cmd, cred), log=log)
+    unfilledSpotInstances = [i.spotRequestId for i in instances if not i.instanceId and i.spotRequestId]
+    if unfilledSpotInstances:
+        runWithCred(cred, addCredInfo(['ec2-cancel-spot-instance-requests'] + unfilledSpotInstances, cred), log=log)
+        
+
+def updateInstances(cred, instances, log=False):
     """
     Updates the list of states of the instances given.
 
@@ -344,6 +332,8 @@ def updateInstancesA(cred, retInst, instances, log=False):
     spotRequestSet = set([i.spotRequestId for i in instances if i.spotRequestId])
     spotInstanceSet = set()
     spotInstances = []
+
+    retInst = []
     
     def _instanceParse(line):
         instance = parseInstanceLine(line)
@@ -373,99 +363,57 @@ def updateInstancesA(cred, retInst, instances, log=False):
     # If there are unfulfilled spot requests then update spot instance list so we can update
     # a running instance with the request information
     if spotRequests:
-        cmd = ['ec2-describe-spot-instance-requests']
-        addCredInfo(cmd, cred)
-        cmd.extend([';', 'ec2-describe-instances'])
+        cmd = addCredInfo(['ec2-describe-spot-instance-requests'], cred)
+        cmd.extend([';'] +  addCredInfo(['ec2-describe-instances'], cred))
     else:
-        cmd = ['ec2-describe-instances']
+        cmd = addCredInfo(['ec2-describe-instances'], cred)
 
-    addCredInfo(cmd, cred)        
-    return ctorProgramRunner(' '.join(cmd), _instanceParse, log=log)
-
-
-def updateInstances(cred, instances, log=False):
-    retInst = []
-    runProgramRunnerEx(updateInstancesA(cred, retInst, instances, log=log))
+    runWithCred(cred, cmd, _instanceParse, log=log)
     return retInst
 
-def listKeypairsA(cred, keypairs, log=False):
+
+def listKeypairs(cred, log=False):
     """
     Returns a list of all keypairs
 
     keypairs is a list that will be filled in with the keypairs
     """
-    cmd = ['ec2-describe-keypairs']
-    addCredInfo(cmd, cred)
-    return ctorProgramRunner(' '.join(cmd), lambda l : keypairs.append(l.split()[1]), log=log)
-
-def listKeypairs(cred, log=False):
-    """
-    Blocking version, returns a list of keypairs
-    """
     keypairs = []
-    runProgramRunnerEx(listKeypairsA(cred, keypairs, log=log))
+    cmd = ['ec2-describe-keypairs']
+    runWithCred(cred, addCredInfo(cmd, cred), lambda l : keypairs.append(l.split()[1]), log=log)
     return keypairs
 
-def addKeypairA(cred, name, log=False):
-    cmd = ['ec2-add-keypair']
-    addCredInfo(cmd, cred)
-    cmd.append(name)
-    return ctorProgramRunner(' '.join(cmd), None, log=log)
-
 def addKeypair(cred, name, log=False):
-    """
-    Creates a keypair.
-
-    Currently does not return anything
-    """
-    runProgramRunnerEx(addKeypairA(cred, name, log=log))
-
-def listGroupsA(cred, groups, log=False):
-    cmd = ['ec2-describe-group']
-    addCredInfo(cmd, cred)
-    return ctorProgramRunner(' '.join(cmd),
-                             lambda l : l.startswith('GROUP') and groups.append(tuple(l.strip().split('\t', 3)[2:])))
+    cmd = ['ec2-add-keypair']
+    cmd.append(name)
+    runWithCred(cred, addCredInfo(cmd, cred), None, log=log)
 
 def listGroups(cred, log=False):
-    """
-    Blocking versino, returns a list of groups that exit.
-
-    Right now this doesn't parse the rules of a group. A list of tuples is returned:
-    [(group name, group description)]
-    """
     groups = []
-    runProgramRunnerEx(listGroupsA(cred, groups, log=log))
-    return groups
+    cmd = ['ec2-describe-group']
+    runWithCred(cred, addCredInfo(cmd, cred),
+                      lambda l : l.startswith('GROUP') and groups.append(tuple(l.strip().split('\t', 3)[2:])))
 
-def addGroupA(cred, name, description, log=False):
-    cmd = ['ec2-add-group']
-    addCredInfo(cmd, cred)
-    cmd.extend([name, '-d', '"' + description + '"'])
-    return ctorProgramRunner(' '.join(cmd), None, log=log)
-        
+
 def addGroup(cred, name, description, log=False):
-    """
-    Blocking version, creates a group
-    """
-    runProgramRunnerEx(addGroupA(cred, name, description, log=log))
+    cmd = ['ec2-add-group']
+    cmd.extend([name, '-d', '"' + description + '"'])
+    runWithCred(cred, addCredInfo(cmd, cred), None, log=log)
+        
 
-
-
-def authorizeGroupA(cred,
-                    groupName,
-                    protocol,
-                    portRange,
-                    sourceGroup,
-                    sourceGroupUser,
-                    sourceSubnet,
-                    log=False):
+def authorizeGroup(cred,
+                   groupName,
+                   protocol,
+                   portRange,
+                   sourceGroup,
+                   sourceGroupUser,
+                   sourceSubnet,
+                   log=False):
     
     cmd = ['ec2-authorize',
            groupName,
            '-P ' + protocol,
            ]
-
-    addCredInfo(cmd, cred)
     
     if protocol == 'icmp':
         cmd.append('-t %d:%d' % (portRange[0], portRange[1]))
@@ -485,21 +433,5 @@ def authorizeGroupA(cred,
     if sourceSubnet:
         cmd.append('-s ' + sourceSubnet)
 
-    return ctorProgramRunner(' '.join(cmd), None, log=log)
+    runWithCred(cred, addCredInfo(cmd, cred), None, log=log)
 
-    
-def authorizeGroup(cred,
-                   groupName,
-                   protocol,
-                   portRange,
-                   sourceGroup=None,
-                   sourceGroupUser=None,
-                   sourceSubnet=None,
-                   log=False):
-    runProgramRunnerEx(authorizeGroupA(cred,
-                                       groupName,
-                                       protocol,
-                                       portRange,
-                                       sourceGroup,
-                                       sourceGroupUser,
-                                       sourceSubnet, log=log))
