@@ -5,11 +5,11 @@ from igs.utils import errors
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
-from vappio.webservice.tag import tagData
+from vappio.webservice import tag
 from vappio.tags.transfer import downloadTag
 
 from vappio.tasks import task
-from vappio.tasks.utils import blockOnTaskAndForward
+from vappio.tasks import utils as task_utils
 
 OPTIONS = [
     ('tag_name', '', '--tag-name', 'Name of tag to transfer', notNone),
@@ -25,12 +25,17 @@ def main(options, _args):
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting download'))
 
-    try:
-        srcCluster = loadCluster('localhost', options('general.src_cluster'))
-        dstCluster = loadCluster('localhost', options('general.dst_cluster'))
-        fileList = downloadTag(srcCluster, dstCluster, options('general.tag_name'))
-        tsk = task.updateTask(tsk.progress())
-        tagTaskName = tagData('localhost',
+    srcCluster = loadCluster('localhost', options('general.src_cluster'))
+    dstCluster = loadCluster('localhost', options('general.dst_cluster'))
+    
+    tagFile = tag.queryTag('localhost', options('general.src_cluster'), options('general.tag_name'))
+
+    metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
+    metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])
+
+    fileList = downloadTag(srcCluster, dstCluster, options('general.tag_name'))
+    tsk = task.updateTask(tsk.progress())
+    tagTaskName = tag.tagData('localhost',
                               options('general.dst_cluster'),
                               options('general.tag_name'),
                               None,
@@ -38,19 +43,19 @@ def main(options, _args):
                               False,
                               options('general.expand'),
                               False,
-                              True)
-        endState, tsk = blockOnTaskAndForward('localhost',
-                                              options('general.dst_cluster'),
-                                              tagTaskName,
-                                              tsk)
-        if endState == task.TASK_FAILED:
-            tsk = task.updateTask(tsk.setState(task.TASK_FAILED))
-        else:
-            tsk = task.updateTask(tsk.progress().setState(task.TASK_COMPLETED))
-    except Exception, err:
-        tsk = tsk.setState(task.TASK_FAILED).addException(str(err), err, errors.getStacktrace())        
+                              True,
+                              metadata)
+    endState, tsk = task_utils.blockOnTaskAndForward('localhost',
+                                                     options('general.dst_cluster'),
+                                                     tagTaskName,
+                                                     tsk)
+    if endState == task.TASK_FAILED:
+        raise Exception('Taging failed')
+    else:
+        tsk = task.updateTask(tsk.progress())
 
 
 if __name__ == '__main__':
-    runCatchError(lambda : main(*buildConfigN(OPTIONS)),
+    runCatchError(lambda : task_utils.runTaskMain(main,
+                                                  *buildConfigN(OPTIONS)),
                   mongoFail(dict(action='uploadTag')))
