@@ -34,6 +34,7 @@ bash -e $VAPPIO_RECIPES/igsaengine.sh
 bash -e $VAPPIO_RECIPES/biolinux.sh
 bash -e $VAPPIO_RECIPES/ubuntuifxpkgs.sh
 bash -e $VAPPIO_RECIPES/qiime.sh
+bash -e $VAPPIO_RECIPES/amos.sh
 
 #was bash -e $VAPPIO_RECIPES/clovrmain.sh
 bash -e $VAPPIO_RECIPES/clovroptpackages.sh
