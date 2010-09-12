@@ -1,7 +1,7 @@
 The appliance can be controlled via command line tools and the web
-service API.  The command line tools are named vp-*. The main features
-are starting clusters, transfering data, and running pipelines. Visit
-clovr.org for more documentation
+service API.  The command line tools are named vp-* and can be run
+with --help. The main features are starting clusters, transfering
+data, and running pipelines. Visit clovr.org for more documentation
 
 #Authentication
 vp-add-credential
