@@ -69,3 +69,8 @@ then
 else
     echo "Update clovr.conf on the image to reference this AMI: $ami"
 fi
+#TODO update the tar
+gunzip $imagedir.tgz
+tar uvf $imagedir.tar $imagedir/shared/vappio-conf/clovr.conf
+gzip $imagedir.tar 
+mv $imagedir.tar.gz $imagedir.tgz

@@ -20,7 +20,7 @@ mkdir $namepfx
 chmod 777 $namepfx
 pushd $namepfx
 #Create ovf bundle
-/opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf ~/$namepfx
+/opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf /clovr/$namepfx
 #Add vmx file
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx /mnt/start_clovr.tmpl.vmx
 /opt/vappio-util/bundle_vmx.sh ".\/$namepfx.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
