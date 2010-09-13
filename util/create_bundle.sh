@@ -46,10 +46,10 @@ rm -f $namepfx/$namepfx.mf
 sync
 
 #Need to ignore errors from tar due to sparse files
-echo "Creating tar $namepfx.tgz"
+#echo "Creating tar $namepfx.tgz"
 #Sparse files cause compat problems on windows
 #tar -S -cvzf $namepfx.tgz $namepfx || true
-tar -cvzf $namepfx.tgz $namepfx || true
+#tar -cvzf $namepfx.tgz $namepfx || true
 
 #Zip does not support large files and 7z does not preserve file permissions
 #zip -r $namepfx.zip $namepfx
