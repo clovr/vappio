@@ -14,6 +14,7 @@ bash -e $VAPPIO_RECIPES/hpnssh.sh
 bash -e $VAPPIO_RECIPES/vappioutil.sh
 bash -e $VAPPIO_RECIPES/vappiopkg.sh
 bash -e $VAPPIO_RECIPES/vappiocustoms.sh
+bash -e $VAPPIO_RECIPES/vappio-metrics.sh
 bash -e $VAPPIO_RECIPES/ganglia.sh
 bash -e $VAPPIO_RECIPES/sge.sh
 bash -e $VAPPIO_RECIPES/hadoop.sh
