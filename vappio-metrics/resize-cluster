@@ -11,7 +11,7 @@ if sys.stdin.readline().strip() != 'kv':
 sys.stdout.write('kv\n')
 
 kv = {'cluster.CLUSTER_NAME': None,
-      'pipeline.WANT_EXEC_INSTANCES': None
+      'pipeline.EXEC_WANT_INSTANCES': None
       }
 
 for line in sys.stdin:
@@ -25,7 +25,7 @@ if [v for v in kv.values() if not v]:
 
 cl = cluster.loadCluster('localhost', kv['cluster.CLUSTER_NAME'])
 
-wantInstances = int(kv['pipeline.WANT_EXEC_INSTANCES'])
+wantInstances = int(kv['pipeline.EXEC_WANT_INSTANCES'])
 
 diffInstances = wantInstances - len(cl.execNodes)
 
