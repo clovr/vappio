@@ -8,7 +8,7 @@ from vappio.webservice import tag
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', notNone),
+    ('name', '', '--name', 'Name of cluster', defaultIfNone('local')),
     ('tag_name', '', '--tag-name', 'Name of tag', func.identity),
     ]
 

@@ -11,7 +11,7 @@ from vappio.tasks.utils import blockOnTask
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),    
-    ('name', '', '--name', 'Name of cluster (in this case public host name of master)', notNone),
+    ('name', '', '--name', 'Name of cluster (in this case public host name of master)', defaultIfNone('local')),
     ('num', '', '--num', 'Number of nodes to create', compose(int, notNone)),
     ('block', '-b', '--block', 'Block until cluster is up', identity, True),
     ('update_dirs', '', '--update-dirs', 'Update scripts directories', defaultIfNone(False), True),

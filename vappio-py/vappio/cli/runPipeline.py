@@ -7,7 +7,7 @@ from vappio.webservice.pipeline import runPipeline
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact, defaults to localhost', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', notNone),
+    ('name', '', '--name', 'Name of cluster', defaultIfNone('local')),
     ('pipeline', '-p', '--pipeline', 'Type of pipeline', notNone),
     ('pipeline_name', '-n', '--pipeline-name', 'Name to give the pipeline', notNone),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),

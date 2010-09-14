@@ -8,7 +8,7 @@ from vappio.webservice.pipeline import pipelineStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', notNone),
+    ('name', '', '--name', 'Name of cluster', defaultIfNone('local')),
     ]
 
 

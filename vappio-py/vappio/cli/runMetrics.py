@@ -9,7 +9,7 @@ from vappio.tasks.utils import blockOnTask
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),    
-    ('name', '', '--name', 'Name of cluster to run on', cli.notNone),
+    ('name', '', '--name', 'Name of cluster to run on', cli.defaultIfNone('local')),
     ('block', '-b', '--block', 'Block on task name', cli.defaultIfNone(False), cli.BINARY),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end',
      cli.defaultIfNone(False), cli.BINARY),

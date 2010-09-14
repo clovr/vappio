@@ -58,7 +58,7 @@ def runMetrics(conf, metrics):
 
         return stdoutData
 
-    stdin = '\n'.join(['kv'] + [k + '=' + v for k, v in conf.iteritems()])
+    stdin = '\n'.join(['kv'] + [k + '=' + v for k, v in conf.iteritems()]) + '\n'
     for m in metrics:
         stdin = run(m, stdin)
 
