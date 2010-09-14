@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 #
 # This is a thing wrapper around the 'seqstat' program
-# The input is any number of key-value pairs that correspond
-# to input tags containg fasta files.  'seqstat' is run on each
-# file in the input tag and the results are combined into a single
-# metric.  The following values are returned
+# The input is any number of key-value pairs.  Those keys starting with
+# 'input.' are taken to correspond to input tags containg fasta files.
+# 'seqstat' is run on each file in the input tag and the results are combined
+# into a single metric.  The following values are returned
 #
 # input.MAX_QUERY_SEQ_LEN
 # input.MIN_QUERY_SEQ_LEN
@@ -50,10 +50,11 @@ sys.stdout.write('kv\n')
 
 tags = []
 for line in sys.stdin:
-    sys.stdout.write(line)
+    sys.stdout.write(line.strip() + '\n')
     if not line.strip(): continue
     k, v = line.strip().split('=', 1)
-    tags.append(v)
+    if k.startswith('input.'):
+        tags.append(v)
 
 
 stats = {'num_seq': 0,

@@ -5,7 +5,7 @@
 #
 # The input data currently needed is:
 # pipeline.CLUSTER_NAME
-# input.PROGRAM (which blast program)
+# misc.PROGRAM (which blast program)
 # input.MAX_QUERY_SEQ_LEN
 # input.MIN_QUERY_SEQ_LEN
 # input.AVG_QUERY_SEQ_LEN
@@ -19,17 +19,17 @@ import sys
 #
 # Some blast programs take the query and will translate it in multiple ways
 # so this is the amount of work they add to the computation
-WORK_FACTOR = ['blastn': 1,
+WORK_FACTOR = {'blastn': 1,
                'blastp': 1,
                'blastx': 6,
                'tblastn': 6,
                'tblastx': 12
-               ]
+               }
 
 # A very rough estimate of how many residues can be calculated per core per hour is 28k
 # Since we are giving that a work factor of 6 we are going to estimate the blastn/blastp
-# baseline for hta tis 28000 * 6, or 168000
-RESIDUES_PER_CORE_PER_HOUR = 168000
+# baseline for that is 28000 * WORK_FACTOR['blastx']
+RESIDUES_PER_CORE_PER_HOUR = 28000 * WORK_FACTOR['blastx']
 
 def calculateCPUHours(program, numSeqs, avgLen, scaleDown):
     """
@@ -48,7 +48,7 @@ if sys.stdin.readline().strip() != 'kv':
 sys.stdout.write('kv\n')
 
 kv = {'pipeline.CLUSTER_NAME': None,
-      'input.PROGRAM': None,
+      'misc.PROGRAM': None,
       'input.MAX_QUERY_SEQ_LEN': None,
       'input.MIN_QUERY_SEQ_LEN': None,
       'input.AVG_QUERY_SEQ_LEN': None,
@@ -58,7 +58,7 @@ kv = {'pipeline.CLUSTER_NAME': None,
       }
 
 for line in sys.stdin:
-    sys.stdout.write(line)
+    sys.stdout.write(line.strip() + '\n')
     k, v = line.strip().split('=', 1)
     if k in kv:
         kv[k] = v
@@ -66,26 +66,27 @@ for line in sys.stdin:
 if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
 
-if kv['input.PROGRAM'] not in ['blastn', 'blastp', 'blastx', 'tblastn', 'tblastx']:
+if kv['misc.PROGRAM'] not in WORK_FACTOR:
     raise Exception('Unknown blast program ' + kv['input.PROGRAM'])
 
 for i in ['input.MAX_QUERY_SEQ_LEN',
           'input.MIN_QUERY_SEQ_LEN',
-          'input.AVG_QUERY_SEQ_LEN',
-          'input.NUM_QUERY_SEQ',]
+          'input.NUM_QUERY_SEQ',]:
           #'input.REF_DB_TOTAL_SEQ_LEN']:
     kv[i] = int(kv[i])
 
-for i in ['input.SCALE_DOWN_FACTOR']:
+for i in ['input.SCALE_DOWN_FACTOR',
+          'input.AVG_QUERY_SEQ_LEN',
+          ]:
     kv[i] = float(kv[i])
 
 
 #
 # Insert magic calculuations here
-totalHours = computeCPUHours(kv['input.PROGRAM'],
-                             kv['input.NUM_QUERY_SEQ'],
-                             kv['input.AVG_QUERY_SEQ_LEN'],
-                             kv['input.SCALE_DOWN_FACTOR'])
+totalHours = calculateCPUHours(kv['misc.PROGRAM'],
+                               kv['input.NUM_QUERY_SEQ'],
+                               kv['input.AVG_QUERY_SEQ_LEN'],
+                               kv['input.SCALE_DOWN_FACTOR'])
 
 sys.stdout.write('\n'.join(['pipeline.COMPUTE_CPU_HOURS=' + str(totalHours)]))
 
