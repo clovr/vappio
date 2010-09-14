@@ -88,6 +88,6 @@ totalHours = calculateCPUHours(kv['misc.PROGRAM'],
                                kv['input.AVG_QUERY_SEQ_LEN'],
                                kv['input.SCALE_DOWN_FACTOR'])
 
-sys.stdout.write('\n'.join(['pipeline.COMPUTE_CPU_HOURS=' + str(totalHours)]))
+sys.stdout.write('\n'.join(['pipeline.COMPUTED_CPU_HOURS=' + str(totalHours)]))
 
 
