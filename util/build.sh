@@ -142,7 +142,8 @@ do
     #Set up some things for the chroot jail
     export recipedir=$recipedir
     export b=$b
-    mount --bind /proc /mnt/$$/$b.live/proc
+#    mount --bind /proc /mnt/$$/$b.live/proc
+    mount -t proc none /mnt/$$/$b.live/proc
     mount --bind /sys /mnt/$$/$b.live/sys
     mount --bind /dev /mnt/$$/$b.live/dev
     touch /mnt/$$/$b.live/var/run/utmp 
