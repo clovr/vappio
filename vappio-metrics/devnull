@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+#
+# This simply consumes all output from the previous metric and outputs nothing
+import sys
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+for line in sys.stdin():
+    pass
