@@ -71,4 +71,11 @@ else
 fi
 #update the tar
 echo "Updating the tar"
-tar cvzf $imagedir.tgz $imagedir
+if [ `basename $imagedir` = "/mnt/" ]
+then
+    dname=`dirname $imagedir`
+    imagedir=`basename $imagedir`
+    tar -C $dname cvzf $imagedir.tgz $imagedir
+else
+    tar cvzf $imagedir.tgz $imagedir    
+fi

@@ -188,6 +188,7 @@ do
     sync
     losetup -d $devname
     #cleanup img
+    echo "Cleaning image $currimg"
     /opt/vappio-util/img_run.sh $currimg /opt/vappio-util/cleanupimg
     #releaseCut scripts here
 

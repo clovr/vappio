@@ -8,7 +8,8 @@ rm -rf /mnt/$$
 mkdir /mnt/$$
 
 mount $devname /mnt/$$
-mount --bind /proc /mnt/$$/proc
+#mount --bind /proc /mnt/$$/proc
+mount -t proc none /mnt/$$/proc
 mount --bind /sys /mnt/$$/sys
 mount --bind /dev /mnt/$$/dev
 
@@ -16,7 +17,7 @@ mount --bind /dev /mnt/$$/dev
 bname=`basename $2`
 cp $2 /mnt/$$/tmp/$bname
 #Run the command
-chroot /mnt/$$ bash /tmp/$bname
+chroot /mnt/$$ /tmp/$bname
 
 sync
 
