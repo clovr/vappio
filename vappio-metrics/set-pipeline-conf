@@ -19,6 +19,7 @@ pl = pipeline.loadPipeline(sys.argv[1])
 kv = {}
 
 for line in sys.stdin:
+    sys.stdout.write(line.strip() + '\n')
     k, v = line.strip().split('=', 1)
     if k not in pl.config.keys() or str(pl.config(k)).encode('string_escape') != v:
         kv[k] = v.decode('string_escape')
