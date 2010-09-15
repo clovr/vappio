@@ -18,7 +18,8 @@ for line in sys.stdin:
     sys.stdout.write(line.strip() + '\n')
 
 pl = pipeline.pipelineStatus('localhost', 'local', lambda p : p.name == pipelineName)[0]
-sys.stdout.write('\n'.join([k + '=' + str(pl.config(k)).encode('string_escape') for k in pl.config.keys()]))
+sys.stdout.write('\n'.join([k + '=' + str(pl.config(k)).encode('string_escape') for k in pl.config.keys()]) + '\n')
+sys.stdout.write('pipeline.PIPELINE_ID=' + pl.pid)
 
 
 
