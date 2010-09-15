@@ -114,17 +114,17 @@ then
         #Files and directories should be absolute paths
 	stagedata=`grep STAGEDATA $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
 	if [ "$stagedata" != "" ]; then
-	    verror "PROLOG. STAGEDATA configuration option not implemented"
-#	    vlog "Submitting staging of input $exechost:$outdir to $stagingq,$stagingsubq"
-#	    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $stagingq,$stagingsubq $staging_script $myhost $stagedata"
-#	    vlog "CMD: $cmd" 
-#	    $cmd 1>> $vappio_log 2>> $vappio_log
-#	    if [ $? -ne 0 ]
-#		then
-#		verror "PROLOG. Unable to copy $stagedata to $myhost"
-#		exit 100
-#	    fi 
-#	    vlog "Finished staging of $f@$myhost"
+	    #verror "PROLOG. STAGEDATA configuration option not implemented"
+	    vlog "Submitting staging of input $exechost:$outdir to $stagingq,$stagingsubq"
+	    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $stagingq,$stagingsubq $staging_script $myhost $stagedata"
+	    vlog "CMD: $cmd" 
+	    $cmd 1>> $vappio_log 2>> $vappio_log
+	    if [ $? -ne 0 ]
+		then
+		verror "PROLOG. Unable to copy $stagedata to $myhost"
+		exit 100
+	    fi 
+	    vlog "Finished staging of $f@$myhost"
 	fi
 fi
 
