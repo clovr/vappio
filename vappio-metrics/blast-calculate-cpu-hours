@@ -15,7 +15,6 @@
 # input.REF_DB_TOTAL_SEQ_LEN -- currently not used
 import sys
 
-
 #
 # Some blast programs take the query and will translate it in multiple ways
 # so this is the amount of work they add to the computation
