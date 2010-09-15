@@ -10,7 +10,7 @@ from igs.utils.cli import notNone, defaultIfNone, restrictValues
 TEMPLATE_NAME = 'clovr_microbe_annotation'
 
 OPTIONS = [
-    ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('INPUT_FSA_LIST', '', '--INPUT_FSA_LIST', 'The input file list of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
     ('OUTPUT_PREFIX', '', '--OUTPUT_PREFIX', 'Used in ID generation, Locus Tags, etc.', notNone),
     ('ORGANISM', '', '--ORGANISM', 'Organism name', defaultIfNone('/dev/null')),
     ('GROUP_COUNT', '', '--GROUP_COUNT', 'Corresponds to number of groups to split data into (Ergatis)', defaultIfNone('50')),
