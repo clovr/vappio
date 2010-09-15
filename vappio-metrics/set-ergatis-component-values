@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+#
+# This takes 2 command line options
+# component name - the name of the component (ie. split_multifasta)
+# token - the token that identifies the specific component name (ie. blast)
+#
+# Required keys:
+# pipeline.PIPELINE_ID - the numeric ID identifying the pipeline
+#
+# Any other key-value pair is use to modify values in the ergatis config file.  For example
+# input.FOO=bar will look for the [input] section of the ergatis component and look for the $;FOO$;
+# variable and modify it to bar.  If ther eis no $;FOO$; variable it will add one.  If there is no
+# section then one is created.  For example with input.FOO=bar, if there is no [input] in the file
+# it is created with the $;FOO$; variable
+#
+# This metric consumes all of its input under the assumption that the kv-pairs correspond only to
+# the ergatis file and not back with any other config
+import sys
+
+
+def rewriteErgatisConfig(pipelineId, componentName, token, kv):
+    def keysBySection(sect, i):
+        return [v for v in i if v.startswith(sect + '.')]
+    
+    lines = open('/mnt/projects/clovr/workflow/runtime/%(componentName)s/%(pipelineId)s_%(token)s/%(componentName)s.%(token)s.user.config' % (
+            dict(pipelineId=pipelineId, componentName=componentName, token=token))).readlines()
+    fout = open('/mnt/projects/clovr/workflow/runtime/%(componentName)s/%(pipelineId)s_%(token)s/%(componentName)s.%(token)s.user.config' % (
+            dict(pipelineId=pipelineId, componentName=componentName, token=token)), 'w')
+
+    section = None
+    writtenKeys = set()
+    for l in lines:
+        if not l.strip():
+            fout.write(l)
+            continue
+        
+        if l.strip()[0] == '[':
+            if section is not None:
+                if len(keysBySection(section, writtenKeys)) != len(keysBySection(section, kv.keys())):
+                    needKeys = set(keysBySection(section, kv.keys())) - set(keysBySection(section, writtenKeys))
+                    for k in needKeys:
+                        fout.write('$;%s$;=%s\n' % (k.split('.')[1], kv[k]))
+                        writtenKeys.add(k)
+            section = l.strip()[1:-1]
+            fout.write(l)
+        elif l.strip().startswith('$;') and l.split('$;')[1] in keysBySection(section, kv.keys()):
+            k = l.split('$;')[1]
+            fout.write('$;%s$;=%s\n' % (k, kv[section + '.' + k]))
+            writtenKeys.add(section + '.' + k)
+        else:
+            fout.write(l)
+
+    diffKeys = set(kv.keys()) - writtenKeys
+    if diffKeys:
+        sections = set([s.split('.')[0] for s in diffKeys])
+        for s in sections:
+            fout.write('\n[' + s + ']\n')
+            for k in keysBySection(s, kv.keys()):
+                fout.write('$;%s$;=%s\n' % (k.split('.')[1], kv[k]))
+    fout.close()
+                           
+            
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+#
+# Extract component information
+componentName, token = sys.argv[1:]
+
+requiredKeys = ['pipeline.PIPELINE_ID']
+
+kv = {}
+
+for line in sys.stdin:
+    k, v = line.strip().split('=', 1)
+    kv[k] = v
+
+if set(requiredKeys) - set(kv.keys()):
+    raise Exception('Not all required keys present')
+
+pipelineId = kv['pipeline.PIPELINE_ID']
+del kv['pipeline.PIPELINE_ID']
+
+rewriteErgatisConfig(pipelineId, componentName, token, kv)

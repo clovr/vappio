@@ -4,7 +4,7 @@
 # pipeline.WANT_EXEC_INSTANCES which can be fed into resize-cluster metric
 #
 # The input data currently needed is:
-# pipeline.CLUSTER_NAME
+# cluster.CLUSTER_NAME
 # misc.PROGRAM (which blast program)
 # input.MAX_QUERY_SEQ_LEN
 # input.MIN_QUERY_SEQ_LEN
@@ -47,7 +47,7 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-kv = {'pipeline.CLUSTER_NAME': None,
+kv = {'cluster.CLUSTER_NAME': None,
       'misc.PROGRAM': None,
       'input.MAX_QUERY_SEQ_LEN': None,
       'input.MIN_QUERY_SEQ_LEN': None,

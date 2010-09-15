@@ -5,7 +5,7 @@
 # cpu hours needed to complete the task.
 #
 # Required keys:
-# pipeline.CLUSTER_NAME
+# cluster.CLUSTER_NAME
 # pipeline.COMPUTED_CPU_HOURS
 #
 # Optional keys:
@@ -26,7 +26,7 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-requiredKeys = ['pipeline.CLUSTER_NAME',
+requiredKeys = ['cluster.CLUSTER_NAME',
                 'pipeline.COMPUTED_CPU_HOURS'
                 ]
 
@@ -54,14 +54,15 @@ if set(requiredKeys) - set(kv.keys()):
 # value, but the chances of that are really slim
 computedCPUHours = int(float(kv['pipeline.COMPUTED_CPU_HOURS']) + 1)
 
-cl = cluster.loadCluster('localhost', kv['pipeline.CLUSTER_NAME'])
+cl = cluster.loadCluster('localhost', kv['cluster.CLUSTER_NAME'])
 maxExecNodes = int(kv.get('pipeline.EXEC_MAX_INSTANCES', 0)) or int(cl.config('cluster.exec_max_instances'))
 maxExecCores = maxExecNodes * CORES_PER_CPU
 
 
-if computedCPUhours < maxExecCores:
-    sys.stdout.write('%s=%d\n' % ('pipeline.EXEC_WANT_INSTANCES', computedCPUHours / (CORES_PER_CPU * 2)))
-elif computedCPUhours < maxExecCores * 2:
+if computedCPUHours < maxExecCores:
+    # Low ball this one.  If the number of hours is so low that the wanted instances is 0 than make it at least 1
+    sys.stdout.write('%s=%d\n' % ('pipeline.EXEC_WANT_INSTANCES', (computedCPUHours / (CORES_PER_CPU * 2)) or 1))
+elif computedCPUHours < maxExecCores * 2:
     sys.stdout.write('%s=%d\n' % ('pipeline.EXEC_WANT_INSTANCES', int(maxExecNodes * 0.75)))
 else:
     sys.stdout.write('%s=%d\n' % ('pipeline.EXEC_WANT_INSTANCES', maxExecNodes))
