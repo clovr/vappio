@@ -12,11 +12,8 @@ def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
     endStates = [task.TASK_FAILED, task.TASK_COMPLETED]
     state = None
     prevTime = None
-    ##
-    # Some tasks finish *really* quick but this executes just a bit faster.
-    # so wait 2 seconds before checking so we don't end up waitign 30
-    # seconds for no good reason
-    time.sleep(2)
+    sleepTime = 1
+    time.sleep(sleepTime)
     while state not in endStates:
         tsk = loadTask(host, name, taskName)
         state = tsk.state
@@ -35,7 +32,8 @@ def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
         ##
         # Make this configurable
         if state not in endStates:
-            time.sleep(30)
+            sleepTime = sleepTime < 30 and sleepTime * 2 or 30
+            time.sleep(sleepTime)
 
     return state
 

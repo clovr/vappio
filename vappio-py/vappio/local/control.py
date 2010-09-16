@@ -31,8 +31,6 @@ def listInstances(cred, log=False):
 
 def terminateInstances(cred, instances, log=False):
     return None
-    
-    
 
 def updateInstances(cred, instances, log=False):
     return instances
@@ -45,11 +43,9 @@ def addKeypair(cred, name, log=False):
 
 def listGroups(cred, log=False):
     return []
-
         
 def addGroup(cred, name, description, log=False):
     return None
-
 
 def authorizeGroup(cred,
                    groupName,
