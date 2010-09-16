@@ -64,6 +64,7 @@ def printTask(options, t, maxTaskNameLen):
 
 def blockOnTasks(options, tasks):
     maxTaskNameLen = tasks and max([len(t.name) for t in tasks]) or 0
+    sleepTime = 1
     ##
     # Loop until all of the tasks are in state FAILED or COMPLETED
     while [t for t in tasks if t.state not in [task.TASK_FAILED, task.TASK_COMPLETED]]:
@@ -71,7 +72,8 @@ def blockOnTasks(options, tasks):
             commands.runSystem('clear')
             for t in tasks:
                 printTask(options, t, maxTaskNameLen)
-        time.sleep(30)
+        time.sleep(sleepTime)
+        sleepTime = sleepTime < 30 and sleepTime * 2 or 30
         tasks = [loadTask(options('general.host'), options('general.name'), t.name)
                  for t in tasks]
 
