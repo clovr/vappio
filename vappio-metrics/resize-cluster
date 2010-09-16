@@ -27,11 +27,10 @@ cl = cluster.loadCluster('localhost', kv['cluster.CLUSTER_NAME'])
 
 wantInstances = int(kv['pipeline.EXEC_WANT_INSTANCES'])
 
-diffInstances = wantInstances - len(cl.execNodes)
+diffInstances = wantInstances - len([i for i in cl.execNodes if i.state != i.TERMINATED])
 
 if diffInstances > 0:
     taskName = cluster.addInstances('localhost', kv['cluster.CLUSTER_NAME'], diffInstances)
-
-sys.stdout.write('pipeline.ADD_INSTANCES_TASKNAME=%s\n' % taskName)
+    sys.stdout.write('pipeline.ADD_INSTANCES_TASKNAME=%s\n' % taskName)
 
     
