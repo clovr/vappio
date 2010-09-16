@@ -43,7 +43,7 @@ def rewriteErgatisConfig(pipelineId, componentName, token, kv):
                         writtenKeys.add(k)
             section = l.strip()[1:-1]
             fout.write(l)
-        elif l.strip().startswith('$;') and l.split('$;')[1] in keysBySection(section, kv.keys()):
+        elif l.strip().startswith('$;') and section + '.' + l.split('$;')[1] in keysBySection(section, kv.keys()):
             k = l.split('$;')[1]
             fout.write('$;%s$;=%s\n' % (k, kv[section + '.' + k]))
             writtenKeys.add(section + '.' + k)

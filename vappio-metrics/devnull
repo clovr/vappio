@@ -10,5 +10,5 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-for line in sys.stdin():
+for line in sys.stdin:
     pass

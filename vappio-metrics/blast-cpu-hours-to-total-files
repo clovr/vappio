@@ -22,6 +22,7 @@ requiredKeys = ['pipeline.COMPUTED_CPU_HOURS']
 kv = {}
 
 for line in sys.stdin:
+    sys.stdout.write(line.strip() + '\n')
     k, v = line.strip().split('=', 1)
     kv[k] = v
 
@@ -30,4 +31,5 @@ if set(requiredKeys) - set(kv.keys()):
 
 cpuHours = kv['pipeline.COMPUTED_CPU_HOURS']
 
-sys.stdout.write('parameters.TOTAL_FILES=' + str(int(cpuHours) * 3) + '\n')
+sys.stdout.write('\n'.join(['parameters.TOTAL_FILES=' + str(int(float(cpuHours) * 3)),
+                            'parameters.SEQS_PER_FILE=']) + '\n')

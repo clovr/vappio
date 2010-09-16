@@ -7,6 +7,7 @@
 # This simply checks the first non-whitespace character of each file for '>' and assumes it is a fasta
 # file if it contains that
 import sys
+import os
 
 from vappio.webservice import tag
 
@@ -28,12 +29,16 @@ sys.stdout.write('kv\n')
 
 for line in sys.stdin:
     k, tagName = line.split('=', 1)
+    tagName = tagName.strip()
     if k.startswith('input.'):
-        tagFile = tag.queryTag('localhost', 'local', tagName.strip())
+        tagName = os.path.basename(tagName)
+        tagFile = tag.queryTag('localhost', 'local', tagName)
         for f in tagFile('files'):
             if not isFasta(f):
                 raise Exception('Not a fasta file: ' + f)
 
-    sys.stdout.write(line.strip() + '\n')
+        sys.stdout.write(k + '=' + tagName + '\n')
+    else:
+        sys.stdout.write(line.strip() + '\n')
 
     
