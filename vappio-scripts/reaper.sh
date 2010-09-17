@@ -17,20 +17,7 @@ deadhosts1=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[
 #
 for deadhostname in $deadhosts1
 do
-  #Disable all queues on this host
-  echo "Removing dead host $deadhostname\n"
-  $SGE_ROOT/bin/$ARCH/qmod -d "*@$deadhostname"
-  #Reschedule any running jobs on this machine
-  $SGE_ROOT/bin/$ARCH/qmod -f -rq $execq@$deadhostname
-  #Remove any other jobs on this host?
-
-  #Remove host from SGE
-  $SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $deadhostname $stagingsubq
-  $SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $deadhostname $execq
-  $SGE_ROOT/bin/$ARCH/qconf -de $deadhostname
-  $SGE_ROOT/bin/$ARCH/qconf -ds $deadhostname
-  $SGE_ROOT/bin/$ARCH/qconf -kej $deadhostname
-  $SGE_ROOT/bin/$ARCH/qconf -dh $deadhostname
+    $vappio_scripts/remove_sgehost.sh $deadhostname
 done
 
 #Clear all error states, task #315
