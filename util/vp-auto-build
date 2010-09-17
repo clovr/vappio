@@ -20,7 +20,7 @@ else
     echo "#!/bin/bash" > $buildvm/shared/user-scripts/01-starthudson
     echo "/etc/init.d/hudson start" >> $buildvm/shared/user-scripts/01-starthudson
     chmod a+rx $buildvm/shared/user-scripts/01-starthudson
-    ~/vp-launch-headless $buildvm vmware
+    /home/sangiuoli/vp-launch-headless $buildvm vmware
     sleep 10 #wait for hudson to finish booting
 fi
 

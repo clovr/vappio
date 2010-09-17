@@ -21,7 +21,7 @@ do
     #TODO - set 24hr shutdown
     
     #Boot the image
-    ~/vp-launch-headless $dname/$bname vmware
+    /home/sangiuoli/vp-launch-headless $dname/$bname vmware
     nipaddr=`cat $dname/$bname/shared/clovr_ip`
     
     #Launch the tests
@@ -42,7 +42,7 @@ do
       curl --silent http://$nipaddr:8888/job/$t/build
       if [ "$netcat" != "" ]
 	  then
-	  echo "Automated tests started at http://$nipaddr:8888/" | nc $netcat || true
+	  echo "Automated tests for $bname started at http://$nipaddr:8888/" | nc $netcat || true
       fi
       rm $n
     done
