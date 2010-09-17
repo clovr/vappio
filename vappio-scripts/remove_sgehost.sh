@@ -9,6 +9,14 @@ wait=$2
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 ##
+master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
+if [ "$master" = "$deadhostname" ]
+then
+    echo "Attempt to remove master $master, exiting"
+    exit 1
+fi
+
+
 
 ##
 #Attempt to reschedule jobs before removing host
@@ -19,12 +27,22 @@ source $vappio_scripts/vappio_config.sh
 #4)remove host from master
 
 #Disable all queues on this host
-echo "Removing dead host $deadhostname\n"
-$SGE_ROOT/bin/$ARCH/qmod -d "*@$deadhostname"
+
+isactive=`$SGE_ROOT/bin/$ARCH/qhost -xml -q -h $deadhostname | xpath -e "//queue"`
+
+if [ "$isactive" != "" ]
+then
+    echo "Removing dead host $deadhostname\n"
+    $SGE_ROOT/bin/$ARCH/qmod -d "*@$deadhostname"
 #Reschedule any running jobs on this machine
-$SGE_ROOT/bin/$ARCH/qmod -f -rq $execq@$deadhostname
-$SGE_ROOT/bin/$ARCH/qmod -f -rq $stagingsubq@$myhostname
+#This does not work for single hosts, rescheds all $SGE_ROOT/bin/$ARCH/qmod -f -rq $execq@$deadhostname
+#$SGE_ROOT/bin/$ARCH/qmod -f -rq $stagingsubq@$myhostname
+    $SGE_ROOT/bin/$ARCH/qstat -q $execq@$deadhostname -u '*' -xml | xpath -e "//JB_job_number/text()" | perl -ne 'print "qmod -f -rj $_"' | sh
+    $SGE_ROOT/bin/$ARCH/qstat -q $stagingq@$deadhostname -u '*' -xml | xpath -e "//JB_job_number/text()" | perl -ne 'print "qmod -f -rj $_"' | sh
 #Remove any other jobs on this host?
+else
+  echo "Node not active, skipping"
+fi
 
 if [ "$wait" != "" ]
 then
@@ -69,3 +87,4 @@ $SGE_ROOT/bin/$ARCH/qconf -de $deadhostname
 $SGE_ROOT/bin/$ARCH/qconf -ds $deadhostname
 $SGE_ROOT/bin/$ARCH/qconf -kej $deadhostname
 $SGE_ROOT/bin/$ARCH/qconf -dh $deadhostname
+$SGE_ROOT/bin/$ARCH/qconf -dconf $deadhostname
