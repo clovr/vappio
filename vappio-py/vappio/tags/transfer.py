@@ -124,7 +124,7 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     to be part of another process.
     """
     if dstDir is None:
-        dstDir = dstCluster.config('dirs.upload_dir')
+        dstDir = os.path.join(dstCluster.config('dirs.upload_dir'), tagName)
 
     if baseDir is None:
         baseDir = srcCluster.config('dirs.upload_dir')

@@ -26,7 +26,7 @@ class RunMetrics(CGIPage):
                    '--task-name=' + taskName,
                    '--conf=\'%s\'' % (json.dumps(request['conf']).encode('string_escape'),),
                    '--metrics=\'%s\'' % (str(request['metrics']).encode('string_escape'),),
-                   '>> /tmp/runMetricsR.py 2>&1 &',
+                   '>> /tmp/runMetricsR.log 2>&1 &',
                    ]
 
             runSystemEx(' '.join(cmd))
