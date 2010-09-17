@@ -47,22 +47,22 @@ else
     fi
 fi
     
-    ipstatnew=`stat -t $1/shared/clovr_ip 2> /dev/null`
-    timeout=60 #5 minutes
-    count=1
-    while [ "$ipstat" = "$ipstatnew" ]
-    do
-	echo -n "."
-	ipstatnew=`stat -t $1/shared/clovr_ip`
-	sleep 5
-	count=`expr $count + 1`
-	if [ $count -gt $timeout ]
-	then
-	    echo "Machine boot not detected, exiting"
-	    exit 1;
-	fi
-    done
-    
-    echo 
-    cat $1/shared/clovr_ip
-fi
+ipstatnew=`stat -t $1/shared/clovr_ip 2> /dev/null`
+timeout=60 #5 minutes
+count=1
+while [ "$ipstat" = "$ipstatnew" ]
+do
+    echo -n "."
+    ipstatnew=`stat -t $1/shared/clovr_ip`
+    sleep 5
+    count=`expr $count + 1`
+    if [ $count -gt $timeout ]
+    then
+	echo "Machine boot not detected, exiting"
+	exit 1;
+    fi
+done
+
+echo 
+cat $1/shared/clovr_ip
+i

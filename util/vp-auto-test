@@ -1,57 +1,38 @@
-#!/bin/bash
+#!/bin/bash -e
 USAGE="vp-auto-test buildvmdir"
 
 timeout=60
 buildvm=$1
 
-if [ ! -f /tmp/vp.builds ]
-then
-    ls $buildvm/shared/clovr-*.tgz > /tmp/vp.builds
-else
-    ls $buildvm/shared/clovr-*.tgz > /tmp/vp.newbuilds
-    diff=`diff /tmp/vp.builds /tmp/vp.newbuilds`
-    count=1
-    while [ "$diff" = "" ] 
-    do
-	count=`expr $count + 1`
-	if [ $count -gt $timeout ]
-	then
-	    echo "No new images, exiting"
-	    exit
-	fi
-	echo -n "."
-	sleep 60
-	ls $buildvm/shared/clovr-*.tgz > /tmp/vp.newbuilds
-    done
+ls $buildvm/shared/clovr-*.runtests > /tmp/vp.newbuilds
 
-    ls $buildvm/shared/clovr-*.tgz > /tmp/vp.builds
-    #Launch hudson tests
-
-    newbundles=`diff /tmp/vp.builds /tmp/vp.newbuilds | grep ">" | perl -ne 's/\>\s+//;s/\.tgz$//;print'`
-
-    for $n in $newbundles
-    do
-        #Modify start up process to install hudson
-	mkdir $n/shared/user-scripts
-	chmod 777 $n/shared/user-scripts
-	ln -s /opt/vappio-install/recipes/hudson.sh $n/shared/user-scripts/01-installhudson
-	echo "#\!/bin/bash" > $n/shared/user-scripts/02-starthudson
-	echo "/etc/init.d/hudson start" > $n/shared/user-scripts/02-starthudson
-	chmod a+rx $n/shared/user-scripts/01-starthudson
-        #TODO - set 24hr shutdown
-	
-        #Boot the image
-	~/vp-launch-headless $n vmware
-	nipaddr=`cat $n/shared/clovr_ip`
-	sleep 10 #wait for hudson to start
-	
-        #Launch the tests
-	curl --silent http://$nipaddr:$hudsonport > /dev/null
-	if [ $? != 0 ]
-	then
-	    echo "Hudson not found at $nipaddr:$hudsonport"
-	else
-	    curl --silent http://$nipaddr:8888/job/00\%20Launch\%20all\%20jobs/build
-	fi
-    done
-fi
+for $n in `cat /tmp/vp.newbuilds`
+do
+    dname=`dirname $n`
+    bname=`basename $n .runtests`
+    echo "Running image $dname/$bname"
+    #Modify start up process to install hudson
+    mkdir $dname/$bname/shared/user-scripts
+    chmod 777 $dname/$bname/shared/user-scripts
+    ln -s /opt/vappio-install/recipes/hudson.sh $dname/$bname/shared/user-scripts/01-installhudson
+    echo "#\!/bin/bash" > $dname/$bname/shared/user-scripts/02-starthudson
+    echo "/etc/init.d/hudson start" > $dname/$bname/shared/user-scripts/02-starthudson
+    chmod a+rx $dname/$bname/shared/user-scripts/01-starthudson
+    #TODO - set 24hr shutdown
+    
+    #Boot the image
+    nipaddr=`~/vp-launch-headless $dname/$bname vmware`
+    sleep 30 #wait for hudson to start
+    
+    #Launch the tests
+    curl --silent http://$nipaddr:$hudsonport > /dev/null
+    if [ $? != 0 ]
+    then
+	echo "Hudson not found at $nipaddr:$hudsonport"
+    else
+	for $t in `cat $n`
+	do
+	    echo "curl --silent http://$nipaddr:8888/job/$t/build"
+	done
+    fi
+done

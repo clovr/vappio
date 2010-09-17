@@ -48,7 +48,7 @@ fi
 
 #If not Access Denied, bucket does not exist
 s3manifest=`curl --silent http://s3.amazonaws.com/$imgname | grep Access` || true
-if [ "$s3manifest" = "" ]
+if [ "$s3manifest" = "" ] || [ "$2" = "force" ]
 then
     #Upload bundle
     echo "Uploading $imgname to S3"
