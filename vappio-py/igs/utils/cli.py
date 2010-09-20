@@ -49,7 +49,7 @@ def applyOption(val, func, conf):
         return v
 
     
-def buildConfigN(options, args=None, usage=None, putInGeneral=True):
+def buildConfigN(options, args=None, usage=None, baseConf=None, putInGeneral=True):
     """
     This builds a config from options.  Options is a list of tuples that looks like:
 
@@ -117,7 +117,8 @@ def buildConfigN(options, args=None, usage=None, putInGeneral=True):
 
     ops, args = parser.parse_args(args=args)
 
-    baseConf = configFromEnv()
+    if baseConf is None:
+        baseConf = configFromEnv()
     if hasattr(ops, 'conf'):
         baseConf = configFromStream(open(replaceStr(confFunc(ops.conf), baseConf)), baseConf)
 
