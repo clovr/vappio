@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash 
 USAGE="vp-auto-test buildvmdir"
 
 timeout=60
@@ -12,16 +12,16 @@ do
     bname=`basename $n .runtests`
     echo "Running image $dname/$bname"
     #Modify start up process to install hudson
-    mkdir $dname/$bname/shared/user-scripts
-    chmod 777 $dname/$bname/shared/user-scripts
-    ln -s /opt/vappio-install/recipes/hudson.sh $dname/$bname/shared/user-scripts/01-installhudson
-    echo "#\!/bin/bash" > $dname/$bname/shared/user-scripts/02-starthudson
-    echo "/etc/init.d/hudson start" > $dname/$bname/shared/user-scripts/02-starthudson
+    mkdir $dname/$bname/shared/user-scripts || true
+    chmod 777 $dname/$bname/shared/user-scripts || true
+    #ln -s /opt/vappio-install/recipes/hudson.sh $dname/$bname/shared/user-scripts/01-installhudson || true
+    echo "#!/bin/bash" > $dname/$bname/shared/user-scripts/02-starthudson
+    echo "/etc/init.d/hudson start" >> $dname/$bname/shared/user-scripts/02-starthudson
     chmod a+rx $dname/$bname/shared/user-scripts/02-starthudson
     #TODO - set 24hr shutdown
     
     #Boot the image
-    /home/sangiuoli/vp-launch-headless $dname/$bname vmware
+    /home/sangiuoli/vp-launch-headless $dname/$bname vmware || true
     nipaddr=`cat $dname/$bname/shared/clovr_ip`
     
     #Launch the tests
@@ -34,16 +34,18 @@ do
 	if [ $? != 0 ]
 	    then
 	    echo "Hudson not found at $nipaddr:$hudsonport"
-	    exit 1
 	fi
     fi
     for t in `cat $n`
       do
-      curl --silent http://$nipaddr:8888/job/$t/build
-      if [ "$netcat" != "" ]
+      curl --silent http://$nipaddr:$hudsonport/job/$t/build
+      if [ $? = 0 ]
+      then
+	  if [ "$netcat" != "" ]
 	  then
-	  echo "Automated tests for $bname started at http://$nipaddr:8888/" | nc $netcat || true
+	  echo "Automated tests $t for $bname started at http://$nipaddr:8888/" | nc $netcat || true
+	  fi
+	  rm $n
       fi
-      rm $n
     done
 done

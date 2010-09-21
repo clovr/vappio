@@ -65,5 +65,7 @@ if [ -s $vappio_runtime/sge.running ]
 	cat $vappio_runtime/sge.running	
  else
     verror "Scheduling shutdown in $delayshutdown minutes of $myhostname"
+    #TODO vp-shutdown-node hostname [delay] 
+    #Resched remove_sgehost.pl
     /sbin/shutdown -h +$delayshutdown "Cron enabled shutdown scheduled. Override by running 'shutdown -c'" 
 fi

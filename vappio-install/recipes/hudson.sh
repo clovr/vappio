@@ -11,9 +11,11 @@ sudo apt-key add /tmp/key
 wget -O /tmp/hudson.deb http://download.hudson-labs.org/debian/hudson_1.374_all.deb
 sudo dpkg --install /tmp/hudson.deb
 
-if [ "$BUILD_ID" != "" ]
+if [ -f "/var/run/hudson/hudson.pid" ] && [ "$BUILD_ID" != "" ]
 then
-    echo "Restart Hudson for changes to take effect"
+    echo "Hudson pid"
+    cat /var/run/hudson/hudson.pid
+    echo "Attempting to stop hudson. Restart Hudson for changes to take effect"
     /etc/init.d/hudson stop
 fi
 

@@ -23,8 +23,8 @@ sudo bash -e $VAPPIO_RECIPES/buildutils.sh
 svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml.clovr-build /var/lib/hudson/config.xml
 echo "Enabling updates and hudson start at boot"
 mkdir -p /mnt/user-scripts
-echo '#!/bin/bash' > /mnt/user-scripts/01-updaterecipts
-echo '/opt/vappio-install/vp-bootstrap-install' >> /mnt/shared/user-scripts/01-updaterecipts
+echo '#!/bin/bash' > /mnt/user-scripts/01-updaterecipes
+echo '/opt/vappio-install/vp-bootstrap-install' >> /mnt/user-scripts/01-updaterecipes
 echo '#!/bin/bash' > /mnt/user-scripts/02-starthudson
 echo '/etc/init.d/hudson start' >> /mnt/user-scripts/02-starthudson
 echo '#!/bin/bash' > /mnt/user-scripts/03-startaptcacher
