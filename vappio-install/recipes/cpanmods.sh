@@ -25,4 +25,5 @@ cat /tmp/cpan.packages | grep -v "libxml-perl" | perl -ne 'chomp;split(/\s+/);pr
 #Some modules fail tests and won't install without force
 cpan -fi Grid::Request
 cpan -fi Text::Editor::Easy
-cpan -fi JSON::PP
+cpan -fi JSON::PP       ### used for JSON converts in clovr_comparative ws
+cpan -fi File::Binary   ### used in tag-is-sff metric 
