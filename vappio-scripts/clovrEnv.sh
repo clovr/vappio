@@ -48,7 +48,7 @@ export PATH=/opt/opt-packages/ec2-api-tools-1.3-53907/bin:$PATH
 #export GLOBUS_LOCATION=/opt/opt-packages/globus-5.0.0
 #source $GLOBUS_LOCATION/etc/globus-user-env.sh
 
-ulimit -n 1000000
+#ulimit -n 1000000
 
 clovrWrapper () { taskname=`runPipeline.py --name local --pipeline clovr_wrapper --pipeline-name clovr_wrapper$$ -t -- --CONFIG_FILE=$1` && taskStatus.py --block --show --show-error $taskname; }
 clovrSleep () { clovrWrapper $1 ; }
