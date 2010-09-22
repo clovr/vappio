@@ -36,6 +36,8 @@ do
 	    echo "Hudson not found at $nipaddr:$hudsonport"
 	fi
     fi
+    #Hudson has an initialization period
+    sleep 15
     for t in `cat $n`
       do
       curl --silent http://$nipaddr:$hudsonport/job/$t/build
@@ -43,7 +45,7 @@ do
       then
 	  if [ "$netcat" != "" ]
 	  then
-	  echo "Automated tests $t for $bname started at http://$nipaddr:8888/" | nc $netcat || true
+	  echo "Automated tests $t for $bname started at http://$nipaddr:$hudsonport/" | nc $netcat || true
 	  fi
 	  rm $n
       fi
