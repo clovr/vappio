@@ -22,5 +22,6 @@ OPTIONS = [
     ('CUTOFF', '', '--CUTOFF', 'Metagene gene calls below this nucleotide length are discarded', defaultIfNone("")),
     ('TOTAL_FILES','', '--TOTAL_FILES', 'Tell split_multifasta to produce exactly this amount of files', defaultIfNone("")),
     ('NUM_SEQS', '', '--NUM_SEQS', 'Number of sequences per bsml file produced by metagene', defaultIfNone("150")),
-    ('GROUP_COUNT', '', '--GROUP_COUNT', 'Group count to use in Ergatis', defaultIfNone("50"))
+    ('GROUP_COUNT', '', '--GROUP_COUNT', 'Group count to use in Ergatis', defaultIfNone("50")),
+    ('DOWNLOAD_MAP', '', '--DOWNLOAD_MAP', 'A mapping file listing tag names to files that should be marked for download upon pipeline completion', defaultIfNone(""))
     ]
