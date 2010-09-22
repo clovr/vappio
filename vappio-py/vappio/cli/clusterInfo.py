@@ -21,7 +21,7 @@ def instanceToList(i):
 
 
 def main(options, _args):
-    if options('general.name'):
+    if not options('general.list'):
         cluster = loadCluster(options('general.host'), options('general.name'), options('general.partial'))
 
 
@@ -35,11 +35,9 @@ def main(options, _args):
         print '\t'.join(['ERGATIS', 'http://%s/ergatis' % cluster.master.publicDNS])
         print '\t'.join(['SSH', 'ssh %s %s@%s' % (cluster.config('ssh.options'), cluster.config('ssh.user'), cluster.master.publicDNS)])
 
-    elif options('general.list'):
+    else:
         for c in listClusters(options('general.host')):
             print '\t'.join(['CLUSTER', c])
-    else:
-        raise Exception('Failed to provide a cluster name or to list them')
 
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS))
