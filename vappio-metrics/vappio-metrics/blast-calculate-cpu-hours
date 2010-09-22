@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+#
+# This takes input about blast query sequences and the database and produces a variable called
+# pipeline.WANT_EXEC_INSTANCES which can be fed into resize-cluster metric
+#
+# The input data currently needed is:
+# cluster.CLUSTER_NAME
+# misc.PROGRAM (which blast program)
+# input.MAX_QUERY_SEQ_LEN
+# input.MIN_QUERY_SEQ_LEN
+# input.AVG_QUERY_SEQ_LEN
+# input.NUM_QUERY_SEQ
+# input.SCALE_DOWN_FACTOR - How much to scale the total number of queries down, can be a float
+#                           defaults to 1 if not specified
+# input.REF_DB_TOTAL_SEQ_LEN -- currently not used
+import sys
+
+#
+# Some blast programs take the query and will translate it in multiple ways
+# so this is the amount of work they add to the computation
+WORK_FACTOR = {'blastn': 1,
+               'blastp': 1,
+               'blastx': 6,
+               'tblastn': 6,
+               'tblastx': 12
+               }
+
+# A very rough estimate of how many residues can be calculated per core per hour is 28k
+# Since we are giving that a work factor of 6 we are going to estimate the blastn/blastp
+# baseline for that is 28000 * WORK_FACTOR['blastx']
+RESIDUES_PER_CORE_PER_HOUR = 28000 * WORK_FACTOR['blastx']
+
+def calculateCPUHours(program, numSeqs, avgLen, scaleDown):
+    """
+    + 1 because we always high-ball by an hour
+    /scaleDown because we allow fo rthe total number of hours to be brought down by factor if the input DB
+    is smaller than NR
+    """
+    return (WORK_FACTOR[program] * float(numSeqs * avgLen)/float(RESIDUES_PER_CORE_PER_HOUR))/scaleDown + 1
+
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+kv = {'cluster.CLUSTER_NAME': None,
+      'misc.PROGRAM': None,
+      'input.MAX_QUERY_SEQ_LEN': None,
+      'input.MIN_QUERY_SEQ_LEN': None,
+      'input.AVG_QUERY_SEQ_LEN': None,
+      'input.NUM_QUERY_SEQ': None,
+      'input.SCALE_DOWN_FACTOR': 1,
+      #'input.REF_DB_TOTAL_SEQ_LEN': None,
+      }
+
+for line in sys.stdin:
+    sys.stdout.write(line.strip() + '\n')
+    k, v = line.strip().split('=', 1)
+    if k in kv:
+        kv[k] = v
+
+if [v for v in kv.values() if not v]:
+    raise Exception('Not all expected values present in config')
+
+if kv['misc.PROGRAM'] not in WORK_FACTOR:
+    raise Exception('Unknown blast program ' + kv['input.PROGRAM'])
+
+for i in ['input.MAX_QUERY_SEQ_LEN',
+          'input.MIN_QUERY_SEQ_LEN',
+          'input.NUM_QUERY_SEQ',]:
+          #'input.REF_DB_TOTAL_SEQ_LEN']:
+    kv[i] = int(kv[i])
+
+for i in ['input.SCALE_DOWN_FACTOR',
+          'input.AVG_QUERY_SEQ_LEN',
+          ]:
+    kv[i] = float(kv[i])
+
+
+#
+# Insert magic calculuations here
+totalHours = calculateCPUHours(kv['misc.PROGRAM'],
+                               kv['input.NUM_QUERY_SEQ'],
+                               kv['input.AVG_QUERY_SEQ_LEN'],
+                               kv['input.SCALE_DOWN_FACTOR'])
+
+sys.stdout.write('\n'.join(['pipeline.COMPUTED_CPU_HOURS=' + str(totalHours)]) + '\n')

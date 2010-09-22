@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Binary;
+
+my $SFF = '.sff';
+
+my $header = <>;
+unless(trim($header) eq 'kv') {
+	die "Header must be 'kv'\n";
+}
+print STDOUT $header;
+
+while(my $arg = <>) {
+	if($arg =~ /^input\.(.+)=(.+)$/) {
+		my $command = "vp-describe-dataset --tag-name=$2";
+		open(COMMAND, "$command |") or die "Error in executing the command, $command, $!\n";
+		while(my $output = <COMMAND>) {
+			if($output =~ /^FILE\t(.+)$/) {
+				my $obj = File::Binary -> new($1);
+				unless($obj -> get_bytes(4) eq $SFF) {
+					die "$1 is not an sff file\n";
+				}
+			}
+		}
+		close COMMAND;
+	}
+	print STDOUT $arg;
+}
+exit(0);
+
+sub trim {
+	my ($temp) = @_;
+	$temp =~ s/^\s+//;
+	$temp =~ s/\s+$//;
+	return $temp;
+}

@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+#
+# This is a simple metric that takes a series of K1=K2 on the CLI.  It then reads
+# in kv pairs and for every K1 it renames it K2.  This is useful if one metric produces
+# output with one name and the next metric expects its input to have a different name.
+# All other names KV pairs are passed through untouched
+import sys
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+keys = dict([k.split('=', 1) for k in sys.argv[1:]])
+
+for line in sys.stdin:
+    if not line.strip(): continue
+    k, v = line.strip().split('=', 1)
+    if k in keys:
+        sys.stdout.write('='.join([keys[k], v]))
+    else:
+        sys.stdout.write(line.strip())
+
+    sys.stdout.write('\n')
+    

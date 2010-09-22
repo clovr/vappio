@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $header = <>;
+unless(trim($header) eq 'kv') {
+	die "Header must be 'kv'\n";
+}
+print STDOUT $header;
+
+while(my $arg = <>) {
+	if(trim($arg) =~ /^input\.(.+)=(.+)$/) {
+		my $command = "vp-describe-dataset --tag-name=$2";
+		open(COMMAND, "$command |") or die "Error in executing the command, $command, $!\n";
+		while(my $output = <COMMAND>) {
+			if($output =~ /^FILE\t(.+)/) {
+				open(FILE, "<$1") or die "Error in opening the file, $1, $!\n";
+				my $firstLine = <FILE>;
+				unless(substr(trim($firstLine), 0, 1) eq '@') {
+					die "$1 is not a fastq file";
+				}
+				close FILE;
+			}
+		}
+		close COMMAND;
+	}
+	print STDOUT $arg;
+}
+exit(0);
+
+sub trim {
+	my ($temp) = @_;
+	$temp =~ s/^\s+//;
+	$temp =~ s/\s+$//;
+	return $temp;
+}

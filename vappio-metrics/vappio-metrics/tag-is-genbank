@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Bio::Tools::GuessSeqFormat;
+
+my $header = <>;
+unless(trim($header) eq 'kv') {
+	die "Header must be 'kv'\n";
+}
+print STDOUT $header;
+
+while(my $arg = <>) {
+	if($arg =~ /^input\.(.+)=(.+)$/) {
+		my $command = "vp-describe-task --tag-name=$2";
+		open(COMMAND, "$command |") or die "Error executing the command, $command, $!\n";
+		while(my $output = <COMMAND>) {
+			if($output =~ /^FILE\t(.+)$/) {
+				unless(Bio::Tools::GuessSeqFormat -> new(-file => $1) -> guess eq 'genbank') {
+					die "$1 is not a genbank file\n";
+				}
+			}
+		}
+		close COMMAND;
+	}
+	print STDOUT $arg;
+}
+exit(0);
+
+sub trim {
+	my ($temp) = @_;
+	$temp =~ s/^\s+//;
+	$temp =~ s/\s+$//;
+	return $temp;
+}
