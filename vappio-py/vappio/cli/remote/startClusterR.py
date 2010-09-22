@@ -27,7 +27,7 @@ OPTIONS = [
     ('task_name', '', '--task-name', 'Name of task associated with this', cli.notNone),
     ('cred', '', '--cred', 'Credentials to use', cli.notNone),
     ('num', '', '--num', 'Number of nodes to create', func.compose(int, cli.notNone)),
-    ('update_dirs', '', '--update_dirs', 'Update scritps directories', cli.defaultIfNone(False), True),
+    #('update_dirs', '', '--update_dirs', 'Update scritps directories', cli.defaultIfNone(False), True), -- disabled for now
     ]
 
 def updateCluster(cl):

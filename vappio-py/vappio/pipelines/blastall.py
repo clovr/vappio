@@ -12,7 +12,6 @@ from vappio.pipeline_tools.blast import tagToRefDBPath
 TEMPLATE_NAME = 'blastall'
 
 OPTIONS = [
-    ('input.PIPELINE_NAME', '', '--PIPELINE_NAME', 'Name of the pipeline', identity),
     ('input.INPUT_TAG', '', '--INPUT_TAG', 'The input tag of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
     ('input.REF_DB_TAG', '', '--REF_DB_TAG', 'The reference db for the blast run', compose(tagToRefDBPath, lambda x : '${dirs.tag_dir}/' + x, notNone)),
     ('misc.PROGRAM', '', '--PROGRAM', 'The blast program to run (blastp, blastx, ..)', restrictValues(['blastn', 'blastp', 'blastx', 'tblastn', 'tblastx'])),
