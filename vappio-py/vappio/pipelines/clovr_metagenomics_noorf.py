@@ -13,14 +13,10 @@ TEMPLATE_NAME = 'clovr_metagenomics_noorf'
 
 
 OPTIONS = [
-    ('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of fasta files', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
-    ('MAPPING_FILE', '', '--MAPPING_FILE', 'The mapping file for all fastas', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)), 
-    ('NUCLEOTIDE_DB_PATH', '', '--NUCLEOTIDE_DB_PATH', 'The root nucelotide database path', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
-    ('PROTEIN_DB_PATH', '', '--PROTEIN_DB_PATH', 'The root protein database path', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
-    ('SEQS_PER_FILE', '', '--SEQS_PER_FILE', 'Number of sequences per file produced by split_multifasta', defaultIfNone("")),
-    ('CUTOFF', '', '--CUTOFF', 'Metagene gene calls below this nucleotide length are discarded', defaultIfNone("")),
-    ('TOTAL_FILES','', '--TOTAL_FILES', 'Tell split_multifasta to produce exactly this amount of files', defaultIfNone("")),
-    ('NUM_SEQS', '', '--NUM_SEQS', 'Number of sequences per bsml file produced by metagene', defaultIfNone("150")),
-    ('GROUP_COUNT', '', '--GROUP_COUNT', 'Group count to use in Ergatis', defaultIfNone("50")),
-    ('DOWNLOAD_MAP', '', '--DOWNLOAD_MAP', 'A mapping file listing tag names to files that should be marked for download upon pipeline completion', defaultIfNone(""))
+    ('input.FASTA_TAG', '', '--FASTA_TAG', 'The input file list of fasta files', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
+    ('input.MAPPING_TAG', '', '--MAPPING_TAG', 'The mapping file for all fastas', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)), 
+    ('input.NUCLEOTIDE_DB_PATH', '', '--NUCLEOTIDE_DB_PATH', 'The root nucelotide database path', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
+    ('input.PROTEIN_DB_PATH', '', '--PROTEIN_DB_PATH', 'The root protein database path', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
+    ('params.TOTAL_FILES','', '--TOTAL_FILES', 'Tell split_multifasta to produce exactly this amount of files', defaultIfNone("")),
+    ('params.GROUP_COUNT', '', '--GROUP_COUNT', 'Group count to use in Ergatis', defaultIfNone("50"))
     ]
