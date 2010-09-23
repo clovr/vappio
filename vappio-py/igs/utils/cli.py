@@ -172,3 +172,25 @@ def restrictValues(values):
         return v
 
     return _
+
+def composeCLI(*funcs):
+    """
+    This function is like compose except inbetween each function
+    it does a replaceStr from a config on the intermediate values
+    if it is a string.  Usage:
+    composeCLI(f, g)(x)(conf)
+    """
+    funcs = list(funcs)
+    funcs.reverse()
+    def v(x):
+        def c(conf):
+            v = x
+            for f in funcs:
+                try:
+                    v = replaceStr(f(v), conf)
+                except TypeError:
+                    pass
+
+            return v
+        return c
+    return v
