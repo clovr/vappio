@@ -20,7 +20,7 @@ then
     /etc/init.d/hudson stop
     sleep 5
     echo "Attempting kill of $hpid"
-    kill $hpid
+    kill $hpid || true
     sleep 5
 fi
 
