@@ -10,7 +10,8 @@ sudo apt-key add /tmp/key
 #wget -O /tmp/hudson.deb http://hudson-ci.org/latest/debian/hudson.deb
 wget -O /tmp/hudson.deb http://download.hudson-labs.org/debian/hudson_1.374_all.deb
 sudo dpkg --install /tmp/hudson.deb
-
+#Wait in case hudson is starting
+sleep 20
 if [ -f "/var/run/hudson/hudson.pid" ] && [ "$BUILD_ID" != "" ]
 then
     hpid=`cat /var/run/hudson/hudson.pid`
