@@ -222,7 +222,7 @@ def runPipelineConfig(taskName, name, pipeline, conf):
     conf = config.configFromConfig(conf, config.configFromStream(open('/tmp/machine.conf'), config.configFromEnv()), lazy=True)
     vals = {}
     for o in options:
-        vals[o[0]] = cli.applyOption(conf(o[0], default=None), o[4], conf)
+        vals[o[0]] = cli.applyOption(conf(o[0], default=None), o, conf)
 
     conf = config.configFromMap(vals, conf)
 

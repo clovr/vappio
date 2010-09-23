@@ -32,22 +32,25 @@ class CLIError(Exception):
 
 
 
-def applyOption(val, func, conf):
-    ##
-    # We want to apply any replacements on the options
-    # The question is if baseConf is really the config file
-    # we should be applying these from...
-    v = func(val)
-    
-    ##
-    # Now v might still be a function at this point because we want to give
-    # them the ability to access baseConf is they need it to do more replacements
-    v = applyIfCallable(v, conf)
+def applyOption(val, option, conf):
     try:
-        return replaceStr(v, conf)
-    except TypeError:
-        return v
-
+        #
+        # We want to apply any replacements on the options
+        # The question is if baseConf is really the config file
+        # we should be applying these from...
+        v = option[4](val)
+    
+        #
+        # Now v might still be a function at this point because we want to give
+        # them the ability to access baseConf is they need it to do more replacements
+        v = applyIfCallable(v, conf)
+        try:
+            return replaceStr(v, conf)
+        except TypeError:
+            return v
+    except MissingOptionError, err:
+        raise CLIError(option[0], err)
+    
     
 def buildConfigN(options, args=None, usage=None, baseConf=None, putInGeneral=True):
     """
@@ -127,9 +130,10 @@ def buildConfigN(options, args=None, usage=None, baseConf=None, putInGeneral=Tru
     ##
     # The order of the options below
     # var name, short option, long option, help message, function to apply, binary option
-    for n, _s, l, _h, f, _b in _iterBool(options):
+    for o in _iterBool(options):
+        n, _s, l, _h, f, _b = o
         try:
-            vals[n] = applyOption(getattr(ops, n), f, baseConf)
+            vals[n] = applyOption(getattr(ops, n), o, baseConf)
         except Exception, err:
             raise CLIError(l, err)
             
@@ -204,6 +208,10 @@ def composeCLI(*funcs):
                 except TypeError:
                     pass
 
-            return val
+            val = applyIfCallable(val, conf)
+            try:
+                return replaceStr(val, conf)
+            except TypeError:
+                return val
         return c
     return v
