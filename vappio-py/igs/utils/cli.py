@@ -186,8 +186,9 @@ def composeCLI(*funcs):
         def c(conf):
             val = x
             for f in funcs:
+                val = f(val)
                 try:
-                    val = replaceStr(f(val), conf)
+                    val = replaceStr(val, conf)
                 except TypeError:
                     pass
 
