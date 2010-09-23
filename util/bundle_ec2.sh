@@ -71,7 +71,7 @@ else
 fi
 #update the tar
 echo "Updating the tar"
-if [ `dirname $imagedir` = "/mnt/" ]
+if [ `dirname $imagedir` = "/mnt" ]
 then
     dname=`dirname $imagedir`
     imagedir=`basename $imagedir`
