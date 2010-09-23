@@ -173,6 +173,15 @@ def restrictValues(values):
 
     return _
 
+def isFalse(v):
+    """
+    Simply performs 'not v'
+    """
+    return not v
+
+# This is just a more descriptive name for strings than isFalse
+isBlank = isFalse
+
 def composeCLI(*funcs):
     """
     This function is like compose except inbetween each function
