@@ -173,14 +173,17 @@ def restrictValues(values):
 
     return _
 
-def isFalse(v):
+def notFalse(v):
     """
-    Simply performs 'not v'
+    Throws an exception if option is blank
     """
-    return not v
+    if not v:
+        raise MissingOptionError('Must provide a value for option')
 
-# This is just a more descriptive name for strings than isFalse
-isBlank = isFalse
+    return v
+
+# This is just a more descriptive name for strings than notFalse
+notBlank = notFalse
 
 def composeCLI(*funcs):
     """
