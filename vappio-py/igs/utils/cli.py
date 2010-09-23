@@ -184,13 +184,13 @@ def composeCLI(*funcs):
     funcs.reverse()
     def v(x):
         def c(conf):
-            v = x
+            val = x
             for f in funcs:
                 try:
-                    v = replaceStr(f(v), conf)
+                    val = replaceStr(f(val), conf)
                 except TypeError:
                     pass
 
-            return v
+            return val
         return c
     return v
