@@ -16,7 +16,7 @@ if [ $# -ne 3 ]
 fi
 
 imgsize="10G" #size in #G
-
+blocksize=1024 #previously using 32768
 #create a new blank raw disk image of desired size, eg 10G
 mkdir /mnt/$$
 clovrraw=/mnt/$$/vmdk.raw
@@ -62,7 +62,8 @@ losetup -o 32256 $devb $deva
 #ie. dump release image clovr-vXbXrX.raw in loopback loop1
 #TODO, mount file as parition and resizefs -M to minimum size first
 echo "Creating new image in $devb"
-dd if=$1 of=$devb bs=32768
+#previously using blocksize 32768
+dd if=$1 of=$devb bs=$blocksize
 
 #could stop at this point and format blank partition as ext3
 #mkfs.ext3 /dev/loop1
@@ -83,7 +84,7 @@ pushd /mnt/$$/foo1
 tar xvzf $2 boot/grub
 echo "Zeroing out filesystem to aid compression"
 #Write out zeros to better compress file system
-dd if=/dev/zero of=tmp/ZEROS bs=32768 || true
+dd if=/dev/zero of=tmp/ZEROS bs=$blocksize || true
 echo "Ignore out of space error, this is ok"
 sync
 rm -f tmp/ZEROS

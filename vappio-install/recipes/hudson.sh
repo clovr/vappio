@@ -13,10 +13,14 @@ sudo dpkg --install /tmp/hudson.deb
 
 if [ -f "/var/run/hudson/hudson.pid" ] && [ "$BUILD_ID" != "" ]
 then
-    echo "Hudson pid"
-    cat /var/run/hudson/hudson.pid
+    hpid=`cat /var/run/hudson/hudson.pid`
+    echo "Hudson pid: $hpid"
     echo "Attempting to stop hudson. Restart Hudson for changes to take effect"
     /etc/init.d/hudson stop
+    sleep 5
+    echo "Attempting kill of $hpid"
+    kill $hpid
+    sleep 5
 fi
 
 perl -pi -e 's/HTTP_PORT=8080/HTTP_PORT=8888/' /etc/default/hudson
