@@ -75,7 +75,7 @@ def main(options, _args):
         if endState == task.TASK_COMPLETED:
             tsk = tsk.progress().setState(task.TASK_COMPLETED).addMessage(task.MSG_SILENT, 'Done realizing')
         else:
-            tsk = tsk.setState(task.TASK_FAILED)
+            raise Exception('Realize Phantom failed')
 
         tsk = task.updateTask(tsk)
         
@@ -113,7 +113,7 @@ def main(options, _args):
         if endState == task.TASK_COMPLETED:
             tsk = tsk.progress().setState(task.TASK_COMPLETED).addMessage(task.MSG_SILENT, 'Tag complete')
         else:
-            tsk = tsk.setState(task.TASK_FAILED)
+            raise Exception('Tag data failed')
             
         tsk = task.updateTask(tsk)
         
