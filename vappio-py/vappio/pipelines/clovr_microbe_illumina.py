@@ -22,6 +22,6 @@ OPTIONS = [
     ('input.VELVETG_OPTS', '', '--VELVETG_OPTS', 'Options that will be passed onto velvetg. If using paired end reads, use at least -ins_length and -ins_length_sd. -min_contig_lgth is already set.', defaultIfNone('')),
     ('input.ORGANISM', '', '--ORGANISM', 'Organism name', defaultIfNone('/dev/null')),
     ('input.GROUP_COUNT', '', '--GROUP_COUNT', 'Corresponds to number of groups to split data into (Ergatis)', defaultIfNone('50')),
-    ('input.DATABASE_PATH', '', '--DATABASE_PATH', 'The tag for the uploaded reference database set', compose(lambda x : '${dirs.upload_dir}/' + x, notNone)),
+    ('input.DATABASE_PATH', '', '--DATABASE_PATH', 'The tag for the uploaded reference database set', compose(lambda x : '${dirs.upload_dir}/' + x, defaultIfNone('${input.REFERENCE_DB_TAG}'))),
     ]
 
