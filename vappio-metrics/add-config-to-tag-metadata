@@ -8,7 +8,7 @@
 import sys
 
 from vappio.webservice import tag
-
+    
 # Ensure we are dealing with kv pairs
 if sys.stdin.readline().strip() != 'kv':
     raise Exception('Header needs to be kv')
@@ -16,19 +16,23 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
+requiredKeys = ['output.TAGS_TO_DOWNLOAD', 'input.PIPELINE_NAME']
+
 # Iterate over key-value pairs passed in from get-pipeline-conf
-tags_to_download = []
 metadata = {}
 for line in sys.stdin:
     sys.stdout.write(line.strip() + '\n')
     k, v = line.strip().split('=', 1)
-
-    if k == "TAGS_TO_DOWNLOAD":
-        tags_to_download = v.split(',')
-
     metadata[k] = v
 
+if set(requiredKeys) - set(metadata.keys()):
+    raise Exception('Not all required keys present')
+    
+tags_to_download = metadata['output.TAGS_TO_DOWNLOAD'].split(',')
+pipelineName = metadata['input.PIPELINE_NAME']
+    
 # If we have a set of tags to download we can append our config to the tag as metadata
-for tag in tags_to_download:
-    taskName = tag.tagData('localhost', 'local', tag.strip(), None, False, False, True, False, metadata)
+for download_tag in tags_to_download:
+    tagName = pipelineName + "_" + download_tag.strip()
+    taskName = tag.tagData('localhost', 'local', tagName, None, [], False, False, True, False, metadata)
 
