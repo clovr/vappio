@@ -76,7 +76,7 @@ if [ "$dname" = "/mnt" ]
 then
     dname=`dirname $imagedir`
     imagedir=`basename $imagedir`
-    tar -C $dname cvzf $imagedir.tgz $imagedir
+    tar -C $dname -cvzf $imagedir.tgz $imagedir
 else
     tar -cvzf $imagedir.tgz $imagedir    
 fi
