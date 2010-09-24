@@ -16,7 +16,7 @@ if [ $# -ne 3 ]
 fi
 
 imgsize="10G" #size in #G
-blocksize=1024 #previously using 32768
+blocksize=512 #previously using 32768
 #create a new blank raw disk image of desired size, eg 10G
 mkdir /mnt/$$
 clovrraw=/mnt/$$/vmdk.raw
