@@ -16,6 +16,7 @@ mount --bind /dev /mnt/$$/dev
 #copy command onto the image
 bname=`basename $2`
 cp $2 /mnt/$$/tmp/$bname
+chmod +x /mnt/$$/tmp/$bname || true
 #Run the command
 chroot /mnt/$$ /tmp/$bname
 

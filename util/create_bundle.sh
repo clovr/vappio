@@ -1,22 +1,31 @@
 #!/bin/bash
 #Packages a raw disk image as a vmdk for VMware and VirtualBox
-USAGE="vp-bundle-release image.img name"
+
+#Without force, will resume using an existing vmdk named
+#image.img.vmdk. force remakes a vmdk even if one already exists
+
+USAGE="vp-bundle-release image.img name [force]"
 
 currimg=$1
 namepfx=$2
+force=$3
 
-wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
-svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /mnt/boot
-pushd /mnt
-tar cvzf grub-boot.tgz boot
-popd
-
-cp --sparse=always $currimg $currimg.vmbundle
-/opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vmware.sh
-/opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vbox.sh
-/opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-util/cleanupimg
-/opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
-echo "Created $currimg.vmdk"
+if [ "$force" != "" ] || [ ! -e $currimg.vmdk ]
+then
+    wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
+    svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /mnt/boot
+    pushd /mnt
+    tar cvzf grub-boot.tgz boot
+    popd
+    
+    cp --sparse=always $currimg $currimg.vmbundle
+    /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vmware.sh
+    /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vbox.sh
+    /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-util/cleanupimg
+    
+    /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
+    echo "Created $currimg.vmdk"
+fi
 mkdir $namepfx
 chmod 777 $namepfx
 pushd $namepfx
