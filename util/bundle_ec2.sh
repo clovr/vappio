@@ -80,3 +80,6 @@ then
 else
     tar -cvzf $imagedir.tgz $imagedir    
 fi
+
+#cleanup
+rm -rf /mnt/ec2bundles
