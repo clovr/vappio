@@ -199,5 +199,7 @@ do
     /opt/vappio-util/create_bundle.sh $currimg $namepfx
     mv $currimg $namepfx.img
     /opt/vappio-util/vp-compress-img $namepfx.img $namepfx.img.tgz || true
+    #Cleanup tmp dir
+    rm -rf /mnt/$$/
 done
 

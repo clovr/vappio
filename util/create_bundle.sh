@@ -25,6 +25,7 @@ then
     
     /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
     echo "Created $currimg.vmdk"
+    rm -rf $currimg.vmbundle
 fi
 mkdir $namepfx
 chmod 777 $namepfx
