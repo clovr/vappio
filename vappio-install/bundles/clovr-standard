@@ -47,3 +47,7 @@ bash -e $VAPPIO_RECIPES/clovrdashboard.sh
 bash -e $VAPPIO_RECIPES/apache.sh
 
 bash -e $VAPPIO_RECIPES/hudson.sh
+
+# adds symbolic link from /opt/opt-packages/bioinf-v1r4b1//MUSCLE//muscle
+# to /usr/local/bin/muscle
+bash -e $VAPPIO_RECIPES/clovrcomparative.sh
