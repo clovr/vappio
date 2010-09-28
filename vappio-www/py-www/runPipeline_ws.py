@@ -8,6 +8,7 @@ from igs.utils import config
 from vappio.ergatis import pipeline as pl
 
 from vappio.webservice.cluster import loadCluster
+from vappio.webservice import pipeline as pipeline_ws
 
 from vappio.tasks.utils import createTaskAndSave
 
@@ -21,7 +22,11 @@ class RunPipeline(CGIPage):
     def body(self):
         request = readQuery()
 
-        if request['name'] == 'local':
+        matchingPipeline = pipeline_ws.pipelineStatus('localhost', 'local', lambda p: p.name == request['pipeline_name'])
+        
+        #
+        # If this request is local and there does not exist a pipeline with the same name
+        if request['name'] == 'local' and not matchingPipeline:
             ##
             # Each pipeline has a variable number of steps, so just set this to 1 and it will be fixed later
             taskName = createTaskAndSave('runPipeline', 1, 'Starting ' + request['pipeline_name'])
@@ -41,8 +46,14 @@ class RunPipeline(CGIPage):
                 raise Exception('Must provide args or pipeline_config')
             pl.savePipeline(pipelineObj)
             return taskName
+        elif request['name'] == 'local':
+            pipeline = matchingPipeline[0]
+            if pipeline.state == 'running' or pipeline.state == 'complete':
+                return matchingPipeline[0].taskName
+            else:
+                raise Exception('Currently do not handle running pipelines with the same name')
         else:
-            ##
+            #
             # Forward the request onto the appropriate machine
             cluster = loadCluster('localhost', request['name'])
             request['name'] = 'local'

@@ -10,20 +10,26 @@ from igs.cgi.handler import CGIPage, generatePage
 from igs.utils import config
 
 
+def jsonLoads(v):
+    try:
+        return json.loads(v)
+    except:
+        open('/tmp/listProtocols.log', 'a').write(v + '\n')
+        raise
+
 def loadConfig(conf, pipeline):
     pModule = reflect.namedAny('vappio.pipelines.' + pipeline)
-    ##
-    # This is temporary until all of the pipelines support this config template
     try:
         pConf = config.configListFromStream(open(os.path.join(conf('dirs.clovr_pipelines_template_dir'),
                                                               pModule.TEMPLATE_NAME,
                                                               pModule.TEMPLATE_NAME + '.config.tmpl')))
-        return [(k, json.loads(v)) for k, v in pConf]
+        
+        return [(k, jsonLoads(v)) for k, v in pConf]
     except IOError:
         return None
         
 
-class ListPipelines(CGIPage):
+class ListProtocols(CGIPage):
     def body(self):
         conf = config.configFromStream(open('/tmp/machine.conf'), base=config.configFromEnv())
         pipelines = [f[:-3]
@@ -41,5 +47,5 @@ class ListPipelines(CGIPage):
                
 
         
-generatePage(ListPipelines())
+generatePage(ListProtocols())
 
