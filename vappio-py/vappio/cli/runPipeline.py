@@ -7,6 +7,8 @@ from igs.utils import functional as func
 
 from vappio.webservice import pipeline
 
+from vappio.tasks.utils import runTaskStatus
+
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact, defaults to localhost', defaultIfNone('localhost')),
     ('name', '', '--name', 'Name of cluster', defaultIfNone('local')),
@@ -35,9 +37,12 @@ def main(options, args):
                                               options('general.pipeline_name'),
                                               config.configFromStream(open(options('general.pipeline_config')), lazy=True))
 
+
     if options('general.print_task_name'):
         print taskName
-
+    else:
+        runTaskStatus(taskName)
+    
         
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS, usage='usage: %prog --name x --pipeline y [ -- options for pipeline]'))

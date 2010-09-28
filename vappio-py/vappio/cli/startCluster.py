@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-from igs.utils.cli import buildConfigN, notNone, restrictValues, defaultIfNone
-from igs.utils.functional import identity, compose
+from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils.functional import identity
 
 from vappio.webservice.cluster import startCluster
 
-from vappio.tasks.task import TASK_FAILED
-from vappio.tasks.utils import blockOnTask
+from vappio.tasks.utils import runTaskStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
@@ -29,13 +28,12 @@ def main(options, _args):
                                 options('general.cred'),
                                 options('general.update_dirs'))
 
-        if options('general.block'):
-            state = blockOnTask('localhost', 'local', taskName)
-            if state == TASK_FAILED:
-                raise Exception('Starting cluster failed')
 
         if options('general.print_task_name'):
             print taskName
+        else:
+            runTaskStatus(taskName)
+
     
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

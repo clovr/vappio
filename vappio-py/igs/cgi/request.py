@@ -35,16 +35,17 @@ def performQuery(host, url, var, timeout=30, debug=False):
     """
     params is a dict on of values to pass to server
     """
-    data = performQueryNoParse(host, url, var, timeout=timeout, debug=debug)
+    rawData = performQueryNoParse(host, url, var, timeout=timeout, debug=debug)
     try:
-        ok, result = json.loads(data)
-        if not ok:
-            raise TryError('Query failed: ' + result['msg'], result)
-        return result
+        result = json.loads(rawData)
+        data = result['data']
+        if not result['success']:
+            raise TryError('Query failed: ' + data['msg'], result)
+        return data
     except TryError:
         raise
     except Exception:
-        raise ValueError('Unknown data: ' + str(data))
+        raise ValueError('Unknown data: ' + str(rawData))
 
 def readQuery():
     form = cgi.FieldStorage()

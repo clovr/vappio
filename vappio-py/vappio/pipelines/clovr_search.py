@@ -9,7 +9,7 @@ from vappio.pipeline_tools.blast import tagToRefDBPath
 
 ##
 # Need to know where the template lives
-TEMPLATE_NAME = 'blastall'
+TEMPLATE_NAME = 'clovr_search'
 
 OPTIONS = [
     ('input.INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input tag of sequences', composeCLI(lambda x : os.path.join('${dirs.tag_dir}', x), notBlank, defaultIfNone('${input.INPUT_TAG}'))),

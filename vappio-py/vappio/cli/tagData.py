@@ -6,8 +6,7 @@ from igs.utils import functional as func
 
 from vappio.webservice.tag import tagData
 
-from vappio.tasks.task import TASK_FAILED
-from vappio.tasks.utils import blockOnTask
+from vappio.tasks.utils import runTaskStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
@@ -49,14 +48,10 @@ def main(options, files):
                        options('general.overwrite'),
                        dict([s.split('=', 1) for s in options('general.metadata')]))
 
-    if options('general.block'):
-        state = blockOnTask(options('general.host'), options('general.name'), taskName)
-        if state == TASK_FAILED:
-            raise Exception('Tagging data failed')
-
     if options('general.print_task_name'):
         print taskName
-    
+    else:
+        runTaskStatus(taskName)
     
 
 if __name__ == '__main__':

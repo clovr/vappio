@@ -4,8 +4,6 @@ from igs.utils import config
 
 from vappio.ergatis.pipeline import pipelineSSFromDict
 
-from vappio.webservice.cluster import loadCluster
-
 PIPELINESTATUS_URL = '/vappio/pipelineStatus_ws.py'
 RUNPIPELINE_URL = '/vappio/runPipeline_ws.py'
 DOWNLOADPIPELINEOUTPUT_URL = '/vappio/downloadPipelineOutput_ws.py'

@@ -3,6 +3,7 @@ import time
 from igs.utils.logging import logPrint, errorPrint, debugPrint
 from igs.utils import logging
 from igs.utils import errors
+from igs.utils import commands
 
 from vappio.webservice.task import loadTask
 
@@ -39,16 +40,16 @@ def blockOnTask(host, name, taskName, notifyF=logPrint, errorF=errorPrint):
 
 
 def blockOnTaskAndForward(host, name, taskName, dstTask):
-    notifications = []
-    errors = []
+    notificationsL = []
+    errorsL = []
     endState = blockOnTask(host,
                            name,
                            taskName,
-                           notifyF=notifications.append,
-                           errorF=errors.append)
-    for m in notifications:
+                           notifyF=notificationsL.append,
+                           errorF=errorsL.append)
+    for m in notificationsL:
         dstTask = dstTask.addMessage(task.MSG_NOTIFICATION, m)
-    for m in errors:
+    for m in errorsL:
         dstTask = dstTask.addMessage(task.MSG_ERROR, m)
         
     tsk = task.updateTask(dstTask)
@@ -95,3 +96,18 @@ def runTaskMain(func, options, args, optionsTaskName='general.task_name'):
     a standard main function looks like
     """
     return runTask(options(optionsTaskName), lambda : func(options, args))
+
+def runTaskStatus(taskName):
+    """
+    This is a simple function that takes a taskname and simply runs vp-describe-task
+    on it.  It is meant to be used in specific situations in front ends.  It is not
+    meant to be a generic function.  There are no guarantees that this funciton will
+    exist tomorrow and it could be moved into a more fitting location at any point
+    """
+    commands.runSystemEx(' '.join(['vp-describe-task',
+                                   '--show',
+                                   '--show-error',
+                                   '--block',
+                                   '--no-print-polling',
+                                   taskName]))
+    

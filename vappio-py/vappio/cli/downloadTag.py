@@ -5,8 +5,7 @@ from igs.utils.functional import identity
 
 from vappio.webservice.tag import downloadTag
 
-from vappio.tasks.task import TASK_FAILED
-from vappio.tasks.utils import blockOnTask
+from vappio.tasks.utils import runTaskStatus
 
 
 OPTIONS = [
@@ -26,13 +25,11 @@ def main(options, files):
                            options('general.dst_cluster'),
                            options('general.expand'))
 
-    if options('general.block'):
-        state = blockOnTask(options('general.host'), options('general.dst_cluster'), taskName)
-        if state == TASK_FAILED:
-            raise Exception('Starting cluster failed')
-
     if options('general.print_task_name'):
         print taskName
+    else:
+        runTaskStatus(taskName)
+
 
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

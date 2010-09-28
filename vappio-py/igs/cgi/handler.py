@@ -58,13 +58,13 @@ def generatePage(cgiPage):
         if cgiPage.headers:
             print '\n'.join([h + ': ' + v for h, v in cgiPage.headers.iteritems()])
         print
-        print json.dumps([True, body])
+        print json.dumps(dict(success=True, data=body))
     except Exception, err:
         print cgiPage.contentType
         print
         stream = StringIO()
         traceback.print_exc(file=stream)
-        print json.dumps([False, dict(stacktrace=stream.getvalue(),
-                                      name=reflect.fullyQualifiedName(reflect.getClass(err)),
-                                      msg=str(err))])
+        print json.dumps(dict(success=False, data=dict(stacktrace=stream.getvalue(),
+                                                       name=reflect.fullyQualifiedName(reflect.getClass(err)),
+                                                       msg=str(err))))
     

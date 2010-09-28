@@ -4,8 +4,7 @@ from igs.utils.functional import identity
 
 from vappio.webservice.pipeline import downloadPipelineOutput
 
-from vappio.tasks.task import TASK_FAILED
-from vappio.tasks.utils import blockOnTask
+from vappio.tasks.utils import runTaskStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),    
@@ -28,13 +27,11 @@ def main(options, _args):
                                       options('general.output_dir'),
                                       options('general.overwrite'))
 
-    if options('general.block'):
-        state = blockOnTask('localhost', 'local', taskName)
-        if state == TASK_FAILED:
-            raise Exception('Starting cluster failed')
-
     if options('general.print_task_name'):
         print taskName
+    else:
+        runTaskStatus(taskName)
+
     
 if __name__ == '__main__':
     main(*buildConfigN(OPTIONS))

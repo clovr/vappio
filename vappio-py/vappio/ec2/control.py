@@ -105,7 +105,7 @@ def instanceFromDict(d):
 
     
 def runWithCred(cred, cmd, stdoutf=logging.OUTSTREAM.write, stderrf=logging.ERRSTREAM.write, log=False):
-    return commands.runSingleProgramEx(' '.join(cmd), stdoutf, stderrf, log=log, addEnv=cred.env)
+    return commands.runSingleProgramEx(' '.join(addCredInfo(cmd, cred)), stdoutf, stderrf, log=log, addEnv=cred.env)
 
 
 def parseInstanceLine(line):
@@ -235,7 +235,7 @@ def runInstances(cred,
     if userDataFile:
         cmd.append('-f ' + userDataFile)
 
-    runWithCred(cred, addCredInfo(cmd, cred), _instanceParse, log=log)
+    runWithCred(cred, cmd, _instanceParse, log=log)
 
     return instances
 
@@ -293,7 +293,7 @@ def runSpotInstances(cred,
     if userDataFile:
         cmd.append('-f ' + userDataFile)
 
-    runWithCred(cred, addCredInfo(cmd, cred), _instanceParse, log=log)
+    runWithCred(cred, cmd, _instanceParse, log=log)
 
     return instances
 
@@ -307,17 +307,17 @@ def listInstances(cred, log=False):
             instances.append(instance)
 
     cmd = ['ec2-describe-instances']
-    runWithCred(cred, addCredInfo(cmd, cred), _instanceParse, log=log)
+    runWithCred(cred, cmd, _instanceParse, log=log)
     return instances
 
 def terminateInstances(cred, instances, log=False):
     """Asynchronous, terminate all instances that match the filter function"""
     cmd = ['ec2-terminate-instances']
     cmd.extend([i.instanceId for i in instances])
-    runWithCred(cred, addCredInfo(cmd, cred), log=log)
+    runWithCred(cred, cmd, log=log)
     unfilledSpotInstances = [i.spotRequestId for i in instances if not i.instanceId and i.spotRequestId]
     if unfilledSpotInstances:
-        runWithCred(cred, addCredInfo(['ec2-cancel-spot-instance-requests'] + unfilledSpotInstances, cred), log=log)
+        runWithCred(cred, ['ec2-cancel-spot-instance-requests'] + unfilledSpotInstances, log=log)
         
 
 def updateInstances(cred, instances, log=False):
@@ -363,12 +363,8 @@ def updateInstances(cred, instances, log=False):
     # If there are unfulfilled spot requests then update spot instance list so we can update
     # a running instance with the request information
     if spotRequests:
-        cmd = addCredInfo(['ec2-describe-spot-instance-requests'], cred)
-        cmd.extend([';'] +  addCredInfo(['ec2-describe-instances'], cred))
-    else:
-        cmd = addCredInfo(['ec2-describe-instances'], cred)
-
-    runWithCred(cred, cmd, _instanceParse, log=log)
+        runWithCred(cred, ['ec2-describe-spot-instance-requests'], _instanceParse, log=log)
+    runWithCred(cred, ['ec2-describe-instances'], _instanceParse, log=log)
     return retInst
 
 
@@ -380,25 +376,25 @@ def listKeypairs(cred, log=False):
     """
     keypairs = []
     cmd = ['ec2-describe-keypairs']
-    runWithCred(cred, addCredInfo(cmd, cred), lambda l : keypairs.append(l.split()[1]), log=log)
+    runWithCred(cred, cmd, lambda l : keypairs.append(l.split()[1]), log=log)
     return keypairs
 
 def addKeypair(cred, name, log=False):
     cmd = ['ec2-add-keypair']
     cmd.append(name)
-    runWithCred(cred, addCredInfo(cmd, cred), None, log=log)
+    runWithCred(cred, cmd, None, log=log)
 
 def listGroups(cred, log=False):
     groups = []
     cmd = ['ec2-describe-group']
-    runWithCred(cred, addCredInfo(cmd, cred),
+    runWithCred(cred, cmd,
                       lambda l : l.startswith('GROUP') and groups.append(tuple(l.strip().split('\t', 3)[2:])))
 
 
 def addGroup(cred, name, description, log=False):
     cmd = ['ec2-add-group']
     cmd.extend([name, '-d', '"' + description + '"'])
-    runWithCred(cred, addCredInfo(cmd, cred), None, log=log)
+    runWithCred(cred, cmd, None, log=log)
         
 
 def authorizeGroup(cred,
@@ -433,5 +429,5 @@ def authorizeGroup(cred,
     if sourceSubnet:
         cmd.append('-s ' + sourceSubnet)
 
-    runWithCred(cred, addCredInfo(cmd, cred), None, log=log)
+    runWithCred(cred, cmd, None, log=log)
 

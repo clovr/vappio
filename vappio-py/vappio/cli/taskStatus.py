@@ -25,6 +25,7 @@ OPTIONS = [
     ('no_completed', '', '--nc', 'Filtered out completed tasks', identity, True),
     ('exit_code', '', '--exit-code', 'Exit with a non zero value if any tasks are not in a completed state', identity, True),
     ('block', '-b', '--block', 'Block on the tasks until they have completed or errored', identity, True),
+    ('no_print_polling', '', '--no-print-polling', 'If block is true, do not print while polling to see what is happening in real time', identity, True),
     ]
 
 
@@ -69,9 +70,10 @@ def blockOnTasks(options, tasks):
     # Loop until all of the tasks are in state FAILED or COMPLETED
     while [t for t in tasks if t.state not in [task.TASK_FAILED, task.TASK_COMPLETED]]:
         if showAnyMsg(options):
-            commands.runSystem('clear')
-            for t in tasks:
-                printTask(options, t, maxTaskNameLen)
+            if not options('general.no_print_polling'):
+                commands.runSystem('clear')
+                for t in tasks:
+                    printTask(options, t, maxTaskNameLen)
         time.sleep(sleepTime)
         sleepTime = sleepTime < 30 and sleepTime * 2 or 30
         tasks = [loadTask(options('general.host'), options('general.name'), t.name)
@@ -80,7 +82,7 @@ def blockOnTasks(options, tasks):
     ##
     # If we are showing any messages then clear the screen because after this
     # the tasks will be printed out again
-    if showAnyMsg(options):
+    if showAnyMsg(options) and not options('general.no_print_polling'):
         commands.runSystem('clear')
         
     return tasks
