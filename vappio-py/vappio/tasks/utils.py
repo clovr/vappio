@@ -107,6 +107,7 @@ def runTaskStatus(taskName):
     commands.runSystemEx(' '.join(['vp-describe-task',
                                    '--show',
                                    '--show-error',
+                                   '--exit-code',
                                    '--block',
                                    '--no-print-polling',
                                    taskName]))
