@@ -11,7 +11,7 @@ print STDOUT $header;
 
 while(my $arg = <>) {
 	if($arg =~ /^input\.(.+)=(.+)$/) {
-		my $command = "vp-describe-task --tag-name=$2";
+		my $command = "vp-describe-dataset --tag-name=$2";
 		open(COMMAND, "$command |") or die "Error executing the command, $command, $!\n";
 		while(my $output = <COMMAND>) {
 			if($output =~ /^FILE\t(.+)$/) {
@@ -21,6 +21,7 @@ while(my $arg = <>) {
 			}
 		}
 		close COMMAND;
+		die "Error in executing the command $command; Error code: $?\n" if( $? );
 	}
 	print STDOUT $arg;
 }

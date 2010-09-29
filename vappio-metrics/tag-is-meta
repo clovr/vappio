@@ -23,6 +23,7 @@ while(my $arg = <>) {
 			}
 		}
 		close COMMAND;
+		die "Error in executing the command $command; Error code: $?\n" if( $? );
 	}
 	print STDOUT $arg;
 }
