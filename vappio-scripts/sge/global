@@ -25,7 +25,7 @@ pag_cmd                      none
 token_extend_time            none
 shepherd_cmd                 none
 qmaster_params               MAX_DYN_EC=10000 ENABLE_RESCHEDULE_KILL=1 \
-                             ENABLE_RESCHEDULE_SLAVE=1
+                             ENABLE_RESCHEDULE_SLAVE=1 gdi_retries=4
 execd_params                 none 
 reporting_params             accounting=true reporting=false \
                              flush_time=00:00:15 joblog=false sharelog=00:00:00
