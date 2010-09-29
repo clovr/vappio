@@ -26,4 +26,5 @@ cat /tmp/cpan.packages | grep -v "libxml-perl" | perl -ne 'chomp;split(/\s+/);pr
 cpan -fi Grid::Request
 cpan -fi Text::Editor::Easy
 cpan -fi JSON::PP       ### used for JSON converts in clovr_comparative ws
-cpan -fi File::Binary   ### used in tag-is-sff metric 
+cpan -fi File::Binary   ### used in tag-is-sff metric
+cpan -fi Data::Random   ### used in clovr_pangenome pipeline for pangenome_do_analysis component 
