@@ -48,6 +48,9 @@ bash -e $VAPPIO_RECIPES/apache.sh
 
 bash -e $VAPPIO_RECIPES/hudson.sh
 
+# Adds an older version of ec2 tools and tools needed for nimbus
+bash -e $VAPPIO_RECIPES/nimbus.sh
+
 # adds symbolic link from /opt/opt-packages/bioinf-v1r4b1//MUSCLE//muscle
 # to /usr/local/bin/muscle
 bash -e $VAPPIO_RECIPES/clovrcomparative.sh
