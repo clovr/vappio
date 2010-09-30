@@ -11,7 +11,7 @@ from vappio.credentials import manager
 OPTIONS = [
     ('cred_name', '', '--cred-name', 'Name of the credential', cli.notNone),
     ('cred_desc', '', '--desc', 'Description of the credential', cli.defaultIfNone('')),
-    ('ctype', '', '--ctype', 'Cluster type this cert is for (ec2, eucalyptus, local)', cli.restrictValues(['ec2', 'eucalyptus', 'local'])),
+    ('ctype', '', '--ctype', 'Cluster type this cert is for (ec2, nimbus, local)', cli.restrictValues(['nimbus', 'ec2', 'local'])),
     ('cert', '-c', '--cert', 'Path to cert', func.identity),
     ('pkey', '-p', '--pkey', 'path to private key', func.identity),
     ('devel', '-d', '--devel', 'Path to devel1.pem', func.identity),    

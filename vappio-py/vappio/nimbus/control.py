@@ -4,7 +4,7 @@ import urlparse
 from igs.utils import commands
 from igs.utils import functional as func
 
-from vappio.ec2 import ec2_control
+from vappio.ec2 import control as ec2_control
 
 
 ##
@@ -22,10 +22,10 @@ def instantiateCredential(conf, cred):
         if 'ec2_url' not in cred.metadata:
             raise Exception('You must have an ec2_url')
         parsedUrl = urlparse.urlparse(cred.metadata['ec2_url'])
-        if ':' not in paresdUrl.netloc:
+        if ':' not in parsedUrl.netloc:
             raise Exception('Your URL must contain a port')
         host, port = parsedUrl.netloc.split(':')
-        fout = open(tmpCertFile, 'w').
+        fout = open(tmpCertFile, 'w')
         fout.write(cred.cert)
         fout.close()
         fout = open(tmpKeyFile, 'w')
@@ -38,12 +38,14 @@ def instantiateCredential(conf, cred):
                                        '--out-key=' + keyFile,
                                        '--java-cert-dir=/tmp',
                                        '--java-cert-host=' + host,
-                                       '--java-cert-port=' + port]) + '> /dev/null 2>&1')
+                                       '--java-cert-port=' + port]) + ' > /dev/null 2>&1', log=True)
     ec2Home = '/opt/ec2-api-tools-1.3-42584'
     newCred = func.Record(cert=certFile, pkey=keyFile, ec2Path=os.path.join(ec2Home, 'bin'),
                           env=dict(EC2_JVM_ARGS='-Djavax.net.ssl.trustStore=/tmp/jssecacerts',
                                    EC2_HOME=ec2Home,
                                    EC2_URL=cred.metadata['ec2_url']))
+    pubKey = open(conf('cluster.cluster_private_key') + '.pub').read().rstrip()
+    ec2_control.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"')
     return newCred
         
 

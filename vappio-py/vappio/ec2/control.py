@@ -105,11 +105,11 @@ def instanceFromDict(d):
 
     
 def runWithCred(cred, cmd, stdoutf=logging.OUTSTREAM.write, stderrf=logging.ERRSTREAM.write, log=False):
+    cmdPrefix = ''
     if hasattr(cred, 'ec2Path'):
-        env = functional.updateDict(cred.env, dict(PATH=cred.ec2Path + ':' + os.getenv('PATH')))
-    else:
-        env = cred.env
-    return commands.runSingleProgramEx(' '.join(addCredInfo(cmd, cred)), stdoutf, stderrf, log=log, addEnv=env)
+        cmdPrefix = cred.ec2Path + '/'
+
+    return commands.runSingleProgramEx(cmdPrefix + ' '.join(addCredInfo(cmd, cred)), stdoutf, stderrf, log=log, addEnv=cred.env)
 
 
 def parseInstanceLine(line):
@@ -184,8 +184,8 @@ def addCredInfo(cmd, cred):
     cmdName = cmd.pop(0)
     credOptions = []
     credOptions.extend(['-K', cred.pkey, '-C', cred.cert])
-    if cred.ec2URL:
-        credOptions.extend(['-U', cred.ec2URL])
+    # if cred.ec2URL:
+    #     credOptions.extend(['-U', cred.ec2URL])
     return [cmdName] + credOptions + cmd
     
 def runInstances(cred,

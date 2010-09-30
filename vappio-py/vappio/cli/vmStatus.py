@@ -53,7 +53,8 @@ def getNumberOfInstances():
 
         return str(len(set(instances)))
     except:
-        return 'Unknown'
+        #return 'Unknown'
+        raise
 
 def listClustersSafe(host):
     """

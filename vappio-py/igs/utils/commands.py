@@ -4,6 +4,7 @@
 # in a event-loop type function.
 # See test and test1 for examples of what this looks like
 import sys
+import os
 
 import subprocess
 from select import select
@@ -109,7 +110,7 @@ def runSingleProgram(cmd, stdoutf, stderrf, addEnv=None, env=None, log=False):
 
 def runSingleProgramEx(cmd, stdoutf, stderrf, addEnv=None, env=None, log=False):
     """Gives you control over where the stream data goes"""
-    pr = ProgramRunner(cmd, stdoutf, stderrf, addEnv=None, env=None, log=log)
+    pr = ProgramRunner(cmd, stdoutf, stderrf, addEnv=addEnv, env=env, log=log)
 
     def _():
         yield pr
