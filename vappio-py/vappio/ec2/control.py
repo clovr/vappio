@@ -105,7 +105,11 @@ def instanceFromDict(d):
 
     
 def runWithCred(cred, cmd, stdoutf=logging.OUTSTREAM.write, stderrf=logging.ERRSTREAM.write, log=False):
-    return commands.runSingleProgramEx(' '.join(addCredInfo(cmd, cred)), stdoutf, stderrf, log=log, addEnv=cred.env)
+    if hasattr(cred, 'ec2Path'):
+        env = functional.updateDict(cred.env, dict(PATH=cred.ec2Path + ':' + os.getenv('PATH')))
+    else:
+        env = cred.env
+    return commands.runSingleProgramEx(' '.join(addCredInfo(cmd, cred)), stdoutf, stderrf, log=log, addEnv=env)
 
 
 def parseInstanceLine(line):
@@ -167,9 +171,10 @@ def instantiateCredential(conf, cred):
         open(certFile, 'w').write(cred.cert)
     if not os.path.exists(keyFile) or open(keyFile).read() != cred.pkey:
         open(keyFile, 'w').write(cred.pkey)
-    newCred = functional.Record(cert=certFile, pkey=keyFile, ec2URL=None, env=None)
+    newCred = functional.Record(cert=certFile, pkey=keyFile, ec2URL=None, env={})
     if 'ec2_url' in cred.metadata:
-        return newCred.update(ec2URL=cred.metadata['ec2_url'])
+        return newCred.update(env=functional.updateDict(newCred.env,
+                                                        dict(EC2_URL=cred.metadata['ec2_url'])))
     else:
         return newCred
 
