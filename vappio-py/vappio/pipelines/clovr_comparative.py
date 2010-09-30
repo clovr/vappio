@@ -9,5 +9,5 @@ from igs.utils.cli import notNone, defaultIfNone, restrictValues
 from vappio.pipeline_tools.blast import tagToRefDBPath
 TEMPLATE_NAME = 'clovr_comparative'
 
-OPTIONS = [('INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, notNone))]
+OPTIONS = [('input.INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, defaultIfNone('${input.GENBANK_TAG}')))]
 
