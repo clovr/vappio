@@ -39,6 +39,7 @@ def instantiateCredential(conf, cred):
                                        '--java-cert-dir=/tmp',
                                        '--java-cert-host=' + host,
                                        '--java-cert-port=' + port]) + ' > /dev/null 2>&1', log=True)
+        commands.runSystemEx('chmod +r ' + keyFile)
     ec2Home = '/opt/ec2-api-tools-1.3-42584'
     newCred = func.Record(cert=certFile, pkey=keyFile, ec2Path=os.path.join(ec2Home, 'bin'),
                           env=dict(EC2_JVM_ARGS='-Djavax.net.ssl.trustStore=/tmp/jssecacerts',
