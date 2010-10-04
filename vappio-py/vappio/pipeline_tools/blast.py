@@ -18,7 +18,7 @@ def tagToRefDBPath(tagFname):
 
         if prefix[-1] == '.':
             prefix = prefix[:-1]
-        elif prefix.endswith('.n'):
+        elif prefix.endswith('.n') or prefix.endswith('.p'):
             prefix = prefix[:-2]
 
         return prefix

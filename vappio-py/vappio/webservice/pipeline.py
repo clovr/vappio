@@ -31,24 +31,26 @@ def pipelineStatus(host, name, pred=lambda _ : True):
             if ret and pred(pipelineSSFromDict(p))]
 
 
-def runPipeline(host, name, pipeline, pipelineName, args):
+def runPipeline(host, name, pipeline, pipelineName, args, overwrite=False):
     """
     pipeline is the type of pipeline (blastx, tblastn, ..)
     """
     return performQuery(host, RUNPIPELINE_URL, dict(name=name,
                                                     pipeline=pipeline,
                                                     pipeline_name=pipelineName,
-                                                    args=args))
+                                                    args=args,
+                                                    overwrite=overwrite))
     
 
-def runPipelineConfig(host, name, pipeline, pipelineName, conf):
+def runPipelineConfig(host, name, pipeline, pipelineName, conf, overwrite=False):
     """
     pipeline is the type of pipeline (blastx, tblastn, ..)
     """
     return performQuery(host, RUNPIPELINE_URL, dict(name=name,
                                                     pipeline=pipeline,
                                                     pipeline_name=pipelineName,
-                                                    pipeline_config=config.configToDict(conf)))
+                                                    pipeline_config=config.configToDict(conf),
+                                                    overwrite=overwrite))
 
 
 def downloadPipelineOutput(host, name, pipelineName, outputDir, overwrite):

@@ -4,12 +4,11 @@
 # This will require a few extra options though related around how to handle a cluster.
 #
 # The major differences between this and ncbi-blastall:
-# --auto=# or --cluster=name - This can either create a cluster, run the jobs on it all on its own
-#                              or use an existing cluster.  In the case of --auto, the cluster will
-#                              be started and terminated automatically after the data has been downloaded.
-#                              --auto take the number of worker nodes to start up as an argument
-#                              In the case of --cluster, the cluster will not be started or terminated, just
-#                              used to run the pipeline.
+# --auto or --cluster=name - This can either create a cluster, run the jobs on it all on its own
+#                            or use an existing cluster.  In the case of --auto, the cluster will
+#                            be started and terminated automatically after the data has been downloaded.
+#                            In the case of --cluster, the cluster will not be started or terminated, just
+#                            used to run the pipeline.
 # -d - This is the refrence db to use.  This option has been modified a little bit.  Because we don't want
 #      the user to have to upload reference databases all the time we allow them to specify a tag that will
 #      handle the reference database for them.  However, the user may want to upload their own refrence database
@@ -23,21 +22,21 @@
 import sys
 import os
 import time
+import StringIO
 
 from igs.utils import logging
-from igs.utils.logging import debugPrint
 from igs.utils.cli import MissingOptionError
 from igs.utils import config
+from igs.utils import commands
 
 from vappio.webservice.tag import queryTag, tagData, uploadTag
-from vappio.webservice.cluster import startCluster, listClusters
+from vappio.webservice import cluster as cluster_ws
 from vappio.webservice.pipeline import runPipelineConfig, pipelineStatus
 
 from vappio.tasks.task import TASK_FAILED
 from vappio.tasks.utils import blockOnTask
 
 
-PIPELINE_CONFIG_FILE = '/opt/clovr_pipelines/workflow/project_saved_templates/clovr_blastall/clovr_blastall.config'
 
 NUM_TRIES = 60
 
@@ -48,7 +47,24 @@ def progress():
     time.sleep(30)
 
 def printUsage():
-    raise Exception('Implement me!')
+    print 'clovr_blastall is designed to support all of the blastall options but perform'
+    print 'all of the work in setting up a cluster on CloVR for the user.'
+    print
+    print 'clovr_blastall supports all of the options for blastall the only additional option is:'
+    print '\t--auto=CREDENTIAL |'
+    print '\t--cluster=CLUSTERNAME\t--auto will take care of creating a cluster'
+    print '\t\tsimply provide it with a credential name.  Use --cluster to use an existing cluster'
+    print
+    print 'Some options are required where they are not required with blastall.  This is to ensure that'
+    print 'one does not start a cluster only to realize they used an incorrect value.'
+    print
+    print 'The required options are:'
+    print '\t-p PROGRAM\tWhich blast program to use'
+    print '\t-i PATH\tPath to input file'
+    print '\t-o PATH\tPath to output directory'
+    print '\t-d PATH\tBLAST-style path to reference database'
+    print '\t-e VAL\tExpect value'
+
 
 def blockOnTaskAndFail(name, taskName, errMsg):
     state = blockOnTask('localhost', name, taskName)
@@ -134,13 +150,13 @@ def tagExists(cluster, tagName):
 
 
 def clusterExists(clusterName):
-    return clusterName in listClusters('localhost')
+    return clusterName in cluster_ws.listClusters('localhost')
 
 
 def tagInputIfNeeded(inputFile):
     inputTagName = os.path.basename(inputFile)
     if not tagExists('local', inputTagName):
-        debugPrint(lambda : 'Tagging input file: ' + inputFile)
+        logging.debugPrint(lambda : 'Tagging input file: ' + inputFile)
         taskName = tagData('localhost',
                            'local',
                            inputTagName,
@@ -153,7 +169,7 @@ def tagInputIfNeeded(inputFile):
                            {})
         blockOnTaskAndFail('local', taskName, 'Tagging input failed')
     else:
-        debugPrint(lambda : 'Input tag exists')
+        logging.debugPrint(lambda : 'Input tag exists')
 
 def tagDatabaseFiles(databasePath):
     """
@@ -166,7 +182,7 @@ def tagDatabaseFiles(databasePath):
     baseName = os.path.basename(databasePath)
     dirName = os.path.dirname(databasePath)
     if not tagExists('local', tagName):
-        debugPrint(lambda : 'Tagging database: ' + databasePath)
+        logging.debugPrint(lambda : 'Tagging database: ' + databasePath)
         taskName = tagData('localhost',
                            'local',
                            tagName,
@@ -181,7 +197,7 @@ def tagDatabaseFiles(databasePath):
     return tagName
 
 
-def makeClusterNameIfNeeded(numNodes, autoClusterName, alreadyClusterName):
+def makeClusterNameIfNeeded(autoNode, autoClusterName, alreadyClusterName):
     """
     autoClusterName - Name of the cluster if we decide to make one ourselves
     numNodes - How many exec nodes
@@ -190,7 +206,7 @@ def makeClusterNameIfNeeded(numNodes, autoClusterName, alreadyClusterName):
     ##
     # numNodes could be 0, we only want to do this path if it exlicitly is
     # not False
-    if numNodes is not False:
+    if autoNode is not False:
         return autoClusterName
     else:
         if not clusterExists(alreadyClusterName):
@@ -218,7 +234,7 @@ def removeCustomOptions(args):
         if not wantArg:
             if a in ['--auto', '--cluster', '-i', '-p', '-d', '-o', '-e', '--seqs_per_file']:
                 wantArg = True
-            elif a == '--debug' or a.startswith('--cluster=') or a.startswith('--auto=') or a.startswith('--seqs_per_file'):
+            elif a == '--debug' or a.startswith('--auto=') or a.startswith('--cluster=') or a.startswith('--seqs_per_file='):
                 pass
             else:
                 retArgs.append(a)
@@ -247,9 +263,8 @@ def main(_options, args):
     
     try:
         validateInput(args)
-        ##
-        # make autoNodes the integer value of whatever is input or false
-        autoNodes = extractOption(args, None, '--auto', True) and int(extractOption(args, None, '--auto', True))
+
+        autoNodes = extractOption(args, None, '--auto', True)
         clusterName = extractOption(args, None, '--cluster', True)
         inputFile = makeAbsolute(extractOption(args, '-i', None, True))
         outputDir = makeAbsolute(extractOption(args, '-o', None, True))
@@ -265,6 +280,13 @@ def main(_options, args):
 
         if autoNodes and clusterName:
             raise MissingOptionError('Can only specify --auto OR --cluster, not both')
+
+
+        if clusterName:
+            clust = cluster_ws.loadCluster('localhost', clusterName)
+            credName = clust.cred.name
+        else:
+            credName = autoNodes
         
         ##
         # Check that input tag exists
@@ -274,7 +296,7 @@ def main(_options, args):
         databaseTagName = tagDatabaseFiles(databasePath)
 
 
-        debugPrint(lambda : 'Checking to see if the cluster exists')
+        logging.debugPrint(lambda : 'Checking to see if the cluster exists')
         ##
         # Want to create a cluster name that will be the same between runs
         # So we can just restart the script on failure
@@ -284,33 +306,34 @@ def main(_options, args):
         # Remove args specific to this script
         blastArgs = ' '.join(removeCustomOptions(args))
 
-        pipelineName = inputTagName + '-' + databaseTagName
+        pipelineName = inputTagName + '-' + databaseTagName + '-' + str(time.time())
         pipelineWrapperName = pipelineName + '-wrapper'
-        debugPrint(lambda : 'Checking to see if pipeline is running...')
-        if not pipelineStatus('localhost', 'local', lambda p : p.name == pipelineWrapperName):
-            debugPrint(lambda : '%s is not running, running now' % pipelineName)
-            if clusterName != 'local':
-                clusterType = 'ec2'
-            else:
-                clusterType = 'local'
-                
-            conf = config.configFromMap({'cluster.CLUSTER_TAG': clusterName,
-                                         'cluster.CLUSTER_TYPE': clusterType,
-                                         'cluster.EXEC_NODES': str(autoNodes or 0),
-                                         'input.PIPELINE_NAME': pipelineName,
-                                         'input.INPUT_TAG': inputTagName,
-                                         'input.REF_DB_TAG': databaseTagName,
-                                         'misc.EXPECT': expectValue,
-                                         'misc.OTHER_OPTS': blastArgs,
-                                         'misc.PROGRAM': blastProgram},
-                                        config.configFromStream(open(PIPELINE_CONFIG_FILE), config.configFromEnv()))
-            if seqsPerFile is not False:
-                conf = config.configFromMap({'misc.SEQS_PER_FILE': str(seqsPerFile)}, conf)
+        logging.debugPrint(lambda : 'Checking to see if pipeline is running...')
+
+        sio = StringIO.StringIO()
+        commands.runSingleProgramEx(' '.join(['vp-describe-protocols', '--config-from-protocol=clovr_search']),
+                                    stdoutf=sio.write,
+                                    stderrf=None,
+                                    log=logging.DEBUG)
+        sio.seek(0, 0)
+
+        conf = config.configFromMap({'cluster.CLUSTER_NAME': clusterName,
+                                     'cluster.CLUSTER_CREDENTIAL': credName,
+                                     'cluster.EXEC_NODES': str(0),
+                                     'input.PIPELINE_NAME': pipelineName,
+                                     'input.INPUT_TAG': inputTagName,
+                                     'input.REF_DB_TAG': databaseTagName,
+                                     'misc.EXPECT': expectValue,
+                                     'misc.OTHER_OPTS': blastArgs,
+                                     'misc.PROGRAM': blastProgram},
+                                    config.configFromStream(sio, config.configFromEnv()))
+        if seqsPerFile is not False:
+            conf = config.configFromMap({'misc.SEQS_PER_FILE': str(seqsPerFile)}, conf)
 
 
-            runPipelineConfig('localhost', 'local', 'clovr_wrapper', pipelineWrapperName, conf)
-
-        debugPrint(lambda : 'Waiting for pipeline to finish...')
+        runPipelineConfig('localhost', 'local', 'clovr_wrapper', pipelineWrapperName, conf)
+        
+        logging.debugPrint(lambda : 'Waiting for pipeline to finish...')
         pipelineInfo = pipelineStatus('localhost', 'local', lambda p : p.name == pipelineWrapperName)[0]
         blockOnTaskAndFail('local', pipelineInfo.taskName, 'Pipeline failed')
         
