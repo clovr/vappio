@@ -13,9 +13,15 @@ case $platform in
 	    echo "ec2"
 	    exit;
 	else
-	#xen
-	    echo "xen"
-	    exit;
+	#xen or diag?
+	    if [ -e /var/nimbus-metadata-server-url ]
+	    then
+		echo "diag"
+		exit;
+	    else
+		echo "xen"
+		exit;
+	    fi
 	fi
 	;;
     vmware)
