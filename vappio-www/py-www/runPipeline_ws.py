@@ -26,7 +26,7 @@ class RunPipeline(CGIPage):
         
         #
         # If this request is local and there does not exist a pipeline with the same name
-        if request['name'] == 'local' and not matchingPipeline:
+        if request['name'] == 'local' and (not matchingPipeline or request['overwrite']):
             ##
             # Each pipeline has a variable number of steps, so just set this to 1 and it will be fixed later
             taskName = createTaskAndSave('runPipeline', 1, 'Starting ' + request['pipeline_name'])
