@@ -319,7 +319,7 @@ sub install_igs_idgenerator {
 sub replace_software_config_values {
     my $old_config = shift;
     
-    my $new_config_path = "$install_base/software.config";
+    my $new_config_path = "$install_base/docs/software.config";
     
     my $new_config = new Config::IniFiles( -file => $new_config_path ) ||
                         die "failed to open new software config: $!";
