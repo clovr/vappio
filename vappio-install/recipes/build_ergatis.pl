@@ -146,7 +146,6 @@ install_chado_schema($install_base);
 if ( $opts{id_generator} eq 'igs' ) {
     run_command("cp -r /usr/local/projects/ergatis/package-latest/lib/perl5/IGS $install_base/lib/perl5");
 }
-run_command("cp -r /usr/local/projects/ergatis/package-latest/lib/perl5/IGS $install_base/lib/perl5");
 my $installed_software_config="$install_base/software.config";
 run_command("cp $install_base/components/shared/software.config $installed_software_config");
 replace_software_config_values($software_config,$installed_software_config);
