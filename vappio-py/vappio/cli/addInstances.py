@@ -28,7 +28,7 @@ def main(options, _args):
     if options('general.print_task_name'):
         print taskName
     else:
-        runTaskStatus(taskName)
+        runTaskStatus(taskName, clusterName=options('general.name'))
 
 
         

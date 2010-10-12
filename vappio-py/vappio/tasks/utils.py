@@ -97,18 +97,23 @@ def runTaskMain(func, options, args, optionsTaskName='general.task_name'):
     """
     return runTask(options(optionsTaskName), lambda : func(options, args))
 
-def runTaskStatus(taskName):
+def runTaskStatus(taskName, clusterName=None):
     """
     This is a simple function that takes a taskname and simply runs vp-describe-task
     on it.  It is meant to be used in specific situations in front ends.  It is not
     meant to be a generic function.  There are no guarantees that this funciton will
     exist tomorrow and it could be moved into a more fitting location at any point
     """
-    commands.runSystemEx(' '.join(['vp-describe-task',
-                                   '--show',
-                                   '--show-error',
-                                   '--exit-code',
-                                   '--block',
-                                   '--no-print-polling',
-                                   taskName]))
+    cmd = ['vp-describe-task',
+           '--show',
+           '--show-error',
+           '--exit-code',
+           '--block',
+           '--no-print-polling']
+    if clusterName:
+        cmd.append('--name=' + clusterName)
+        
+    cmd.append(taskName)
+    
+    commands.runSystemEx(' '.join(cmd))
     

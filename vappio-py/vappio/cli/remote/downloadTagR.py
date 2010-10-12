@@ -33,18 +33,18 @@ def main(options, _args):
     metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
     metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])
 
-    fileList = downloadTag(srcCluster, dstCluster, options('general.tag_name'), baseDir=metadata.get('tag_base_dir', None))
+    fileTag = downloadTag(srcCluster, dstCluster, options('general.tag_name'), baseDir=metadata.get('tag_base_dir', None))
     tsk = task.updateTask(tsk.progress())
-    tagTaskName = tag.tagData('localhost',
-                              options('general.dst_cluster'),
-                              options('general.tag_name'),
-                              None,
-                              fileList,
-                              False,
-                              options('general.expand'),
-                              False,
-                              True,
-                              metadata)
+    tagTaskName = tag.tagData(host='localhost',
+                              name=options('general.dst_cluster'),
+                              tagName=options('general.tag_name'),
+                              tagBaseDir=fileTag('metadata.tag_base_dir'),
+                              files=fileTag('files'),
+                              recursive=False,
+                              expand=options('general.expand'),
+                              append=False,
+                              overwrite=True,
+                              metadata=metadata)
     endState, tsk = task_utils.blockOnTaskAndForward('localhost',
                                                      options('general.dst_cluster'),
                                                      tagTaskName,

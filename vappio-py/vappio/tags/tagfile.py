@@ -132,14 +132,13 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
     if tagBaseDir:
         metadata['tag_base_dir'] = tagBaseDir
 
-    if metadata:
-        if append and os.path.exists(outName + '.metadata'):
-            tmd = json.loads(open(outName + '.metadata').read())
-            metadata = func.updateDict(tmd, metadata)
+    if append and os.path.exists(outName + '.metadata'):
+        tmd = json.loads(open(outName + '.metadata').read())
+        metadata = func.updateDict(tmd, metadata)
 
-        outFile = open(outName + '.metadata', 'w')
-        outFile.write(json.dumps(metadata, indent=1) + '\n')
-        outFile.close()
+    outFile = open(outName + '.metadata', 'w')
+    outFile.write(json.dumps(metadata, indent=1) + '\n')
+    outFile.close()
 
     return loadTagFile(outName)
     

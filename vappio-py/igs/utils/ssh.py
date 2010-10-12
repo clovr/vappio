@@ -1,8 +1,8 @@
 ##
 # Useful functions for doing things with ssh
-from igs.utils.logging import errorPrint
+from igs.utils.logging import errorPrint, errorPrintS
 from igs.utils.commands import ProgramRunError, ProgramRunner, runProgramRunner
-
+from igs.utils import commands
 
 def quoteStr(s):
     """
@@ -115,3 +115,25 @@ def scpToEx(host, src, dst, user=None, options=None, log=False):
     exitCode = runProgramRunner(pr)
     if exitCode != 0:
         raise ProgramRunError(pr.cmd, exitCode)    
+
+def rsyncFromEx(host, src, dst, rsyncOptions=None, user=None, log=False):
+    cmd = ['rsync']
+    if rsyncOptions:
+        cmd.append(rsyncOptions)
+
+    if user:
+        host = user + '@' + host
+
+    cmd.extend([host + ':' + src, dst])
+
+    return commands.runSingleProgramEx(' '.join(cmd), stdoutf=None, stderrf=errorPrintS, log=log)
+
+def rsyncFrom(host, src, dst, rsyncOptions=None, user=None, log=False):
+    try:
+        rsyncFromEx(host, src, dst, rsyncOptions, user, log)
+        return 0
+    except ProgarmRunError, err:
+        return err.exitCode
+
+           
+           

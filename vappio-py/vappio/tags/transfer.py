@@ -1,11 +1,13 @@
 ##
 # Transfering tags to/from a machine
 import os
+import time
 
-from igs.utils.ssh import scpToEx, scpFromEx
+from igs.utils.ssh import scpToEx, scpFromEx, rsyncFromEx
 from igs.utils.logging import errorPrintS, errorPrint
 from igs.utils.errors import TryError
 from igs.utils.commands import ProgramRunError
+from igs.utils import config
 
 from vappio.tags.tagfile import loadTagFile, isPhantom
 
@@ -103,6 +105,18 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
     # return the list of uploaded filenames
     return [d for l, d in dstFileNames]
 
+
+def partitionFiles(td):
+    if 'metadata.tag_base_dir' in td.keys():
+        baseDirFiles = [f.replace(td('metadata.tag_base_dir'), '')
+                        for f in td('files')
+                        if f.startswith(td('metadata.tag_base_dir'))]
+        downloadFiles = [f
+                      for f in td('files')
+                      if not f.startswith(td('metadata.tag_base_dir'))]
+        return (baseDirFiles, downloadFiles)
+    else:
+        return ([], td('files'))
     
 
 def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
@@ -129,32 +143,85 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     if baseDir is None:
         baseDir = srcCluster.config('dirs.upload_dir')
 
-    ##
+    #
     # Get the list of files
     tagData = queryTag('localhost', srcCluster.name, tagName)
 
-    ##
-    # Create a set of directory names so we can recreate the remote structure locally
-    dirNames = set([os.path.join(dstDir,
-                                 makePathRelative(os.path.dirname(f).replace(baseDir, '')))
-                    for f in tagData('files')])
-    ##
-    # Take the files and construct a list of tuples mapping the remote file name to the local file name
-    lclFileNames = [(f, os.path.join(dstDir,
-                                     makePathRelative(f.replace(baseDir, ''))))
-                    for f in tagData('files')]
+    #
+    # Some tags have a tag_base_dir metadata element which shows how much of the path
+    # to cut off when transfering.  However, it is not guaranteed that every file
+    # in the tag will be in thise base directory, it is meant more as a guide.
+    # If this metadata element exists we want to group the download into 2 steps.
+    # 1) Download all files that exist in the tag_base_dir and cut off tag_base_dir
+    #    in the download
+    # 2) The rest
 
-    ##
-    # Make all of the directories
-    try:
-        makeDirsOnCluster(dstCluster, dirNames)
-    except TryError, err:
-        errorPrint('Caught TryError, ignoring for now: %s - %s ' (err.msg, str(err.result)))    
+    baseDirFiles, nonBaseDirFiles = partitionFiles(tagData)
+    
+    if baseDirFiles:
+        #
+        # Write those files out to a temporary file so we can use it with --files-from in rysnc
+        tmpFName = os.path.join(dstCluster.config('general.secure_tmp'), 'rsync-tmp-' + str(time.time()))
+        fout = open(tmpFName, 'w')
+        fout.writelines([f + '\n' for f in baseDirFiles])
+        fout.close()
 
-    ##
-    # Copy the files locally
-    for r, l in lclFileNames:
-        scpFromEx(srcCluster.master.publicDNS, r, l, user=srcCluster.config('ssh.user'), options=srcCluster.config('ssh.options'), log=True)
+        #
+        # Do the rsync
+        rsyncOptions = ' '.join([srcCluster.config('rsync.options'), '--files-from=' + tmpFName])
+        rsyncFromEx(srcCluster.master.publicDNS,
+                    tagData('metadata.tag_base_dir'),
+                    os.path.join(baseDir, tagName),
+                    rsyncOptions=rsyncOptions,
+                    user=srcCluster.config('rsync.user'),
+                    log=True)
 
-    return [l for r, l in lclFileNames]
+        os.unlink(tmpFName)
+
+    if nonBaseDirFiles:
+        #
+        # Write those files out to a temporary file so we can use it with --files-from in rysnc
+        tmpFName = os.path.join(dstCluster.config('general.secure_tmp'), 'rsync-tmp-' + str(time.time()))
+        fout = open(tmpFName, 'w')
+        fout.writelines([f + '\n' for f in nonBaseDirFiles])
+        fout.close()
+
+        #
+        # Do the rsync
+        rsyncOptions = ' '.join([srcCluster.config('rsync.options'), '--files-from=' + tmpFName])
+        rsyncFromEx(srcCluster.master.publicDNS,
+                    '/',
+                    os.path.join(baseDir, tagName),
+                    rsyncOptions=rsyncOptions,
+                    user=srcCluster.config('rsync.user'),
+                    log=True)
+
+        os.unlink(tmpFName)    
+    
+    # #
+    # # Create a set of directory names so we can recreate the remote structure locally
+    # dirNames = set([os.path.join(dstDir,
+    #                              makePathRelative(os.path.dirname(f).replace(baseDir, '')))
+    #                 for f in tagData('files')])
+    # #
+    # # Take the files and construct a list of tuples mapping the remote file name to the local file name
+    # lclFileNames = [(f, os.path.join(dstDir,
+    #                                  makePathRelative(f.replace(baseDir, ''))))
+    #                 for f in tagData('files')]
+
+    # #
+    # # Make all of the directories
+    # try:
+    #     makeDirsOnCluster(dstCluster, dirNames)
+    # except TryError, err:
+    #     errorPrint('Caught TryError, ignoring for now: %s - %s ' (err.msg, str(err.result)))    
+
+    # #
+    # # Copy the files locally
+    # for r, l in lclFileNames:
+    #     rsyncFromEx(srcCluster.master.publicDNS, r, l, rsyncOptions=srcCluster.config('rsync.options'), user=srcCluster.config('rsync.user'), log=True)
+
+    return config.configFromMap({'files': [os.path.join(baseDir, tagName, makePathRelative(f)) for f in baseDirFiles + nonBaseDirFiles],
+                                 'metadata.tag_base_dir': baseDir})
+                                     
     
