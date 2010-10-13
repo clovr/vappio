@@ -12,7 +12,7 @@ echo sun-java6-jre shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-s
 sudo apt-get  --force-yes -y install sun-java6-jdk
 #sudo apt-get --force-yes -y install sun-java6-jdk
 #sudo update-java-alternatives -s java-6-sun
-apt-get -y install hadoop
+apt-get -y install hadoop hadoop-datanode hadoop-jobtracker hadoop-namenode hadoop-native hadoop-tasktracker hadoop-sbin
 source /root/clovrEnv.sh
 checkoutObject.py vappio img-conf/etc/hadoop/conf/core-site.xml.tmpl /etc/hadoop/conf/core-site.xml.tmpl
 checkoutObject.py vappio img-conf/etc/hadoop/conf/hdfs-site.xml.tmpl /etc/hadoop/conf/hdfs-site.xml.tmpl
