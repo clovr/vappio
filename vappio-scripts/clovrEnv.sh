@@ -41,6 +41,7 @@ export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907
 # EC2 api stuff needs to go in begining of path to override what is already on the VM
 export PATH=/opt/opt-packages/ec2-api-tools-1.3-53907/bin:$PATH
 
+export HADOOP_NAMENODE_USER=www-data
 
 #Globus perl5lib is causing problems. This will be deactivated until
 #it works, see task 376.
