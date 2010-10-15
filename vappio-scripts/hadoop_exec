@@ -11,6 +11,8 @@ if sys.argv[1] == 'start':
     executeTemplate('/etc/hadoop/conf/core-site.xml.tmpl')
     executeTemplate('/etc/hadoop/conf/hdfs-site.xml.tmpl')
     executeTemplate('/etc/hadoop/conf/mapred-site.xml.tmpl')
+    dirExists('/mnt/hadoop')
+    dirOwner('/mnt/hadoop', 'www-data', 'www-data')
     run('/etc/init.d/hadoop-0.20-datanode start')
     run('/etc/init.d/hadoop-0.20-tasktracker start')
 elif sys.argv[1] == 'stop':
