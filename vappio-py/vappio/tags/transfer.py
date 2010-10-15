@@ -165,10 +165,15 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
 
         #
         # Do the rsync
-        rsyncOptions = ' '.join([srcCluster.config('rsync.options'), '--files-from=' + tmpFName])
+        try:
+            makeDirsOnCluster(dstCluster, [dstDir])
+        except TryError, err:
+            errorPrint('Caught TryError, ignoring for now: %s - %s ' % (err.msg, str(err.result)))
+            
+        rsyncOptions = ' '.join([dstCluster.config('rsync.options'), '--files-from=' + tmpFName])
         rsyncFromEx(srcCluster.master.publicDNS,
                     baseDir,
-                    os.path.join(dstDir, tagName),
+                    dstDir,
                     rsyncOptions=rsyncOptions,
                     user=srcCluster.config('rsync.user'),
                     log=True)
@@ -185,17 +190,21 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
 
         #
         # Do the rsync
+        try:
+            makeDirsOnCluster(dstCluster, [dstDir])
+        except TryError, err:
+            errorPrint('Caught TryError, ignoring for now: %s - %s ' % (err.msg, str(err.result)))        
         rsyncOptions = ' '.join([srcCluster.config('rsync.options'), '--files-from=' + tmpFName])
         rsyncFromEx(srcCluster.master.publicDNS,
                     '/',
-                    os.path.join(dstDir, tagName),
+                    dstDir,
                     rsyncOptions=rsyncOptions,
                     user=srcCluster.config('rsync.user'),
                     log=True)
 
         os.unlink(tmpFName)    
     
-    return config.configFromMap({'files': [os.path.join(baseDir, tagName, makePathRelative(f)) for f in baseDirFiles + nonBaseDirFiles],
-                                 'metadata.tag_base_dir': baseDir})
+    return config.configFromMap({'files': [os.path.join(dstDir, makePathRelative(f)) for f in baseDirFiles + nonBaseDirFiles],
+                                 'metadata.tag_base_dir': dstDir})
                                      
     
