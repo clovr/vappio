@@ -5,6 +5,10 @@ import os
 from igs.cgi import handler
 from igs.cgi import request as cgi_request
 
+from vappio.webservice import cluster as cluster_ws
+
+URL = '/vappio/listFiles_ws.py'
+
 #
 # This is a list of base directories that are valid for
 # users of this webservice to see
@@ -32,14 +36,21 @@ class ListFiles(handler.CGIPage):
     def body(self):
         request = cgi_request.readQuery()
 
-        path = os.path.abspath(request['path'])
-        if not pathValid(path):
-            raise Exception('The path you provided is invalid')
+        if request['name'] == 'local':
+            path = os.path.abspath(request['path'])
+            if not pathValid(path):
+                raise Exception('The path you provided is invalid')
 
-        return dict([(f,
-                      dict(ftype=getFType(os.path.join(path, f)),
-                           name=f))
-                     for f in os.listdir(path)])
+            return dict([(f,
+                          dict(ftype=getFType(os.path.join(path, f)),
+                               name=f))
+                         for f in os.listdir(path)])
+        else:
+            #
+            # Forward the request onto the appropriate machine
+            cluster = cluster_ws.loadCluster('localhost', request['name'])
+            request['name'] = 'local'
+            return cgi_request.performQuery(cluster.master.publicDNS, URL, request)
                               
 handler.generatePage(ListFiles())
 
