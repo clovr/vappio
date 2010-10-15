@@ -23,7 +23,7 @@ def main(options, args):
     logging.DEBUG = options('general.debug')
     urls = []
     if not args:
-        for line in sys.stdin:
+        for line in [l for l in sys.stdin if l.strip()]:
             urls.append(line.strip() + options('general.suffix'))
     else:
         urls.extend([u + options('general.suffix') for u in args])

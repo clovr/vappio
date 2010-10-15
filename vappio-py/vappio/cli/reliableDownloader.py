@@ -206,7 +206,7 @@ def main(options, args):
     # Track the downloaded URL names for joining later if specified
     urls = []
     if not args:
-        for line in sys.stdin:
+        for line in [l for l in sys.stdin if l.strip()]:
             md5, url = line.split(' ', 1)
             url = url.strip()
             urls.append(url)

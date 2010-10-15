@@ -106,17 +106,14 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
     return [d for l, d in dstFileNames]
 
 
-def partitionFiles(td):
-    if 'metadata.tag_base_dir' in td.keys():
-        baseDirFiles = [f.replace(td('metadata.tag_base_dir'), '')
-                        for f in td('files')
-                        if f.startswith(td('metadata.tag_base_dir'))]
-        downloadFiles = [f
-                      for f in td('files')
-                      if not f.startswith(td('metadata.tag_base_dir'))]
-        return (baseDirFiles, downloadFiles)
-    else:
-        return ([], td('files'))
+def partitionFiles(td, baseDir):
+    baseDirFiles = [f.replace(td('metadata.tag_base_dir'), '')
+                    for f in td('files')
+                    if f.startswith(td('metadata.tag_base_dir'))]
+    downloadFiles = [f
+                     for f in td('files')
+                     if not f.startswith(td('metadata.tag_base_dir'))]
+    return (baseDirFiles, downloadFiles)
     
 
 def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
@@ -156,7 +153,7 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     #    in the download
     # 2) The rest
 
-    baseDirFiles, nonBaseDirFiles = partitionFiles(tagData)
+    baseDirFiles, nonBaseDirFiles = partitionFiles(tagData, baseDir)
     
     if baseDirFiles:
         #
@@ -170,8 +167,8 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
         # Do the rsync
         rsyncOptions = ' '.join([srcCluster.config('rsync.options'), '--files-from=' + tmpFName])
         rsyncFromEx(srcCluster.master.publicDNS,
-                    tagData('metadata.tag_base_dir'),
-                    os.path.join(baseDir, tagName),
+                    baseDir,
+                    os.path.join(dstDir, tagName),
                     rsyncOptions=rsyncOptions,
                     user=srcCluster.config('rsync.user'),
                     log=True)
@@ -191,36 +188,13 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
         rsyncOptions = ' '.join([srcCluster.config('rsync.options'), '--files-from=' + tmpFName])
         rsyncFromEx(srcCluster.master.publicDNS,
                     '/',
-                    os.path.join(baseDir, tagName),
+                    os.path.join(dstDir, tagName),
                     rsyncOptions=rsyncOptions,
                     user=srcCluster.config('rsync.user'),
                     log=True)
 
         os.unlink(tmpFName)    
     
-    # #
-    # # Create a set of directory names so we can recreate the remote structure locally
-    # dirNames = set([os.path.join(dstDir,
-    #                              makePathRelative(os.path.dirname(f).replace(baseDir, '')))
-    #                 for f in tagData('files')])
-    # #
-    # # Take the files and construct a list of tuples mapping the remote file name to the local file name
-    # lclFileNames = [(f, os.path.join(dstDir,
-    #                                  makePathRelative(f.replace(baseDir, ''))))
-    #                 for f in tagData('files')]
-
-    # #
-    # # Make all of the directories
-    # try:
-    #     makeDirsOnCluster(dstCluster, dirNames)
-    # except TryError, err:
-    #     errorPrint('Caught TryError, ignoring for now: %s - %s ' (err.msg, str(err.result)))    
-
-    # #
-    # # Copy the files locally
-    # for r, l in lclFileNames:
-    #     rsyncFromEx(srcCluster.master.publicDNS, r, l, rsyncOptions=srcCluster.config('rsync.options'), user=srcCluster.config('rsync.user'), log=True)
-
     return config.configFromMap({'files': [os.path.join(baseDir, tagName, makePathRelative(f)) for f in baseDirFiles + nonBaseDirFiles],
                                  'metadata.tag_base_dir': baseDir})
                                      

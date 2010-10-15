@@ -20,8 +20,26 @@ OPTIONS = [
     ('metadata', '', '--metadata', 'JSON Encoded dictionary representing metadata', cli.defaultIfNone('{}'))
     ]
 
+RESTRICTED_DIRS = ['/bin/',
+                   '/boot/',
+                   '/dev/',
+                   '/etc/',
+                   '/home/',
+                   '/lib/',
+                   '/mnt/keys/',
+                   '/mnt/vappio-conf/',
+                   '/proc/',
+                   '/root/',
+                   '/sbin/',
+                   '/usr/',
+                   '/var/']
 
-    
+def restrictDirs(f):
+    for d in RESTRICTED_DIRS:
+        if f.startswith(d):
+            return False
+
+    return True
 
 def main(options, files):
     tsk = task.updateTask(task.loadTask(options('general.task_name')
@@ -38,7 +56,8 @@ def main(options, files):
             expand=options('general.expand'),
             append=options('general.append'),
             overwrite=options('general.overwrite'),
-            metadata=json.loads(options('general.metadata')))
+            metadata=json.loads(options('general.metadata')),
+            filterF=restrictDirs)
     tsk = tsk.progress().setState(task.TASK_COMPLETED)
     task.updateTask(tsk)
 
