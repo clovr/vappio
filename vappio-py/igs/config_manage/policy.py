@@ -70,7 +70,7 @@ def fileOwner(fname, owner, group=None):
 
     runSystemEx('chown %s %s' % (who, fname))
         
-def dirOwner(dirname, owner, group=None):
+def dirOwner(dirname, owner, group=None, ignoreError=False):
     """Set owners of a directory, recursively. use fileOwner if you do not want recursive"""
     dirname = replaceStr(dirname, conf)
     owner = replaceStr(owner, conf)
@@ -79,7 +79,7 @@ def dirOwner(dirname, owner, group=None):
         group = replaceStr(group, conf)
         who += ':' + group
 
-    runSystemEx('chown -R %s %s' % (who, dirname))
+    run('chown -R %s %s' % (who, dirname), ignoreError=ignoreError)
 
 
 def ensurePkg(pkgname):
