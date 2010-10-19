@@ -17,7 +17,7 @@ wget -P /tmp http://www.carfab.com/apachesoftware//hadoop/core/hadoop-0.20.2/had
 rm /tmp/hadoop-0.20.2.tar.gz
 
 source /root/clovrEnv.sh
-checkoutObject.py vappio img-conf/etc/hadoop/conf/core-site.xml.tmpl /opt/opt-packages/hadoop-*/conf/core-site.xml.tmpl
-checkoutObject.py vappio img-conf/etc/hadoop/conf/hdfs-site.xml.tmpl /opt/opt-packages/hadoop-*/conf/hdfs-site.xml.tmpl
-checkoutObject.py vappio img-conf/etc/hadoop/conf/mapred-site.xml.tmpl /opt/opt-packages/hadoop-*/conf/mapred-site.xml.tmpl
+checkoutObject.py vappio img-conf/etc/hadoop/conf/core-site.xml.tmpl /opt/opt-packages/hadoop-0.20.2/conf/core-site.xml.tmpl
+checkoutObject.py vappio img-conf/etc/hadoop/conf/hdfs-site.xml.tmpl /opt/opt-packages/hadoop-0.20.2/conf/hdfs-site.xml.tmpl
+checkoutObject.py vappio img-conf/etc/hadoop/conf/mapred-site.xml.tmpl /opt/opt-packages/hadoop-0.20.2/conf/mapred-site.xml.tmpl
 
