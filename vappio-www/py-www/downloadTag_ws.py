@@ -25,6 +25,9 @@ class DownloadTag(CGIPage):
                    '--src-cluster=' + request['src_cluster'],
                    '--dst-cluster=' + request['dst_cluster']]
 
+            if request['output_dir']:
+                cmd.append('--output-dir=' + request['output_dir'])
+                           
             if request['expand']:
                 cmd.append('--expand')
 
