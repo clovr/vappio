@@ -6,9 +6,13 @@ vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
 
+mount /dev/sda2 /mnt
+
 # Download scripts
 export vappio_url_user_data=`cat /var/nimbus-metadata-server-url`/2008-08-08/user-data
+mkdir -p $user_data_scripts
 curl --retry 3 --silent --show-error --fail -o $user_data_scripts/metadata $vappio_url_user_data
+chmod +x $user_data_scripts/metadata
 
 # Run user scripts
 # TODO,split user data file into $user_data_scripts
