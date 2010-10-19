@@ -18,6 +18,7 @@ if sys.argv[1] == 'start':
     dirExists('/mnt/hadoop')
     dirOwner('/mnt/hadoop', 'www-data', 'www-data', ignoreError=True)
     run('hadoop namenode -format', ignoreError=True)
+    run('chmod -R 777 /mnt/hadoop')
 
     run('/etc/init.d/hadoop-0.20-namenode start')
     run('/etc/init.d/hadoop-0.20-datanode start')

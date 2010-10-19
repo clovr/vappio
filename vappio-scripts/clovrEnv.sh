@@ -5,7 +5,7 @@ export RDP_JAR_PATH=$BIOINF_HOME/rdp_classifier/rdp_classifier-2.0.jar
 
 export VAPPIO_HOME=/opt
 export PYTHONPATH=$PYTHONPATH:$VAPPIO_HOME/vappio-py:$BIOINF_HOME/Denoiser/:$BIOINF_HOME/PyNAST/lib/:$BIOINF_HOME/qiime/lib/
-export JAVA_HOME=/usr
+export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/
   
 export PATH=$PATH:/usr/local/bin:/usr/local/sbin:/usr/sbin
 export PATH=$PATH:/opt/vappio-py/vappio/cli:/opt/vappio-py/vappio/cli/remote:/opt/vappio-scripts:/opt/vappio-scripts/pipelines
@@ -41,7 +41,10 @@ export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907
 # EC2 api stuff needs to go in begining of path to override what is already on the VM
 export PATH=/opt/opt-packages/ec2-api-tools-1.3-53907/bin:$PATH
 
+##
+# These environmental varibales are required for hadoop to run without any errors
 export HADOOP_NAMENODE_USER=www-data
+export HADOOP_DATANODE_USER=www-data
 
 #Globus perl5lib is causing problems. This will be deactivated until
 #it works, see task 376.
