@@ -10,7 +10,7 @@ export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/
 export PATH=$PATH:/usr/local/bin:/usr/local/sbin:/usr/sbin
 export PATH=$PATH:/opt/vappio-py/vappio/cli:/opt/vappio-py/vappio/cli/remote:/opt/vappio-scripts:/opt/vappio-scripts/pipelines
 export PATH=$PATH:/opt/crossbow/ec2-local:/opt/crossbow/local:/opt/samtools:/opt/cufflinks:/opt/opt-packages/bowtie-0.12.0
-#export PATH=$PATH:/opt/hadoop/bin/, we have moved hadoop
+export PATH=$PATH:/opt/hadoop/bin
 export PATH=$PATH:$BIOINF_HOME/cd-hit/:$BIOINF_HOME/FastTree:$BIOINF_HOME/rdp_classifier:$BIOINF_HOME/UCLUST/:$BIOINF_HOME/MUSCLE/:$BIOINF_HOME/mafft/bin/:$BIOINF_HOME/PyNAST/bin/:$BIOINF_HOME/qiime/bin/:$BIOINF_HOME/mothur/:$BIOINF_HOME/microbiomeutil/ChimeraSlayer/
 
 ##

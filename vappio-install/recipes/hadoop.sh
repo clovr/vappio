@@ -10,11 +10,14 @@ sudo apt-get update
 echo sun-java6-jre shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
 
 sudo apt-get  --force-yes -y install sun-java6-jdk
-#sudo apt-get --force-yes -y install sun-java6-jdk
 #sudo update-java-alternatives -s java-6-sun
-apt-get -y install hadoop hadoop-datanode hadoop-jobtracker hadoop-namenode hadoop-native hadoop-tasktracker hadoop-sbin
+#apt-get -y install hadoop hadoop-datanode hadoop-jobtracker hadoop-namenode hadoop-native hadoop-tasktracker hadoop-sbin
+wget -P /tmp http://www.carfab.com/apachesoftware//hadoop/core/hadoop-0.20.2/hadoop-0.20.2.tar.gz
+(cd /opt/opt-packages && tar -zxvf /tmp/hadoop-0.20.2.tar.gz)
+rm /tmp/hadoop-0.20.2.tar.gz
+
 source /root/clovrEnv.sh
-checkoutObject.py vappio img-conf/etc/hadoop/conf/core-site.xml.tmpl /etc/hadoop/conf/core-site.xml.tmpl
-checkoutObject.py vappio img-conf/etc/hadoop/conf/hdfs-site.xml.tmpl /etc/hadoop/conf/hdfs-site.xml.tmpl
-checkoutObject.py vappio img-conf/etc/hadoop/conf/mapred-site.xml.tmpl /etc/hadoop/conf/mapred-site.xml.tmpl
+checkoutObject.py vappio img-conf/etc/hadoop/conf/core-site.xml.tmpl /opt/opt-packages/hadoop-*/conf/core-site.xml.tmpl
+checkoutObject.py vappio img-conf/etc/hadoop/conf/hdfs-site.xml.tmpl /opt/opt-packages/hadoop-*/conf/hdfs-site.xml.tmpl
+checkoutObject.py vappio img-conf/etc/hadoop/conf/mapred-site.xml.tmpl /opt/opt-packages/hadoop-*/conf/mapred-site.xml.tmpl
 
