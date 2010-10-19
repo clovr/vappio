@@ -72,6 +72,18 @@ def find(f, iterable):
 
     return None
 
+def chunk(ch, i):
+    chunk = []
+    for v in i:
+        chunk.append(v)
+        if len(chunk) == ch:
+            yield chunk
+            chunk = []
+
+    if chunk:
+        yield chunk
+
+
 class Record:
     """
     This represents a record of name->value pairs (kind of like a dictionary) that is meant
