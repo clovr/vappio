@@ -65,8 +65,8 @@ class Config:
     immutable
     """
 
-    def __init__(self, m, base, lazy=False):
-        self.conf = flattenMap(m)
+    def __init__(self, m, base, lazy=False, depth=None):
+        self.conf = flattenMap(m, depth=depth)
         self.base = base
 
 
@@ -160,7 +160,7 @@ def configListFromStream(stream):
     return cfg
     
     
-def configFromStream(stream, base=None, lazy=False):
+def configFromStream(stream, base=None, lazy=False, depth=None):
     """
     Constructs a config function from a stream.
 
@@ -168,20 +168,23 @@ def configFromStream(stream, base=None, lazy=False):
 
     The returned value will be a composite of base with stream."""
 
-    return configFromMap(dict(configListFromStream(stream)), base, lazy)
+    return configFromMap(dict(configListFromStream(stream)), base, lazy, depth)
 
 
-def flattenMap(map):
+def flattenMap(map, depth):
     res = {}
     for k, v in map.iteritems():
         if k:
             n = k + '.'
         else:
             n = ''
-        ##
+        #
         # Cheap way to see if v is a map
-        if hasattr(v, 'keys'):
-            for kp, vp in flattenMap(v).iteritems():
+        # We only want to do this if depth is true (a positive int)
+        # or depth is None (infinit depth)
+        if hasattr(v, 'keys') and (depth > 0 or depth is None):
+            if depth: depth = depth - 1
+            for kp, vp in flattenMap(v, depth).iteritems():
                 res[n + kp] = vp
         else:
             res[k] = v
@@ -239,23 +242,23 @@ def replaceStr(str, lookup):
 
     return str
 
-def configFromMap(map, base=None, lazy=False):
-    return Config(map, base, lazy)
+def configFromMap(map, base=None, lazy=False, depth=None):
+    return Config(map, base, lazy, depth)
 
 
-def configFromDict(d, base=None, lazy=False):
-    return configFromMap(d, base, lazy)
+def configFromDict(d, base=None, lazy=False, depth=None):
+    return configFromMap(d, base, lazy, depth)
 
 
-def configFromConfig(c, base=None, lazy=False):
-    return configFromMap(configToDict(c), base, lazy)
+def configFromConfig(c, base=None, lazy=False, depth=None):
+    return configFromMap(configToDict(c), base, lazy, depth)
 
-def configFromEnv(base=None, lazy=False):
+def configFromEnv(base=None, lazy=False, depth=None):
     """
     This constructs a config from the environment variables and puts them in the [env] section.
     Case is preserved, so it would be ${env.HOME}.  Variables are also replaced.
     """
-    return configFromMap({'env': os.environ}, base, lazy)
+    return configFromMap({'env': os.environ}, base, lazy, depth)
 
 
 def configToDict(config):
