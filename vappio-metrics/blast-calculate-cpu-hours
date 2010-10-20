@@ -10,8 +10,8 @@
 # input.MIN_QUERY_SEQ_LEN
 # input.AVG_QUERY_SEQ_LEN
 # input.NUM_QUERY_SEQ
-# input.SCALE_DOWN_FACTOR - How much to scale the total number of queries down, can be a float
-#                           defaults to 1 if not specified
+# input.SCALE_FACTOR - How much to scale the total number of queries, can be a float
+#                      defaults to 1 if not specified
 # input.REF_DB_TOTAL_SEQ_LEN -- currently not used
 import sys
 
@@ -30,13 +30,13 @@ WORK_FACTOR = {'blastn': 1,
 # baseline for that is 28000 * WORK_FACTOR['blastx']
 RESIDUES_PER_CORE_PER_HOUR = 28000 * WORK_FACTOR['blastx']
 
-def calculateCPUHours(program, numSeqs, avgLen, scaleDown):
+def calculateCPUHours(program, numSeqs, avgLen, scale):
     """
     + 1 because we always high-ball by an hour
     /scaleDown because we allow fo rthe total number of hours to be brought down by factor if the input DB
     is smaller than NR
     """
-    return (WORK_FACTOR[program] * float(numSeqs * avgLen)/float(RESIDUES_PER_CORE_PER_HOUR))/scaleDown + 1
+    return (WORK_FACTOR[program] * float(numSeqs * avgLen)/float(RESIDUES_PER_CORE_PER_HOUR)) * scale + 1
 
 
 # Ensure we are dealing with kv pairs
@@ -52,7 +52,7 @@ kv = {'cluster.CLUSTER_NAME': None,
       'input.MIN_QUERY_SEQ_LEN': None,
       'input.AVG_QUERY_SEQ_LEN': None,
       'input.NUM_QUERY_SEQ': None,
-      'input.SCALE_DOWN_FACTOR': 1,
+      'input.SCALE_FACTOR': 1,
       #'input.REF_DB_TOTAL_SEQ_LEN': None,
       }
 
@@ -74,7 +74,7 @@ for i in ['input.MAX_QUERY_SEQ_LEN',
           #'input.REF_DB_TOTAL_SEQ_LEN']:
     kv[i] = int(kv[i])
 
-for i in ['input.SCALE_DOWN_FACTOR',
+for i in ['input.SCALE_FACTOR',
           'input.AVG_QUERY_SEQ_LEN',
           ]:
     kv[i] = float(kv[i])
@@ -85,6 +85,6 @@ for i in ['input.SCALE_DOWN_FACTOR',
 totalHours = calculateCPUHours(kv['misc.PROGRAM'],
                                kv['input.NUM_QUERY_SEQ'],
                                kv['input.AVG_QUERY_SEQ_LEN'],
-                               kv['input.SCALE_DOWN_FACTOR'])
+                               kv['input.SCALE_FACTOR'])
 
 sys.stdout.write('\n'.join(['pipeline.COMPUTED_CPU_HOURS=' + str(totalHours)]) + '\n')
