@@ -13,6 +13,7 @@ OPTIONS = [
     ('tag_name', '', '--tag-name', 'Name of tag to upload', notNone),
     ('src_cluster', '', '--src-cluster', 'Name of source cluster', notNone),
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster, hardcoded to local for now', lambda _ : 'local'),
+    ('output_dir', '', '--output-dir', 'Name of directory to download to', identity),
     ('block', '-b', '--block', 'Block until download is complete', identity, True),
     ('expand', '', '--expand', 'Expand files', defaultIfNone(False), True),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),    
@@ -23,6 +24,7 @@ def main(options, files):
                            options('general.tag_name'),
                            options('general.src_cluster'),
                            options('general.dst_cluster'),
+                           options('general.output_dir'),
                            options('general.expand'))
 
     if options('general.print_task_name'):

@@ -2,6 +2,7 @@
 
 from igs.utils.cli import buildConfigN, notNone, defaultIfNone
 from igs.utils import errors
+from igs.utils import functional as func
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.webservice.cluster import loadCluster
@@ -16,6 +17,7 @@ OPTIONS = [
     ('task_name', '', '--task-name', 'Name of task', notNone),    
     ('src_cluster', '', '--src-cluster', 'Name of source cluster', notNone),
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster, hardcoded to local for now', lambda _ : 'local'),
+    ('output_dir', '', '--output-dir', 'Name of output dir', func.identity),
     ('expand', '', '--expand', 'Expand files', defaultIfNone(False), True)
     ]
 
@@ -33,7 +35,11 @@ def main(options, _args):
     metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
     metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])
 
-    fileTag = downloadTag(srcCluster, dstCluster, options('general.tag_name'), baseDir=metadata.get('tag_base_dir', None))
+    fileTag = downloadTag(srcCluster,
+                          dstCluster,
+                          options('general.tag_name'),
+                          dstDir=options('general.output_dir'),
+                          baseDir=metadata.get('tag_base_dir', None))
     tsk = task.updateTask(tsk.progress())
     tagTaskName = tag.tagData(host='localhost',
                               name=options('general.dst_cluster'),

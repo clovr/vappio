@@ -81,7 +81,13 @@ def dirOwner(dirname, owner, group=None, ignoreError=False):
 
     run('chown -R %s %s' % (who, dirname), ignoreError=ignoreError)
 
+def dirPermissions(dirname, perms, ignoreError=False):
+    dirname = replaceStr(dirname, conf)
+    perms = replaceStr(perms, conf)
 
+    run('chmod -R %s %s' % (perms, dirname), ignoreError=ignoreError)
+    
+    
 def ensurePkg(pkgname):
     """Ensure's a package exists"""
     path = os.path.join(conf('stow.package_dir'), pkgname)

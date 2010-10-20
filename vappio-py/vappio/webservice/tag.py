@@ -29,10 +29,11 @@ def uploadTag(host, tagName, srcCluster, dstCluster, expand):
                                                   expand=expand))
     
 
-def downloadTag(host, tagName, srcCluster, dstCluster, expand):
+def downloadTag(host, tagName, srcCluster, dstCluster, outputDir, expand):
     return performQuery(host, DOWNLOADTAG_URL, dict(tag_name=tagName,
                                                     src_cluster=srcCluster,
                                                     dst_cluster=dstCluster,
+                                                    output_dir=outputDir,
                                                     expand=expand))
     
 
