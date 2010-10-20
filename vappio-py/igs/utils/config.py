@@ -35,6 +35,35 @@
 #    [general]
 #    bar = baz
 #
+# 4) An include facility is provided.  This is through 2 directives: -include and -include_in_section.  The semantics are as follows:
+#    -include means to read in the provided file and to include its definitions irrespective of any context in the current file.
+#    For example, if you have f1.conf defined as:
+#    [foo]
+#    bar=baz
+#
+#    Then f2.conf defined as:
+#    [boom]
+#    -include f1.conf
+#    zoom=zoop
+#
+#    This would be equivalent to the following file
+#    [boom]
+#    [foo]
+#    bar=baz
+#    [boom]
+#    zoom=zoop
+#
+#    -include_in_section adds the contectual information of the file-including the other.  If f1.conf is defined the same as
+#    above, but f2.conf is defined as:
+#    [boom]
+#    -include_in_section f1.conf
+#    zoom=zoop
+#
+#    That is equivalent to the following file:
+#    [boom]
+#    foo.bar=baz
+#    zoom=zoop
+#
 #    This is equivalent to moving appending the second general to the first, HOWEVER.
 import os
 import re
@@ -86,6 +115,8 @@ class Config:
         """
         return self.get(key, **kwargs)
 
+    def __contains__(self, key):
+        return key in self.keys()
 
     def get(self, key, **kwargs):
         return replaceVariables(key,
@@ -141,7 +172,18 @@ def configListFromStream(stream):
         if not line or line[0] == '#':
             # A comment or empty line
             continue
-
+        elif line.startswith('-include '):
+            _, path = line.split(' ', 1)
+            path = path.strip()
+            cfg.extend(configListFromStream(open(path)))
+            continue
+        elif line.startswith('-include_in_section '):
+            _, path = line.split(' ', 1)
+            path = path.strip()
+            if section:
+                cfg.extend([(section + '.' + k, v) for k, v in configListFromStream(open(path))])
+            continue
+        
         if line[0] == '[':
             line = line.rstrip()
             if line[-1] == ']':
