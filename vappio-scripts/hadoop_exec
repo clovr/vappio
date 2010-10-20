@@ -8,21 +8,20 @@ if len(sys.argv) < 2:
     raise Exception('Must provide start|stop|restart')
 
 if sys.argv[1] == 'start':
-    executeTemplate('/etc/hadoop/conf/core-site.xml.tmpl')
-    executeTemplate('/etc/hadoop/conf/hdfs-site.xml.tmpl')
-    executeTemplate('/etc/hadoop/conf/mapred-site.xml.tmpl')
+    executeTemplate('/opt/hadoop/conf/core-site.xml.tmpl')
+    executeTemplate('/opt/hadoop/conf/hdfs-site.xml.tmpl')
+    executeTemplate('/opt/hadoop/conf/mapred-site.xml.tmpl')
+
     dirExists('/mnt/hadoop')
     dirOwner('/mnt/hadoop', 'www-data', 'www-data')
-    run('/etc/init.d/hadoop-0.20-datanode start')
-    run('/etc/init.d/hadoop-0.20-tasktracker start')
-elif sys.argv[1] == 'stop':
-    run('/etc/init.d/hadoop-0.20-datanode stop')
-    run('/etc/init.d/hadoop-0.20-tasktracker stop')
-elif sys.argv[1] == 'restart':
-    run('/etc/init.d/hadoop-0.20-datanode stop')
-    run('/etc/init.d/hadoop-0.20-tasktracker stop')
     
-    run('/etc/init.d/hadoop-0.20-datanode start')
-    run('/etc/init.d/hadoop-0.20-tasktracker start')
+    run('/opt/hadoop/bin/hadoop-daemon.sh start datanode')
+    run('/opt/hadoop/bin/hadoop-daemon.sh start tasktracker')
+
+elif sys.argv[1] == 'stop':
+    run('kill `cat /tmp/hadoop*tasktracker.pid`', ignoreError=True)
+    run('kill `cat /tmp/hadoop*datanode.pid`', ignoreError=True)
+elif sys.argv[1] == 'restart':
+    pass
 else:
     raise Exception('Unknown argument: ' + sys.argv[1])
