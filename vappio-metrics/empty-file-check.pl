@@ -6,8 +6,11 @@
 #########################################################
 use strict;
 use warnings;
-
+use Getopt::Long qw(:config no_ignore_case bundling);
 ###############           MAIN      #################
+my %options;
+my $result = GetOptions(\%options, 'error_log|e:s');
+open(STDERR, ">$options{'error_log'}") or die "Error opening the error log, $options{'error_log'}, $!\n" if($options{'error_log'});
 my $header = <>;
 unless (trim($header) eq 'kv') {
 	die "Header must contain 'kv'\n";
@@ -15,6 +18,7 @@ unless (trim($header) eq 'kv') {
 print STDOUT $header;
 
 checkForEmptyFiles(getTagList());
+close STDERR;
 exit(0);
 ###############       END OF MAIN   #################
 
@@ -46,20 +50,25 @@ sub getTagList {
 
 sub checkForEmptyFiles {
 	my ($tagList) = @_;
+	my @emptyFiles;
+	my @nonExistingFiles;
 	foreach(@$tagList) {
 		my $command = "vp-describe-dataset --tag-name=$_";
-		open(COMMAND, "$command |") or die "Error executing the command, $command, $!\n";
+		open(COMMAND, "$command |") or print STDERR "Error executing the command, $command, $!\n";
 		while(my $line = <COMMAND>) {
 			if(trim($line) =~ /^FILE\t(.+)$/) {
 				unless(-e $1) {
-					die "File, $1, does not exist\n";
+					push @nonExistingFiles, $1;
 				}
-				if(-z $1) {
-					die "File, $1, has no output written to it\n";
+				elsif(-z $1) {
+					push @emptyFiles, $1;
 				}
 			}
 		}
 		close COMMAND;
-		die "Error executing the command, $command; Failed with error code: $?\n" if($?);
-	}	
+		print STDERR "Error executing the command, $command; Failed with error code: $?\n" if($?);
+	}
+	
+	print STDERR "Empty files found:\n", join("\n",@emptyFiles), "\n" if(@emptyFiles);
+        print STDERR "Following file(s) do not exist:\n", join("\n",@nonExistingFiles),"\n" if(@nonExistingFiles);
 }
