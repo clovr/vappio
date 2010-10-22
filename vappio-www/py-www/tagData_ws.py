@@ -37,6 +37,9 @@ class TagData(CGIPage):
                 if request[i]:
                     cmd.append('--' + i)
 
+            if request['compress']:
+                cmd.append('--compress=' + request['compress'])
+                
             if request['tag_metadata']:
                 cmd.append('--metadata=' + quoteEncode(json.dumps(request['tag_metadata'])))
                 

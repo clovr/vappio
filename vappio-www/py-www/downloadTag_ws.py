@@ -31,6 +31,9 @@ class DownloadTag(CGIPage):
             if request['expand']:
                 cmd.append('--expand')
 
+            if request['compress']:
+                cmd.append('--compress')
+
             cmd.append('>> /tmp/downloadTag.log 2>&1 &')
 
             runSystemEx(' '.join(cmd))
