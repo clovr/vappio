@@ -52,6 +52,7 @@ def main(options, _args):
                               [outDir],
                               recursive=True,
                               expand=True,
+                              compress=None,
                               append=False,
                               overwrite=True,
                               metadata=metadata)

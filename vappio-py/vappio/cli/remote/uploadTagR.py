@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import os
 
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils import cli
 from igs.utils.ssh import scpToEx
 from igs.utils import errors
+from igs.utils import functional as func
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.instance.control import runSystemInstanceEx
@@ -16,11 +17,12 @@ from vappio.tasks import task
 from vappio.tasks import utils as task_utils
 
 OPTIONS = [
-    ('tag_name', '', '--tag-name', 'Name of tag to transfer', notNone),
-    ('task_name', '', '--task-name', 'Name of task', notNone),
-    ('src_cluster', '', '--src-cluster', 'Name of source cluster, hardcoded to local for now', lambda _ : 'local'),
-    ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster', notNone),
-    ('expand', '', '--expand', 'Expand files', defaultIfNone(False), True),
+    ('tag_name', '', '--tag-name', 'Name of tag to transfer', cli.notNone),
+    ('task_name', '', '--task-name', 'Name of task', cli.notNone),
+    ('src_cluster', '', '--src-cluster', 'Name of source cluster, hardcoded to local for now', func.const('local')),
+    ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster', cli.notNone),
+    ('expand', '', '--expand', 'Expand files', cli.defaultIfNone(False), True),
+    ('compress', '', '--compress', 'Compress files', func.identity, cli.BINARY)
     ]
 
 
@@ -95,16 +97,23 @@ def main(options, _args):
         metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
         metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])
 
-        tagTask = tagData('localhost',
-                          options('general.dst_cluster'),
-                          options('general.tag_name'),
-                          os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name')),
-                          fileList,
-                          False,
-                          options('general.expand'),
-                          False,
-                          True,
-                          metadata)
+        dstDir = os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name'))
+        if options('general.compress'):
+            compress = os.path.split(dstDir)[0]
+        else:
+            compress = None
+        
+        tagTask = tagData(host='localhost',
+                          name=options('general.dst_cluster'),
+                          tagName=options('general.tag_name'),
+                          tagBaseDir=dstDir,
+                          files=fileList,
+                          recursive=False,
+                          expand=options('general.expand'),
+                          compress=compress,
+                          append=False,
+                          overwrite=True,
+                          metadata=metadata)
         endState, tsk = task_utils.blockOnTaskAndForward('localhost',
                                                          options('general.dst_cluster'),
                                                          tagTask,
@@ -119,5 +128,5 @@ def main(options, _args):
         
 if __name__ == '__main__':
     runCatchError(lambda : task_utils.runTaskMain(main,
-                                                  *buildConfigN(OPTIONS)),
+                                                  *cli.buildConfigN(OPTIONS)),
                   mongoFail(dict(action='uploadTag')))

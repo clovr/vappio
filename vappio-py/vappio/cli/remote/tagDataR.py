@@ -15,6 +15,9 @@ OPTIONS = [
     ('tag_base_dir', '', '--tag-base-dir', 'Base dir of tag', func.identity),
     ('recursive', '-r', '--recursive', 'If file is a direcotry, recursively add files', cli.defaultIfNone(False), cli.BINARY),
     ('expand', '-e', '--expand', 'If file is an archive (.bz2, .tar.gz, .tgz), expand it', cli.defaultIfNone(False), cli.BINARY),
+    ('compress', '-c', '--compress',
+     'Make a tarball of the tagged results.  This should be the directory to put the tarball. This is not mutually exclusive with --expand',
+     func.identity),
     ('append', '-a', '--append', 'Append files to the current file list, this will not add duplicates. The overwrite option supercedes this.', cli.defaultIfNone(False), cli.BINARY),
     ('overwrite', '-o', '--overwrite', 'Overwrite tag if it already exists', cli.defaultIfNone(False), cli.BINARY),
     ('metadata', '', '--metadata', 'JSON Encoded dictionary representing metadata', cli.defaultIfNone('{}'))
@@ -57,11 +60,12 @@ def main(options, files):
             files,
             recursive=options('general.recursive'),
             expand=options('general.expand'),
+            compress=options('general.compress'),
             append=options('general.append'),
             overwrite=options('general.overwrite'),
             metadata=json.loads(options('general.metadata')),
             filterF=restrictDirs)
-    tsk = tsk.progress().setState(task.TASK_COMPLETED)
+    tsk = tsk.progress().addMessage(task.MSG_NOTIFICATION, 'Tagging complete').setState(task.TASK_COMPLETED)
     task.updateTask(tsk)
 
 

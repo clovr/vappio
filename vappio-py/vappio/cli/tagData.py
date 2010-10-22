@@ -15,6 +15,9 @@ OPTIONS = [
     ('tag_base_dir', '', '--tag-base-dir', 'Base directory of the tag', func.identity),
     ('recursive', '-r', '--recursive', 'Recursively include directories', cli.defaultIfNone(False), cli.BINARY),
     ('expand', '-e', '--expand', 'Expand archives', cli.defaultIfNone(False), cli.BINARY),
+    ('compress', '-c', '--compress',
+     'Make a tarball of the tagged results.  This should be the directory to put the tarball. This is not mutually exclusive with --expand',
+     func.identity),
     ('append', '-a', '--append', 'Append listed files to tag name, ignoring duplicate files', cli.defaultIfNone(False), cli.BINARY),
     ('overwrite', '-o', '--overwrite', 'Overwrite file list if it exists', cli.defaultIfNone(False), cli.BINARY),
     ('block', '-b', '--block', 'Block on the tagging', cli.defaultIfNone(False), cli.BINARY),
@@ -44,6 +47,7 @@ def main(options, files):
                        [makeAbsolute(f) for f in files],
                        options('general.recursive'),
                        options('general.expand'),
+                       options('general.compress') and makeAbsolute(options('general.compress')) or None,
                        options('general.append'),
                        options('general.overwrite'),
                        dict([s.split('=', 1) for s in options('general.metadata')]))

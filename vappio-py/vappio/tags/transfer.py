@@ -106,14 +106,17 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
     return [d for l, d in dstFileNames]
 
 
-def partitionFiles(td, baseDir):
-    baseDirFiles = [f.replace(td('metadata.tag_base_dir'), '')
-                    for f in td('files')
-                    if f.startswith(td('metadata.tag_base_dir'))]
-    downloadFiles = [f
-                     for f in td('files')
-                     if not f.startswith(td('metadata.tag_base_dir'))]
-    return (baseDirFiles, downloadFiles)
+def partitionFiles(files, baseDir):
+    if baseDir:
+        baseDirFiles = [f.replace(baseDir, '')
+                        for f in files
+                        if f.startswith(baseDir)]
+        downloadFiles = [f
+                         for f in files
+                         if not f.startswith(baseDir)]
+        return (baseDirFiles, downloadFiles)
+    else:
+        return ([], files)
     
 
 def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
@@ -153,7 +156,7 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     #    in the download
     # 2) The rest
 
-    baseDirFiles, nonBaseDirFiles = partitionFiles(tagData, baseDir)
+    baseDirFiles, nonBaseDirFiles = partitionFiles(tagData('files'), baseDir)
     
     if baseDirFiles:
         #

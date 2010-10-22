@@ -71,7 +71,29 @@ def generateFileList(files, recursive, expand):
             raise IOError('%s does not exist' % f)
                 
 
-def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, overwrite, metadata=None, filterF=None):
+def partitionFiles(files, baseDir):
+    if baseDir:
+        baseDirFiles = [f.replace(baseDir, '')
+                        for f in files
+                        if f.startswith(baseDir)]
+        downloadFiles = [f
+                         for f in files
+                         if not f.startswith(baseDir)]
+        return (baseDirFiles, downloadFiles)
+    else:
+        return ([], files)
+    
+
+def removeBase(baseDir, f):
+    if baseDir[-1] != '/':
+        baseDir += '/'
+
+    if f.startswith(baseDir):
+        return f.replace(baseDir, '', 1)
+
+    return f
+    
+def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, compress, append, overwrite, metadata=None, filterF=None):
     """
     Tag a list of files with the name.  The files can contain direcotires, and if recursive
     is set the contends of the directories will become part of the tag rather than just the name
@@ -79,6 +101,9 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
     tagBaseDir is the name of the directory that is not part of the actual tag heirarchy
     
     expand will cause any archives listed to be expanded and the contents of the archive to be added
+
+    compress will compress the files that have been put in the tag.  compress should be the path to the
+    directory the compressed file should be put.
 
     append will add to a tagName if it already exists, only unique names will be kept though
 
@@ -108,7 +133,8 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
         oldFiles = set()
 
 
-    files = [f for f in generateFileList(files, recursive, expand)
+    files = [f
+             for f in generateFileList(files, recursive, expand)
              if f not in oldFiles and (not filterF or filterF and filterF(f))]
         
 
@@ -127,7 +153,40 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, append, over
     outFile.write('\n')
     outFile.close()
 
-    ##
+    #
+    # If we are compressing the files then, load the tag back up
+    # so we have all of the files there
+    if compress:
+        outTar = str(os.path.join(compress, tagName + '.tar'))
+        outGzip = outTar + '.gz'
+        if not append and os.path.exists(outGzip):
+            os.remove(outGzip)
+        runSystemEx('mkdir -p ' + compress)
+        files = loadTagFile(outName)('files')
+        baseDirFiles, nonBaseDirFiles = partitionFiles(files, tagBaseDir)
+        if baseDirFiles:
+            for fs in func.chunk(100, baseDirFiles):
+                cmd = ['tar',
+                       '-C', tagBaseDir,
+                       '-rf', outTar,
+                       ]
+                cmd.extend([removeBase(tagBaseDir, f) for f in fs])
+                runSystemEx(' '.join(cmd), log=True)
+
+        if nonBaseDirFiles:
+            for fs in func.chunk(100, nonBaseDirFiles):
+                cmd = ['tar',
+                       '-C', '/',
+                       '-rf', outTar,
+                       ]
+                cmd.extend([removeBase('/', f) for f in fs])
+                runSystemEx(' '.join(cmd), log=True)
+
+        runSystemEx('gzip ' + outTar, log=True)
+        metadata = func.updateDict(metadata, {'compressed': True,
+                                              'compressed_file': outGzip})
+
+    #
     # If tagBaseDir is set it means we have some metadata to write
     if tagBaseDir:
         metadata['tag_base_dir'] = tagBaseDir

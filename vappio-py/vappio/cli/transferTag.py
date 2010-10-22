@@ -17,6 +17,7 @@ OPTIONS = [
      func.compose(cli.restrictValues(['cluster', 's3']), cli.defaultIfNone('cluster'))),
     ('block', '-b', '--block', 'Block until cluster is up (no longer used)', func.identity, cli.BINARY),
     ('expand', '', '--expand', 'Expand files', cli.defaultIfNone(False), cli.BINARY),
+    ('compress', '', '--compress', 'Compress files', func.identity, cli.BINARY),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', cli.defaultIfNone(False), cli.BINARY),
     ]
 
@@ -31,13 +32,15 @@ def transferBetweenClusters(options):
                              options('general.tag_name'),
                              options('general.src_cluster'),
                              options('general.dst_cluster'),
-                             options('general.expand'))
+                             options('general.expand'),
+                             options('general.compress'))
     elif options('general.src_cluster') != 'local':
         return tag.downloadTag(options('general.host'),
                                options('general.tag_name'),
                                options('general.src_cluster'),
                                options('general.dst_cluster'),
-                               options('general.expand'))
+                               options('general.expand'),
+                               options('general.compress'))
 
 def transferToS3(options):
     pass
