@@ -7,7 +7,18 @@ from igs.utils.cli import notNone, defaultIfNone, restrictValues, composeCLI, no
 
 from vappio.pipeline_tools.blast import tagToRefDBPath
 
-##
+def decideWordLength(blastProgramOrWordSize):
+    try:
+        return int(blastProgramOrWordSize)
+    except ValueError:
+        if blastProgram == 'blastn':
+            return 11
+        elif blastProgram == 'megablast':
+            return 28
+        else:
+            return 3
+
+#
 # Need to know where the template lives
 TEMPLATE_NAME = 'clovr_search_webfrontend'
 
@@ -16,12 +27,10 @@ OPTIONS = [
     ('input.REF_DB_PATH', '', '--REF_DB_TAG', 'The reference db for the blast run',
      composeCLI(tagToRefDBPath, lambda x : os.path.join('${dirs.tag_dir}/', x), notBlank, defaultIfNone('${input.REF_DB_TAG}'))),
     ('misc.PROGRAM', '', '--PROGRAM', 'The blast program to run (blastp, blastx, ..)', restrictValues(['blastn', 'blastp', 'blastx', 'tblastn', 'tblastx'])),
-    ('misc.EXPECT', '', '--EXPECT', 'e-value cutoff, default is 1e-5', notNone),
-    ##
-    # For SEQS_PER_FILE the function at the end may seem odd, but really this is just validating that they give us an int
-    # we actually want it as a string in order to do the replacement in the config file, which is why we do
-    # str . int
-    ('misc.SEQS_PER_FILE', '', '--SEQS_PER_FILE', 'Number of sequences per file, defaults to 1000', compose(str, int, defaultIfNone('1000'))),
+    ('general.EXPECT', '', '--EXPECT', 'e-value cutoff, default is 1e-5', defaultIfNone('1e-5')),
+    ('general.MAX_TARGET_SEQ', '', '--MAX_TARGET_SEQ', 'Number of database sequence to show alignments for', compose(lambda x: '-b ' + str(x), int, defaultIfNone('250'))),
+    ('general.WORD_SIZE', '', '--WORD_SIZE', 'Word size', composeCLI(lambda x: '-W ' + str(x), int, decideWordLength, defaultIfNone('${misc.PROGRAM}'))),
+    ('filter.LOW_COMPLEXITY', '', '--LOW_COMPLEXITY', 'Low complexity filter', compose(lambda x: '-F ' + (x == 'Yes' and 'T' or 'F'), restrictValues(['Yes', 'No']), defaultIfNone('No'))),
     ('misc.OTHER_OPTS', '', '--OTHER_OPTS', 'Other options to pass to blast', defaultIfNone('')),
     ]
 
