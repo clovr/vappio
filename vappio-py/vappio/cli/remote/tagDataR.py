@@ -28,11 +28,14 @@ RESTRICTED_DIRS = ['/bin/',
                    '/lib/',
                    '/mnt/keys/',
                    '/mnt/vappio-conf/',
+                   '/mnt/user-scripts/',
                    '/proc/',
                    '/root/',
                    '/sbin/',
+                   '/tmp/'
                    '/usr/',
-                   '/var/']
+                   '/var/',
+]
 
 def restrictDirs(f):
     for d in RESTRICTED_DIRS:

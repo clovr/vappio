@@ -64,7 +64,8 @@
 #    foo.bar=baz
 #    zoom=zoop
 #
-#    This is equivalent to moving appending the second general to the first, HOWEVER.
+#    NOTE: -include and -include_in_section are *NOT* like #include in C/C++.  This is not a basic copy and paste mechanism.  Instead they
+#    have contextual knowledge of where the processing currently is in the config file and apply that knowledge during the include.
 import os
 import re
 
