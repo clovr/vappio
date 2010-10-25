@@ -6,7 +6,7 @@ usescreen=yes
 screenname=vappio
 loginuser=root
 
-if [ "autologin" = "yes" ]
+if [ "$autologin" = "yes" ]
 then 
     # If used in conjunction with vp-loginprofile
     # SCREENME says to the login that we want to run screen in the startup
