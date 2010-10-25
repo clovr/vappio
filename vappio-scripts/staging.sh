@@ -33,6 +33,7 @@ vlog "###"
 #The remotehost has been sucessfully staged 
 #and is ready to seed peers
 remotehost="$1"
+shift
 
 if [ -f $vappio_runtime/no_dns ]
 then
@@ -68,18 +69,29 @@ then
 fi
 #If argument is specified
 #copy specified files
-if [ "$2" != "" ]; then
-    vlog "Start staging from $2 to $remotehost:/"
-    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $2 root@$remotehost:$2"
-    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $2 root@$remotehost:$2 1>> $vappio_log 2>> $vappio_log
-    if [ $? == 0 ]
-    then
-	vlog "rsync success. return value: $?"
-    else
-	vlog "ERROR: $0 rsync fail. return value $1"
-	verror "STAGING FAILURE";
+if [ "$1" != "" ]
+then
+    while (( "$#" )); do
+	if [ -d "$1" ]
+	then
+	    vlog "Start staging of directory $1 to $remotehost:$1"
+	    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $1 root@$remotehost:/"
+	    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $1 root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+	else
+	    vlog "Start staging of file $1 to $remotehost:$1"
+	    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" $1 root@$remotehost:$1"
+	    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" $1 root@$remotehost:$1 1>> $vappio_log 2>> $vappio_log
+	fi
+	if [ $? == 0 ]
+	then
+	    vlog "rsync success. return value: $?"
+	else
+	    vlog "ERROR: $0 rsync fail. return value $?"
+	    verror "STAGING FAILURE";
 	exit 1;
-    fi
+	fi
+	shift
+    done
 else
 #copy staging area
     vlog "Start staging from $staging_dir/ to $remotehost:$staging_dir"
@@ -94,7 +106,7 @@ else
 	    then
 	    vlog "rsync success. return value: $?"
 	else
-	    vlog "ERROR: $0 rsync fail. return value $1"
+	    vlog "ERROR: $0 rsync fail. return value $?"
 	    verror "LIST LARGEFILE STAGING FAILURE";
 	    exit 1;
 	fi
@@ -116,7 +128,7 @@ else
 		then
 		vlog "gridftp success. return value: $?"
 	    else
-		vlog "ERROR: $0 gridftp fail. return value $1"
+		vlog "ERROR: $0 gridftp fail. return value $?"
 		verror "STAGING FAILURE GRIDFTP";
 		exit 1;
 	    fi
@@ -129,7 +141,7 @@ else
 	    then
 	    vlog "rsync success. return value: $?"
 	else
-	    vlog "ERROR: $0 rsync fail. return value $1"
+	    vlog "ERROR: $0 rsync fail. return value $?"
 	    verror "STAGING FAILURE";
 	    exit 1;
 	fi
@@ -141,7 +153,7 @@ else
 	    then
 	    vlog "rsync success. return value: $?"
 	else
-	    vlog "ERROR: $0 rsync fail. return value $1"
+	    vlog "ERROR: $0 rsync fail. return value $?"
 	    verror "STAGING FAILURE";
 	    exit 1;
 	fi
