@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Set up some basic system settings to taste
-iIncluding ulimit, kernel params
+#Including ulimit, kernel params
 
 tmpdir=/tmp/$$
 rm -rf $tmpdir
