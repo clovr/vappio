@@ -145,7 +145,7 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
 
     #
     # Get the list of files
-    tagData = queryTag('localhost', srcCluster.name, tagName)
+    tagData = queryTag('localhost', srcCluster.name, [tagName])
 
     #
     # Some tags have a tag_base_dir metadata element which shows how much of the path

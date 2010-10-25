@@ -31,7 +31,7 @@ def main(options, _args):
     srcCluster = loadCluster('localhost', options('general.src_cluster'))
     dstCluster = loadCluster('localhost', options('general.dst_cluster'))
     
-    tagFile = tag.queryTag('localhost', options('general.src_cluster'), options('general.tag_name'))
+    tagFile = tag.queryTag('localhost', options('general.src_cluster'), [options('general.tag_name')])
 
     metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
     metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])

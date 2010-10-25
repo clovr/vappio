@@ -144,7 +144,7 @@ def tagExists(cluster, tagName):
     Determine if a tag exists
     """
     try:
-        return len(queryTag('localhost', cluster, tagName)('files')) > 0
+        return len(queryTag('localhost', cluster, [tagName])('files')) > 0
     except:
         return False
 

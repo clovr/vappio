@@ -16,13 +16,13 @@ def main(options, files):
     if options('general.tag_name'):
         tagData = tag.queryTag(options('general.host'),
                                options('general.name'),
-                               options('general.tag_name'))
+                               [options('general.tag_name')])
         for f in tagData('files'):
             print '\t'.join(['FILE', f])
 
         metadataKeys = [k for k in tagData.keys() if k.startswith('metadata.')]
         for k in metadataKeys:
-            print '\t'.join(['METADATA', '.'.join(k.split('.')[1:]), tagData(k)])
+            print '\t'.join(['METADATA', '.'.join(k.split('.')[1:]), str(tagData(k))])
     else:
         tags = tag.listAllTags(options('general.host'), options('general.name'))
         for t in tags:
