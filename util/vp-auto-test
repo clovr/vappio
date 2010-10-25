@@ -28,7 +28,7 @@ do
     chmod a+rx $dname/$bname/shared/user-scripts/03-schedshutdown
     if [ "$vmcheckdir" != "" ]
     then
-	numrunning=`find $vmcheckdir -type d -name "clovr-*.lck" -maxdepth 2 | wc`
+	numrunning=`find $vmcheckdir -type d -name "clovr-*.lck" -maxdepth 2 | wc -l`
 	if [ $numrunning -gt $maxrunning ]
 	then
 	    exit 2;
