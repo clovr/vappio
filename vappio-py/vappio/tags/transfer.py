@@ -157,7 +157,7 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     # 2) The rest
 
     baseDirFiles, nonBaseDirFiles = partitionFiles(tagData('files'), baseDir)
-    
+
     if baseDirFiles:
         #
         # Write those files out to a temporary file so we can use it with --files-from in rysnc
