@@ -17,10 +17,16 @@ do_start() {
 	then
 	    nodns=1
 	else
-	    ping -c 1 $myhostname
-	    if [ $? != "0" ]
+	    localhostname=`echo $myhostname | grep localhost`
+	    if [ "$localhostname" != "" ]
 	    then
 		nodns=1
+	    else
+		ping -c 1 $myhostname
+		if [ $? != "0" ]
+		then
+		    nodns=1
+		fi
 	    fi
 	fi
     fi
