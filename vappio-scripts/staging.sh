@@ -70,8 +70,8 @@ fi
 #copy specified files
 if [ "$2" != "" ]; then
     vlog "Start staging from $2 to $remotehost:/"
-    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $2 root@$remotehost:/"
-    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $2 root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $2 root@$remotehost:$2"
+    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $2 root@$remotehost:$2 1>> $vappio_log 2>> $vappio_log
     if [ $? == 0 ]
     then
 	vlog "rsync success. return value: $?"

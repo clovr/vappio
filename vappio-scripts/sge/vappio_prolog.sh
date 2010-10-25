@@ -115,7 +115,7 @@ then
 	stagedata=`grep STAGEDATA $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
 	if [ "$stagedata" != "" ]; then
 	    #verror "PROLOG. STAGEDATA configuration option not implemented"
-	    vlog "Submitting staging of input $exechost:$outdir to $stagingq,$stagingsubq"
+	    vlog "Submitting staging of input $myhost:$outdir to $stagingq,$stagingsubq"
 	    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -q $stagingq,$stagingsubq $staging_script $myhost $stagedata"
 	    vlog "CMD: $cmd" 
 	    $cmd 1>> $vappio_log 2>> $vappio_log
