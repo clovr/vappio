@@ -41,6 +41,6 @@ do
     then
 	curl http://localhost:8888/job/Build\%20$b\%20image/buildWithParameters?IMAGE_NAME=$image
     else
-	/opt/vappio-util/build.sh $image $b
+	/opt/vappio-util/vp-build $image $b
     fi
 done

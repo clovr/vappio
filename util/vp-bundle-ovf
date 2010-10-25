@@ -2,6 +2,15 @@
 
 USAGE="vp-bundle-ovf image.vmdk name output.ovf sharedpath"
 
+while getopts "h" options; do
+  case $options in
+      h ) echo -e $USAGE
+	  exit 1;;
+      \? ) echo -e $USAGE
+          exit 1;;
+  esac
+done
+
 #Clean up any old vms with the same name
 
 VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium none

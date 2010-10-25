@@ -1,0 +1,25 @@
+#!/bin/bash
+
+USAGE="vp-bundle_vmx image.vmdk template.vmx output.vmx [display_name]"
+
+while getopts "h" options; do
+  case $options in
+      h ) echo -e $USAGE
+	  exit 1;;
+      \? ) echo -e $USAGE
+          exit 1;;
+  esac
+done
+
+#Default display_name is clovr
+
+#Install
+vmdk=$1
+name=$4
+if [ "$name" = "" ]
+then
+    name="clovr"
+fi
+cp $2 $3
+perl -pi -e "s/\;NAME\;/$name/g" $3
+perl -pi -e "s/\;VMDK\;/$vmdk/g" $3

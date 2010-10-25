@@ -1,29 +1,39 @@
 #!/bin/bash -e
 
 USAGE="vp-build image.img bundlename1 name2 ... namen\n
+ Or to use custom build scripts outside of vappio,\n
+ vp-build image.img [-d bundledir] [-b http://urltobootstrapscript] bundlename1 name2 ... namen\n
+
+ Build new image(s) starting with image.img and running a build script named bundledir/bundlename1-N\n
+ Output is one or more directories containing VMs in raw, vmware, and vmx formats\n
+ Requires build scripts named bundlename1 that are either on the starting image or installed via bootstrapscript\n
+ Bootstrapscript can be a URL to an SVN repository\n
+ Performs an equivalent of\n
+ chroot image.img `curl bootstrapscript`\n
+ chroot image.img bundledir/bundlename1\n
+ Default build name will be bundlename-$date\n
+ \n 
+ \n
+ Example:
+ vp-build /mnt/image.img clovr-standard
+ \n
  To cleanup an aborted build run\n 
- vp-build -c image.img"
+ vp-build -c image.img\n
+ \n
+"
 
 #
-#eg. build.sh clovr_skeleton.img clovr_base clovr_standard
-#
-
-#Takes a skeleton image (image.img) and applies recipes name1 ... namen
+#Takes a skeleton image (image.img) and applies build scripts name1 ... namen
 #creating one output directory per image
-
-#Assumes to be run on a box that already has clovr-build recipe
+#Requires vappio utilities and vmware, vbox guest tools
+#These are already installed on a clovr-build VM
 
 #Failed builds may leave mounts and loopback devices
 #To cleanup, run
 #vp-build [-c cleanup bad build] image.img
-#To clean up all builds on the box
-#find /mnt -name image.img -exec /opt/vappio-util/vp-build -c {} \;
 
-#for testing on leatherface.igs.umaryland.edu
-#mount /dev/sdb1 /mnt
-#b=clovr_build
-#image=/mnt/image.img
-#bname=
+#To clean up all builds on a build box
+#find /mnt -name image.img -exec /opt/vappio-util/vp-build -c {} \;
 
 handlekill() {
     kill `jobs -p` || true
@@ -37,8 +47,18 @@ handlekill() {
     done
 }
 
-while getopts "ch" options; do
+#Default bootstrap script
+bootstrapscript=http://vappio.svn.sourceforge.net/viewvc/vappio/trunk/vappio-install/vp-bootstrap-install
+#Default build scripts directory
+bundledir=/opt/vappio-install/bundles
+
+utildir=/opt/vappio-util
+
+while getopts "cdh" options; do
   case $options in
+    d ) bundledir=$OPTARG
+	  shift
+	  ;;
     c ) clear=1
 	  shift;;
     h ) echo -e $USAGE
@@ -85,37 +105,31 @@ then
     exit 1
 fi
 
-recipedir=/opt/vappio-install/bundles
-utildir=/opt/vappio-util
-
-
-#bname=`basename $image`
-#namepfx=`echo "$bname" | perl -ne '/(.*)\.\w+/;print $1,"\n"'`
-
+#Pull buildname from Hudson environment if running under Hudson
 if [ "$BUILD_ID" != "" ]
 then
-    defaultname=`echo "$BUILD_ID" | sed 's/_/-/'`
+    buildname=`echo "$BUILD_ID" | sed 's/_/-/'`
 else
-    defaultname=`date "+%Y%m%d"`
+    buildname=`date "+%Y%m%d"`
 fi
 
-#remaining arguments are recipe names
+#Remaining arguments are bundle names
 shift
 
 #Setup to kill background jobs
-
 trap handlekill SIGINT SIGTERM
 
 for b in $*
 do
-    namepfx="$b-$defaultname"
+    namepfx="$b-$buildname"
     i=1
     while [ -d "$namepfx" ]
     do
 	i=`expr $i + 1`;
-	namepfx="$b-$defaultname-$i"
+	namepfx="$b-$buildname-$i"
     done
-    echo "Building $namepfx"
+    echo "Building $namepfx from script $bundledir/$b"
+    #Set up mounts points for loopback device
     mkdir -p /mnt/$$/$b
     mkdir -p /mnt/$$/$b.live
     currimg=/mnt/$$/$b/$namepfx.img
@@ -136,11 +150,12 @@ do
 	echo "Copying $image to $currimg"
 	cp --sparse=always $image $currimg
     fi
+    #Set up loop back device of image
     devname=`losetup --show -f $currimg`
     mount $devname /mnt/$$/$b.live
 
     #Set up some things for the chroot jail
-    export recipedir=$recipedir
+    export bundledir=$bundledir
     export b=$b
     mount --bind /proc /mnt/$$/$b.live/proc
     mount --bind /sys /mnt/$$/$b.live/sys
@@ -157,25 +172,29 @@ do
     cp /etc/apt/sources.list.orig /mnt/$$/$b.live/etc/apt/sources.list
     #Set up apt proxy to speed up downloads
     mkdir -p  /mnt/$$/$b.live/etc/apt.conf.d
-    #Check for apt proxy
+    #Check for apt proxy for local caching of apt packages
     curl http://localhost:3142 > /dev/null
     if [ $? = 0 ]
     then
 	svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy /mnt/$$/$b.live/etc/apt/apt.conf.d/01proxy
     fi
-    #Apply recipe
-    wget -c -P /mnt/$$/$b.live/tmp http://vappio.svn.sourceforge.net/viewvc/vappio/trunk/vappio-install/vp-bootstrap-install
-    chroot /mnt/$$/$b.live bash -e /tmp/vp-bootstrap-install
-    chroot /mnt/$$/$b.live $recipedir/$b
+
+    #Download and run bootstrap script
+    wget -c -P /mnt/$$/$b.live/tmp $bootstrapscript
+    chroot /mnt/$$/$b.live bash -e /tmp/`basename bootstrapscript`
+    #Apply build script to the image
+    chroot /mnt/$$/$b.live $bundledir/$b
     
     #Remove apt proxy
     rm -f /mnt/$$/$b.live/etc/apt/apt.conf.d/01proxy
     #Reset hostname
     echo -n > /mnt/$$/$b.live/etc/hostname
 
+    #Store build name
     mkdir -p /mnt/$$/$b.live/etc/vappio/
     echo "$namepfx" > /mnt/$$/$b.live/etc/vappio/release_name
     echo "$b" > /mnt/$$/$b.live/etc/vappio/bundle_name
+    date "+%Y%m%d-%H%M%S" > /mnt/$$/$b.live/etc/vappio/build_time
 
     #Exit from chroot
     umount /mnt/$$/$b.live/proc
@@ -186,19 +205,19 @@ do
     umount /mnt/$$/$b.live
     sync
     losetup -d $devname
-    #cleanup img
+    #cleanup img, removing tmp files
     echo "Cleaning image $currimg"
-    /opt/vappio-util/img_run.sh $currimg /opt/vappio-util/cleanupimg
-    #releaseCut scripts here
+    $utildir/vp-runonimg $currimg $utildir/cleanupimg
 
     #Build xen
     #create example clovr-xen.conf and bundle kernel image
-    echo "Created $currimg"
+    echo "Created raw disk image $currimg"
 
     #Build VMware/VBox
-    /opt/vappio-util/create_bundle.sh $currimg $namepfx
+    $utildir/vp-bundle-release $currimg $namepfx
     mv $currimg $namepfx.img
-    /opt/vappio-util/vp-compress-img $namepfx.img $namepfx.img.tgz || true
+    #Compress img
+    $utildir/vp-compress-img $namepfx.img $namepfx.img.tgz || true
     #Cleanup tmp dir
     rm -rf /mnt/$$/
 done

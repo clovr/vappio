@@ -11,7 +11,7 @@ USAGE="vp-create-vmdk image.img grub_install.tgz image.vmdk"
 
 if [ $# -ne 3 ] 
     then
-    echo "Usage: img_to_vmdk.sh <path_to_xen_image> <path_to_grub_tarball> <path_to_output_vmdk>"
+    echo "$USAGE"
     exit 2
 fi
 

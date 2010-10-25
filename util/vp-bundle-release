@@ -6,9 +6,23 @@
 
 USAGE="vp-bundle-release image.img name [force]"
 
+while getopts "h" options; do
+  case $options in
+      h ) echo -e $USAGE
+	  exit 1;;
+      \? ) echo -e $USAGE
+          exit 1;;
+  esac
+done
+
 currimg=$1
 namepfx=$2
 force=$3
+
+recipedir=/opt/vappio-install/recipes
+utildir=/opt/vappio-util
+vmxtemplate=/mnt/start_clovr.tmpl.vmx
+sharedtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared
 
 if [ "$force" != "" ] || [ ! -e $currimg.vmdk ]
 then
@@ -19,11 +33,11 @@ then
     popd
     
     cp --sparse=always $currimg $currimg.vmbundle
-    /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vmware.sh
-    /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-install/recipes/vbox.sh
-    /opt/vappio-util/img_run.sh $currimg.vmbundle /opt/vappio-util/cleanupimg
+    $utildir/vp-runonimg $currimg.vmbundle $recipedir/vmware.sh
+    $utildir/vp-runonimg $currimg.vmbundle $recipedir/vbox.sh
+    $utildir/vp-runonimg $currimg.vmbundle $utildir/cleanupimg
     
-    /opt/vappio-util/img_to_vmdk.sh $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
+    $utildir/vp-create-vmdk $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
     echo "Created $currimg.vmdk"
     rm -rf $currimg.vmbundle
 fi
@@ -31,12 +45,17 @@ mkdir $namepfx
 chmod 777 $namepfx
 pushd $namepfx
 #Create ovf bundle
-/opt/vappio-util/bundle_ovf.sh $currimg.vmdk $namepfx $namepfx.ovf /clovr/$namepfx
+$utildir/vp-bundle-ovf.sh $currimg.vmdk $namepfx $namepfx.ovf /clovr/$namepfx
+
 #Add vmx file
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx /mnt/start_clovr.tmpl.vmx
-/opt/vappio-util/bundle_vmx.sh ".\/$namepfx.vmdk" /mnt/start_clovr.tmpl.vmx start_clovr.vmx $namepfx
+#svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx /mnt/start_clovr.tmpl.vmx
+svn export --force $vmxtemplate /mnt/vmx$$.tmpl.vmx
+$utildir/vp-bundle-vmx.sh ".\/$namepfx.vmdk" /mnt/vmx$$.tmpl.vmx start_clovr.vmx $namepfx
+
 #Add shared folder 
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared shared
+#svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared shared
+svn export --force $sharedtemplate shared
+
 chmod 777 shared
 mkdir keys
 chmod 777 keys

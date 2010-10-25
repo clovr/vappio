@@ -1,6 +1,19 @@
 #!/bin/bash
 
-#USAGE: img_run.sh image.img cmd
+USAGE="vp-runonimg image.img cmd\n
+Runs cmd on image.img\n
+Equivalent to\n
+chroot image.img cmd\n
+"
+while getopts "h" options; do
+  case $options in
+      h ) echo -e $USAGE
+	  exit 1;;
+      \? ) echo -e $USAGE
+          exit 1;;
+  esac
+done
+
 #Mounts image as loopback, copies CMD onto the image and runs
 
 devname=`losetup --show -f $1`
@@ -30,6 +43,5 @@ umount /mnt/$$
 rmdir /mnt/$$
 
 losetup -d $devname
-
 
 exit

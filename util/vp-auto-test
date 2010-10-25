@@ -5,6 +5,7 @@ timeout=60
 hudsonport=8888
 buildvm=$1
 netcat="clovrtest-lx.igs.umaryland.edu 5678"
+vmcheckdir="/data/clovr-build/shared/"
 
 for n in `ls $buildvm/shared/clovr-*.runtests`
 do
@@ -19,7 +20,15 @@ do
     echo "/etc/init.d/hudson start" >> $dname/$bname/shared/user-scripts/02-starthudson
     chmod a+rx $dname/$bname/shared/user-scripts/02-starthudson
     #TODO - set 24hr shutdown
-    
+    #spin if 
+    if [ "$vmcheckdir" != "" ]
+    then
+	numrunning=`find $vmcheckdir -type d -name "clovr-*.lck" -maxdepth 2 | wc`
+	if [ $numrunning -gt 3 ]
+	then
+	    exit 2;
+	fi
+    fi
     #Boot the image
     /home/sangiuoli/vp-launch-headless $dname/$bname vmware || true
     nipaddr=`cat $dname/$bname/shared/clovr_ip`
