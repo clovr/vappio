@@ -12,7 +12,7 @@ At shutdown, files named K## will be invoked with a single argument, stop.
 Two specially named script are used by the system to detect the
 platform or node types dynamically at system boot.
 
-/etc/vappio/detect_platform - returns a single platform name
+/etc/vappio/vp-detect-platform - returns a single platform name
 
 Example platforms: ec2, magellan, xen, vmware, vbox
 
@@ -20,7 +20,7 @@ New platforms can be added by creating a directory with platform
 startup and shutdown scripts and adding detection logic to
 detect_platform
 
-/etc/vappio/$platform/detect_node_type - returns one or more node types
+/etc/vappio/$platform/vp-detect-nodetype - returns one or more node types
 
 Example node types: master, exec
 

@@ -1,0 +1,1 @@
+/etc/vappio/vp-screenlogin

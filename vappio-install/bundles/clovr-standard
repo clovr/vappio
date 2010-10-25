@@ -8,13 +8,26 @@ VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 apt-get -y update
 $VAPPIO_HOME/vappio-install/vp-bootstrap-install
 
+#Setup virgin image
 bash -e $VAPPIO_RECIPES/setup.sh
+#Basic system config
 bash -e $VAPPIO_RECIPES/sysconfigs.sh
+#bash -e $VAPPIO_RECIPES/useradd.sh
+
+#High performance SSH
 bash -e $VAPPIO_RECIPES/hpnssh.sh
+bash -e $VAPPIO_RECIPES/allowrootssh.sh
+
+#Vappio appliance utils
 bash -e $VAPPIO_RECIPES/vappioutil.sh
 bash -e $VAPPIO_RECIPES/vappiopkg.sh
+bash -e $VAPPIO_RECIPES/sethostname.sh
+bash -e $VAPPIO_RECIPES/autologin.sh
+
 bash -e $VAPPIO_RECIPES/vappiocustoms.sh
 bash -e $VAPPIO_RECIPES/vappio-metrics.sh
+
+#Grid utils
 bash -e $VAPPIO_RECIPES/ganglia.sh
 bash -e $VAPPIO_RECIPES/sge.sh
 bash -e $VAPPIO_RECIPES/hadoop.sh
@@ -22,30 +35,46 @@ bash -e $VAPPIO_RECIPES/hadoop.sh
 #catch all for cpanmod
 bash -e $VAPPIO_RECIPES/cpanmods.sh
 bash -e $VAPPIO_RECIPES/vappiosite.sh
+
 bash -e $VAPPIO_RECIPES/clovrsetup.sh
+
 #catch all for apt pkgs
 bash -e $VAPPIO_RECIPES/generalpkgs.sh
+
+#R
 bash -e $VAPPIO_RECIPES/rpkg.sh
+
+#Workflow and Ergatis
 bash -e $VAPPIO_RECIPES/workflow.sh
 bash -e $VAPPIO_RECIPES/ergatis.sh
 
+#Deps for aengine
 bash -e $VAPPIO_RECIPES/igsaengine.sh
 
-#was bash -e $VAPPIO_RECIPES/bioifxtools.sh
+#Biolinux and other bioifx packages
 bash -e $VAPPIO_RECIPES/biolinux.sh
 bash -e $VAPPIO_RECIPES/ubuntuifxpkgs.sh
+
+#Qiime
 bash -e $VAPPIO_RECIPES/qiime.sh
+
+#AMOS
 bash -e $VAPPIO_RECIPES/amos.sh
 
-#was bash -e $VAPPIO_RECIPES/clovrmain.sh
+#Non-standard packages
 bash -e $VAPPIO_RECIPES/clovroptpackages.sh
 bash -e $VAPPIO_RECIPES/clovrstow.sh
+
+#CloVR pipelines
 bash -e $VAPPIO_RECIPES/clovrpipelines.sh
 
+#CloVR GUI
 bash -e $VAPPIO_RECIPES/clovrdashboard.sh
 
+#Apache config
 bash -e $VAPPIO_RECIPES/apache.sh
 
+#Hudson
 bash -e $VAPPIO_RECIPES/hudson.sh
 
 # Adds an older version of ec2 tools and tools needed for nimbus

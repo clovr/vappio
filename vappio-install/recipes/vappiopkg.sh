@@ -34,3 +34,6 @@ chmod 755 /etc
 chmod 0440 /etc/sudoers
 
 
+#Add basic help
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d/10-help-text /etc/update-motd.d/10-help-text
+

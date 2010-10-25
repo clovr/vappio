@@ -192,9 +192,9 @@ do
 
     #Store build name
     mkdir -p /mnt/$$/$b.live/etc/vappio/
-    echo "$namepfx" > /mnt/$$/$b.live/etc/vappio/release_name
-    echo "$b" > /mnt/$$/$b.live/etc/vappio/bundle_name
-    date "+%Y%m%d-%H%M%S" > /mnt/$$/$b.live/etc/vappio/build_time
+    echo "$namepfx" > /mnt/$$/$b.live/etc/vappio/release_name.info
+    echo "$b" > /mnt/$$/$b.live/etc/vappio/bundle_name.info
+    date "+%Y%m%d-%H%M%S" > /mnt/$$/$b.live/etc/vappio/build_time.info
 
     #Exit from chroot
     umount /mnt/$$/$b.live/proc

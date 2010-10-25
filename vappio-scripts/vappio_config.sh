@@ -1,6 +1,7 @@
 vappio_scripts=/opt/vappio-scripts
 vappio_userdata=/mnt/
 vappio_runtime=/var/vappio/runtime/
+user_data_scripts=/mnt/user-scripts
 
 vappio_log=/tmp/vappio.log
 ##
@@ -79,6 +80,8 @@ idleshutdown=3
 delayshutdown=5
 #Number of 10-second intervals to wait for master node to boot
 waitformastertimeout=50
+#Delay boot until configuration is complete
+waitonboot=y
 
 ##Workflow 
 wfworking_dir=/mnt/wf-working
@@ -98,7 +101,7 @@ ssh_options="-oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUse
 default_node_type=master
 default_master_node=localhost
 user_data_file=/mnt/user-data.txt
-user_data_scripts=/mnt/user-scripts
+
 
 ##Data placement config
 ##Staging

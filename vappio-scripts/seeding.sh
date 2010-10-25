@@ -31,14 +31,25 @@ changes="yes"
 while [ "$changes" != "" ];
   do
   $staging_script $remotehost 1>> $vappio_log 2>> $vappio_log  
-  #List all changes between current host and remote host
-  changes=`rsync -av -n -e "$ssh_client -i $ssh_key $ssh_options" --delete --size-only $staging_dir/ root@$remotehost:$staging_dir | grep -v "sending incremental file list" | grep -v "total size is" | grep -v "bytes/sec" | perl -ne 's/\s+//g;print'` 
-  echo "Changes $changes"
+  if [ $? != 0 ]
+  then
+      ret=$?
+      changes="yes"
+      vlog "ERROR: $0 staging fail. return value $?"
+      verror "SEEDING FAILURE"
+  else
+      ret=0
+      #Confirm that changes are non-null. List all changes between current host and remote host
+      changes=`rsync -av -n -e "$ssh_client -i $ssh_key $ssh_options" --delete --size-only $staging_dir/ root@$remotehost:$staging_dir | grep -v "sending incremental file list" | grep -v "total size is" | grep -v "bytes/sec" | perl -ne 's/\s+//g;print'`
+      vlog "Staging changes $changes"
+  fi
 done
+
+#TODO add check to ensure staging success
 
 #At this point the staging directory is synced between remotehost and current host
 #Add host back into the queue
-if [ $? == 0 ]
+if [ "$ret" = 0 ]
 then
     vlog "staging successful"
     #Add to proper queue if not already added

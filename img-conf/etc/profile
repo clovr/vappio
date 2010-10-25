@@ -25,6 +25,5 @@ if [ "$PS1" ]; then
   fi
 fi
 
-ulimit -n 100000
-umask 022
+
 

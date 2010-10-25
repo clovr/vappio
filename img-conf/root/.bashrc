@@ -35,36 +35,39 @@ if [ -f "/opt/vappio-scripts/vappio_config.sh" ]
 then
     source /opt/vappio-scripts/vappio_config.sh
 
-    if [ -f "$vappio_runtime/node_type" ]; then
-	nodetype=`cat $vappio_runtime/node_type`;
-    else
-	nodetype="PENDING"
-    fi
-    
-    #Wait for vappio boot process to complete
-    if [ "$nodetype" = 'PENDING' ]
+    if [ "$waitonboot" != "" ]
     then
-	echo -n "Node is $nodetype. Waiting for setup to finish."
-	wait=1
-    fi
-    while [ "$nodetype" = 'PENDING' ] || [ "$nodetype" = "" ] || [ "$hostn" = "(none)" ]
-    do
-	echo -n '.'
+	if [ -f "$vappio_runtime/node_type" ]; then
+	    nodetype=`cat $vappio_runtime/node_type`;
+	else
+	    nodetype="PENDING"
+	fi
+	
+    #Wait for vappio boot process to complete
+	if [ "$nodetype" = 'PENDING' ]
+	then
+	    echo -n "Node is $nodetype. Waiting for setup to finish."
+	    wait=1
+	fi
+	while [ "$nodetype" = 'PENDING' ] || [ "$nodetype" = "" ] || [ "$hostn" = "(none)" ]
+	do
+	    echo -n '.'
+	    if [ -f "$vappio_runtime/node_type" ]
+	    then
+		nodetype=`cat $vappio_runtime/node_type`
+	    fi
+	    sleep 1
+	    hostn=`hostname`
+	done 
+	echo 
 	if [ -f "$vappio_runtime/node_type" ]
 	then
-	    nodetype=`cat $vappio_runtime/node_type`
+	    nodetype=`cat $vappio_runtime/node_type`;
 	fi
-	sleep 1
-	hostn=`hostname`
-    done 
-    echo 
-    if [ -f "$vappio_runtime/node_type" ]
-    then
-	nodetype=`cat $vappio_runtime/node_type`;
-    fi
-    if [ -f "$vappio_runtime/cloud_type" ]
-    then
-	cloudtype=`cat $vappio_runtime/cloud_type`;
+	if [ -f "$vappio_runtime/cloud_type" ]
+	then
+	    cloudtype=`cat $vappio_runtime/cloud_type`;
+	fi
     fi
 fi
 

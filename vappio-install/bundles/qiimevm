@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+export DEBIAN_FRONTEND=noninteractive
+
+VAPPIO_HOME=/opt
+VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
+
+apt-get -y update
+$VAPPIO_HOME/vappio-install/vp-bootstrap-install
+
+#Setup virgin image
+bash -e $VAPPIO_RECIPES/setup.sh
+#Basic system config
+bash -e $VAPPIO_RECIPES/sysconfigs.sh
+
+#High performance SSH
+#bash -e $VAPPIO_RECIPES/hpnssh.sh
+bash -e $VAPPIO_RECIPES/allowrootssh.sh
+
+#Vappio appliance utils
+#bash -e $VAPPIO_RECIPES/vappioutil.sh
+#bash -e $VAPPIO_RECIPES/vappiopkg.sh
+#bash -e $VAPPIO_RECIPES/sethostname.sh
+#bash -e $VAPPIO_RECIPES/autologin.sh
+
+
+
+

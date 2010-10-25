@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "$SCREENME" = "yes" ]; then
+    screen -list | grep $SCREENNAME
+    if [ "$?" == "0" ]; then
+	exec screen -s /bin/bash -rd $SCREENNAME
+    else
+	exec screen -s /bin/bash -S $SCREENNAME /etc/vappio/vp-loginprompt
+    fi
+fi
+export SCREENME=
+
