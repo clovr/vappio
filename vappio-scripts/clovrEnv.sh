@@ -54,7 +54,7 @@ export HADOOP_DATANODE_USER=www-data
 
 #ulimit -n 1000000
 
-clovrWrapper () { pipelinename=echo "clovr_`date "+%Y%m%d%s"`";taskname=`runPipeline.py --name local --pipeline clovr_wrapper --pipeline-name $pipelinename -t -- --CONFIG_FILE=$1` && taskStatus.py --block --show --show-error $taskname; }
+clovrWrapper () { pipelinename=echo "clovr_`date "+%Y%m%d%s"`";taskname=`vp-run-pipeline --name local --pipeline clovr_wrapper --pipeline-name $pipelinename -t -- --CONFIG_FILE=$1` && vp-describe-task --block --show --show-error $taskname; }
 clovrSleep () { clovrWrapper $1 ; }
 clovr16S () { clovrWrapper $1 ; }
 clovrMicrobe () { clovrWrapper $1 ; }
