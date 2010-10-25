@@ -69,15 +69,19 @@ touch /opt/ergatis/global_id_repository/valid_id_repository
 rm -rf /opt/ergatis/global_saved_templates
 ln -s /opt/clovr_pipelines/workflow/project_saved_templates /opt/ergatis/global_saved_templates
 
+#Configure website
+#Pull ergatis.ini, Config.pm
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/ergatis.ini /var/www/ergatis/ergatis.ini
+chmod a+r /var/www/ergatis/ergatis.ini
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/Config.pm /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
+chmod a+r /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/kill_wf.cgi /var/www/ergatis/cgi/kill_wf.cgi
+chmod a+rx /var/www/ergatis/cgi/kill_wf.cgi
+#DEPRECATED
 #Update configuration
 #wget http://cb2.igs.umaryland.edu/ergatis_config.tgz
-
-#wget http://cb2.igs.umaryland.edu/ergatis_clovr.tgz
 #tar -C / -xvzf ergatis_clovr.tgz
-
-#Configure website
-#TODO update ergatis.ini
-rm -f /tmp/clovr_ergatis_www.tgz
-wget -P /tmp http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
-tar -C / -xvzf /tmp/clovr_ergatis_www.tgz
+#rm -f /tmp/clovr_ergatis_www.tgz
+#wget -P /tmp http://cb2.igs.umaryland.edu/clovr_ergatis_www.tgz
+#tar -C / -xvzf /tmp/clovr_ergatis_www.tgz
 
