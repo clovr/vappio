@@ -16,25 +16,29 @@ my %options;
 my $results = GetOptions (\%options, 
 			  'config=s',
 			  'templatelayout=s',
-			  'taskname=s'
+			  'taskname=s',
+			  'queue=s'
                           );
 
 my $configFile = $options{'config'} if( $options{'config'} );
 my $templateLayout = $options{'templatelayout'} if( $options{'templatelayout'} );
 my $taskName = $options{'taskname'} if( $options{'taskname'} );
+my $queue = $options{'queue'} if ( $options{'queue'} );
 
 die("Must specify a config file") unless($configFile);
 die("Must specify a template") unless($templateLayout);
 die("Must specify a taskname") unless($taskName);
 
-my $pipeline_id = &make_pipeline($templateLayout, $repoRoot, $idRepo, $configFile, $taskName);
+$queue = 'pipelinewrapper.q' unless($queue);
+
+my $pipeline_id = &make_pipeline($templateLayout, $repoRoot, $idRepo, $configFile, $taskName, $queue);
 
 ##
 # Pring the pipeline
 print "$pipeline_id\n";
 
 sub make_pipeline {
-    my ($pipeline_layout, $repository_root, $id_repo, $config, $taskName) = @_;
+    my ($pipeline_layout, $repository_root, $id_repo, $config, $taskName, $queue) = @_;
     my $template = new Ergatis::SavedPipeline( 'template' => $pipeline_layout );
     $template->configure_saved_pipeline( $config, $repository_root, $id_repo );
     my $pipeline_id = $template->pipeline_id();
@@ -45,6 +49,8 @@ sub make_pipeline {
 
     my $ergatisConfig = new Ergatis::ConfigFile(-file => $ergatisConfigFile);
     $ergatisConfig->newval('workflow_settings', 'observer_scripts', "ergatisObserver.py:setlife:$taskName");
+    $ergatisConfig->newval('workflow_settings', 'submit_pipelines_as_jobs', '1');
+    $ergatisConfig->newval('workflow_settings', 'pipeline_submission_queue', $queue);
     $pipeline->run('ergatis_cfg' => $ergatisConfig);
     return $pipeline_id
 }
