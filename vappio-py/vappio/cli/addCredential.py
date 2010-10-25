@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-import os
 from twisted.python import reflect
 
-from igs.utils import commands
 from igs.utils import cli
 from igs.utils import functional as func
 

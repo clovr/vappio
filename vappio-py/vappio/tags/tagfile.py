@@ -170,7 +170,7 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, compress, ap
                        '-C', tagBaseDir,
                        '-rf', outTar,
                        ]
-                cmd.extend([removeBase(tagBaseDir, f) for f in fs])
+                cmd.extend([removeBase('/', f) for f in fs])
                 runSystemEx(' '.join(cmd), log=True)
 
         if nonBaseDirFiles:

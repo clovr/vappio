@@ -1,7 +1,7 @@
 #!/usr/bin/env python
+import os
 
 from igs.utils import cli
-from igs.utils import errors
 from igs.utils import functional as func
 
 from vappio.core.error_handler import runCatchError, mongoFail
@@ -18,8 +18,8 @@ OPTIONS = [
     ('src_cluster', '', '--src-cluster', 'Name of source cluster', cli.notNone),
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster, hardcoded to local for now', func.const('local')),
     ('output_dir', '', '--output-dir', 'Name of output dir', func.identity),
-    ('expand', '', '--expand', 'Expand files', cli.defaultIfNone(False), True),
-    ('compress', '', '--compress', 'Compress files', func.identity)
+    ('expand', '', '--expand', 'Expand files', cli.defaultIfNone(False), cli.BINARY),
+    ('compress', '', '--compress', 'Compress files', func.identity, cli.BINARY)
     ]
 
 
@@ -56,7 +56,7 @@ def main(options, _args):
                               files=fileTag('files'),
                               recursive=False,
                               expand=options('general.expand'),
-                              compress=compress
+                              compress=compress,
                               append=False,
                               overwrite=True,
                               metadata=metadata)

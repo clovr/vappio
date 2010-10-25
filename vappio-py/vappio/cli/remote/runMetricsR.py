@@ -4,7 +4,6 @@ import json
 import subprocess
 
 from igs.utils import cli
-from igs.utils import functional as func
 
 from vappio.core.error_handler import runCatchError, mongoFail
 from vappio.tasks import task

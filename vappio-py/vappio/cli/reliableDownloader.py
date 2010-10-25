@@ -69,7 +69,7 @@ def monitorDownload(pr, downloaderChan, baseDir, url, minRate):
         # If the program exited and exited correctly, then we're good
         # otherwise take another sample size and see if we should terminate
         if pr.exitCode is not None:
-            ret = downloaderChan.receive()
+            downloaderChan.receive()
             return True
         else:
             currentSize = getSizeOfFiles(getDownloadFilenames(baseDir, url)) - baseSize

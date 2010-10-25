@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-from igs.utils.cli import buildConfigN, notNone, defaultIfNone
+from igs.utils import cli
 
 from igs.utils import functional as func
 
 from vappio.webservice import tag
 
 OPTIONS = [
-    ('host', '', '--host', 'Host of web services to connect to, defaults to local host', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', defaultIfNone('local')),
+    ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
+    ('name', '', '--name', 'Name of cluster', cli.defaultIfNone('local')),
     ('tag_name', '', '--tag-name', 'Name of tag', func.identity),
     ]
 
@@ -29,6 +29,6 @@ def main(options, files):
             print '\t'.join(['TAG', t])
 
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS))
+    main(*cli.buildConfigN(OPTIONS))
     
 
