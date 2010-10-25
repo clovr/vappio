@@ -52,6 +52,7 @@ $SGE_ROOT/bin/$ARCH/qconf -Msconf $sched_conf
 ## add a queue from file
 $SGE_ROOT/bin/$ARCH/qconf -Aq $execq_conf
 $SGE_ROOT/bin/$ARCH/qconf -Aq $pipelineq_conf
+$SGE_ROOT/bin/$ARCH/qconf -Aq $pipelinewrapperq_conf
 $SGE_ROOT/bin/$ARCH/qconf -Aq $stagingq_conf 
 $SGE_ROOT/bin/$ARCH/qconf -Aq $stagingsubq_conf 
 $SGE_ROOT/bin/$ARCH/qconf -Aq $wfq_conf 
@@ -79,4 +80,5 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq
 $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $masterslots $execq@$myhostname
 
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
+$SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelinewrapperq
 

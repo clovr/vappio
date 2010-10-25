@@ -63,6 +63,7 @@ global_conf=$vappio_scripts/sge/global
 sched_conf=$vappio_scripts/sge/ge_sched.conf
 execq_conf=$vappio_scripts/sge/exec.q
 pipelineq_conf=$vappio_scripts/sge/pipeline.q
+pipelinewrapperq_conf=$vappio_scripts/sge/pipelinewrapper.q
 harvestingq_conf=$vappio_scripts/sge/harvesting.q
 stagingq_conf=$vappio_scripts/sge/staging.q
 stagingsubq_conf=$vappio_scripts/sge/stagingsub.q
@@ -115,6 +116,7 @@ stagingsubslots=1
 wfq=wf.q
 
 pipelineq=pipeline.q
+pipelinewrapperq=pipelinewrapper.q
 
 staging_script=$vappio_scripts/staging.sh
 seeding_script=$vappio_scripts/seeding.sh
