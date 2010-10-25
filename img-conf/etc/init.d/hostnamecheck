@@ -8,14 +8,20 @@ do_start() {
     nodns=0
     cp /etc/hosts.orig /etc/hosts
     myhostname=`hostname -f`
-    if [ $? != "0" ] || [ `echo $myhostname | grep clovr-` != "" ]
+    if [ $? != "0" ]
     then
 	nodns=1
     else
-	ping -c 1 $myhostname
-	if [ $? != "0" ]
+	clovrhostname=`echo $myhostname | grep clovr-`
+	if [ "$clovrhostname" != "" ]
 	then
 	    nodns=1
+	else
+	    ping -c 1 $myhostname
+	    if [ $? != "0" ]
+	    then
+		nodns=1
+	    fi
 	fi
     fi
     if [ $nodns = "1" ]
