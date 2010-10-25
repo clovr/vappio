@@ -100,7 +100,7 @@
     </Directory>
 
     Alias /output/ "/mnt/output/"
-    <Directory "/usr/share/doc/">
+    <Directory "/mnt/output/">
         Options +Indexes +MultiViews
     </Directory>
 
