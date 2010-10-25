@@ -6,6 +6,7 @@ hudsonport=8888
 buildvm=$1
 netcat="clovrtest-lx.igs.umaryland.edu 5678"
 vmcheckdir="/data/clovr-build/shared/"
+maxrunning=3
 
 for n in `ls $buildvm/shared/clovr-*.runtests`
 do
@@ -18,13 +19,17 @@ do
     #ln -s /opt/vappio-install/recipes/hudson.sh $dname/$bname/shared/user-scripts/01-installhudson || true
     echo "#!/bin/bash" > $dname/$bname/shared/user-scripts/02-starthudson
     echo "/etc/init.d/hudson start" >> $dname/$bname/shared/user-scripts/02-starthudson
+    echo "#!/bin/bash" > $dname/$bname/shared/user-scripts/03-schedshutdown
+    hour=`date +"%-H"`
+    shutdownhour=$(($hour-1))
+    echo "echo \"0 $shutdownhour * * * root /sbin/halt\" > /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user-scripts/03-schedshutdown
+    echo "chmod +x /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user-scripts/03-schedshutdown
     chmod a+rx $dname/$bname/shared/user-scripts/02-starthudson
-    #TODO - set 24hr shutdown
-    #spin if 
+    chmod a+rx $dname/$bname/shared/user-scripts/03-schedshutdown
     if [ "$vmcheckdir" != "" ]
     then
 	numrunning=`find $vmcheckdir -type d -name "clovr-*.lck" -maxdepth 2 | wc`
-	if [ $numrunning -gt 3 ]
+	if [ $numrunning -gt $maxrunning ]
 	then
 	    exit 2;
 	fi

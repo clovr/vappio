@@ -9,7 +9,7 @@ USAGE="vp-build image.img bundlename1 name2 ... namen\n
  Requires build scripts named bundlename1 that are either on the starting image or installed via bootstrapscript\n
  Bootstrapscript can be a URL to an SVN repository\n
  Performs an equivalent of\n
- chroot image.img `curl bootstrapscript`\n
+ chroot image.img 'curl bootstrapscript'\n
  chroot image.img bundledir/bundlename1\n
  Default build name will be bundlename-$date\n
  \n 
@@ -160,7 +160,7 @@ do
     mount --bind /proc /mnt/$$/$b.live/proc
     mount --bind /sys /mnt/$$/$b.live/sys
     mount --bind /dev /mnt/$$/$b.live/dev
-    touch /mnt/$$/$b.live/var/run/utmp 
+    touch /mnt/$$/$b.live/var/run/utmp
     touch /mnt/$$/$b.live/var/run/btmp
     touch /mnt/$$/$b.live/var/run/wtmp
     touch /mnt/$$/$b.live/var/run/lastlog
@@ -181,7 +181,8 @@ do
 
     #Download and run bootstrap script
     wget -c -P /mnt/$$/$b.live/tmp $bootstrapscript
-    chroot /mnt/$$/$b.live bash -e /tmp/`basename bootstrapscript`
+    bscript=`basename $bootstrapscript`
+    chroot /mnt/$$/$b.live bash -e /tmp/$bscript
     #Apply build script to the image
     chroot /mnt/$$/$b.live $bundledir/$b
     
