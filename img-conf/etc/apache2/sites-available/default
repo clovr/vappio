@@ -99,4 +99,9 @@
         Allow from 127.0.0.0/255.0.0.0 ::1/128
     </Directory>
 
+    Alias /output/ "/mnt/output/"
+    <Directory "/usr/share/doc/">
+        Options +Indexes +MultiViews
+    </Directory>
+
 </VirtualHost>
