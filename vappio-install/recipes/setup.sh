@@ -24,9 +24,11 @@ chmod 777 /mnt
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/environment /etc/environment
 source /etc/environment
 
+
 #Checkout utils
-#svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py /opt/vappio-py
-#svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio-checkout /etc/vappio-checkout
+#TODO, consider moving these elsewhere
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py /opt/vappio-py
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio-checkout /etc/vappio-checkout
 # Keeping this old style until we are more stable
 #checkoutObject.py vappio img-conf/etc/apt/apt.conf.d /etc/apt/apt.conf.d
 
