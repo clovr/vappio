@@ -3,8 +3,8 @@
 # Much of this is based on rc.local from the old Amazon vappio AMIs
 
 # Import vappio config
-source /root/clovrEnv.sh
 vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/clovrEnv.sh
 source $vappio_scripts/vappio_config.sh
 
 vlog "###"

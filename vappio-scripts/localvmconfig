@@ -1,8 +1,8 @@
 #!/bin/bash 
 
 # Import vappio config
-source /root/clovrEnv.sh
 vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/clovrEnv.sh
 source $vappio_scripts/vappio_config.sh
 
 #cfg apt sources.list (seperate for ec2 and local)

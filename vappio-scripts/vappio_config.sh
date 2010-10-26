@@ -152,7 +152,7 @@ waitonharvest=y
 #$vappio_bootflags/skip_vmwarestartnodes  - bypass setup_node.sh and start_master.sh when under vmware
 vappio_bootflagsdir=/mnt/config
 
-if [ -f /root/clovrEnv.sh ]
+if [ -f /opt/vappio-scripts/clovrEnv.sh ]
 then
-    source /root/clovrEnv.sh
+    source /opt/vappio-scripts/clovrEnv.sh
 fi

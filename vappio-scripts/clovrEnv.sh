@@ -52,6 +52,9 @@ export HADOOP_DATANODE_USER=www-data
 #export GLOBUS_LOCATION=/opt/opt-packages/globus-5.0.0
 #source $GLOBUS_LOCATION/etc/globus-user-env.sh
 
+# Needed for install-cert when using Nimbus
+export PATH=/opt/install-cert:$PATH
+
 #ulimit -n 1000000
 
 clovrWrapper () { pipelinename=echo "clovr_`date "+%Y%m%d%s"`";taskname=`vp-run-pipeline --name local --pipeline clovr_wrapper --pipeline-name $pipelinename -t -- --CONFIG_FILE=$1` && vp-describe-task --block --show --show-error $taskname; }
