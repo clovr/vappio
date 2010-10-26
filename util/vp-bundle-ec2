@@ -59,7 +59,7 @@ secretkey=`cat /mnt/keys/ec2secretkey`
 #A temp directory
 mkdir -p /mnt/ec2bundles
 
-if [ -f "/mnt/ec2bundles/$imgname.manifest.xml" ] || [ "$2" = "force" ]
+if [ -f "/mnt/ec2bundles/$imgname.manifest.xml" ] || [ "$2" != "force" ]
 then
     echo "Found manifest, /mnt/ec2bundles/$imgname.manifest.xml, skipping ec2-bundle-image"
 else

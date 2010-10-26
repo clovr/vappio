@@ -130,80 +130,89 @@ do
     done
     echo "Building $namepfx from script $bundledir/$b"
     #Set up mounts points for loopback device
-    mkdir -p /mnt/$$/$b
-    mkdir -p /mnt/$$/$b.live
-    currimg=/mnt/$$/$b/$namepfx.img
-    #Copy image
-    zfile=`file $image | grep gzip` || true
-    if [ "$zfile" != "" ]
+    if [ "$BUILD_DIR" != "" ]
     then
-        #Zipped sparse files provide faster copy
-	image=`tar -C /mnt/$$/$b.live -xvzf $image` || true
-	if [ -f "/mnt/$$/$b.live/$image" ]
-	then
-	    mv /mnt/$$/$b.live/$image $currimg
-	else
-	    echo "Bad compressed image $image. Can't fine $ibname in output"
-	    exit 1
-	fi
+	builddir=$BUILD_DIR
+	currimg=$builddir/$namepfx.img
+	namepfx=$BUILD_NAME
+	echo "Recovering build $namepfx in $builddir"
     else
-	echo "Copying $image to $currimg"
-	cp --sparse=always $image $currimg
+	builddir=/mnt/$$/$b
+	mkdir -p $builddir
+	mkdir -p $builddir.live
+	currimg=$builddir/$namepfx.img
+        #Copy image
+	zfile=`file $image | grep gzip` || true
+	if [ "$zfile" != "" ]
+	then
+        #Zipped sparse files provide faster copy
+	    image=`tar -C $builddir.live -xvzf $image` || true
+	    if [ -f "$builddir.live/$image" ]
+	    then
+		mv $builddir.live/$image $currimg
+	    else
+		echo "Bad compressed image $image. Can't fine $ibname in output"
+		exit 1
+	    fi
+	else
+	    echo "Copying $image to $currimg"
+	    cp --sparse=always $image $currimg
+	fi
+        #Set up loop back device of image
+	devname=`losetup --show -f $currimg`
+	mount $devname $builddir.live
+	
+        #Set up some things for the chroot jail
+	export bundledir=$bundledir
+	export b=$b
+	mount --bind /proc $builddir.live/proc
+	mount --bind /sys $builddir.live/sys
+	mount --bind /dev $builddir.live/dev
+	touch $builddir.live/var/run/utmp
+	touch $builddir.live/var/run/btmp
+	touch $builddir.live/var/run/wtmp
+	touch $builddir.live/var/run/lastlog
+	chgrp -v utmp $builddir.live/var/run/utmp $builddir.live/var/log/lastlog
+	chmod -v 664 $builddir.live/var/run/utmp $builddir.live/var/log/lastlog
+        #Set up resolv.conf so networking works in chroot
+	cp /etc/resolv.conf $builddir.live/etc/resolv.conf
+	cp /etc/hostname $builddir.live/etc/hostname
+	cp /etc/apt/sources.list.orig $builddir.live/etc/apt/sources.list
+        #Set up apt proxy to speed up downloads
+	mkdir -p  $builddir.live/etc/apt.conf.d
+        #Check for apt proxy for local caching of apt packages
+	curl http://localhost:3142 > /dev/null
+	if [ $? = 0 ]
+	then
+	    svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy $builddir.live/etc/apt/apt.conf.d/01proxy
+	fi
+	
+        #Download and run bootstrap script
+	wget -c -P $builddir.live/tmp $bootstrapscript
+	bscript=`basename $bootstrapscript`
+	chroot $builddir.live bash -e /tmp/$bscript
     fi
-    #Set up loop back device of image
-    devname=`losetup --show -f $currimg`
-    mount $devname /mnt/$$/$b.live
-
-    #Set up some things for the chroot jail
-    export bundledir=$bundledir
-    export b=$b
-    mount --bind /proc /mnt/$$/$b.live/proc
-    mount --bind /sys /mnt/$$/$b.live/sys
-    mount --bind /dev /mnt/$$/$b.live/dev
-    touch /mnt/$$/$b.live/var/run/utmp
-    touch /mnt/$$/$b.live/var/run/btmp
-    touch /mnt/$$/$b.live/var/run/wtmp
-    touch /mnt/$$/$b.live/var/run/lastlog
-    chgrp -v utmp /mnt/$$/$b.live/var/run/utmp /mnt/$$/$b.live/var/log/lastlog
-    chmod -v 664 /mnt/$$/$b.live/var/run/utmp /mnt/$$/$b.live/var/log/lastlog
-    #Set up resolv.conf so networking works in chroot
-    cp /etc/resolv.conf /mnt/$$/$b.live/etc/resolv.conf
-    cp /etc/hostname /mnt/$$/$b.live/etc/hostname
-    cp /etc/apt/sources.list.orig /mnt/$$/$b.live/etc/apt/sources.list
-    #Set up apt proxy to speed up downloads
-    mkdir -p  /mnt/$$/$b.live/etc/apt.conf.d
-    #Check for apt proxy for local caching of apt packages
-    curl http://localhost:3142 > /dev/null
-    if [ $? = 0 ]
-    then
-	svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy /mnt/$$/$b.live/etc/apt/apt.conf.d/01proxy
-    fi
-
-    #Download and run bootstrap script
-    wget -c -P /mnt/$$/$b.live/tmp $bootstrapscript
-    bscript=`basename $bootstrapscript`
-    chroot /mnt/$$/$b.live bash -e /tmp/$bscript
     #Apply build script to the image
-    chroot /mnt/$$/$b.live $bundledir/$b
+    chroot $builddir.live $bundledir/$b
     
     #Remove apt proxy
-    rm -f /mnt/$$/$b.live/etc/apt/apt.conf.d/01proxy
+    rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
     #Reset hostname
-    echo -n > /mnt/$$/$b.live/etc/hostname
+    echo -n > $builddir.live/etc/hostname
 
     #Store build name
-    mkdir -p /mnt/$$/$b.live/etc/vappio/
-    echo "$namepfx" > /mnt/$$/$b.live/etc/vappio/release_name.info
-    echo "$b" > /mnt/$$/$b.live/etc/vappio/bundle_name.info
-    date "+%Y%m%d-%H%M%S" > /mnt/$$/$b.live/etc/vappio/build_time.info
+    mkdir -p $builddir.live/etc/vappio/
+    echo "$namepfx" > $builddir.live/etc/vappio/release_name.info
+    echo "$b" > $builddir.live/etc/vappio/bundle_name.info
+    date "+%Y%m%d-%H%M%S" > $builddir.live/etc/vappio/build_time.info
 
     #Exit from chroot
-    umount /mnt/$$/$b.live/proc
-    umount /mnt/$$/$b.live/sys
+    umount $builddir.live/proc
+    umount $builddir.live/sys
     sleep 2
-    umount /mnt/$$/$b.live/dev
+    umount $builddir.live/dev
     sleep 2
-    umount /mnt/$$/$b.live
+    umount $builddir.live
     sync
     losetup -d $devname
     #cleanup img, removing tmp files
