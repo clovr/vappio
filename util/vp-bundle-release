@@ -21,7 +21,7 @@ force=$3
 
 recipedir=/opt/vappio-install/recipes
 utildir=/opt/vappio-util
-vmxtemplate=/mnt/start_clovr.tmpl.vmx
+vmxtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx
 sharedtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared
 
 if [ "$force" != "" ] || [ ! -e $currimg.vmdk ]
