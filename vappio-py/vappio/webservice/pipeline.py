@@ -31,7 +31,7 @@ def pipelineStatus(host, name, pred=lambda _ : True):
             if ret and pred(pipelineSSFromDict(p))]
 
 
-def runPipeline(host, name, pipeline, pipelineName, args, overwrite=False):
+def runPipeline(host, name, pipeline, pipelineName, args, pipelineQueue, overwrite=False):
     """
     pipeline is the type of pipeline (blastx, tblastn, ..)
     """
@@ -39,10 +39,11 @@ def runPipeline(host, name, pipeline, pipelineName, args, overwrite=False):
                                                     pipeline=pipeline,
                                                     pipeline_name=pipelineName,
                                                     args=args,
+                                                    pipeline_queue=pipelineQueue,
                                                     overwrite=overwrite))
     
 
-def runPipelineConfig(host, name, pipeline, pipelineName, conf, overwrite=False):
+def runPipelineConfig(host, name, pipeline, pipelineName, conf, pipelineQueue, overwrite=False):
     """
     pipeline is the type of pipeline (blastx, tblastn, ..)
     """
@@ -50,6 +51,7 @@ def runPipelineConfig(host, name, pipeline, pipelineName, conf, overwrite=False)
                                                     pipeline=pipeline,
                                                     pipeline_name=pipelineName,
                                                     pipeline_config=config.configToDict(conf),
+                                                    pipeline_queue=pipelineQueue,
                                                     overwrite=overwrite))
 
 

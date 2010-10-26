@@ -166,7 +166,7 @@ def confIfPipelineConfigSet(conf, options):
     else:
         return conf
 
-def runPipeline(taskName, name, pipeline, args=None):
+def runPipeline(taskName, name, pipeline, args=None, queue=None):
     """
     Runes a pipeline with command line arguments in args
     
@@ -200,11 +200,11 @@ def runPipeline(taskName, name, pipeline, args=None):
     # If they specified a pipeline_conf, load that and set the values
     conf = confIfPipelineConfigSet(conf, pipeline.OPTIONS)
 
-    return runPipelineWithConfig(taskName, name, pipeline, conf)
+    return runPipelineWithConfig(taskName, name, pipeline, conf, queue)
 
 
 
-def runPipelineConfig(taskName, name, pipeline, conf):
+def runPipelineConfig(taskName, name, pipeline, conf, queue=None):
     """
     Takes a config object representing a pipeline options, validates those options
     in pipeline.OPTIONS and passes the results onto runPipelineWithConfig
@@ -245,10 +245,10 @@ def runPipelineConfig(taskName, name, pipeline, conf):
 
     
 
-    return runPipelineWithConfig(taskName, name, pipeline, conf)
+    return runPipelineWithConfig(taskName, name, pipeline, conf, queue)
     
 
-def runPipelineWithConfig(taskName, name, pipeline, conf):
+def runPipelineWithConfig(taskName, name, pipeline, conf, queue):
     """
     This is for internal use only
     """
@@ -263,11 +263,16 @@ def runPipelineWithConfig(taskName, name, pipeline, conf):
         
     fout.close()
 
-    cmd = 'run_pipeline.pl --config=%(config)s --templatelayout=%(templatelayout)s --taskname=%(taskname)s' % dict(
-        config=foutName,
-        templatelayout=templateLayout,
-        taskname=taskName)
+    cmd = ['run_pipeline.pl',
+           '--config=' + foutName,
+           '--templatelayout=' + templateLayout,
+           '--taskname=' + taskName]
 
+    if queue:
+        cmd.append('--queue=' + queue)
+
+    cmd = ' '.join(cmd)
+    open('/tmp/foo', 'w').write(cmd + '\n')
     res = []
     exitCode = runSingleProgram(cmd, res.append, None)
 

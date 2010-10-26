@@ -15,6 +15,7 @@ OPTIONS = [
     ('pipeline', '-p', '--pipeline', 'Type of pipeline', notNone),
     ('pipeline_name', '-n', '--pipeline-name', 'Name to give the pipeline', notNone),
     ('pipeline_config', '', '--pipeline-config', 'Config file to use for the pipeline', func.identity),
+    ('pipeline_queue', '-q', '--pipeline-queue', 'Queue to use, not required', func.identity),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),
     ]
 
@@ -29,13 +30,15 @@ def main(options, args):
                                         options('general.name'),
                                         options('general.pipeline'),
                                         options('general.pipeline_name'),
-                                        args)
+                                        args,
+                                        options('general.pipeline_queue'))
     else:
         taskName = pipeline.runPipelineConfig(options('general.host'),
                                               options('general.name'),
                                               options('general.pipeline'),
                                               options('general.pipeline_name'),
-                                              config.configFromStream(open(options('general.pipeline_config')), lazy=True))
+                                              config.configFromStream(open(options('general.pipeline_config')), lazy=True),
+                                              options('general.pipeline_queue'))
 
 
     if options('general.print_task_name'):
