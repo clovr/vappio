@@ -72,7 +72,7 @@ ln -s /opt/clovr_pipelines/workflow/project_saved_templates /opt/ergatis/global_
 #Configure website
 #Pull ergatis.ini, Config.pm
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/ergatis.ini /var/www/ergatis/cgi/ergatis.ini
-chmod a+r /var/www/ergatis/ergatis.ini
+chmod a+r /var/www/ergatis/cgi/ergatis.ini
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/Config.pm /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
 chmod a+r /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/kill_wf.cgi /var/www/ergatis/cgi/kill_wf.cgi
