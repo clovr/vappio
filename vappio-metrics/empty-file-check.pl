@@ -36,7 +36,7 @@ sub getTagList {
 		if($line =~ /input\.(PIPELINE_NAME)\s*=\s*(.+)\s*$/) {
 			$$refHash{$1} = $2;
 		}
-		elsif($line =~ /input\.(TAGS_TO_DOWNLOAD)\s*=\s*(.+)\s*$/) {
+		elsif($line =~ /output\.(TAGS_TO_DOWNLOAD)\s*=\s*(.+)\s*$/) {
 			$$refHash{$1} = $2;
 		}
 		print STDOUT $line;
