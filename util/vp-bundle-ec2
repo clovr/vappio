@@ -85,7 +85,7 @@ echo "AMI: $ami"
 
 #Mark public 
 $EC2_APITOOL_HOME/bin/ec2-modify-image-attribute -C /mnt/keys/cert-*.pem -K /mnt/keys/pk-*.pem $ami --launch-permission -a all
-if [ -d "$imagedir" ] && [ -d "$imagedir/shared/vappio-conf/clovr.conf" ]
+if [ -d "$imagedir" ] && [ -f "$imagedir/shared/vappio-conf/clovr.conf" ]
 then
     echo "Writing $ami to $imagedir/clovr.conf"
     perl -pi -e "s/^ami=.*/ami=$ami/" $imagedir/shared/vappio-conf/clovr.conf
