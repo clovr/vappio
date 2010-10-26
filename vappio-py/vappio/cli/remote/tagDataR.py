@@ -63,7 +63,7 @@ def main(options, files):
             compress=options('general.compress'),
             append=options('general.append'),
             overwrite=options('general.overwrite'),
-            metadata=json.loads(options('general.metadata')),
+            metadata=json.loads(options('general.metadata').decode("string_escape")),
             filterF=restrictDirs)
     tsk = tsk.progress().addMessage(task.MSG_NOTIFICATION, 'Tagging complete').setState(task.TASK_COMPLETED)
     task.updateTask(tsk)
