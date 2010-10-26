@@ -16,7 +16,10 @@ if [ $# -ne 3 ]
 fi
 
 imgsize="10G" #size in #G
-blocksize=512 #previously using 32768
+
+#blocksize=512 #Has put dd into uninterruptible sleep
+blocksize=32768 
+
 #create a new blank raw disk image of desired size, eg 10G
 mkdir /mnt/$$
 clovrraw=/mnt/$$/vmdk.raw
@@ -62,7 +65,6 @@ losetup -o 32256 $devb $deva
 #ie. dump release image clovr-vXbXrX.raw in loopback loop1
 #TODO, mount file as parition and resizefs -M to minimum size first
 echo "Creating new image in $devb"
-#previously using blocksize 32768
 dd if=$1 of=$devb bs=$blocksize
 
 #could stop at this point and format blank partition as ext3
