@@ -36,12 +36,13 @@ class RunPipeline(CGIPage):
         
             pipeline = namedModule('vappio.pipelines.' + pipelineName)
             if 'args' in request:
-                pipelineObj = pl.runPipeline(taskName, request['pipeline_name'], pipeline, request['args'])
+                pipelineObj = pl.runPipeline(taskName, request['pipeline_name'], pipeline, request['args'], request.get('pipeline_queue', None))
             elif 'pipeline_config' in request:
                 pipelineObj = pl.runPipelineConfig(taskName,
                                                    request['pipeline_name'],
                                                    pipeline,
-                                                   config.configFromMap(request['pipeline_config'], lazy=True))
+                                                   config.configFromMap(request['pipeline_config'], lazy=True),
+                                                   request.get('pipeline_queue', None))
             else:
                 raise Exception('Must provide args or pipeline_config')
             pl.savePipeline(pipelineObj)
