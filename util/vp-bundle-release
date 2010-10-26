@@ -45,12 +45,12 @@ mkdir $namepfx
 chmod 777 $namepfx
 pushd $namepfx
 #Create ovf bundle
-$utildir/vp-bundle-ovf.sh $currimg.vmdk $namepfx $namepfx.ovf /clovr/$namepfx
+$utildir/vp-bundle-ovf $currimg.vmdk $namepfx $namepfx.ovf /clovr/$namepfx
 
 #Add vmx file
 #svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx /mnt/start_clovr.tmpl.vmx
 svn export --force $vmxtemplate /mnt/vmx$$.tmpl.vmx
-$utildir/vp-bundle-vmx.sh ".\/$namepfx.vmdk" /mnt/vmx$$.tmpl.vmx start_clovr.vmx $namepfx
+$utildir/vp-bundle-vmx ".\/$namepfx.vmdk" /mnt/vmx$$.tmpl.vmx start_clovr.vmx $namepfx
 
 #Add shared folder 
 #svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared shared
@@ -66,6 +66,7 @@ popd
 #will not mount rw and throws write errors, ata1 drdy err indf
 echo "Moving $currimg.vmdk $namepfx/$namepfx.vmdk"
 mv $currimg.vmdk $namepfx/$namepfx.vmdk
+
 currimgbname=`basename $currimg`
 rm $namepfx/$currimgbname.vmdk
 
