@@ -8,7 +8,36 @@
 import sys
 
 from vappio.webservice import tag
-    
+
+def pipelineExistsInMetadata(name, targetTag):
+    """
+    Checks if a tag already has contains configuration metadata
+    for a given pipeline.
+    """
+    pipelineFound = False
+
+    for k in targetTag.keys():
+        if k.startswith('metadata.pipeline_configs.' + name + '.'):
+            pipelineFound = True
+
+    return pipelineFound
+
+def convertTagMetadataToDict(name, targetTag):
+    """
+    Takes the metadata found in the object returned
+    from queryTag and creates a dictionary out of it
+    """
+    existingMetadata = {}
+
+    for k in targetTag.keys():
+        if k.startswith('metadata.pipeline_configs.' + name + '.'):
+            _m, _n, paramName = k.split('.', 3)
+            val = targetTag(k)
+
+            existingMetadata[paramName] = val
+
+    return existingMetadata               
+            
 # Ensure we are dealing with kv pairs
 if sys.stdin.readline().strip() != 'kv':
     raise Exception('Header needs to be kv')
@@ -16,7 +45,7 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-requiredKeys = ['output.TAGS_TO_DOWNLOAD', 'input.PIPELINE_NAME']
+requiredKeys = ['input.TAGS_TO_DOWNLOAD', 'input.PIPELINE_NAME']
 
 # Iterate over key-value pairs passed in from get-pipeline-conf
 metadata = {}
@@ -27,12 +56,27 @@ for line in sys.stdin:
 
 if set(requiredKeys) - set(metadata.keys()):
     raise Exception('Not all required keys present')
-    
-tags_to_download = metadata['output.TAGS_TO_DOWNLOAD'].split(',')
-pipelineName = metadata['input.PIPELINE_NAME']
-    
+
+tags_to_download = [ s for s in metadata['input.TAGS_TO_DOWNLOAD'].split(',') if s ]
+pipelineName = metadata.pop('input.PIPELINE_NAME')
+
 # If we have a set of tags to download we can append our config to the tag as metadata
+jsonMetadata = {}
 for download_tag in tags_to_download:
     tagName = pipelineName + "_" + download_tag.strip()
-    taskName = tag.tagData('localhost', 'local', tagName, None, [], False, False, True, False, metadata)
 
+    tagMetadata = tag.queryTag('localhost', 'local', [tagName])
+
+    # We need to check to see if configuration parameters for this pipeline
+    # already exist in our tag metadata   
+    if pipelineExistsInMetadata(pipelineName, tagMetadata):
+       # If a pipeline exists we have to merge the two dictionaries.
+       oldMetadata = convertTagMetadataToDict(pipelineName, tagMetadata)
+       oldMetadata.update(metadata)
+       metadata = oldMetadata
+
+    # Update the tag to house or new metadata    
+    jsonMetadata['pipeline_configs'] = { pipelineName: metadata }
+#    print jsonMetadata
+
+    taskName = tag.tagData('localhost', 'local', tagName, None, [], False, False, False, True, False, jsonMetadata)
