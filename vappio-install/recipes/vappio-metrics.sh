@@ -1,4 +1,4 @@
 #!/bin/bash
 
-source /root/clovrEnv.sh
+source /opt/vappio-scripts/clovrEnv.sh
 checkoutObject.py vappio vappio-metrics /opt/vappio-metrics

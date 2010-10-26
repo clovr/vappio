@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /root/clovrEnv.sh
+source /opt/vappio-scripts/clovrEnv.sh
 updateAllDirs.py --vappio-py-www
 
 #Gets vappio-internal

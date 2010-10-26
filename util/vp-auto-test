@@ -4,6 +4,7 @@ USAGE="vp-auto-test buildvmdir"
 timeout=60
 hudsonport=8888
 buildvm=$1
+force=$2
 netcat="clovrtest-lx.igs.umaryland.edu 5678"
 vmcheckdir="/data/clovr-build/shared/"
 maxrunning=3
@@ -14,7 +15,7 @@ do
     bname=`basename $n .runtests`
     echo "Running image $dname/$bname"
     #Modify start up process to install hudson
-    mkdir $dname/$bname/shared/user-scripts || true
+    mkdir -p $dname/$bname/shared/user-scripts || true
     chmod 777 $dname/$bname/shared/user-scripts || true
     #ln -s /opt/vappio-install/recipes/hudson.sh $dname/$bname/shared/user-scripts/01-installhudson || true
     echo "#!/bin/bash" > $dname/$bname/shared/user-scripts/02-starthudson
@@ -26,11 +27,12 @@ do
     echo "chmod +x /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user-scripts/03-schedshutdown
     chmod a+rx $dname/$bname/shared/user-scripts/02-starthudson
     chmod a+rx $dname/$bname/shared/user-scripts/03-schedshutdown
-    if [ "$vmcheckdir" != "" ]
+    if [ "$vmcheckdir" != "" ] && [ "$force" != "force" ]
     then
 	numrunning=`find $vmcheckdir -type d -name "clovr-*.lck" -maxdepth 2 | wc -l`
 	if [ $numrunning -gt $maxrunning ]
 	then
+	    echo "Detected $numrunning VMs. Limit $maxrunning. Aborting"
 	    exit 2;
 	fi
     fi

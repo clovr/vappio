@@ -2,5 +2,5 @@
 
 if [ -d "/etc/vappio" ]
 then
-    cat /etc/vappio/issue
+    cat /etc/vappio/appliance_name.info
 fi

@@ -32,7 +32,7 @@ perl -pi -e 's/MAXOPENFILES=8192/#MAXOPENFILES=8192/' /etc/default/hudson
 
 update-rc.d -f hudson remove
 update-rc.d -f postfix remove
-source /root/clovrEnv.sh
+source /opt/vappio-scripts/clovrEnv.sh
 #adduser --quiet --disabled-password --disabled-login hudson --gecos ""
 updateAllDirs.py --hudson
 

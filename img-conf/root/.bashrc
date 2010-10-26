@@ -129,6 +129,6 @@ alias l='ls -l'
 # Source vappio envs
 source /opt/vappio-scripts/vappio_config.sh
 
-source /root/clovrEnv.sh
+source /opt/vappio-scripts/clovrEnv.sh
 
 PATH=$PATH:./
