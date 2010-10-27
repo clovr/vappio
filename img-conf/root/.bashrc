@@ -37,37 +37,39 @@ then
 
     if [ "$waitonboot" != "" ]
     then
-	if [ -f "$vappio_runtime/node_type" ]; then
-	    nodetype=`cat $vappio_runtime/node_type`;
-	else
-	    nodetype="PENDING"
-	fi
-	
-    #Wait for vappio boot process to complete
-	if [ "$nodetype" = 'PENDING' ]
+	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	if [ "$ipaddr" = "" ]
 	then
-	    echo -n "Node is $nodetype. Waiting for setup to finish."
-	    wait=1
+	    echo "Waiting for networking "
+	    vnetstatus
+	    ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
 	fi
-	while [ "$nodetype" = 'PENDING' ] || [ "$nodetype" = "" ] || [ "$hostn" = "(none)" ]
-	do
-	    echo -n '.'
-	    if [ -f "$vappio_runtime/node_type" ]
-	    then
-		nodetype=`cat $vappio_runtime/node_type`
+	if [ "$ipaddr" != "" ]
+	then
+	    echo "IP address: $ipaddr"
+	    if [ -f "$vappio_runtime/node_type" ]; then
+		nodetype=`cat $vappio_runtime/node_type`;
+	    else
+		nodetype="PENDING"
 	    fi
-	    sleep 1
-	    hostn=`hostname`
-	done 
-	echo 
-	if [ -f "$vappio_runtime/node_type" ]
-	then
-	    nodetype=`cat $vappio_runtime/node_type`;
+	    
+            #Wait for vappio boot process to complete
+	    if [ "$nodetype" = 'PENDING' ]
+	    then
+		echo -n "Node state is $nodetype. Waiting for setup to finish."
+		vnodestatus
+		echo
+	    fi
 	fi
-	if [ -f "$vappio_runtime/cloud_type" ]
-	then
-	    cloudtype=`cat $vappio_runtime/cloud_type`;
-	fi
+    fi
+
+    if [ -f "$vappio_runtime/node_type" ]
+    then
+	nodetype=`cat $vappio_runtime/node_type`;
+    fi
+    if [ -f "$vappio_runtime/cloud_type" ]
+    then
+	cloudtype=`cat $vappio_runtime/cloud_type`;
     fi
 fi
 

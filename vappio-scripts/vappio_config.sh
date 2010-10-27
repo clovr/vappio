@@ -44,6 +44,38 @@ vcopy() {
     rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options"  @
 }
 
+vnetstatus() {
+    ipaddr=""
+    timeout=60
+    i=0
+    ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+    while [ "$ipaddr" = "" ] && [ $i -lt $timeout ]
+    do
+	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	sleep 1
+	echo -n "."
+	i=`expr $i + 1`
+    done
+}
+
+vnodestatus() {
+    nodetype=`cat $vappio_runtime/node_type`
+    hostn=`hostname`
+    timeout=60
+    i=0
+    while ( [ "$nodetype" = 'PENDING' ] || [ "$nodetype" = "" ] || [ "$hostn" = "(none)" ] ) && [ $i -lt $timeout ]
+    do
+	echo -n '.'
+	if [ -f "$vappio_runtime/node_type" ]
+	then
+	    nodetype=`cat $vappio_runtime/node_type`
+	fi
+	sleep 1
+	hostn=`hostname`
+	i=`expr $i + 1`
+    done 
+}
+
 export BASH_ENV=
 export HISTFILE=
 
