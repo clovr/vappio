@@ -193,19 +193,21 @@ do
 	chroot $builddir.live bash -e /tmp/$bscript
     fi
     #Apply build script to the image
-    chroot $builddir.live $bundledir/$b
-    
+    chroot $builddir.live $bundledir/$b    
+    sync
+
     #Remove apt proxy
     rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
     #Reset hostname
     echo -n > $builddir.live/etc/hostname
 
     #Store build name
+    echo "Storing build info $namepfx $b"
     mkdir -p $builddir.live/etc/vappio/
     echo "$namepfx" > $builddir.live/etc/vappio/release_name.info
     echo "$b" > $builddir.live/etc/vappio/bundle_name.info
     date "+%Y%m%d-%H%M%S" > $builddir.live/etc/vappio/build_time.info
-
+    sync
     #Exit from chroot
     umount $builddir.live/proc
     umount $builddir.live/sys
