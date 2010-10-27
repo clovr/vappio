@@ -16,6 +16,7 @@ echo "OFFLINE" > $vappio_runtime/node_type
 netcount=$(/sbin/ifconfig | grep -o "inet")
 if [[ $netcount > 1 ]]
 then
+    cat /etc/vappio/appliance_name.info > /etc/issue
     echo "Access the appliance using a web browser at " >> /etc/issue
     echo " " >> /etc/issue
     /sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print "http://"$2"/" }' >> /etc/issue
