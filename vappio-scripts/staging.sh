@@ -58,15 +58,25 @@ then
 		echo "$remotehostipaddr $remotehost $remotehost" >> /etc/hosts
 	    else
 		vlog "ERROR. Invalid ip ($remotehostipaddr) from host $remotehost"
-		exit 1;
+		exit 100;
 	    fi
 	else
 	    vlog "ping $remotehost failed and unable to parse ip address from $remotehost"
 	#fail
-	    exit 1;
+	    exit 100;
 	fi
     fi
 fi
+
+#Check for remotehost
+isreachable=`printf "kv\nhostname=$remotehost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+if [ "$isreachable" = "" ]
+then
+    vlog "ERROR: Host $remotehost is not reachable"
+    verror "STAGING FAILURE";
+    exit 100
+fi
+
 #If argument is specified
 #copy specified files
 if [ "$1" != "" ]
@@ -77,16 +87,18 @@ then
 	    vlog "Start staging of directory $1 to $remotehost:$1"
 	    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $1 root@$remotehost:/"
 	    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $1 root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+	    ret=$?
 	else
 	    vlog "Start staging of file $1 to $remotehost:$1"
 	    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" $1 root@$remotehost:$1"
 	    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" $1 root@$remotehost:$1 1>> $vappio_log 2>> $vappio_log
+	    ret=$?
 	fi
-	if [ $? == 0 ]
+	if [ $ret == 0 ]
 	then
-	    vlog "rsync success. return value: $?"
+	    vlog "rsync success. return value: $ret"
 	else
-	    vlog "ERROR: $0 rsync fail. return value $?"
+	    vlog "ERROR: $0 rsync fail. return value $ret"
 	    verror "STAGING FAILURE";
 	exit 1;
 	fi
@@ -102,11 +114,12 @@ else
         #First list only large files and print out list for gridftp
 	vlog "CMD:rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --min-size $largefilesize --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep \"<f\" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print \"file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n\"}' > /tmp/$$.gridftp.staging.list"
 	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --min-size $largefilesize --size-only --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep "<f" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print "file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n"}' $remotehost $staging_dir > /tmp/$$.gridftp.staging.list
-	if [ $? == 0 ]
+	ret=$?
+	if [ $ret == 0 ]
 	    then
-	    vlog "rsync success. return value: $?"
+	    vlog "rsync success. return value: $ret"
 	else
-	    vlog "ERROR: $0 rsync fail. return value $?"
+	    vlog "ERROR: $0 rsync fail. return value $ret"
 	    verror "LIST LARGEFILE STAGING FAILURE";
 	    exit 1;
 	fi
@@ -124,11 +137,12 @@ else
 	    #/opt/globus-5.0.0/bin/globus-url-copy -tcp-bs 1MB -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
 	    #/opt/globus-5.0.0/bin/globus-url-copy -tcp-bs 17500 -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
 	    /opt/globus-5.0.0/bin/globus-url-copy -p 8 -vb -cd -pp -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
-	    if [ $? == 0 ]
+	    ret=$?
+	    if [ $ret == 0 ]
 		then
-		vlog "gridftp success. return value: $?"
+		vlog "gridftp success. return value: $ret"
 	    else
-		vlog "ERROR: $0 gridftp fail. return value $?"
+		vlog "ERROR: $0 gridftp fail. return value $ret"
 		verror "STAGING FAILURE GRIDFTP";
 		exit 1;
 	    fi
@@ -137,11 +151,12 @@ else
         #The rest through rsync: smaller files, delete, and reset permissions etc
         #vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $staging_dir/ root@$remotehost:$staging_dir"
 	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --itemize-changes --max-size $largefilesize --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
-	if [ $? == 0 ]
+	ret=$?
+	if [ $ret == 0 ]
 	    then
-	    vlog "rsync success. return value: $?"
+	    vlog "rsync success. return value: $ret"
 	else
-	    vlog "ERROR: $0 rsync fail. return value $?"
+	    vlog "ERROR: $0 rsync fail. return value $ret"
 	    verror "STAGING FAILURE";
 	    exit 1;
 	fi
@@ -149,13 +164,17 @@ else
     #Plain ole' rsync
 	vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir"
 	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
-	if [ $? == 0 ]
+	ret=$?
+	if [ $ret == 0 ]
 	    then
-	    vlog "rsync success. return value: $?"
+	    vlog "rsync success. return value: $ret"
 	else
-	    vlog "ERROR: $0 rsync fail. return value $?"
-	    verror "STAGING FAILURE";
-	    exit 1;
+
+	    then
+		vlog "ERROR: $0 rsync fail. return value $ret"
+		verror "STAGING FAILURE";
+		exit 1;
+	    fi
 	fi
     fi
 fi
