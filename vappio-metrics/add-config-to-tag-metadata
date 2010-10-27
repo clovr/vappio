@@ -45,7 +45,7 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-requiredKeys = ['input.TAGS_TO_DOWNLOAD', 'input.PIPELINE_NAME']
+requiredKeys = ['output.TAGS_TO_DOWNLOAD', 'input.PIPELINE_NAME']
 
 # Iterate over key-value pairs passed in from get-pipeline-conf
 metadata = {}
@@ -57,7 +57,7 @@ for line in sys.stdin:
 if set(requiredKeys) - set(metadata.keys()):
     raise Exception('Not all required keys present')
 
-tags_to_download = [ s for s in metadata['input.TAGS_TO_DOWNLOAD'].split(',') if s ]
+tags_to_download = [ s for s in metadata['output.TAGS_TO_DOWNLOAD'].split(',') if s ]
 pipelineName = metadata.pop('input.PIPELINE_NAME')
 
 # If we have a set of tags to download we can append our config to the tag as metadata
@@ -75,8 +75,7 @@ for download_tag in tags_to_download:
        oldMetadata.update(metadata)
        metadata = oldMetadata
 
-    # Update the tag to house or new metadata    
+    # Update the tag to house new metadata    
     jsonMetadata['pipeline_configs'] = { pipelineName: metadata }
-#    print jsonMetadata
 
     taskName = tag.tagData('localhost', 'local', tagName, None, [], False, False, False, True, False, jsonMetadata)
