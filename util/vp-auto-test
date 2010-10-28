@@ -53,7 +53,7 @@ do
 	fi
     fi
     #Hudson has an initialization period
-    sleep 15
+    sleep 120
     for t in `cat $n`
       do
       curl --silent http://$nipaddr:$hudsonport/job/$t/build
