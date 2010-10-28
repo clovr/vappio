@@ -32,16 +32,20 @@ class RunPipeline(CGIPage):
             taskName = createTaskAndSave('runPipeline', 1, 'Starting ' + request['pipeline_name'])
             task.updateTask(task.loadTask(taskName).setState(task.TASK_RUNNING))
             
-            pipelineName = request['pipeline']
+            pipelineType = request['pipeline']
         
-            pipeline = namedModule('vappio.pipelines.' + pipelineName)
+            pipeline = namedModule('vappio.pipelines.' + pipelineType)
             if 'args' in request:
-                pipelineObj = pl.runPipeline(taskName, request['pipeline_name'], pipeline, request['args'], request.get('pipeline_queue', None))
+                #pipelineObj = pl.runPipeline(taskName, request['pipeline_name'], pipeline, request['args'], request.get('pipeline_queue', None))
+                raise Exception('Passing "args" is no longer supported')
             elif 'pipeline_config' in request:
+                conf = config.configFromMap(request['pipeline_config'], lazy=True)
+                if pipelineType == 'clovr_wrapper':
+                    conf = config.configFromMap({'pipeline.PIPELINE_WRAPPER_NAME': request['pipeline_name']}, base=conf, lazy=True)
                 pipelineObj = pl.runPipelineConfig(taskName,
                                                    request['pipeline_name'],
                                                    pipeline,
-                                                   config.configFromMap(request['pipeline_config'], lazy=True),
+                                                   conf,
                                                    request.get('pipeline_queue', None))
             else:
                 raise Exception('Must provide args or pipeline_config')
