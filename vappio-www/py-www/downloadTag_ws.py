@@ -4,6 +4,7 @@
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
+from igs.utils import core
 
 from vappio.tasks.utils import createTaskAndSave
 
@@ -20,13 +21,13 @@ class DownloadTag(CGIPage):
             taskName = createTaskAndSave('downloadTag', 2, 'Downloading ' + request['tag_name'])
             
             cmd = ['downloadTagR.py',
-                   '--tag-name=' + request['tag_name'],
-                   '--task-name=' + taskName,
-                   '--src-cluster=' + request['src_cluster'],
-                   '--dst-cluster=' + request['dst_cluster']]
+                   '--tag-name=' + core.quoteEncode(request['tag_name']),
+                   '--task-name=' + core.quoteEncode(taskName),
+                   '--src-cluster=' + core.quoteEncode(request['src_cluster']),
+                   '--dst-cluster=' + core.quoteEncode(request['dst_cluster'])]
 
             if request['output_dir']:
-                cmd.append('--output-dir=' + request['output_dir'])
+                cmd.append('--output-dir=' + core.quoteEncode(request['output_dir']))
                            
             if request['expand']:
                 cmd.append('--expand')

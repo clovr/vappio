@@ -4,6 +4,7 @@
 from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
+from igs.utils import core
 
 from vappio.cluster.control import loadCluster
 
@@ -23,10 +24,10 @@ class UploadTag(CGIPage):
 
             
             cmd = ['uploadTagR.py',
-                   '--tag-name=' + request['tag_name'],
-                   '--task-name=' + taskName,
-                   '--src-cluster=' + request['src_cluster'],
-                   '--dst-cluster=' + request['dst_cluster']]
+                   '--tag-name=' + core.quoteEncode(request['tag_name']),
+                   '--task-name=' + core.quoteEncode(taskName),
+                   '--src-cluster=' + core.quoteEncode(request['src_cluster']),
+                   '--dst-cluster=' + core.quoteEncode(request['dst_cluster'])]
 
             if request['expand']:
                 cmd.append('--expand')
