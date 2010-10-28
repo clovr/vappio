@@ -37,7 +37,6 @@ def main(options, _args):
         tagFileName = os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name'))
         tagFile = tagfile.loadTagFile(tagFileName)
     except tagfile.MissingTagFileError, err:
-        tsk = tsk.setState(task.TASK_FAILED).addException('Could not find tag: ' + str(err), err, errors.getStacktrace())
         raise
     
     if tagfile.isPhantom(tagFile):
