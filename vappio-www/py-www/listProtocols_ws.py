@@ -9,13 +9,24 @@ from igs.cgi.handler import CGIPage, generatePage
 
 from igs.utils import config
 
+class JSONParseError(Exception):
+    def __init__(self, value):
+        self.value = value
 
+class PipelineTmplParseError(Exception):
+    def __init__(self, pipeline, value):
+        self.pipeline = pipeline
+        self.value = value
+
+    def __str__(self):
+        return 'Error parsing %s line: %s' % (self.pipeline, self.value)
+        
 def jsonLoads(v):
     try:
         return json.loads(v)
     except:
         open('/tmp/listProtocols.log', 'a').write(v + '\n')
-        raise
+        raise JSONParseError(v)
 
 def loadConfig(conf, pipeline):
     pModule = reflect.namedAny('vappio.pipelines.' + pipeline)
@@ -27,6 +38,8 @@ def loadConfig(conf, pipeline):
         return [(k, jsonLoads(v)) for k, v in pConf]
     except IOError:
         return None
+    except JSONParseError, err:
+        raise PipelineTmplParseError(pipeline, err.value)
         
 
 class ListProtocols(CGIPage):
