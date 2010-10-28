@@ -334,7 +334,7 @@ def main(_options, args):
             conf = config.configFromMap({'misc.SEQS_PER_FILE': str(seqsPerFile)}, conf)
 
 
-        runPipelineConfig('localhost', 'local', 'clovr_wrapper', pipelineWrapperName, conf)
+        runPipelineConfig('localhost', 'local', 'clovr_wrapper', pipelineWrapperName, conf, None)
         
         logging.debugPrint(lambda : 'Waiting for pipeline to finish...')
         pipelineInfo = pipelineStatus('localhost', 'local', lambda p : p.name == pipelineWrapperName)[0]

@@ -20,3 +20,5 @@ def getStrBetween(haystack, start, end):
     eidx += sidx
     return haystack[sidx:eidx]
 
+def quoteEncode(s):
+    return "'%s'" % str(s).encode('string_escape')
