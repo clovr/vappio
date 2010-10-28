@@ -198,7 +198,7 @@ def configListFromStream(stream):
             # Remove the trailing '\n'
             if section:
                 key = section + '.' + key
-            cfg.append((key, value[:-1]))
+            cfg.append((key, value.rstrip('\n')))
 
     return cfg
     
