@@ -25,7 +25,7 @@ do
     echo "$key,$value"
 done 
 
-isreachable=`$ssh_client -i $ssh_key $ssh_options $hostname echo "reachable"`
+isreachable=`$ssh_client -i $ssh_key $ssh_options root@$hostname echo "reachable"`
 #isreachable=`$SGE_ROOT/bin/$ARCH/qhost -xml -q -h $hostname | xpath -e "//queue" 2> /dev/null`
 if [ "$isreachable" != "reachable" ]
 then
