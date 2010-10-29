@@ -41,29 +41,23 @@ do
     nipaddr=`cat $dname/$bname/shared/clovr_ip`
     
     #Launch the tests
-    curl --silent http://$nipaddr:$hudsonport > /dev/null
+    #Hudson has an initialization period, need to wait for it to come online
+    curl --retry 10 --silent http://$nipaddr:$hudsonport > /dev/null
     if [ $? != 0 ]
     then
-	echo "Waiting for hudson to start"
-	sleep 30 #wait for hudson to start
-	curl --silent http://$nipaddr:$hudsonport > /dev/null
-	if [ $? != 0 ]
+	echo "Hudson not found at $nipaddr:$hudsonport"
+    else
+	for t in `cat $n`
+	do
+	    curl --retry 10 --silent http://$nipaddr:$hudsonport/job/$t/build
+	    if [ $? = 0 ]
 	    then
-	    echo "Hudson not found at $nipaddr:$hudsonport"
-	fi
+		if [ "$netcat" != "" ]
+		then
+		    echo "Automated tests $t for $bname started at http://$nipaddr:$hudsonport/" | nc $netcat || true
+		fi
+		rm $n
+	    fi
+	done
     fi
-    #Hudson has an initialization period
-    sleep 120
-    for t in `cat $n`
-      do
-      curl --silent http://$nipaddr:$hudsonport/job/$t/build
-      if [ $? = 0 ]
-      then
-	  if [ "$netcat" != "" ]
-	  then
-	  echo "Automated tests $t for $bname started at http://$nipaddr:$hudsonport/" | nc $netcat || true
-	  fi
-	  rm $n
-      fi
-    done
 done

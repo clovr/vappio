@@ -28,6 +28,7 @@ vlog "Running staging for $remotehost"
 #Handles case where data is being written to the staging directory after starting staging_script
 changes="yes"
 maxretries=5
+i=0
 while [ "$changes" != "" ];
   do
   $staging_script $remotehost 1>> $vappio_log 2>> $vappio_log  
@@ -37,7 +38,7 @@ while [ "$changes" != "" ];
       changes="yes"
       vlog "ERROR: $0 staging fail. return value $ret"
       verror "SEEDING FAILURE"
-      if [ "$i" -gt "$maxretries" ]
+      if [ $i -gt $maxretries ]
       then
 	  exit $ret
       fi

@@ -169,12 +169,9 @@ else
 	    then
 	    vlog "rsync success. return value: $ret"
 	else
-
-	    then
-		vlog "ERROR: $0 rsync fail. return value $ret"
-		verror "STAGING FAILURE";
-		exit 1;
-	    fi
+	    vlog "ERROR: $0 rsync fail. return value $ret"
+	    verror "STAGING FAILURE";
+	    exit 1;
 	fi
     fi
 fi
