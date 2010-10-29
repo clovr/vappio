@@ -10,30 +10,30 @@ print STDOUT $header;
 
 while(my $arg = <>) {
 	if(trim($arg) =~ /^input\.(.+)=(.+)$/) {
-        my $tag_list = $2;
-        foreach my $tag_name ( split(/[,\s]+/, $tag_list ) ) {
-            my $command = "vp-describe-dataset --tag-name=$tag_name";
-            open(COMMAND, "$command |") or die "Error in executing the command, $command, $!\n";
-            while(my $output = <COMMAND>) {
-                if($output =~ /^FILE\t(.+)/) {
-                    open(FILE, "<$1") or die "Error in opening the file, $1, $!\n";
-                    my $firstLine = <FILE>;
-                    my $firstChar = substr(trim($firstLine), 0, 1);
-                    unless(($firstChar eq '>') || ($firstChar eq '@')) {
-                        die "$1 is neither a fasta file nor a fastq file";
-                    }
-                    if($firstChar eq '>') {
-                        while(my $line = <FILE>) {
-                            last if($line =~ /^>/);
-                            die "$1 is not a fasta file" if($line =~ /\d/g);
-                        }
-                    }
-                    close FILE;
-                }
-            }
-            close COMMAND;
-            die "Error in executing the command $command; Error code: $?\n" if( $? );
-        }
+        	my $tag_list = $2;
+        	foreach my $tag_name ( split(/[,\s]+/, $tag_list ) ) {
+            		my $command = "vp-describe-dataset --tag-name=$tag_name";
+            		open(COMMAND, "$command |") or die "Error in executing the command, $command, $!\n";
+            		while(my $output = <COMMAND>) {
+                		if($output =~ /^FILE\t(.+)/) {
+                    			open(FILE, "<$1") or die "Error in opening the file, $1, $!\n";
+                    			my $firstLine = <FILE>;
+                    			my $firstChar = substr(trim($firstLine), 0, 1);
+                    			unless(($firstChar eq '>') || ($firstChar eq '@')) {
+                        			die "$1 is neither a fasta file nor a fastq file";
+                    			}
+                    			if($firstChar eq '>') {
+                        			while(my $line = <FILE>) {
+                            				last if($line =~ /^>/);
+                            				die "$1 is not a fasta file" if($line =~ /\d/g);
+                        			}
+                    			}
+                    			close FILE;
+                		}
+            		}
+            		close COMMAND;
+            		die "Error in executing the command $command; Error code: $?\n" if( $? );
+        	}
 	}
 	print STDOUT $arg;
 }
