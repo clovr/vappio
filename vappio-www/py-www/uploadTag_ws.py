@@ -24,10 +24,10 @@ class UploadTag(CGIPage):
 
             
             cmd = ['uploadTagR.py',
-                   '--tag-name=' + core.quoteEncode(request['tag_name']),
-                   '--task-name=' + core.quoteEncode(taskName),
-                   '--src-cluster=' + core.quoteEncode(request['src_cluster']),
-                   '--dst-cluster=' + core.quoteEncode(request['dst_cluster'])]
+                   '--tag-name=' + core.quoteEscape(request['tag_name']),
+                   '--task-name=' + core.quoteEscape(taskName),
+                   '--src-cluster=' + core.quoteEscape(request['src_cluster']),
+                   '--dst-cluster=' + core.quoteEscape(request['dst_cluster'])]
 
             if request['expand']:
                 cmd.append('--expand')
@@ -37,6 +37,7 @@ class UploadTag(CGIPage):
 
             cmd.append('>> /tmp/uploadTag.log 2>&1 &')
 
+            open('/tmp/uploadTag.log', 'a').write(' '.join(cmd) + '\n')
             runSystemEx(' '.join(cmd))
 
         else:

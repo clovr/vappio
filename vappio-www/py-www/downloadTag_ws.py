@@ -21,13 +21,13 @@ class DownloadTag(CGIPage):
             taskName = createTaskAndSave('downloadTag', 2, 'Downloading ' + request['tag_name'])
             
             cmd = ['downloadTagR.py',
-                   '--tag-name=' + core.quoteEncode(request['tag_name']),
-                   '--task-name=' + core.quoteEncode(taskName),
-                   '--src-cluster=' + core.quoteEncode(request['src_cluster']),
-                   '--dst-cluster=' + core.quoteEncode(request['dst_cluster'])]
+                   '--tag-name=' + core.quoteEscape(request['tag_name']),
+                   '--task-name=' + core.quoteEscape(taskName),
+                   '--src-cluster=' + core.quoteEscape(request['src_cluster']),
+                   '--dst-cluster=' + core.quoteEscape(request['dst_cluster'])]
 
             if request['output_dir']:
-                cmd.append('--output-dir=' + core.quoteEncode(request['output_dir']))
+                cmd.append('--output-dir=' + core.quoteEscape(request['output_dir']))
                            
             if request['expand']:
                 cmd.append('--expand')

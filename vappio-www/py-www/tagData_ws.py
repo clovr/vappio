@@ -27,23 +27,23 @@ class TagData(CGIPage):
             taskName = createTaskAndSave('tagData', 1, 'Tagging ' + request['tag_name'])
             
             cmd = ['tagDataR.py',
-                   '--tag-name=' + core.quoteEncode(request['tag_name']),
-                   '--task-name=' + core.quoteEncode(taskName)]
+                   '--tag-name=' + core.quoteEscape(request['tag_name']),
+                   '--task-name=' + core.quoteEscape(taskName)]
 
             if request['tag_base_dir']:
-                cmd.append('--tag-base-dir=' + core.quoteEncode(request['tag_base_dir']))
+                cmd.append('--tag-base-dir=' + core.quoteEscape(request['tag_base_dir']))
                            
             for i in ['recursive', 'expand', 'append', 'overwrite']:
                 if request[i]:
                     cmd.append('--' + i)
 
             if request['compress']:
-                cmd.append('--compress=' + core.quoteEncode(request['compress']))
+                cmd.append('--compress=' + core.quoteEscape(request['compress']))
                 
             if request['tag_metadata']:
-                cmd.append('--metadata=' + core.quoteEncode(json.dumps(request['tag_metadata'])))
+                cmd.append('--metadata=' + core.quoteEscape(json.dumps(request['tag_metadata'])))
                 
-            cmd.extend([core.quoteEncode(f) for f in request['files']])
+            cmd.extend([core.quoteEscape(f) for f in request['files']])
 
             cmd.append('>> /tmp/tagData.log 2>&1 &')
 
