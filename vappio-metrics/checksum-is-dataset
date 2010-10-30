@@ -1,0 +1,55 @@
+#!/bin/bash 
+
+#Returns the tag-name of a dataset with a given checksum
+#Accepts tag_checksum=
+#Returns tagname=
+
+
+read header
+
+if [ "$header" != "kv" ]
+then
+    echo "Header needs to be kv"
+    exit 1;
+fi
+
+vp-describe-dataset | grep TAG | cut -f 2 | tr '\n' ' ' | xargs -t -n1 vp-describe-dataset --tag-name > /tmp/$$.txt 2>&1 
+
+echo "kv"
+
+while read line
+do
+    set -- `echo $line | tr '=' ' '`
+    key=$1
+    value=$2
+    #Process each checksum=
+    if [ "$key" = "tag_checksum" ]
+    then
+    	checksum=$value
+	#Brute force way to query on checksum
+	#Get all datasets and metadata	
+	while read m
+	do  
+	    #Save tagname
+	    echo $m | grep vp-describe-dataset > /dev/null 2> /dev/null
+	    if [ $? = 0 ]
+	    then
+		ctagname=`echo $m | grep vp-describe-dataset | cut -d ' ' -f 3`
+		tagname=$ctagname
+	    else
+		#Compare checksum
+		echo $m | grep METADATA | grep tag_checksum > /dev/null 2>1
+		if [ $? = 0 ]
+		then
+		    cchecksum=`echo $m | grep METADATA | grep tag_checksum | cut -d ' ' -f 3`
+		    if [ "$cchecksum" = "$checksum" ]
+		    then 
+	    		echo "tagname=$tagname"
+		    fi
+		fi
+	    fi
+	done < /tmp/$$.txt
+    fi
+done 
+
+rm /tmp/$$.txt

@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+#Calculates and returns m5sum of a tag
+#Accepts tagname=
+#Returns tag_checksum= , md5sum=
+#checksum is a single checksum value for the tag
+#md5sum is the output of md5sum on each file in the tag
+
+#Can be used to store metadata using ...
+
+read header
+
+if [ "$header" != "kv" ]
+then
+    echo "Header needs to be kv"
+    exit 1;
+fi
+
+echo "kv"
+
+while read line
+do
+    set -- `echo $line | tr '=' ' '`
+    key=$1
+    value=$2
+    if [ "$key" = "tagname" ]
+    then
+	tagname=$value
+	md5list=`vp-describe-dataset --tag-name=$tagname | grep FILE | cut -f 2 | tr '\n' ' ' | xargs -n1 md5sum`
+	if [ $? = 0 ] && [ "$md5list" != "" ]
+	then
+	    checksum=`echo "$md5list" | md5sum | cut -d ' ' -f 1`
+	    echo "tag_checksum=$checksum"
+	    echo "md5sum=\"$md5list\""
+	fi
+    fi
+done 
+
+
