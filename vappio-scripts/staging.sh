@@ -37,7 +37,7 @@ shift
 
 if [ -f $vappio_runtime/no_dns ]
 then
-    #TODO move this code into a function
+    #TODO move this code into a tasklet
     ping $remotehost -c 1
     if [ $? == 0 ]
     then
@@ -51,7 +51,7 @@ then
 	then
 	    remotehostipaddr=`echo $remotehost | perl -ne '/^\w+\-([\d\-]+)/;$x=$1;$x =~ s/\-/\./g;print $x'`
 	    vlog "parsed ip address $remotehostipaddr from $remotehost"
-	#we have the IP
+            #we have the IP
 	    ping $remotehostipaddr -c 1
 	    if [ $? == 0 ]
 	    then	    
@@ -111,7 +111,7 @@ else
 	then
         #This method transfers files > $largefilesize with gridftp
         #These files are "synced" based on size only, datestamps are ignored
-        #First list only large files and print out list for gridftp
+        #First list only large files and print out list for gridftp, using rsync -n (dry-run)
 	vlog "CMD:rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --min-size $largefilesize --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep \"<f\" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print \"file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n\"}' > /tmp/$$.gridftp.staging.list"
 	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --min-size $largefilesize --size-only --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep "<f" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print "file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n"}' $remotehost $staging_dir > /tmp/$$.gridftp.staging.list
 	ret=$?

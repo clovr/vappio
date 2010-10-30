@@ -38,6 +38,8 @@ updateAllDirs.py --hudson
 
 svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml /var/lib/hudson/config.xml
 
+wget -O /var/lib/hudson/plugins/build-timeout.hpi http://hudson-ci.org/latest/build-timeout.hpi
+
 find /var/lib/hudson -type d -exec chmod 777 {} \;
 find /var/lib/hudson -type f -exec chmod 666 {} \;
 chmod 666 /var/lib/hudson/config.xml
