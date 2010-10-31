@@ -11,6 +11,7 @@ source $vappio_scripts/vappio_config.sh
 ##
 exechost=$1
 request_cwd=$2
+command_str=$3
 
 vlog "###" 
 vlog "### $0 (`whoami`)" 
