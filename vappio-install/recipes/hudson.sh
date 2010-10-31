@@ -4,11 +4,11 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get -y install openjdk-6-jre daemon gcj-4.4-base gcj-4.4-jre-headless gcj-4.4-jre-lib libgcj-common libgcj10
 apt-get -y install libxml-xpath-perl
-wget --retry-connrefused -O /tmp/key http://hudson-ci.org/debian/hudson-ci.org.key
+wget --tries 20 --retry-connrefused -O /tmp/key http://hudson-ci.org/debian/hudson-ci.org.key
 sudo apt-key add /tmp/key
 #Latest is link is broken as of 9/4
 #wget -O /tmp/hudson.deb http://hudson-ci.org/latest/debian/hudson.deb
-wget --retry-connrefused -O /tmp/hudson.deb http://download.hudson-labs.org/debian/hudson_1.374_all.deb
+wget --tries 20 --retry-connrefused -O /tmp/hudson.deb http://download.hudson-labs.org/debian/hudson_1.374_all.deb
 sudo dpkg --install /tmp/hudson.deb
 #Wait in case hudson is starting
 sleep 20
@@ -38,7 +38,7 @@ updateAllDirs.py --hudson
 
 svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml /var/lib/hudson/config.xml
 
-wget -O /var/lib/hudson/plugins/build-timeout.hpi http://hudson-ci.org/latest/build-timeout.hpi
+wget --tries 20 --retry-connrefused -O /var/lib/hudson/plugins/build-timeout.hpi http://hudson-ci.org/latest/build-timeout.hpi
 
 find /var/lib/hudson -type d -exec chmod 777 {} \;
 find /var/lib/hudson -type f -exec chmod 666 {} \;
