@@ -12,20 +12,24 @@ Will tar imagedir upon successful completion
 
 aki=aki-0b4aa462 #default kernel Ubuntu 10
 public=0
-
+i=0
 while getopts "fph" options; do
   case $options in
     p ) public=1
-	  shift
+	  i=`expr $i + 1`
 	  ;;
     h ) echo -e $USAGE
 	  exit 1;;
     f ) force="force"
-	  shift
+	  i=`expr $i + 1`
 	  ;;
     \? ) echo -e $USAGE
          exit 1;;
   esac
+done
+for (( c=1; c<=$i; c++ ))
+do
+    shift
 done
 
 if [ -d "$1" ]
@@ -64,14 +68,14 @@ ec2pk=`cat /mnt/keys/ec2pk`
 ec2cert=`cat /mnt/keys/ec2cert`
 
 #A temp directory
-mkdir -p /mnt/ec2bundles
+mkdir -p /mnt/ec2bundles$$
 
-if [ -f "/mnt/ec2bundles/$imgname.manifest.xml" ] || [ "$force" != "force" ]
+if [ -f "/mnt/ec2bundles$$/$imgname.manifest.xml" ] || [ "$force" != "force" ]
 then
-    echo "Found manifest, /mnt/ec2bundles/$imgname.manifest.xml, skipping ec2-bundle-image"
+    echo "Found manifest, /mnt/ec2bundles$$/$imgname.manifest.xml, skipping ec2-bundle-image"
 else
     echo "Bundling image $imgname"
-    $EC2_AMITOOL_HOME/bin/ec2-bundle-image -c $ec2cert -k $ec2pk -u $user --kernel $aki -i $image -d /mnt/ec2bundles -p $imgname -r x86_64
+    $EC2_AMITOOL_HOME/bin/ec2-bundle-image -c $ec2cert -k $ec2pk -u $user --kernel $aki -i $image -d /mnt/ec2bundles$$ -p $imgname -r x86_64
 fi
 
 #If not Access Denied, bucket does not exist
@@ -80,7 +84,7 @@ if [ "$s3manifest" = "" ] || [ "$force" = "force" ]
 then
     #Upload bundle
     echo "Uploading $imgname to S3"
-    $EC2_AMITOOL_HOME/bin/ec2-upload-bundle -b $imgname -m /mnt/ec2bundles/$imgname.manifest.xml -a $account -s $secretkey
+    $EC2_AMITOOL_HOME/bin/ec2-upload-bundle -b $imgname -m /mnt/ec2bundles$$/$imgname.manifest.xml -a $account -s $secretkey
 fi
 
 export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
@@ -105,5 +109,5 @@ fi
 echo "Bundled and uploaded AMI: $ami"
 
 #cleanup
-rm -rf /mnt/ec2bundles
+rm -rf /mnt/ec2bundles$$
 
