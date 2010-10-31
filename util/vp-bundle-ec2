@@ -42,10 +42,11 @@ then
     echo "$USAGE"
     exit 1
 fi
-if [ ! -f "/mnt/keys/ec2user" ] || [ ! -f "/mnt/keys/ec2account" ] || [ ! -f "/mnt/keys/ec2secretkey" ]
+if [ ! -f "/mnt/keys/ec2user" ] || [ ! -f "/mnt/keys/ec2account" ] || [ ! -f "/mnt/keys/ec2secretkey" ] || [ ! -f "/mnt/keys/ec2pk" ] || [ ! -f "/mnt/keys/ec2cert" ]
 then
     echo "Save ec2 keys and account information in /mnt/keys"
-    echo "Files: ec2user,ec2account,ec2secretkey,pk-*.pem,cert-*.pem"
+    echo "Files: ec2user,ec2account,ec2secretkey,ec2pk,ec2cert"
+    echo "ec2pk and ec2cert should list path to files pk-XXX.pem and cert-XXX.pem on the image"
     exit 2
 fi
 
@@ -59,6 +60,8 @@ export EC2_AMITOOL_HOME=/opt/ec2-ami-tools-1.3-56066
 user=`cat /mnt/keys/ec2user`
 account=`cat /mnt/keys/ec2account`
 secretkey=`cat /mnt/keys/ec2secretkey`
+ec2pk=`cat /mnt/keys/ec2pk`
+ec2cert=`cat /mnt/keys/ec2cert`
 
 #A temp directory
 mkdir -p /mnt/ec2bundles
@@ -68,7 +71,7 @@ then
     echo "Found manifest, /mnt/ec2bundles/$imgname.manifest.xml, skipping ec2-bundle-image"
 else
     echo "Bundling image $imgname"
-    $EC2_AMITOOL_HOME/bin/ec2-bundle-image -c /mnt/keys/cert-*.pem -k /mnt/keys/pk-*.pem -u $user --kernel $aki  -i $image -d /mnt/ec2bundles -p $imgname -r x86_64
+    $EC2_AMITOOL_HOME/bin/ec2-bundle-image -c $ec2cert -k $ec2pk -u $user --kernel $aki -i $image -d /mnt/ec2bundles -p $imgname -r x86_64
 fi
 
 #If not Access Denied, bucket does not exist
@@ -84,13 +87,13 @@ export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
 export EC2_APITOOL_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
 export JAVA_HOME=/usr
 echo "Registering on EC2 $imgname/$imgname.manifest.xml"
-ami=`$EC2_APITOOL_HOME/bin/ec2-register $imgname/$imgname.manifest.xml -K /mnt/keys/pk-*.pem -C /mnt/keys/cert-*.pem -n $imgname | perl -ne '/^IMAGE\s+(ami-\S+)/;print $1,"\n"'`
+ami=`$EC2_APITOOL_HOME/bin/ec2-register $imgname/$imgname.manifest.xml -K $ec2pk -C $ec2cert -n $imgname | perl -ne '/^IMAGE\s+(ami-\S+)/;print $1,"\n"'`
 echo "AMI: $ami"
 
 #Mark public 
 if [ "$public" = 1 ]
 then
-    $EC2_APITOOL_HOME/bin/ec2-modify-image-attribute -C /mnt/keys/cert-*.pem -K /mnt/keys/pk-*.pem $ami --launch-permission -a all
+    $EC2_APITOOL_HOME/bin/ec2-modify-image-attribute -C $ec2cert -K $ec2pk $ami --launch-permission -a all
 fi
 
 #Set AMI in clovr.conf if this is a clovr image
