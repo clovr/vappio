@@ -12,6 +12,7 @@ source $vappio_scripts/vappio_config.sh
 exechost=$1
 request_cwd=$2
 command_str=$3
+command_args=$4
 
 vlog "###" 
 vlog "### $0 (`whoami`)" 
@@ -19,7 +20,7 @@ vlog "###"
 
 myhost=`hostname -f`
 
-vlog "Running epilog on $myhost. Script arguments exechost=$1 request_cwd=$2 command_str=$3" 
+vlog "Running epilog on $myhost. Script arguments exechost=$1 request_cwd=$2 command_str=$3 args=$4" 
 
 #Only handle RunWorkflow commands submitted by Ergatis
 #All other commands will do nothing
@@ -42,7 +43,11 @@ then
     
     ##
     #Epilog past this point assumes workflow
-    if [ -z "$wfcomponentdir" ]
+    #wfxml=`echo -E "$command_args" | perl -ne '$_ =~ s/\s+/ /g;@x=split(/[\s=]/,$_);%args=@x;print $args{"-i"},"\n"'`
+    #wfdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1$dir2"'`
+    #wfcomponentdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1"'`
+    #wfgroupdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.+)\//);print "$dir2"'`
+    if [ ! -z "$wfcomponentdir" ]
     then
 	harvestdata=`grep HARVESTDATA $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
 	if [ "$harvestdata" != "" ]; then
