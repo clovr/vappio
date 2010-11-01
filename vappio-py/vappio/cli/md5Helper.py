@@ -32,7 +32,7 @@ def main(options, args):
         reliableDownloader.deleteDownloadedFiles('/tmp', url)
         commands.runSystemEx(' '.join(['wget',
                                        '-P', '/tmp',
-                                       '--quiet',
+                                       '-nv',
                                        url]), log=logging.DEBUG)
         for f in reliableDownloader.getDownloadFilenames('/tmp', url):
             sys.stdout.write(open(f).read().strip().split()[0] +

@@ -95,7 +95,7 @@ def monitorDownload(pr, downloaderChan, baseDir, url, minRate):
 
 
 def attemptDownload(options, url):
-    cmd = ['wget', '--quiet', '-P', options('general.base_dir')]
+    cmd = ['wget', '-nv', '-P', options('general.base_dir')]
     if options('general.continue_download'):
         cmd.append('-c')
 
