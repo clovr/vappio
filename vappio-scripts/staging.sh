@@ -76,7 +76,6 @@ then
     verror "STAGING FAILURE";
     exit 100
 fi
-
 #If argument is specified
 #copy specified files
 if [ "$1" != "" ]
@@ -85,13 +84,16 @@ then
 	if [ -d "$1" ]
 	then
 	    vlog "Start staging of directory $1 to $remotehost:$1"
-	    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $1 root@$remotehost:/"
-	    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $1 root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+	    #Must remove trailing slash if specified
+	    dname=`echo "$1" | perl -ne 's/\/\s*$//g;print'`
+	    vlog "CMD: rsync -R --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" $dname root@$remotehost:/"
+	    rsync -R --filter '- .*' -av -e "$ssh_client -i $ssh_key $ssh_options" $dname root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
 	    ret=$?
 	else
 	    vlog "Start staging of file $1 to $remotehost:$1"
-	    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" $1 root@$remotehost:$1"
-	    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" $1 root@$remotehost:$1 1>> $vappio_log 2>> $vappio_log
+	    vlog "CMD: rsync --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" $1 root@$remotehost:$1"
+	    dname=`dirname $1`
+	    rsync --filter '- .*' --rsync-path "mkdir -p $dname && rsync" -av -e "$ssh_client -i $ssh_key $ssh_options" $1 root@$remotehost:$1 1>> $vappio_log 2>> $vappio_log
 	    ret=$?
 	fi
 	if [ $ret == 0 ]
@@ -100,7 +102,7 @@ then
 	else
 	    vlog "ERROR: $0 rsync fail. return value $ret"
 	    verror "STAGING FAILURE";
-	exit 1;
+	    exit $ret;
 	fi
 	shift
     done
@@ -162,8 +164,8 @@ else
 	fi
     else
     #Plain ole' rsync
-	vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir"
-	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
+	vlog "CMD: rsync --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir"
+	rsync --filter '- .*' -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
 	ret=$?
 	if [ $ret == 0 ]
 	    then
@@ -171,7 +173,7 @@ else
 	else
 	    vlog "ERROR: $0 rsync fail. return value $ret"
 	    verror "STAGING FAILURE";
-	    exit 1;
+	    exit $ret;
 	fi
     fi
 fi
