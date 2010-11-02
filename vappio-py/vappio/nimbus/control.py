@@ -45,7 +45,7 @@ def instantiateCredential(conf, cred):
                           env=dict(EC2_JVM_ARGS='-Djavax.net.ssl.trustStore=/tmp/jssecacerts',
                                    EC2_HOME=ec2Home,
                                    EC2_URL=cred.metadata['ec2_url']))
-    if conf('cluster.cluster_private_key') + '.pub':
+    if os.path.exists(conf('cluster.cluster_private_key') + '.pub'):
         pubKey = open(conf('cluster.cluster_private_key') + '.pub').read().rstrip()
         ec2_control.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"')
     return newCred
