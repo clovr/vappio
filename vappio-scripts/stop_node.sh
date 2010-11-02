@@ -15,15 +15,15 @@ nodetype=`cat $vappio_runtime/node_type`
 if [ "$nodetype" != "OFFLINE" ]
     then
     case `cat $vappio_runtime/node_type` in
-	MASTER_NODE) 
+	master) 
 	    echo "Node is MASTER_NODE. Shutting down"
 	    $vappio_scripts/stop_master.sh
 	    ;;
-	EXEC_NODE) 
+	exec) 
 	    echo "Node is EXEC_NODE. Shutting down"
 	    $vappio_scripts/stop_exec.sh
 	    ;;
-	DATA_NODE) 
+	data) 
 	    echo "Node is DATA_NODE. Shutting down"
 	    $vappio_scripts/stop_data.sh
 	    ;;
