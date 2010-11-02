@@ -59,7 +59,10 @@ vnetstatus() {
 }
 
 vnodestatus() {
-    nodetype=`cat $vappio_runtime/node_type`
+    if [ -f "$vappio_runtime/node_type" ]
+    then
+	nodetype=`cat $vappio_runtime/node_type`
+    fi
     hostn=`hostname`
     timeout=60
     i=0
