@@ -9,7 +9,7 @@ vlog "### exec_user-data.sh $0 (`whoami`)"
 vlog "###"
 
 # contextualize this node as an EXEC
-export MASTER_NODE=<TMPL_VAR NAME=MASTER_PRIVATE_DNS>
+export MASTER_NODE=<TMPL_VAR NAME=MASTER_DNS>
 export EXEC_NODE=localhost
 echo "$MASTER_NODE" > $vappio_userdata/master_node
 echo "exec" > $vappio_userdata/node_type
