@@ -57,7 +57,7 @@ export PATH=/opt/install-cert:$PATH
 
 #ulimit -n 1000000
 
-clovrWrapper () { pipelinename=echo "clovr_`date "+%Y%m%d%s"`";taskname=`vp-run-pipeline --name local --pipeline clovr_wrapper --pipeline-name $pipelinename --pipeline-config=$1 -t` && vp-describe-task --block --show --show-error $taskname; }
+clovrWrapper () { date=`date +%Y%m%d%s`;pipelinename=`echo "clovr_$date"`;taskname=`vp-run-pipeline --name local --pipeline clovr_wrapper --pipeline-name $pipelinename --pipeline-config=$1 -t` && vp-describe-task --block --show --show-error $taskname; }
 clovrSleep () { clovrWrapper $1 ; }
 clovr16S () { clovrWrapper $1 ; }
 clovrMicrobe () { clovrWrapper $1 ; }
