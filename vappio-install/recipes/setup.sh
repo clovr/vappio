@@ -2,6 +2,9 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+# Need to delete /etc/hostname to work in diag
+rm -f /etc/hostname
+
 #Get clean apt.sources
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt $tmpdir/etc/apt
 #Make non-EC apt the default
