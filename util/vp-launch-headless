@@ -14,60 +14,40 @@ fi
 
 ipstat=`stat -t $1/shared/clovr_ip 2> /dev/null`
 
-case $2 in
-    vbox)
-	echo -n "Starting with virtualbox on "
-	echo `hostname`
-	bname=`basename $1`
-	VBoxManage showvminfo $bname
-	if [ $? = 1 ]
-	then
-	    VBoxManage import $1/$bname.ovf
-	fi
+if [ "$2" = "vbox" ]
+then
+    bname=`basename $1`
+    VBoxManage showvminfo $bname
+    if [ $? = 1 ]
+    then
+	VBoxManage import $1/$bname.ovf
+    fi
 	#Update networking
-	VBoxManage modifyvm $bname --bridgeadapter1 eth0
-	VBoxManage sharedfolder remove $bname --name shared || true
-	VBoxManage sharedfolder remove $bname --name keys || true
-	VBoxManage sharedfolder remove $bname --name user_data || true
-	VBoxManage sharedfolder remove $bname --name pg_data || true
-	VBoxManage sharedfolder add $bname --name shared --hostpath $1/shared/ 
-	VBoxManage sharedfolder add $bname --name keys --hostpath $1/keys/ 
-	VBoxManage sharedfolder add $bname --name user_data --hostpath $1/user_data/
-	VBoxManage sharedfolder add $bname --name pg_data --hostpath $1/pg_data/
+    VBoxManage modifyvm $bname --bridgeadapter1 eth0
+    VBoxManage sharedfolder remove $bname --name shared || true
+    VBoxManage sharedfolder remove $bname --name keys || true
+    VBoxManage sharedfolder remove $bname --name user_data || true
+    VBoxManage sharedfolder remove $bname --name pg_data || true
+    VBoxManage sharedfolder add $bname --name shared --hostpath $1/shared/ 
+    VBoxManage sharedfolder add $bname --name keys --hostpath $1/keys/ 
+    VBoxManage sharedfolder add $bname --name user_data --hostpath $1/user_data/
+    VBoxManage sharedfolder add $bname --name pg_data --hostpath $1/pg_data/
 	#Update shared folders
-	VBoxHeadless -s $bname
-	;;
-    ec2)
-	vp-start-cluster
-	export EC2_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
-	export EC2_APITOOL_HOME=/opt/opt-packages/ec2-api-tools-1.3-53907/
-	export JAVA_HOME=/usr
-	ami=`perl -ne "/^ami=\s*\(\S+)/;print $1 if($1)" /mnt/shared/vappio-conf/clovr.conf`
-	$EC2_APITOOL_HOME/bin/ec2-run-instances -k $key -t m1.large -f /tmp/$$userdata 
-	;;
-    diag)
-	echo "Diag not implemented"
-	;;
-    magellan)
-	echo "Magellan not implemented"
-	;;
-    *)
-	echo "Starting with vmplayer"
-	if [ -d "$1/start_clovr.vmx.lck" ]
-	then
-	    echo "VM $buildvm is already running" >&2
-	    exit 1
-	else
-	    xhost + 
-	    xhost +LOCAL:
-	    export DISPLAY=:0.0
-	    echo "Starting VM" >&2
-	    vmplayer $1/start_clovr.vmx &
-	    echo "invoked vmplayer" >&2
-	fi
-	;;
-esac
-
+    VBoxHeadless -s $bname
+else
+    if [ -d "$1/start_clovr.vmx.lck" ]
+    then
+	echo "VM $buildvm is already running" >&2
+	exit 1
+    else
+	xhost + 
+	xhost +LOCAL:
+	export DISPLAY=:0.0
+	echo "Starting VM" >&2
+	vmplayer $1/start_clovr.vmx &
+	echo "invoked vmplayer" >&2
+    fi
+fi
 echo "Waiting for VM to start" >&2
 ipstatnew=`stat -t $1/shared/clovr_ip 2> /dev/null`
 timeout=60 #5 minutes
