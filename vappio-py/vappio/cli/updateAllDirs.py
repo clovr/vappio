@@ -11,6 +11,7 @@ OPTIONS = [
     ('opt_packages', '', '--opt-packages', 'Update opt-packages', defaultIfNone(False), True),
     ('config_policies', '', '--config_policies', 'Update config_policies', defaultIfNone(False), True),
     ('vappio_py', '', '--vappio-py', 'Update vappio-py', defaultIfNone(False), True),
+    ('vappio_apps', '', '--vappio-apps', 'Update vappio-apps', defaultIfNone(False), True),
     ('vappio_scripts', '', '--vappio-scripts', 'Update vappio-scripts', defaultIfNone(False), True),
     ('clovr_pipelines', '', '--clovr_pipelines', 'Update clovr_pipelines', defaultIfNone(False), True),
     ('vappio_py_www', '', '--vappio-py-www', 'Update vappio-www/py-ww', defaultIfNone(False), True),
@@ -71,6 +72,8 @@ def main(options, _args):
         if options('general.vappio_py') or updateAll:
             grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-py', '/opt/vappio-py')
             runSystemEx("""chmod +x /opt/vappio-py/vappio/cli/*.py""")
+        if options('general.vappio_apps') or updateAll:
+            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-apps', '/opt/vappio-apps')
         if options('general.vappio_scripts') or updateAll:
             grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-scripts', '/opt/vappio-scripts')
             runSystemEx("""chmod -R +x /opt/vappio-scripts""", log=True)

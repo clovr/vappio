@@ -161,13 +161,13 @@ def installOptPkg(pkgname):
     """
     outname = '-'.join(pkgname.split('-')[:-1])
 
-    try:
-        runSystemEx('ln -s %s %s' % (os.path.join(conf('opt.package_dir'), pkgname),
-                                     os.path.join(conf('opt.base_dir'), outname)))
-    except:
+    srcName = os.path.join(conf('opt.package_dir'), pkgname)
+    dstName = os.path.join(conf('opt.base_dir'), outname)
+
+    if os.path.exists(dstName):
         uninstallOptPkg(pkgname)
-        runSystemEx('ln -s %s %s' % (os.path.join(conf('opt.package_dir'), pkgname),
-                                     os.path.join(conf('opt.base_dir'), outname)))
+
+    runSystemEx('ln -s %s %s' % (srcName, dstName))
         
 def uninstallOptPkg(pkgname):
     outname = '-'.join(pkgname.split('-')[:-1])    
