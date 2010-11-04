@@ -181,7 +181,9 @@ do
         #Set up apt proxy to speed up downloads
 	mkdir -p  $builddir.live/etc/apt.conf.d
         #Check for apt proxy for local caching of apt packages
+	set +e
 	curl http://localhost:3142 > /dev/null
+	set -e 
 	if [ $? = 0 ]
 	then
 	    svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy $builddir.live/etc/apt/apt.conf.d/01proxy
