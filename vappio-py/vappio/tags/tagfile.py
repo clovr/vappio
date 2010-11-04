@@ -165,7 +165,7 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, compress, ap
         files = loadTagFile(outName)('files')
         baseDirFiles, nonBaseDirFiles = partitionFiles(files, tagBaseDir)
         if baseDirFiles:
-            for fs in func.chunk(100, baseDirFiles):
+            for fs in func.chunk(20, baseDirFiles):
                 cmd = ['tar',
                        '-C', tagBaseDir,
                        '-rf', outTar,
@@ -174,7 +174,7 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, compress, ap
                 runSystemEx(' '.join(cmd), log=True)
 
         if nonBaseDirFiles:
-            for fs in func.chunk(100, nonBaseDirFiles):
+            for fs in func.chunk(20, nonBaseDirFiles):
                 cmd = ['tar',
                        '-C', '/',
                        '-rf', outTar,
