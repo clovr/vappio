@@ -30,7 +30,7 @@ $SGE_ROOT/bin/$ARCH/qstat -u '*' -l hostname=$myhostname > $vappio_runtime/sge.r
 #Check for staging,harvesting jobs or other jobs submitted by this host
 $SGE_ROOT/bin/$ARCH/qstat | grep sge_o_host | grep $myhostname >> $vappio_runtime/sge.running 
 #Check for hadoop jobs
-/usr/bin/hadoop job -list | grep running | /usr/bin/perl -ne '($num) = ($_ =~ /(\d+) jobs /);print $_ if($num>0);'>> $vappio_runtime/sge.running 
+/opt/hadoop/bin/hadoop job -list | grep running | /usr/bin/perl -ne '($num) = ($_ =~ /(\d+) jobs /);print $_ if($num>0);'>> $vappio_runtime/sge.running 
 
 if [ -s $vappio_runtime/sge.running ]
     then
@@ -48,7 +48,7 @@ do
     #Check for staging,harvesting jobs or other jobs submitted by this host
     $SGE_ROOT/bin/$ARCH/qstat | grep sge_o_host | grep $myhostname >> $vappio_runtime/sge.running 
     #Check for hadoop jobs
-    /usr/bin/hadoop job -list | grep running | /usr/bin/perl -ne '($num) = ($_ =~ /(\d+) jobs /);print $_ if($num>0);' >> $vappio_runtime/sge.running 
+    /opt/hadoop/bin/hadoop job -list | grep running | /usr/bin/perl -ne '($num) = ($_ =~ /(\d+) jobs /);print $_ if($num>0);' >> $vappio_runtime/sge.running 
     #Shortcircuit if any running jobs
     if [ -s $vappio_runtime/sge.running ]
 	then
