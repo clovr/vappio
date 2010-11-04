@@ -24,7 +24,7 @@ bash -e $VAPPIO_RECIPES/sethostname.sh
 bash -e $VAPPIO_RECIPES/autologin.sh
 
 bash -e $VAPPIO_RECIPES/vappiocustoms.sh
-bash -e $VAPPIO_RECIPES/vappio-metrics.sh
+bash -e $VAPPIO_RECIPES/vappio-tasklets.sh
 
 bash -e $VAPPIO_RECIPES/hudson.sh
 sudo bash -e $VAPPIO_RECIPES/buildutils.sh

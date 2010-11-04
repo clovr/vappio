@@ -24,7 +24,7 @@ bash -e $VAPPIO_RECIPES/sethostname.sh
 bash -e $VAPPIO_RECIPES/autologin.sh
 
 bash -e $VAPPIO_RECIPES/vappiocustoms.sh
-bash -e $VAPPIO_RECIPES/vappio-metrics.sh
+bash -e $VAPPIO_RECIPES/vappio-tasklets.sh
 
 #Grid utils
 bash -e $VAPPIO_RECIPES/ganglia.sh

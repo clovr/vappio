@@ -35,6 +35,10 @@ sysctl -p
 echo 0 > /proc/sys/kernel/hung_task_timeout_secs
 echo 0 > /proc/sys/kernel/softlockup_thresh
 
+#FUTEX_WAIT call possible fix
+#rm /dev/random 
+#mknod -m 644 /dev/random c 1 9 
+
 chmod +t /tmp/
 chmod 777 /tmp
 
