@@ -3,14 +3,15 @@ from twisted.application import service
 from twisted.internet import reactor
 from twisted.web import resource
 from twisted.web import server
-from twisted.web import twcgi
+
+from vappio_tw.legacy import cgi as vappio_cgi
 
 class Root(resource.Resource):
     """Root resource"""
 
 
 root = Root()
-root.putChild('listProtocols_ws.py', twcgi.CGIScript('/var/www/vappio/listProtocols_ws.py'))
+addCGIDir(root, '/var/www/vappio', filterF=lambda f : f.endswith('.py'))
 
 application = service.Application('www_data_components')
 serviceCollection = service.IServiceCollection(application)
