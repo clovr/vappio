@@ -104,4 +104,44 @@
         Options +Indexes +MultiViews
     </Directory>
 
+    Alias        "/gbrowse2/i/" "/tmp/gbrowse2/images/"
+    Alias        "/gbrowse2"    "/var/www/gbrowse2/htdocs"
+    ScriptAlias  "/gb2"      "/var/www/gbrowse2/cgi"
+
+    <Directory "/var/www/gbrowse2/htdocs">
+        Options -Indexes -MultiViews +FollowSymLinks
+    </Directory>
+
+    <Directory "/var/www/gbrowse2/cgi">
+        SetEnv GBROWSE_CONF   "/opt/opt-packages/gbrowse2-2.03/"
+    </Directory>
+
+    <IfModule mod_fcgid.c>
+        Alias /fgb2 "/var/www/gbrowse2/cgi"
+        <Location /fgb2>
+            SetHandler   fcgid-script
+            Options      ExecCGI
+        </Location>
+        DefaultInitEnv GBROWSE_CONF /opt/opt-packages/gbrowse2-2.03/
+    </IfModule>
+
+    <IfModule mod_fastcgi.c>
+        Alias /fgb2 "/var/www/gbrowse2/cgi"
+        <Location /fgb2>
+            SetHandler   fastcgi-script
+            Options      ExecCGI
+        </Location>
+        FastCgiConfig  -initial-env GBROWSE_CONF=/opt/opt-packages/gbrowse2-2.03/
+    </IfModule>
+
+    <IfModule mod_perl.c>
+        Alias /mgb2 "/var/www/gbrowse2/cgi"
+
+        <Location /mgb2>
+            SetHandler perl-script
+            PerlResponseHandler ModPerl::Registry
+            PerlOptions +ParseHeaders
+        </Location>
+    </IfModule>
+
 </VirtualHost>
