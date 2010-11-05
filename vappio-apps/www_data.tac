@@ -11,7 +11,7 @@ class Root(resource.Resource):
 
 
 root = Root()
-addCGIDir(root, '/var/www/vappio', filterF=lambda f : f.endswith('.py'))
+vappio_cgi.addCGIDir(root, '/var/www/vappio', filterF=lambda f : f.endswith('.py'))
 
 application = service.Application('www_data_components')
 serviceCollection = service.IServiceCollection(application)
