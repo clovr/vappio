@@ -1,3 +1,5 @@
+import pwd
+
 from twisted.application import internet
 from twisted.application import service
 from twisted.internet import reactor
@@ -13,7 +15,9 @@ class Root(resource.Resource):
 root = Root()
 vappio_cgi.addCGIDir(root, '/var/www/vappio', filterF=lambda f : f.endswith('.py'))
 
-application = service.Application('www_data_components')
+user = pwd.getpwnam('www-data')
+
+application = service.Application('www_data_components', uid=user.pw_uid, gid=user.pw_gid)
 serviceCollection = service.IServiceCollection(application)
 
 internet.TCPServer(8000, server.Site(root)).setServiceParent(serviceCollection)
