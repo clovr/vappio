@@ -75,7 +75,7 @@ def main(options, _args):
             runSystemEx("""chmod +x /opt/vappio-py/vappio/cli/*.py""")
         if options('general.vappio_apps') or updateAll:
             grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-apps', '/opt/vappio-apps')
-            if options('general.vappio_twisted') or updateAll:
+        if options('general.vappio_twisted') or updateAll:
             grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-twisted', '/opt/vappio-twisted')
         if options('general.vappio_scripts') or updateAll:
             grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-scripts', '/opt/vappio-scripts')
