@@ -190,11 +190,13 @@ do
 	fi
 	
         #Download and run bootstrap script
+	#This will pull the latest recipes from SVN for the build
 	wget -c -P $builddir.live/tmp $bootstrapscript
 	bscript=`basename $bootstrapscript`
 	chroot $builddir.live bash -e /tmp/$bscript
     fi
     #Apply build script to the image
+    cp $bundledir/$b $builddir.live/$bundledir/$b
     chroot $builddir.live $bundledir/$b    
     sync
 
