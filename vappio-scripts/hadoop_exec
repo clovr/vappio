@@ -14,6 +14,7 @@ if sys.argv[1] == 'start':
 
     dirExists('/mnt/hadoop')
     dirOwner('/mnt/hadoop', 'www-data', 'www-data')
+    dirPermissions('/mnt/hadoop', '777', ignoreError=True)
     
     run('/opt/hadoop/bin/hadoop-daemon.sh start datanode')
     run('/opt/hadoop/bin/hadoop-daemon.sh start tasktracker')

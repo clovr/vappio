@@ -17,6 +17,7 @@ if sys.argv[1] == 'start':
     run('rm -rf /tmp/hadoop-root /mnt/hadoop', ignoreError=True)
     dirExists('/mnt/hadoop')
     run('hadoop namenode -format', ignoreError=True)
+    dirPermissions('/mnt/hadoop', '777', ignoreError=True)
 
     run('/opt/hadoop/bin/hadoop-daemon.sh start namenode')
     run('/opt/hadoop/bin/hadoop-daemon.sh start datanode')
