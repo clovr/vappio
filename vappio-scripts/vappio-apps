@@ -1,0 +1,21 @@
+#!/usr/bin/sh
+
+case "$1" in
+    start)
+	twistd --pidfile=/opt/vappio-apps/www_data.pid --logfile=/opt/vappio-apps/www_data.log -y /opt/vappio-apps/www_data.tac
+	;;
+    stop)
+	kill `cat /opt/vappio-apps/www_data.pid`
+	;;
+    reload)
+	$0 stop
+	$0 start
+	;;
+    *)
+	echo "Unknown option"
+	exit 1
+	;;
+esac
+
+exit 0
+

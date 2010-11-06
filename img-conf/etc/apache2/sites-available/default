@@ -30,7 +30,7 @@
             PassEnv PYTHONPATH
             PassEnv VAPPIO_HOME
             PassEnv EC2_HOME
-        SetEnv HOME /var/www
+	    SetEnv HOME /var/www
 #            PassEnv HOME
             PassEnv JAVA_HOME
             PassEnv PYTHON_EGG_CACHE
@@ -63,24 +63,27 @@
             allow from all
        </Directory>
 
-        <Directory "/var/www/vappio/">
-            # Do not mix +/- with absolute options
-            Options +ExecCGI +Indexes +FollowSymLinks +MultiViews
-            AddHandler cgi-script .cgi .pl .py
-            AllowOverride None
-            PassEnv PYTHONPATH
-            PassEnv VAPPIO_HOME
-            PassEnv EC2_HOME
-        SetEnv HOME /var/www
-#            PassEnv HOME
-            PassEnv JAVA_HOME
-            PassEnv PYTHON_EGG_CACHE
-            # I'm fearful of the security concerns of these, this is temporary
-            PassEnv EC2_CERT
-            PassEnv EC2_PRIVATE_KEY
-            Order allow,deny
-            allow from all
-       </Directory>
+       ProxyPass /vappio/ http://localhost:8000/
+       ProxyPassReverse /vappio/ http://localhost:8000/
+
+#        <Directory "/var/www/vappio/">
+#            # Do not mix +/- with absolute options
+#            Options +ExecCGI +Indexes +FollowSymLinks +MultiViews
+#            AddHandler cgi-script .cgi .pl .py
+#            AllowOverride None
+#            PassEnv PYTHONPATH
+#            PassEnv VAPPIO_HOME
+#            PassEnv EC2_HOME
+#	    SetEnv HOME /var/www
+##            PassEnv HOME
+#            PassEnv JAVA_HOME
+#            PassEnv PYTHON_EGG_CACHE
+#            # I'm fearful of the security concerns of these, this is temporary
+#            PassEnv EC2_CERT
+#            PassEnv EC2_PRIVATE_KEY
+#            Order allow,deny
+#            allow from all
+#       </Directory>
                                                                                                                         
 	ErrorLog /var/log/apache2/error.log
 

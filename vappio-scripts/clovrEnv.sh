@@ -4,7 +4,7 @@ export BIOINF_HOME=/opt/opt-packages/bioinf-v1r4b1/
 export RDP_JAR_PATH=$BIOINF_HOME/rdp_classifier/rdp_classifier-2.0.jar
 
 export VAPPIO_HOME=/opt
-export PYTHONPATH=$PYTHONPATH:$VAPPIO_HOME/vappio-py:$BIOINF_HOME/Denoiser/:$BIOINF_HOME/PyNAST/lib/:$BIOINF_HOME/qiime/lib/
+export PYTHONPATH=$PYTHONPATH:/opt/vappio-twisted:$VAPPIO_HOME/vappio-py:$BIOINF_HOME/Denoiser/:$BIOINF_HOME/PyNAST/lib/:$BIOINF_HOME/qiime/lib/
 export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/
   
 export PATH=$PATH:/usr/local/bin:/usr/local/sbin:/usr/sbin
