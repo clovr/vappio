@@ -21,4 +21,5 @@ do
 done
 
 #Clear all error states, task #315
-#qmod -c '*'
+qmod -cj '*'
+qmod -cq '*'
