@@ -30,7 +30,14 @@ then
 else
     vlog "ERROR: $0 rsync fail. return value: $?"
     verror "HARVESTING WF XML FAILURE"
-    exit 1;
+    #requeue if certain conditions met
+    isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+    if [ -d "${request_cwd}" ] && [ "$isreachable" = "" ]
+    then
+	exit 99;
+    else
+	exit 1;
+    fi
 fi
 
 vlog "Copying event.log from ${request_cwd}/event.log to ${request_cwd}/"
@@ -42,5 +49,12 @@ then
 else
     vlog "ERROR: $0 rsync fail. return value: $?"
     verror "HARVESTING WF event.log FAILURE"
-    exit 1;
+    #requeue if certain conditions met
+    isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+    if [ -d "${request_cwd}" ] && [ "$isreachable" = "" ]
+    then
+	exit 99;
+    else
+	exit 1;
+    fi
 fi

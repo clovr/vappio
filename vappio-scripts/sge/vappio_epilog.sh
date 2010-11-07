@@ -79,8 +79,8 @@ then
     if [ $ret1 -ne 0 ]
     then
 	verror "EPILOG Error during harvesting data qsub return code: $ret1"
-        #Requeue
-	exit 99
+	#Job error
+	exit 100
     fi
 
     #Harvest wf xml
@@ -93,9 +93,9 @@ then
     if [ $ret2 -ne 0 ]
     then
 	verror "EPILOG Error during harvesting workflow qsub return code: $ret2"
-        #Requeue
-	exit 99
+	#Job error
+	exit 100
     fi
 fi
 
-exit
+exit 0

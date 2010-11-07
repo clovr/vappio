@@ -99,7 +99,7 @@ then
 		*.list) 
 		    if [ $ret == 0 ]
 		    then
-			echo "Handling as list file";
+			vlog "Handling as list file";
 			rsync --files-from=$1 -av -e "$ssh_client -i $ssh_key $ssh_options" root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
 		    fi
 		    ;;

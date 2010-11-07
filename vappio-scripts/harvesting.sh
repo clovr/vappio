@@ -36,5 +36,12 @@ then
 else
     vlog "ERROR: $0 rsync fail. return value: $?"
     verror "HARVESTING FAILURE"
-    exit 1
+    #requeue if certain conditions met
+    isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+    if [ -d "$parentdir" ] && [ "$isreachable" = "" ]
+    then
+	exit 99
+    else
+	exit 1
+    fi
 fi

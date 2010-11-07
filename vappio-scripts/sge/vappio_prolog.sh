@@ -82,7 +82,7 @@ then
     if [ $ret1 -ne 0 ] 
     then
 	verror "PROLOG. Error during qsub return code: $ret1"
-	#Requeue
+	#Requeue, entire job
 	exit 99
     fi
     
