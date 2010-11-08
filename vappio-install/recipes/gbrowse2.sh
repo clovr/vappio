@@ -18,7 +18,7 @@ tar xvf /tmp/gbrowse2_install/GBrowse-2.03.tar.gz -C /tmp/gbrowse2_install/
 
 # Start the install process
 cd /tmp/gbrowse2_install/GBrowse-2.03/
-perl /tmp/gbrowse2_install/GBrowse-2.03/Build.PL --conf=/opt/opt-packages/gbrowse2-2.03 \
+perl /tmp/gbrowse2_install/GBrowse-2.03/Build.PL --conf=/opt/gbrowse2-2.03 \
                                                  --cgibin=/var/www/gbrowse2/cgi \
                                                  --htdocs=/var/www/gbrowse2/htdocs \
                                                  --databases=/var/www/gbrowse2/databases \
@@ -27,18 +27,23 @@ perl /tmp/gbrowse2_install/GBrowse-2.03/Build.PL --conf=/opt/opt-packages/gbrows
                                                  --wwwuser=www-data \
                                                  --apachemodules=/usr/lib/apache2/modules/ 
 
-
 ## We need an expect script here to handle the (stupid) final questions that
 ## gbrowse's installer will ask
 /usr/bin/expect - << EndMark
+    exp_internal 1
     spawn /tmp/gbrowse2_install/GBrowse-2.03/Build install
 
     expect "Do you wish to*"
     send "n\r"
 	
     expect "Press any key to continue*"
-    send "\r"
+    send "y\r\n"
+
+    expect eof
 EndMark
+
+# Create a sym link to the /opt/gbrowse2 folder 
+ln -s /opt/gbrowse2-2.03 /opt/gbrowse2
 
 # Clean up all directories
 rm -rf /tmp/gbrowse2_install/
