@@ -116,7 +116,7 @@
     </Directory>
 
     <Directory "/var/www/gbrowse2/cgi">
-        SetEnv GBROWSE_CONF   "/opt/opt-packages/gbrowse2-2.03/"
+        SetEnv GBROWSE_CONF   "/opt/gbrowse2/"
     </Directory>
 
     <IfModule mod_fcgid.c>
@@ -125,7 +125,7 @@
             SetHandler   fcgid-script
             Options      ExecCGI
         </Location>
-        DefaultInitEnv GBROWSE_CONF /opt/opt-packages/gbrowse2-2.03/
+        DefaultInitEnv GBROWSE_CONF /opt/gbrowse2/
     </IfModule>
 
     <IfModule mod_fastcgi.c>
@@ -134,7 +134,7 @@
             SetHandler   fastcgi-script
             Options      ExecCGI
         </Location>
-        FastCgiConfig  -initial-env GBROWSE_CONF=/opt/opt-packages/gbrowse2-2.03/
+        FastCgiConfig  -initial-env GBROWSE_CONF=/opt/gbrowse2/
     </IfModule>
 
     <IfModule mod_perl.c>
