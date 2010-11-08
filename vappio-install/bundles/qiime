@@ -12,10 +12,16 @@ $VAPPIO_HOME/vappio-install/vp-bootstrap-install
 bash -e $VAPPIO_RECIPES/setup.sh
 #Basic system config
 bash -e $VAPPIO_RECIPES/sysconfigs.sh
+#We can't completely remove the above two recipes so
+#temporarily need to remove some things added by other recipes
+#TODO, break apart recipes to avoid this in the future
+rm -f /etc/profile.d/vp-screenlogin
+rm -rf /opt/vappio-py /etc/vappio-checkout
+#TODO set custom /etc/environment 
 
 #High performance SSH
 #bash -e $VAPPIO_RECIPES/hpnssh.sh
-bash -e $VAPPIO_RECIPES/allowrootssh.sh
+#bash -e $VAPPIO_RECIPES/allowrootssh.sh
 
 #Vappio appliance utils
 #bash -e $VAPPIO_RECIPES/vappioutil.sh
@@ -40,5 +46,5 @@ mkdir /software/qiime-deploy/
 cd /software/qiime-deploy/
 svn co svn://svn.microbio.me/QiimeUtils/qiime_installer/vb-upgrade/qiime-deploy .
 #sudo -l -U qiime python ./qiime-deploy.py -v -r -p /software/
-python /software/qiime-deploy/qiime-deploy.py -r -p /software/
+sudo -U qiime -l python /software/qiime-deploy/qiime-deploy.py -r -p /software/
 userdel -r ubuntu
