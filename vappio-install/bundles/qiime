@@ -1,0 +1,44 @@
+#!/bin/bash -e
+
+export DEBIAN_FRONTEND=noninteractive
+
+VAPPIO_HOME=/opt
+VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
+
+apt-get -y update
+$VAPPIO_HOME/vappio-install/vp-bootstrap-install
+
+#Setup virgin image
+bash -e $VAPPIO_RECIPES/setup.sh
+#Basic system config
+bash -e $VAPPIO_RECIPES/sysconfigs.sh
+
+#High performance SSH
+#bash -e $VAPPIO_RECIPES/hpnssh.sh
+bash -e $VAPPIO_RECIPES/allowrootssh.sh
+
+#Vappio appliance utils
+#bash -e $VAPPIO_RECIPES/vappioutil.sh
+#bash -e $VAPPIO_RECIPES/vappiopkg.sh
+#bash -e $VAPPIO_RECIPES/sethostname.sh
+#bash -e $VAPPIO_RECIPES/autologin.sh
+
+# Installing software requirements
+apt-get --force-yes -y upgrade
+apt-get --force-yes -y install ubuntu-desktop openjdk-6-jdk libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev
+
+# Creating qiime user
+addgroup qiime
+useradd -p qiime -g qiime -m qiime
+touch /home/qiime/.bashrc
+chown qiime:qiime /home/qiime/.bashrc
+#echo "qiime" | passwd --stdin qiime
+# Installing qiime-deploy
+mkdir /software/
+chown qiime:qiime /software/
+mkdir /software/qiime-deploy/
+cd /software/qiime-deploy/
+svn co svn://svn.microbio.me/QiimeUtils/qiime_installer/vb-upgrade/qiime-deploy .
+#sudo -l -U qiime python ./qiime-deploy.py -v -r -p /software/
+python /software/qiime-deploy/qiime-deploy.py -r -p /software/
+userdel -r ubuntu
