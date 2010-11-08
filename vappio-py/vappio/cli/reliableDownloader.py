@@ -48,7 +48,7 @@ def runDownloader(chan):
         logging.debugPrint(lambda : 'Successfully completed download')
         rchan.send(None)
     except Exception, err:
-        logging.debugPrint(lambda : 'Download failed for unknown reason: ' + str(err))
+        logging.logPrint('Download failed for unknown reason: ' + str(err))
         rchan.sendError(err)
 
 def getSizeOfFiles(files):
@@ -82,7 +82,7 @@ def monitorDownload(pr, downloaderChan, baseDir, url, minRate):
                 sizeSamples.pop(0)
 
             if len(sizeSamples) >= MAX_SAMPLE_SIZE and sum(sizeSamples)/len(sizeSamples) < minRate:
-                logging.debugPrint(lambda : 'Average Rate: %8d - %s' % (sum(sizeSamples)/len(sizeSamples), getUrlFilename(url)))
+                logging.logPrint('Average Rate: %8d - %s - KILLING' % (sum(sizeSamples)/len(sizeSamples), getUrlFilename(url)))
                 os.kill(pr.pipe.pid, signal.SIGTERM)
                 ##
                 # Give it a second to finish up whatever it's doing
