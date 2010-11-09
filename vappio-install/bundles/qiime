@@ -53,11 +53,16 @@ chown qiime:qiime /home/qiime/.bashrc
 mkdir /software/
 chown qiime:qiime /software/
 mkdir /software/qiime-deploy/
-cd /software/qiime-deploy/
-svn co svn://svn.microbio.me/QiimeUtils/qiime_installer/vb-upgrade/qiime-deploy .
+svn co svn://svn.microbio.me/QiimeUtils/qiime_installer/vb-upgrade/qiime-deploy /software/qiime-deploy
+find /software -type f -exec chmod 666 {} \;
+find /software -type d -exec chmod 777 {} \;
+find /software -exec chown qiime:qiime {} \;
 #sudo -l -U qiime python ./qiime-deploy.py -v -r -p /software/
-sudo -E -U qiime -l python /software/qiime-deploy/qiime-deploy.py -r -p /software/
-
+#sudo -E -u qiime python /software/qiime-deploy/qiime-deploy.py -r -p /software/
+source /home/qiime/.bashrc
+pushd /software/qiime-deploy/
+sudo -u qiime python /software/qiime-deploy/qiime-deploy.py -r -p /software/
+popd
 
 # Removing the user ubuntu that is created by default
 userdel -r ubuntu
