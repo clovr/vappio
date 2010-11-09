@@ -58,7 +58,7 @@ find /software -type f -exec chmod 666 {} \;
 find /software -type d -exec chmod 777 {} \;
 find /software -exec chown qiime:qiime {} \;
 pushd /software/qiime-deploy/
-sudo -u qiime python /software/qiime-deploy/qiime-deploy.py -r -p /software/
+sudo -u qiime python /software/qiime-deploy/qiime-deploy.py -r -p /software/ --userhome /home/qiime/
 popd
 
 # Removing the user ubuntu that is created by default
