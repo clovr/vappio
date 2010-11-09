@@ -62,9 +62,12 @@ sudo -I -U qiime -l python /software/qiime-deploy/qiime-deploy.py -r -p /softwar
 # Removing the user ubuntu that is created by default
 userdel -r ubuntu
 
-
 # Setting up configuration
 sudo -I -U qiime -l mkdir /home/qiime/Desktop
 sudo -I -U qiime -l mkdir /home/qiime/Desktop/Before_you_start/
 sudo -I -U qiime -l mkdir /home/qiime/Desktop/Shared_Folder
-# Coping the Before you start files cp /software/qiime
+
+#Stop some services that are started during installations
+/etc/init.d/cups stop
+
+
