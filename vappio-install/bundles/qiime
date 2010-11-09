@@ -56,7 +56,7 @@ mkdir /software/qiime-deploy/
 cd /software/qiime-deploy/
 svn co svn://svn.microbio.me/QiimeUtils/qiime_installer/vb-upgrade/qiime-deploy .
 #sudo -l -U qiime python ./qiime-deploy.py -v -r -p /software/
-sudo -I -U qiime -l python /software/qiime-deploy/qiime-deploy.py -r -p /software/
+sudo -E -U qiime -l python /software/qiime-deploy/qiime-deploy.py -r -p /software/
 
 
 # Removing the user ubuntu that is created by default
