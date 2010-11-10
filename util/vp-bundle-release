@@ -68,7 +68,7 @@ echo "Moving $currimg.vmdk $namepfx/$namepfx.vmdk"
 mv $currimg.vmdk $namepfx/$namepfx.vmdk
 
 currimgbname=`basename $currimg`
-rm $namepfx/$currimgbname.vmdk
+rm -f $namepfx/$currimgbname.vmdk
 
 perl -pi -e "s/href=\".*\.vmdk\"/href=\"$namepfx.vmdk\"/" $namepfx/$namepfx.ovf
 chmod 777 $namepfx
