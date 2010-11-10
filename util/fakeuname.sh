@@ -2,7 +2,7 @@
 
 case "$1" in
     '-r')
-	`/bin/uname.orig -r`
+	echo "2.6.32-23-generic"
 	;;
     '-m')
 	echo "x86_64"
