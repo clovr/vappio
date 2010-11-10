@@ -50,13 +50,13 @@ fi
 
 echo "Creating ovf"
 #Create ovf
-echo "VBoxManage export $2 -o $3"
+VBoxManage export $2 -o $3
 
 #To create VDI
 vdibname=`basename $1`
 vdidirname=`dirname $1`
 
-VBoxManage -q closemedium disk $1
+#VBoxManage -q closemedium disk $1
 VBoxManage internalcommands sethduuid $1
 
 rm -f /root/.VirtualBox/HardDisks/$vdibname.vdi
