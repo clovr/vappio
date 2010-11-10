@@ -41,7 +41,7 @@ useradd -g qiime -m qiime -s /bin/bash
 touch /home/qiime/.bashrc
 chown qiime:qiime /home/qiime/.bashrc
 
-echo "qiime ALL(ALL) NOPASSWD:ALL" >> /etc/sudoers
+echo "qiime ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 chmod 777 /tmp
 userdel -r ubuntu
