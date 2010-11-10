@@ -6,11 +6,11 @@
 # The input data currently needed is:
 # cluster.CLUSTER_NAME
 # misc.PROGRAM (which blast program)
-# input.MAX_QUERY_SEQ_LEN
-# input.MIN_QUERY_SEQ_LEN
-# input.AVG_QUERY_SEQ_LEN
-# input.NUM_QUERY_SEQ
-# input.SCALE_FACTOR - How much to scale the total number of queries, can be a float
+# params.MAX_QUERY_SEQ_LEN
+# params.MIN_QUERY_SEQ_LEN
+# params.AVG_QUERY_SEQ_LEN
+# params.NUM_QUERY_SEQ
+# params.SCALE_FACTOR - How much to scale the total number of queries, can be a float
 #                      defaults to 1 if not specified
 # input.REF_DB_TOTAL_SEQ_LEN -- currently not used
 import sys
@@ -48,12 +48,12 @@ sys.stdout.write('kv\n')
 
 kv = {'cluster.CLUSTER_NAME': None,
       'misc.PROGRAM': None,
-      'input.MAX_QUERY_SEQ_LEN': None,
-      'input.MIN_QUERY_SEQ_LEN': None,
-      'input.AVG_QUERY_SEQ_LEN': None,
-      'input.NUM_QUERY_SEQ': None,
-      'input.SCALE_FACTOR': 1,
-      #'input.REF_DB_TOTAL_SEQ_LEN': None,
+      'params.MAX_QUERY_SEQ_LEN': None,
+      'params.MIN_QUERY_SEQ_LEN': None,
+      'params.AVG_QUERY_SEQ_LEN': None,
+      'params.NUM_QUERY_SEQ': None,
+      'params.SCALE_FACTOR': 1,
+      #'params.REF_DB_TOTAL_SEQ_LEN': None,
       }
 
 for line in sys.stdin:
@@ -66,16 +66,16 @@ if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
 
 if kv['misc.PROGRAM'] not in WORK_FACTOR:
-    raise Exception('Unknown blast program ' + kv['input.PROGRAM'])
+    raise Exception('Unknown blast program ' + kv['misc.PROGRAM'])
 
-for i in ['input.MAX_QUERY_SEQ_LEN',
-          'input.MIN_QUERY_SEQ_LEN',
-          'input.NUM_QUERY_SEQ',]:
-          #'input.REF_DB_TOTAL_SEQ_LEN']:
+for i in ['params.MAX_QUERY_SEQ_LEN',
+          'params.MIN_QUERY_SEQ_LEN',
+          'params.NUM_QUERY_SEQ',]:
+          #'params.REF_DB_TOTAL_SEQ_LEN']:
     kv[i] = int(kv[i])
 
-for i in ['input.SCALE_FACTOR',
-          'input.AVG_QUERY_SEQ_LEN',
+for i in ['params.SCALE_FACTOR',
+          'params.AVG_QUERY_SEQ_LEN',
           ]:
     kv[i] = float(kv[i])
 
@@ -83,8 +83,8 @@ for i in ['input.SCALE_FACTOR',
 #
 # Insert magic calculuations here
 totalHours = calculateCPUHours(kv['misc.PROGRAM'],
-                               kv['input.NUM_QUERY_SEQ'],
-                               kv['input.AVG_QUERY_SEQ_LEN'],
-                               kv['input.SCALE_FACTOR'])
+                               kv['params.NUM_QUERY_SEQ'],
+                               kv['params.AVG_QUERY_SEQ_LEN'],
+                               kv['params.SCALE_FACTOR'])
 
 sys.stdout.write('\n'.join(['pipeline.COMPUTED_CPU_HOURS=' + str(totalHours)]) + '\n')

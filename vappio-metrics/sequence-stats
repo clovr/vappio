@@ -6,10 +6,10 @@
 # 'seqstat' is run on each file in the input tag and the results are combined
 # into a single metric.  The following values are returned
 #
-# input.MAX_QUERY_SEQ_LEN
-# input.MIN_QUERY_SEQ_LEN
-# input.AVG_QUERY_SEQ_LEN
-# input.NUM_QUERY_SEQ
+# params.MAX_QUERY_SEQ_LEN
+# params.MIN_QUERY_SEQ_LEN
+# params.AVG_QUERY_SEQ_LEN
+# params.NUM_QUERY_SEQ
 import sys
 
 from igs.utils import commands
@@ -72,7 +72,7 @@ for t in tags:
         stats['max_len'] = stats['max_len'] > maxLen and stats['max_len'] or maxLen
         stats['min_len'] = stats['min_len'] > minLen and stats['min_len'] or minLen
 
-sys.stdout.write('\n'.join([k + '=' + str(v) for k, v in [('input.MAX_QUERY_SEQ_LEN', stats['max_len']),
-                                                          ('input.MIN_QUERY_SEQ_LEN', stats['min_len']),
-                                                          ('input.AVG_QUERY_SEQ_LEN', stats['avg_len']),
-                                                          ('input.NUM_QUERY_SEQ', stats['num_seq'])]]))
+sys.stdout.write('\n'.join([k + '=' + str(v) for k, v in [('params.MAX_QUERY_SEQ_LEN', stats['max_len']),
+                                                          ('params.MIN_QUERY_SEQ_LEN', stats['min_len']),
+                                                          ('params.AVG_QUERY_SEQ_LEN', stats['avg_len']),
+                                                          ('params.NUM_QUERY_SEQ', stats['num_seq'])]]))
