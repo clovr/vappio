@@ -2,7 +2,7 @@
 
 case "$1" in
     '-r')
-	`uname -r`
+	`/bin/uname.orig -r`
 	;;
     '-m')
 	echo "x86_64"
