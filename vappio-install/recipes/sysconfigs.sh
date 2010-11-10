@@ -42,6 +42,7 @@ echo 0 > /proc/sys/kernel/softlockup_thresh
 chmod +t /tmp/
 chmod 777 /tmp
 
+echo "ahci" >> /etc/initramfs-tools/modules
 
 
 
