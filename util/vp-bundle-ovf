@@ -15,6 +15,7 @@ rm -rf /root/.VirtualBox
 mkdir -p /mnt/.VirtualBox
 ln -f -s /mnt/.VirtualBox /root/.VirtualBox
 
+
 #Clean up any old vms with the same name
 
 VBoxManage -q storageattach $2 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium none
@@ -49,7 +50,7 @@ fi
 
 echo "Creating ovf"
 #Create ovf
-VBoxManage export $2 -o $3
+echo "VBoxManage export $2 -o $3"
 
 #To create VDI
 vdibname=`basename $1`
@@ -58,6 +59,7 @@ vdidirname=`dirname $1`
 VBoxManage -q closemedium disk $1
 VBoxManage internalcommands sethduuid $1
 
+rm -f /root/.VirtualBox/HardDisks/$vdibname.vdi
 VBoxManage clonehd $1 $vdibname.vdi --format vdi
 mv /root/.VirtualBox/$vdibname.vdi /mnt/
 
