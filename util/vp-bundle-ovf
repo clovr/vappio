@@ -12,13 +12,14 @@ while getopts "h" options; do
 done
 
 rm -rf /root/.VirtualBox
+rm -rf /mnt/.VirtualBox
 mkdir -p /mnt/.VirtualBox
 ln -f -s /mnt/.VirtualBox /root/.VirtualBox
 
 
 #Clean up any old vms with the same name
 
-VBoxManage -q storageattach $2 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium none
+#VBoxManage -q storageattach $2 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium none
 VBoxManage -q closemedium disk $1
 VBoxManage -q unregistervm $2 
 
@@ -50,6 +51,7 @@ fi
 
 echo "Creating ovf"
 #Create ovf
+rm -rf $3
 VBoxManage export $2 -o $3
 
 #To create VDI
@@ -61,7 +63,7 @@ VBoxManage internalcommands sethduuid $1
 
 rm -f /root/.VirtualBox/HardDisks/$vdibname.vdi
 VBoxManage clonehd $1 $vdibname.vdi --format vdi
-mv /root/.VirtualBox/$vdibname.vdi /mnt/
+mv /root/.VirtualBox/HardDisks/$vdibname.vdi /mnt/
 
 #To automatically import
 #rm -rf /root/.Virtualbox
