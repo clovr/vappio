@@ -11,6 +11,10 @@ while getopts "h" options; do
   esac
 done
 
+rm -rf /root/.VirtualBox
+mkdir -p /mnt/.VirtualBox
+mount /mnt/.VirtualBox /root/.VirtualBox
+
 #Clean up any old vms with the same name
 
 #VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium none
