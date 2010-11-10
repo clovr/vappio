@@ -51,7 +51,7 @@ vdidirname=`dirname $1`
 VBoxManage -q closemedium disk $1
 VBoxManage internalcommands sethduuid $1
 
-VBoxManage clonehd $1 $vdibname/$vdidirname.vdi
+VBoxManage clonehd $1 $vdibname/$vdidirname.vdi --format vdi
 
 #To automatically import
 #rm -rf /root/.Virtualbox
