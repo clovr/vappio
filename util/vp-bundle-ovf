@@ -17,7 +17,7 @@ ln -f -s /mnt/.VirtualBox /root/.VirtualBox
 
 #Clean up any old vms with the same name
 
-#VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium none
+VBoxManage -q storageattach $2 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium none
 VBoxManage -q closemedium disk $1
 VBoxManage -q unregistervm $2 
 
@@ -30,12 +30,15 @@ VBoxManage -q modifyvm $2 --ostype "Ubuntu_64" --memory 2048 --boot1 disk --nic1
 #VBoxManage -q storagectl $2 --name "IDE Controller" --add ide
 
 #VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium $1
+echo "Attaching SATA drive"
 VBoxManage -q storagectl $2 --name "SATA Controller" --add sata --controller IntelAhci
 VBoxManage -q storageattach $2 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium $1
 
 #Not certain this is portable
+echo "Attaching network device"
 VBoxManage -q modifyvm $2 --nic1 bridged --bridgeadapter1 "en0:Ethernet"
 
+echo "Specifying shared folders"
 if [ "$4" != "" ]
 then 
     VBoxManage sharedfolder add $2 --name shared --hostpath $4/shared/ 
@@ -44,9 +47,9 @@ then
     VBoxManage sharedfolder add $2 --name pg_data --hostpath $4/pg_data/
 fi
 
+echo "Creating ovf"
 #Create ovf
 VBoxManage export $2 -o $3
-
 
 #To create VDI
 vdibname=`basename $1`
