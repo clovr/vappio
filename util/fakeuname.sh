@@ -2,7 +2,7 @@
 
 case "$1" in
     '-r')
-	echo "2.6.32-21-server"
+	`uname -r`
 	;;
     '-m')
 	echo "x86_64"
