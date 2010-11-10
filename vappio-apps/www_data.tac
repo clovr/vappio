@@ -6,7 +6,7 @@ from twisted.internet import reactor
 from twisted.web import resource
 from twisted.web import server
 
-from vappio_tw.legacy import cgi as vappio_cgi
+from vappio_tx.legacy import cgi as vappio_cgi
 
 class Root(resource.Resource):
     """Root resource"""
