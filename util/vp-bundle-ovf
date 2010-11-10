@@ -13,7 +13,7 @@ done
 
 rm -rf /root/.VirtualBox
 mkdir -p /mnt/.VirtualBox
-ln -f -s /mnt/.VirtualBox /root/.VirtualBo
+ln -f -s /mnt/.VirtualBox /root/.VirtualBox
 
 #Clean up any old vms with the same name
 
@@ -30,7 +30,7 @@ VBoxManage -q modifyvm $2 --ostype "Ubuntu_64" --memory 2048 --boot1 disk --nic1
 #VBoxManage -q storagectl $2 --name "IDE Controller" --add ide
 
 #VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium $1
-#VBoxManage storagectl $2 --name "SATA Controller" --add sata --controller IntelAhci
+VBoxManage -q storagectl $2 --name "SATA Controller" --add sata --controller IntelAhci
 VBoxManage -q storageattach $2 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium $1
 
 #Not certain this is portable
