@@ -11,6 +11,7 @@ cp /tmp/fakeuname.sh /bin/uname
 #For installing the kernel modules
 apt-get -y install build-essential
 apt-get -y install linux-headers-`uname -r`
+apt-get -y install linux-image-`uname -r`
 
 #
 #Originally pulled installer from mount /dev/cdrom1 /mnt
