@@ -1,16 +1,12 @@
 #!/bin/bash -e
 
-
 export DEBIAN_FRONTEND=noninteractive
-
 
 VAPPIO_HOME=/opt
 VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 
-
 apt-get -y update
 $VAPPIO_HOME/vappio-install/vp-bootstrap-install
-
 
 #Setup virgin image
 bash -e $VAPPIO_RECIPES/setup.sh
@@ -23,11 +19,9 @@ rm -f /etc/profile.d/vp-screenlogin
 rm -rf /opt/vappio-py /etc/vappio-checkout
 #TODO set custom /etc/environment 
 
-
 #High performance SSH
 #bash -e $VAPPIO_RECIPES/hpnssh.sh
 #bash -e $VAPPIO_RECIPES/allowrootssh.sh
-
 
 #Vappio appliance utils
 #bash -e $VAPPIO_RECIPES/vappioutil.sh
@@ -35,19 +29,24 @@ rm -rf /opt/vappio-py /etc/vappio-checkout
 #bash -e $VAPPIO_RECIPES/sethostname.sh
 #bash -e $VAPPIO_RECIPES/autologin.sh
 
-
 # Installing software requirements
 apt-get --force-yes -y upgrade
-apt-get --force-yes -y install ubuntu-desktop openjdk-6-jdk libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran
+echo sun-java6-plugin shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
+apt-get --force-yes -y install sun-java6-plugin ubuntu-desktop v libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran
 
-
-# Creating qiime user
+# Creating qiime user & setting up environment
 addgroup qiime
-useradd -p qiime -g qiime -m qiime
+useradd -g qiime -m qiime -s /bin/bash
+#echo "qiime" | passwd --stdin qiime
 touch /home/qiime/.bashrc
 chown qiime:qiime /home/qiime/.bashrc
-#echo "qiime" | passwd --stdin qiime
 
+echo "qiime ALL(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+chmod 777 /tmp
+userdel -r ubuntu
+
+mkdir /media/
 
 # Installing qiime-deploy
 mkdir /software/
@@ -61,15 +60,62 @@ pushd /software/qiime-deploy/
 sudo -u qiime python /software/qiime-deploy/qiime-deploy.py -r -p /software/ --userhome /home/qiime/
 popd
 
-# Removing the user ubuntu that is created by default
-userdel -r ubuntu
-
 # Setting up configuration
-sudo -U qiime mkdir /home/qiime/Desktop
-sudo -U qiime mkdir /home/qiime/Desktop/Before_you_start/
-sudo -U qiime mkdir /home/qiime/Desktop/Shared_Folder
+sudo -u qiime mkdir /home/qiime/Desktop
+sudo -u qiime mkdir /home/qiime/Desktop/Before_you_start/
+sudo -u qiime mkdir /home/qiime/Desktop/Shared_Folder
 
-#Stop some services that are started during installations
-/etc/init.d/cups stop
+# Stop some services that are started during installations
+killall cupsd
+
+# Forcing some settings
+rm -f /etc/apt/apt.conf.d/01proxy
+
+### 
+### Adding extra configurations for the virtual machine
+###
+
+# ==> Adding link to the Before_you_start files
+ln -s /software/   /doc/vb_files/Before_you_start/0.QIIME_version.txt /home/qiime/Desktop/Before_you_start/0.QIIME_version.txt
+ln -s /software/   /doc/vb_files/Before_you_start/1.Welcome.txt /home/qiime/Desktop/Before_you_start/1.Welcome.txt
+ln -s /software/   /doc/vb_files/Before_you_start/2.Fixing_Internet_access_in_the_virtual_box.txt /home/qiime/Desktop/Before_you_start/2.Fixing_Internet_access_in_the_virtual_box.txt
+ln -s /software/   /doc/vb_files/Before_you_start/3.Getting_started_with_QIIME.txt /home/qiime/Desktop/Before_you_start/3.Getting_started_with_QIIME.txt
+ln -s /software/   /doc/vb_files/Before_you_start/4.Transferring_files_to_your_virtual_box.txt /home/qiime/Desktop/Before_you_start/4.Transferring_files_to_your_virtual_box.txt
+
+# ==> Adding link to tutorial
+
+# ==> Remove all sounds
+
+# ==> 3. Disable disk check after 20 reboots
+# ... done by CLoVR
+
+# ==> Remove autoupdate
+# ... done by CLoVR
+
+# ==> Rename hostname
+echo "qiimevm" > /etc/hostname
+hostname -b -F /etc/hostname
+
+# ==> Adding Shared Folder
+echo "mount.vboxsf -w -o uid=1000 Shared_Folder /home/qiime/Desktop/Shared_Folder" >> /etc/rc.local
+
+# ==> Make sym link to documentation.html
+
+# ==> Make sym link to /software/
+ln -s /software/ /home/qiime/Desktop/software
+
+# ==> Make sym link to terminal in the top menu
+
+
+# ==> Allow user to write on qiime_tutorial but not remove the files
+
+
+# ==> Testing
+#_full_ pycogent test suite on the installed library, including setting the environment TEST_DB=1
+
+
+# ==> Zip the image for distribution
+
+
 
 
