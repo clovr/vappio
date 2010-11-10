@@ -31,8 +31,9 @@ rm -rf /opt/vappio-py /etc/vappio-checkout
 
 # Installing software requirements
 apt-get --force-yes -y upgrade
+apt-get --force-yes -y install ubuntu-desktop libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran
 echo sun-java6-plugin shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
-apt-get --force-yes -y install sun-java6-plugin ubuntu-desktop libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran
+apt-get --force-yes -y install sun-java6-plugin
 
 # Creating qiime user & setting up environment
 addgroup qiime
@@ -57,8 +58,9 @@ find /software -type f -exec chmod 666 {} \;
 find /software -type d -exec chmod 777 {} \;
 find /software -exec chown qiime:qiime {} \;
 pushd /software/qiime-deploy/
-sudo -u qiime python /software/qiime-deploy/qiime-deploy.py -r -p /software/ --userhome /home/qiime/
+python /software/qiime-deploy/qiime-deploy.py -r -p /software/ --userhome /home/qiime/
 popd
+find /software -exec chown qiime:qiime {} \;
 
 # Setting up configuration
 sudo -u qiime mkdir /home/qiime/Desktop
@@ -70,6 +72,8 @@ killall cupsd
 
 # Forcing some settings
 rm -f /etc/apt/apt.conf.d/01proxy
+apt-get autoremove
+apt-get clean
 
 ### 
 ### Adding extra configurations for the virtual machine
