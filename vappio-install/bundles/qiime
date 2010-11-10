@@ -32,7 +32,7 @@ rm -rf /opt/vappio-py /etc/vappio-checkout
 # Installing software requirements
 apt-get --force-yes -y upgrade
 echo sun-java6-plugin shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
-apt-get --force-yes -y install sun-java6-plugin ubuntu-desktop v libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran
+apt-get --force-yes -y install sun-java6-plugin ubuntu-desktop libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran
 
 # Creating qiime user & setting up environment
 addgroup qiime
