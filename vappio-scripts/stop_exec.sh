@@ -16,7 +16,7 @@ $vappio_scripts/remove_sgehost.sh $myhostname wait
 
 #if -kej failed try again
 myhostnameshort=`hostname`
-if [ -s $SGE_ROOT/default/spool/$myhostnameshort/execd.pid ]
+if [ -s /var/run/gridengine-execd.pid ]
 then
         echo "qconf -kej appears to have failed. Checking $SGE_ROOT/default/spool/$myhostnameshort/execd.pid"
         execpid=`cat $SGE_ROOT/default/spool/$myhostnameshort/execd.pid`
