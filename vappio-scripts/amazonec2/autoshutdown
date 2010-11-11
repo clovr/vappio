@@ -7,7 +7,7 @@ source $vappio_scripts/vappio_config.sh
 #Only on EC2
 
 vappio_cloud_type=`cat $vappio_runtime/cloud_type`
-if [ "$vappio_cloud_type" == "ec2" ]
+if [ "$vappio_cloud_type" == "ec2" ] || [ "$vappio_cloud_type" == "diag" ]
 then
 #Add to host group
     #capture time
