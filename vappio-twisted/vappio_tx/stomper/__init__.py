@@ -103,7 +103,7 @@ class Frame(object):
     """    
     def __init__(self, cmd=None, headers=None, body=''):
         """Setup the internal state."""
-        self._cmd = cmd
+        self._cmd = cmd.upper()
         self.body = body
         if headers is None:
             self.headers = {}
@@ -168,65 +168,45 @@ class Frame(object):
 
 
 def unpack_frame(message):
-    """Called to unpack a STOMP message into a dictionary.
-    
-    returned = {
-        # STOMP Command:
-        'cmd' : '...',
-        
-        # Headers e.g.
-        'headers' : {
-            'destination' : 'xyz',
-            'message-id' : 'some event',
-            :
-            etc,
-        }
-        
-        # Body:
-        'body' : '...1234...\x00',
-    }
-        
     """
-    body = []
-    returned = dict(cmd='', headers={}, body='')
+    Unpacks a frame from a STOMP message.  If a content-length is in the
+    headers then it ensures the body is that many elements long
+
+    This returns a tuple (unpacked_frame, remaining bytes)
+    """
+    def _splitStrip(s):
+        (k, v) = s.split(':', 1)
+        return (k.strip(), v.strip())
+    try:
+        (msg, rest) = message.split('\x000', 1)
+        (cmd_headers, body) = msg.split('\n\n', 1)
+        if len(cmd_headers.split('\n', 1)) == 2:
+            (cmd, headers) = cmd_headers.split('\n', 1)
+            headers = dict([_splitStrip(s) for s in headers.split('\n')])
+        else:
+            cmd = cmd_headers
+            headers = {}
+            
+        if 'content-length' in headers:
+            nlen = int(headers['content-length']) - len(body)
+            if nlen > 0 and len(rest) >= nlen:
+                body += '\x000' + rest[:nlen]
+                rest = rest[nlen:]
+
+        return ({'cmd': cmd,
+                 'headers': headers,
+                 'body': body},
+                rest)
+    except ValueError, err:
+        if 'unpack' in str(err):
+            return (None, message)
+        else:
+            raise
+
     
-    breakdown = message.split('\n')
+def pack_frame(msg):
+    return Frame(cmd=msg['cmd'], headers=msg['headers'], body=msg['body']).pack()
 
-    # Get the message command:
-    returned['cmd'] = breakdown[0]
-    breakdown = breakdown[1:]
-
-    def headD(field):
-        # find the first ':' everything to the left of this is a
-        # header, everything to the right is data:
-        index = field.find(':')
-        if index:
-            header = field[:index].strip()
-            data = field[index+1:].strip()
-            returned['headers'][header.strip()] = data.strip()
-
-    def bodyD(field):
-        field = field.strip()
-        if field:
-            body.append(field)
-
-    # Recover the header fields and body data
-    handler = headD
-    for field in breakdown:
-        if field.strip() == '':
-            # End of headers, it body data next.
-            handler = bodyD
-            continue
-
-        handler(field)
-
-    # Stich the body data together:
-    body = "".join(body)
-    returned['body'] = body.replace('\x00', '')
-
-    return returned
-
-        
 def abort(transactionid, headers=None):
     """STOMP abort transaction command.
 
@@ -239,7 +219,7 @@ def abort(transactionid, headers=None):
 
     return Frame(cmd='ABORT',
                  headers=functional.updateDict(noneOrEmptyDict(headers),
-                                               {'transaction': transactionid})).unpack()
+                                               {'transaction': transactionid})).pack()
 
 
 def ack(messageid, transactionid=None, headers=None):
@@ -265,7 +245,7 @@ def ack(messageid, transactionid=None, headers=None):
         headers = functional.updateDict(headers,
                                         {'transaction': messageid})
 
-    return Frame(cmd='ACK', headers=headers).unpack()
+    return Frame(cmd='ACK', headers=headers).pack()
 
 
     
@@ -284,7 +264,7 @@ def begin(transactionid=None):
         # Generate a random UUID:
         transactionid = uuid.uuid4()
 
-    return Frame(cmd='BEGIN', headers={'transaction': transactionid}).unpack()
+    return Frame(cmd='BEGIN', headers={'transaction': transactionid}).pack()
     
 def commit(transactionid):
     """STOMP commit command.
@@ -296,7 +276,7 @@ def commit(transactionid):
         This is the id that all actions in this transaction.
     
     """
-    return Frame(cmd='COMMIT', headers={'transaction': transactionid}).unpack()    
+    return Frame(cmd='COMMIT', headers={'transaction': transactionid}).pack()    
 
 
 def connect(username, password):
@@ -310,7 +290,7 @@ def connect(username, password):
     message which will contain our session id.
     
     """
-    return Frame(cmd='CONNECT', {'login': username, 'passcode': password}).unpack()
+    return Frame(cmd='CONNECT', {'login': username, 'passcode': password}).pack()
 
 
 def disconnect():
@@ -320,7 +300,7 @@ def disconnect():
     socket soon.
     
     """
-    return Frame(cmd='DISCONNECT').unpack()
+    return Frame(cmd='DISCONNECT').pack()
 
     
 def send(dest, msg, headers=None, transactionid=None):
@@ -342,7 +322,7 @@ def send(dest, msg, headers=None, transactionid=None):
     if transactionid:
         headers = functional.updateDict(noneOrEmptyDict(headers), {'transaction': transactionid})
 
-    return Frame(cmd='SEND', headers=headers, body=msg).unpack()
+    return Frame(cmd='SEND', headers=headers, body=msg).pack()
     
 def subscribe(dest, ack='auto', headers=None):
     """STOMP subscribe command.
@@ -356,7 +336,7 @@ def subscribe(dest, ack='auto', headers=None):
         will assume delivery failure.
     
     """
-    return Frame(cmd='SUBSCRIBE', functional.updateDict(noneOrEmptyDict(headers), {'ack': ack})).unpack()
+    return Frame(cmd='SUBSCRIBE', functional.updateDict(noneOrEmptyDict(headers), {'ack': ack})).pack()
 
 def unsubscribe(dest):
     """STOMP unsubscribe command.
@@ -368,7 +348,7 @@ def unsubscribe(dest):
     further messages for the given subscription.
     
     """
-    return Frame(cmd='UNSUBSCRIBE', {'destination': dest}).unpack()
+    return Frame(cmd='UNSUBSCRIBE', {'destination': dest}).pack()
 
 class Engine(object):
     """This is a simple state machine to return a response to received 

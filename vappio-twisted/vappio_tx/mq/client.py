@@ -6,6 +6,36 @@
 
 from zope import interface
 
+from twisted.internet import protocol
+
+import stomper
+
+class MQClientProtocol(protocol.Protocol):
+
+    ACTIONS = {'MESSAGE': lambda s, m : s.factory.msgReceived(m),
+               'RECEIPT': lambda s, m : s.factory.receiptReceived(m),
+               'ERROR': lambda s, m : s.factory.errorReceived(m),
+               }
+    
+    def __init__(self):
+        self.data = ''
+        self.frames = []
+    
+    def connectionMade(self):
+        pass
+
+    def dataReceived(self, data):
+        self.data += data
+
+        (msg, remainingData) = stomper.unpack_frame()
+        if msg is not None:
+            self.ACTIONS[msg['cmd']](self, msg)
+            self.data = remainingData
+
+
+    def sendMessage(self, msg):
+        self.transport.write(stomper.pack_frame(msg))
+
 class IMQClientService(interface.Interface):
     """
     A message queue client
@@ -37,8 +67,15 @@ class IMQClientService(interface.Interface):
         Acknolwedge a message
         """
 
+class IMQClientFactory(interface.Interface)
+    """
+    Factory for MQ client protocol
+    """
 
-
+    def buildProtocol(addr):
+        """
+        Return a protocol
+        """
 
 def makeService(config):
     pass
