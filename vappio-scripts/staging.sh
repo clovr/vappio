@@ -100,7 +100,7 @@ then
 		    if [ $ret == 0 ]
 		    then
 			vlog "Handling as list file";
-			rsync --files-from=$1 -av -e "$ssh_client -i $ssh_key $ssh_options" root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+			rsync --files-from=$1 -av -e "$ssh_client -i $ssh_key $ssh_options" / root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
 		    fi
 		    ;;
 	    esac
