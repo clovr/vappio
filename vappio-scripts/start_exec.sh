@@ -137,22 +137,6 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq
 numcpus=`cat /proc/cpuinfo | grep -c CPU`
 $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $numcpus $execq@$myhostname
 
-##
-#For EC2 only, add autoshutdown cron for exec node types
-#add cron job to shutdown at 60 mins if idle
-cloudtype=`cat $vappio_runtime/cloud_type`
-if [ "$cloudtype" == "EC2" ]
-then
-    #Set EC2 host group
-    instancetype=`curl -f -s http://169.254.169.254/1.0/meta-data/instance-type`
-    #Add to host group
-    shutdownmin=$(($min-$rolloverstart))
-    if [ $shutdownmin -lt 0 ]
-    then
-	shutdownmin=$((60 + $shutdownmin));
-    fi
-    echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > $vappio_runtime/shutdown.crontab
-    crontab -u root $vappio_runtime/shutdown.crontab
-fi
+
 
 
