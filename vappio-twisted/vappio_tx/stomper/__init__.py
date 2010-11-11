@@ -32,20 +32,15 @@ License: http://www.apache.org/licenses/LICENSE-2.0
 import re
 import uuid
 import types
-import logging
-
 
 import doc
 import utils
-import stompbuffer
+
+from igs.utils import functional
 
 # This is used as a return from message reponses functions.
 # It is used more for readability more then anything or reason.
 NO_RESPONSE_NEEDED = ''
-
-# For backwards compatibility
-NO_REPONSE_NEEDED = ''
-
 
 # The version of the protocol we implement.
 STOMP_VERSION = '1.0'
@@ -65,6 +60,12 @@ VALID_COMMANDS = [
 def get_log():
     return logging.getLogger("stomper")
     
+
+def noneOrEmptyDict(d):
+    if d is None:
+        return {}
+    else:
+        return d
 
 class FrameError(Exception):
     """Raise for problem with frame generation or parsing.
@@ -100,11 +101,14 @@ class Frame(object):
     is assigned to. 
     
     """    
-    def __init__(self):
+    def __init__(self, cmd=None, headers=None, body=''):
         """Setup the internal state."""
-        self._cmd = ''
-        self.body = ''
-        self.headers = {}
+        self._cmd = cmd
+        self.body = body
+        if headers is None:
+            self.headers = {}
+        else:
+            self.headers = headers
     
     def getCmd(self):
         """Don't use _cmd directly!"""
@@ -131,9 +135,6 @@ class Frame(object):
         
         stomp_mesage = "%s\n%s\n\n%s%s\n" % (self._cmd, headers, self.body, NULL)
 
-#        import pprint
-#        print "stomp_mesage: ", pprint.pprint(stomp_mesage)
-        
         return stomp_mesage
 
         
@@ -202,7 +203,6 @@ def unpack_frame(message):
         if index:
             header = field[:index].strip()
             data = field[index+1:].strip()
-#            print "header '%s' data '%s'" % (header, data)            
             returned['headers'][header.strip()] = data.strip()
 
     def bodyD(field):
@@ -213,7 +213,6 @@ def unpack_frame(message):
     # Recover the header fields and body data
     handler = headD
     for field in breakdown:
-#        print "field:", field
         if field.strip() == '':
             # End of headers, it body data next.
             handler = bodyD
@@ -222,16 +221,13 @@ def unpack_frame(message):
         handler(field)
 
     # Stich the body data together:
-#    print "1. body: ", body
     body = "".join(body)
     returned['body'] = body.replace('\x00', '')
 
-#    print "2. body: <%s>" % returned['body']
-    
     return returned
 
         
-def abort(transactionid):
+def abort(transactionid, headers=None):
     """STOMP abort transaction command.
 
     Rollback whatever actions in this transaction.
@@ -240,10 +236,13 @@ def abort(transactionid):
         This is the id that all actions in this transaction.
     
     """
-    return "ABORT\ntransaction: %s\n\n\x00\n" % transactionid
+
+    return Frame(cmd='ABORT',
+                 headers=functional.updateDict(noneOrEmptyDict(headers),
+                                               {'transaction': transactionid})).unpack()
 
 
-def ack(messageid, transactionid=None):
+def ack(messageid, transactionid=None, headers=None):
     """STOMP acknowledge command.
     
     Acknowledge receipt of a specific message from the server.
@@ -258,12 +257,16 @@ def ack(messageid, transactionid=None):
         will be generated for this.
     
     """
+    headers = functional.updateDict(noneOrEmptyDict(headers),
+                                    {'message-id': messageid})
     header = 'message-id: %s' % messageid
 
     if transactionid:
-        header = 'message-id: %s\ntransaction: %s' % (messageid, transactionid)
-        
-    return "ACK\n%s\n\n\x00\n" % header
+        headers = functional.updateDict(headers,
+                                        {'transaction': messageid})
+
+    return Frame(cmd='ACK', headers=headers).unpack()
+
 
     
 def begin(transactionid=None):
@@ -281,8 +284,7 @@ def begin(transactionid=None):
         # Generate a random UUID:
         transactionid = uuid.uuid4()
 
-    return "BEGIN\ntransaction: %s\n\n\x00\n" % transactionid
-
+    return Frame(cmd='BEGIN', headers={'transaction': transactionid}).unpack()
     
 def commit(transactionid):
     """STOMP commit command.
@@ -294,7 +296,7 @@ def commit(transactionid):
         This is the id that all actions in this transaction.
     
     """
-    return "COMMIT\ntransaction: %s\n\n\x00\n" % transactionid
+    return Frame(cmd='COMMIT', headers={'transaction': transactionid}).unpack()    
 
 
 def connect(username, password):
@@ -308,7 +310,7 @@ def connect(username, password):
     message which will contain our session id.
     
     """
-    return "CONNECT\nlogin:%s\npasscode:%s\n\n\x00\n" % (username, password)
+    return Frame(cmd='CONNECT', {'login': username, 'passcode': password}).unpack()
 
 
 def disconnect():
@@ -318,10 +320,10 @@ def disconnect():
     socket soon.
     
     """
-    return "DISCONNECT\n\n\x00\n"
+    return Frame(cmd='DISCONNECT').unpack()
 
     
-def send(dest, msg, transactionid=None):
+def send(dest, msg, headers=None, transactionid=None):
     """STOMP send command.
     
     dest:
@@ -338,12 +340,11 @@ def send(dest, msg, transactionid=None):
     transheader = ''
     
     if transactionid:
-        transheader = 'transaction: %s' % transactionid
-        
-    return "SEND\ndestination: %s\n%s\n\n%s\x00\n" % (dest, transheader, msg)
+        headers = functional.updateDict(noneOrEmptyDict(headers), {'transaction': transactionid})
+
+    return Frame(cmd='SEND', headers=headers, body=msg).unpack()
     
-    
-def subscribe(dest, ack='auto'):
+def subscribe(dest, ack='auto', headers=None):
     """STOMP subscribe command.
     
     dest:
@@ -355,8 +356,7 @@ def subscribe(dest, ack='auto'):
         will assume delivery failure.
     
     """
-    return "SUBSCRIBE\ndestination: %s\nack: %s\n\n\x00\n" % (dest, ack)
-
+    return Frame(cmd='SUBSCRIBE', functional.updateDict(noneOrEmptyDict(headers), {'ack': ack})).unpack()
 
 def unsubscribe(dest):
     """STOMP unsubscribe command.
@@ -368,8 +368,7 @@ def unsubscribe(dest):
     further messages for the given subscription.
     
     """
-    return "UNSUBSCRIBE\ndestination:%s\n\n\x00\n" % dest
-    
+    return Frame(cmd='UNSUBSCRIBE', {'destination': dest}).unpack()
 
 class Engine(object):
     """This is a simple state machine to return a response to received 
@@ -419,7 +418,6 @@ class Engine(object):
             raise FrameError("Unknown message type '%s', I don't know what to do with this!" % mtype)
         
         if self.states.has_key(msg['cmd']):
-#            print("reacting to message - %s" % msg['cmd'])
             returned = self.states[msg['cmd']](msg)
             
         return returned
@@ -436,7 +434,6 @@ class Engine(object):
             
         """
         self.sessionId = msg['headers']['session']
-        #print "connected: session id '%s'." % self.sessionId
         
         return NO_RESPONSE_NEEDED
 
@@ -456,7 +453,6 @@ class Engine(object):
         if msg['headers'].has_key('transaction-id'):
             transaction_id = msg['headers']['transaction-id']
         
-#        print "acknowledging message id <%s>." % message_id
         
         return ack(message_id, transaction_id)
 
