@@ -159,7 +159,7 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, compress, ap
     if compress:
         outTar = str(os.path.join(compress, tagName + '.tar'))
         outGzip = outTar + '.gz'
-        if not append and os.path.exists(outGzip):
+        if os.path.exists(outGzip):
             os.remove(outGzip)
         runSystemEx('mkdir -p ' + compress)
         files = loadTagFile(outName)('files')

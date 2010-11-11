@@ -48,12 +48,15 @@ def main(options, _args):
         compress = os.path.split(fileTag('metadata.tag_base_dir'))[0]
     else:
         compress = None
-    
+
+
+    # We need to break up the number of files because web services in a CGI backend
+    # for now
     tagTaskName = tag.tagData(host='localhost',
                               name=options('general.dst_cluster'),
                               tagName=options('general.tag_name'),
                               tagBaseDir=fileTag('metadata.tag_base_dir'),
-                              files=fileTag('files'),
+                              files=[],
                               recursive=False,
                               expand=options('general.expand'),
                               compress=compress,
@@ -65,9 +68,28 @@ def main(options, _args):
                                                      tagTaskName,
                                                      tsk)
     if endState == task.TASK_FAILED:
-        raise Exception('Taging failed')
-    else:
-        tsk = task.updateTask(tsk.progress().addMessage(task.MSG_NOTIFICATION, 'Download complete'))
+        raise Exception('Tagging failed')
+
+    for fs in func.chunk(10, fileTag('files')):
+        tagTaskName = tag.tagData(host='localhost',
+                                  name=options('general.dst_cluster'),
+                                  tagName=options('general.tag_name'),
+                                  tagBaseDir=fileTag('metadata.tag_base_dir'),
+                                  files=fs,
+                                  recursive=False,
+                                  expand=options('general.expand'),
+                                  compress=compress,
+                                  append=True,
+                                  overwrite=False,
+                                  metadata={})
+        endState, tsk = task_utils.blockOnTaskAndForward('localhost',
+                                                         options('general.dst_cluster'),
+                                                         tagTaskName,
+                                                         tsk)
+        if endState == task.TASK_FAILED:
+            raise Exception('Tagging failed')
+
+    tsk = task.updateTask(tsk.progress().addMessage(task.MSG_NOTIFICATION, 'Download complete'))
 
 
 if __name__ == '__main__':
