@@ -43,7 +43,7 @@ perl /tmp/gbrowse2_install/GBrowse-2.03/Build.PL --conf=/opt/gbrowse2-2.03 \
 EndMark
 
 # Create a sym link to the /opt/gbrowse2 folder 
-ln -s /opt/gbrowse2-2.03 /opt/gbrowse2
+ln -f -s /opt/gbrowse2-2.03 /opt/gbrowse2
 
 # Clean up all directories
 rm -rf /tmp/gbrowse2_install/
