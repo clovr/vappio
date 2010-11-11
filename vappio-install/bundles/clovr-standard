@@ -62,7 +62,8 @@ bash -e $VAPPIO_RECIPES/qiime.sh
 bash -e $VAPPIO_RECIPES/amos.sh
 
 #Gbrowse2
-bash -e $VAPPIO_RECIPES/gbrowse2.sh
+#Skip errors for now
+bash $VAPPIO_RECIPES/gbrowse2.sh
 
 #Non-standard packages
 bash -e $VAPPIO_RECIPES/clovroptpackages.sh
