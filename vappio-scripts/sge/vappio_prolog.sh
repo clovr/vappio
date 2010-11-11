@@ -58,7 +58,6 @@ then
 	verror "PROLOG. Unable to parse group directory from wfxml=$wfxml" 
 	exit 100
     fi
-    
     echo "$wfdir" > $request_cwd/wfdir
     if [ $? -ne 0 ]
     then
@@ -93,9 +92,27 @@ then
     #$cmd 1>> $vappio_log 2>> $vappio_log
     
     #Previous steps should have completed, so now we should have all our inputs are are ready to run
-    #First read the .final.config file to retrieve the output repository 
-    outprefix=`grep -P '^\s*.;OUTPUT_DIRECTORY.;\s*=' $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
-    outdir=`echo "$outprefix/$wfgroupdir"`
+    #Read the .final.config file to retrieve the output repository
+    #First check if we are in a Ergatis group or not
+    compconfigfile=`ls $wfcomponentdir/*.final.config`
+    if [ "$compconfigfile" = "" ]
+    then
+	#It appears we are not in an Ergatis group
+	wfcomponentdir=`dirname $wfxml`
+	compconfigfile=`ls $wfcomponentdir/*.final.config`
+	if [ "$compconfigfile" = "" ]
+	then
+	    verror "PROLOG. Unable to find component directory $wfcomponentdir or config file $wfcomponentdir/*.final.config" 
+	    exit 100
+	fi
+	#Grab all output
+	outprefix=`grep -P '^\s*.;OUTPUT_DIRECTORY.;\s*=' $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
+	outdir=`echo "$outprefix"`
+    else
+	#We are in an Ergatis group, grab group output only
+	outprefix=`grep -P '^\s*.;OUTPUT_DIRECTORY.;\s*=' $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
+	outdir=`echo "$outprefix/$wfgroupdir"`
+    fi
     if [ -z "$outprefix" ]
     then
 	verror "PROLOG. Unable to parse output directory from $wfcomponentdir/*.final.config" 
