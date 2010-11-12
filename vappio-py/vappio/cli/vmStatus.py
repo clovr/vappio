@@ -43,8 +43,7 @@ def networkingEnabled():
 
 def getNumberOfInstances():
     try:
-        conf = config.configFromStream(open('/mnt/vappio-conf/clovr.conf'), config.configFromEnv())
-        credentials = [(c.ctype, c.ctype.instantiateCredential(conf, c)) for c in manager.loadAllCredentials()]
+        credentials = [(c.ctype, c.ctype.instantiateCredential(conf, c)[1]) for c in manager.loadAllCredentials()]
         instances = []
         for ctype, credInst in credentials:
             instances.extend([i.instanceId

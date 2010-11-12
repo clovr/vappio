@@ -58,7 +58,7 @@ class Cluster(functional.Record):
         self.execNodes = []
         self.dataNodes = []
 
-        self.credInst = cred.ctype.instantiateCredential(self.config, self.cred)
+        (self.config, self.credInst) = cred.ctype.instantiateCredential(self.config, self.cred)
 
         functional.Record.__init__(self)
         
