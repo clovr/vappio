@@ -97,3 +97,5 @@ find . -depth -xdev $EXCEPT ! -type d -delete
 find . -depth -xdev $EXCEPT -type d -empty -delete
 popd
 
+chmod 777 /tmp
+chmod 777 /mnt
