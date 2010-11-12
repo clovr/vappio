@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-USAGE="vp-bundle-ec2 [-p] [-f] [-k kernel AKI] image.img|imagedir\n
+USAGE="vp-bundle-ec2 [-p] [-f] [-k kernel AKI] image.img|imagedir [init script]\n
 Bundles and uploads an AMI of image.img\n
 Requires authentication information in the following files\n
 /mnt/keys/ec2user, /mnt/keys/ec2account, /mnt/keys/ec2secretkey, /mnt/keys/pk-XXX.pem, /mnt/keys,cert-XXX.pem\n
@@ -8,6 +8,7 @@ Use -p to make the image public\n
 Use -f to force rebundle and upload even if the bucket already exists\n
 If a directory imagedir is specified, looks for imagedir.img and attempts to write AMI to imagedir/clovr.conf
 Will tar imagedir upon successful completion
+If an init script is specified, this script is run before bundling the image
 "
 
 aki=aki-0b4aa462 #default kernel Ubuntu 10
@@ -58,6 +59,7 @@ imgname=`basename $1`
 
 #Assumes running on a clovr build image
 source /opt/vappio-scripts/clovrEnv.sh
+utildir=/opt/vappio-util
 export EC2_HOME=/opt/ec2-ami-tools-1.3-57676
 export EC2_AMITOOL_HOME=/opt/ec2-ami-tools-1.3-57676
 
@@ -66,6 +68,12 @@ account=`cat /mnt/keys/ec2account`
 secretkey=`cat /mnt/keys/ec2secretkey`
 ec2pk=`cat /mnt/keys/ec2pk`
 ec2cert=`cat /mnt/keys/ec2cert`
+
+if [ "$3" != "" ]
+then
+#Run init script on image
+    $utildir/vp-runonimg $1 $3
+fi
 
 #A temp directory
 mkdir -p /mnt/ec2bundles$$
@@ -105,6 +113,7 @@ if [ -d "$imagedir" ] && [ -f "$imagedir/shared/vappio-conf/clovr_ec2.conf" ]
 then
     echo "Writing $ami to $imagedir/clovr.conf"
     perl -pi -e "s/^ami=.*/ami=$ami/" $imagedir/shared/vappio-conf/clovr_ec2.conf
+    perl -pi -e "s/^ami=.*/ami=$imgname/" $imagedir/shared/vappio-conf/clovr_diag.conf
 fi
 echo "Bundled and uploaded AMI: $ami"
 
