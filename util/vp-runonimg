@@ -35,10 +35,10 @@ chroot /mnt/$$ /tmp/$bname
 
 sync
 
-umount /mnt/$$/proc
-umount /mnt/$$/sys
-umount /mnt/$$/dev
-umount /mnt/$$
+umount -l /mnt/$$/proc
+umount -l /mnt/$$/sys
+umount -l /mnt/$$/dev
+umount -l /mnt/$$
 
 rmdir /mnt/$$
 

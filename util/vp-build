@@ -40,10 +40,10 @@ handlekill() {
     mounts=`ls -d /mnt/$$/*.live`
     for b in $mounts
     do
-	umount $b/proc || true
-	umount $b/sys || true
-	umount $b/dev || true
-	umount -d $b || true
+	umount -l $b/proc
+	umount -l $b/sys
+	umount -l $b/dev
+	umount -l -d $b 
     done
 }
 
@@ -87,10 +87,10 @@ then
 	if [ "$mountdir" != "/dev" ]
 	then
 	    echo "$image mounted as $devname,$mountdir"
-	    umount -d $mountdir/dev || true
-	    umount -d $mountdir/sys || true
-	    umount -d $mountdir/proc || true
-	    umount -d $mountdir/ || true
+	    umount -l -d $mountdir/dev || true
+	    umount -l -d $mountdir/sys || true
+	    umount -l -d $mountdir/proc || true
+	    umount -l -d $mountdir/ || true
 	fi
 	losetup -d $devname || true
     done
@@ -168,6 +168,7 @@ do
 	mount --bind /proc $builddir.live/proc
 	mount --bind /sys $builddir.live/sys
 	mount --bind /dev $builddir.live/dev
+#	mount -t devpts devpts $builddir.live/devpts
 	touch $builddir.live/var/run/utmp
 	touch $builddir.live/var/run/btmp
 	touch $builddir.live/var/run/wtmp
@@ -213,14 +214,12 @@ do
     date "+%Y%m%d-%H%M%S" > $builddir.live/etc/vappio/build_time.info
     sync
     #Exit from chroot
-    umount $builddir.live/proc
-    umount $builddir.live/sys
-    sleep 2
-    umount $builddir.live/dev
-    sleep 2
-    umount $builddir.live
+    umount -l $builddir.live/proc
+    umount -l $builddir.live/sys
+    umount -l $builddir.live/dev
+    umount -l $builddir.live
     sync
-    losetup -d $devname
+    losetup -d $devname || true
     #cleanup img, removing tmp files
     echo "Cleaning image $currimg"
     $utildir/vp-runonimg $currimg $utildir/cleanupimg
