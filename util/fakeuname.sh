@@ -7,4 +7,7 @@ case "$1" in
     '-m')
 	echo "x86_64"
 	;;
+    *)
+	echo "Linux"
+	;;
 esac

@@ -4,10 +4,17 @@
 #Without force, will resume using an existing vmdk named
 #image.img.vmdk. force remakes a vmdk even if one already exists
 
-USAGE="vp-bundle-release image.img name [force]"
+USAGE="vp-bundle-release [-f] [-t] image.img name\n
+-f force remakes a vmdk even if one already exists
+-t Bundle guest tools for VMware and VirtualBox. Off by default.
+"
 
-while getopts "h" options; do
+while getopts "fh" options; do
   case $options in
+      t ) bundletools=1
+	  ;;
+      f ) force=1
+	  ;;
       h ) echo -e $USAGE
 	  exit 1;;
       \? ) echo -e $USAGE
@@ -17,7 +24,6 @@ done
 
 currimg=$1
 namepfx=$2
-force=$3
 
 recipedir=/opt/vappio-install/recipes
 utildir=/opt/vappio-util
@@ -33,8 +39,11 @@ then
     popd
     
     cp --sparse=always $currimg $currimg.vmbundle
-    $utildir/vp-runonimg $currimg.vmbundle $recipedir/vmware.sh
-    $utildir/vp-runonimg $currimg.vmbundle $recipedir/vbox.sh
+    if [ "$skiptools" = "" ]
+    then
+	$utildir/vp-runonimg $currimg.vmbundle $recipedir/vmware.sh
+	$utildir/vp-runonimg $currimg.vmbundle $recipedir/vbox.sh
+    fi
     $utildir/vp-runonimg $currimg.vmbundle $utildir/cleanupimg
     
     $utildir/vp-create-vmdk $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
