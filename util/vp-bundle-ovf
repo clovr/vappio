@@ -62,7 +62,10 @@ vdidirname=`dirname $1`
 VBoxManage internalcommands sethduuid $1
 
 rm -f /root/.VirtualBox/HardDisks/$vdibname.vdi
-VBoxManage clonehd $1 $vdibname.vdi --format vdi
+VBoxManage createhd --filename $vdibname.vdi --size 120000
+VBoxManage clonehd --existing $1 $vdibname.vdi 
+#VBoxManage clonehd $1 $vdibname.vdi --format vdi
+
 mv /root/.VirtualBox/HardDisks/$vdibname.vdi /mnt/
 
 #To automatically import
