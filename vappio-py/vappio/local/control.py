@@ -1,3 +1,5 @@
+from igs.utils import config
+
 from vappio.ec2 import control as ec2control
 
 
@@ -5,6 +7,8 @@ from vappio.ec2 import control as ec2control
 # This module wants to go by
 NAME = 'local'
 DESC = """Control module for local, mostly NOOPs"""
+
+DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr.conf'
 
 ##
 # Look just like EC2's instance
@@ -15,7 +19,10 @@ instanceFromDict = ec2control.instanceFromDict
 
 
 def instantiateCredential(conf, cred):
-    return None
+    if not conf('config_loaded', default=False):
+        conf = config.configFromMap({'config_loaded': True},    
+                                    base=config.configFromStream(open(conf('general.conf_file', default=DEFAULT_CONFIG_FILE)), base=conf))
+    return (conf, None)
 
 def runInstances(cred, *args, **kwargs):
     return []

@@ -15,7 +15,9 @@ DESC = """Control module for Nimbus-based users"""
 
 
 def instantiateCredential(conf, cred):
-    conf = config.configFromStream(open(conf('general.conf_file')), base=conf)
+    if not conf('config_loaded', default=False):
+        conf = config.configFromMap({'config_loaded': True},
+                                    base=config.configFromStream(open(conf('general.conf_file')), base=conf))
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
     if not os.path.exists(certFile) and not os.path.exists(keyFile):

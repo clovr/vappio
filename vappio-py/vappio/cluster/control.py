@@ -390,7 +390,7 @@ def runInstancesWithRetry(cluster, ami, key, itype, groups, availzone, bidPrice,
                                                ami,
                                                key,
                                                itype,
-                                               groups,
+                                               [g.strip() for g in groups.split(',')],
                                                availzone,
                                                num,
                                                userDataFile=dataFile)

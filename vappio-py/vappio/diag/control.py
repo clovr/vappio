@@ -21,7 +21,7 @@ def instantiateCredential(conf, cred):
         cred.metadata['ec2_url'] = DIAG_EC2_URL
     if 'general.conf_file' not in conf or not conf('general.conf_file'):
         conf = config.configFromMap({'general.conf_file': DEFAULT_CONFIG_FILE}, base=conf)
-    return nimbus.instantiateCredential(conf, cred)
+    return nimbus_control.instantiateCredential(conf, cred)
         
 
 # Set all of these to what nimbus does

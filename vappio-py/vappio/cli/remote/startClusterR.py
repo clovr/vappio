@@ -80,12 +80,6 @@ def clusterExists(host, name):
 
     
 def main(options, _args):
-    options = configFromMap(
-        {'cluster': {'master_groups': [f.strip() for f in options('cluster.master_groups').split(',')],
-                     'exec_groups': [f.strip() for f in options('cluster.exec_groups').split(',')],
-                     }
-         }, options)
-
     tsk = task.updateTask(task.loadTask(options('general.task_name')
                                         ).setState(task.TASK_RUNNING
                                                    ).addMessage(task.MSG_SILENT, 'Starting master'))

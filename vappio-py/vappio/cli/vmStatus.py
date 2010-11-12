@@ -10,12 +10,12 @@
 from igs.utils.cli import buildConfigN
 from igs.utils.functional import identity
 from igs.utils.commands import runSystemEx, runSingleProgramEx
+from igs.utils import config
 
 from vappio.cluster import control as cluster_ctl
-
 from vappio.credentials import manager
 
-from igs.utils import config
+
 
 OPTIONS = [
     ('one_line', '-1', '--one-line', 'Give a condenced version of output in one line', identity, True),
@@ -43,7 +43,7 @@ def networkingEnabled():
 
 def getNumberOfInstances():
     try:
-        credentials = [(c.ctype, c.ctype.instantiateCredential(conf, c)[1]) for c in manager.loadAllCredentials()]
+        credentials = [(c.ctype, c.ctype.instantiateCredential(config.configFromEnv(), c)[1]) for c in manager.loadAllCredentials()]
         instances = []
         for ctype, credInst in credentials:
             instances.extend([i.instanceId

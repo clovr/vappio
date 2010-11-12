@@ -16,7 +16,8 @@ def createDataFile(conf, mode, outFile='/tmp/machine.conf'):
     ##
     # We want everything from the clovr config in here for now
     fout = open(outFile, 'w')
-    fout.write(open(conf('general.conf')).read())
+    fout.write('[]\n')
+    fout.writelines(['%s=%s\n' % (k, str(conf(k))) for k in conf.keys()])
     fout.write(open(conf('instance.config_file')).read())
     fout.write('\n'.join([
                 '[]',
