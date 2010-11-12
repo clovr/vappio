@@ -15,7 +15,6 @@ class StartCluster(CGIPage):
         taskName = createTaskAndSave('startCluster', 2, 'Starting ' + request['name'])
         
         cmd = ['startClusterR.py',
-               '--conf=' + request['conf'],
                '--num=' + str(request['num']),
                '--cred=' + request['cred'],
                '--name=' + request['name'],
