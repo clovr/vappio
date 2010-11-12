@@ -125,5 +125,12 @@ chmod +s /sbin/initctl
 
 # ==> Allow user to write on qiime_tutorial but not remove the files
 
+# ==> Enable cloud login as qiime
+echo "cloud_type: auto 
+user: qiime      
+disable_root: 0" > /etc/cloud/cloud.cfg
+
+
+
 # ==> Testing
 #_full_ pycogent test suite on the installed library, including setting the environment TEST_DB=1
