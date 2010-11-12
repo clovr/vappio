@@ -93,7 +93,7 @@ rename -f 's/cloud-(\S*)\.conf/cloud-$1.conf.disabled/' /etc/init/cloud-*.conf
 #Reactivate ssh just in case this VM is copied to EC2, so we can login
 if [ -f /etc/init/cloud-config-ssh.conf.disabled ]
 then
-    mv -f /etc/init//etc/init/cloud-init.conf.disabled /etc/init/cloud-init.conf
+    mv -f /etc/init/cloud-init.conf.disabled /etc/init/cloud-init.conf
     mv -f /etc/init/cloud-config-ssh.conf.disabled /etc/init/cloud-config-ssh.conf
 fi
 
