@@ -1,9 +1,9 @@
 #!/bin/bash -e
 
-USAGE="vp-build image.img bundlename1 name2 ... namen\n
- Or to use custom build scripts outside of vappio,\n
- vp-build image.img [-d bundledir] [-b http://urltobootstrapscript] bundlename1 name2 ... namen\n
-
+USAGE="vp-build [-t] [-d bundledir] image.img bundlename1 name2 ... namen\n
+ Build script must either be in your path or can be URLs
+ vp-build image.img http://urltobuildscriptbundle\n
+ 
  Build new image(s) starting with image.img and running a build script named bundledir/bundlename1-N\n
  Output is one or more directories containing VMs in raw, vmware, and vmx formats\n
  Requires build scripts named bundlename1 that are either on the starting image or installed via bootstrapscript\n
@@ -17,9 +17,10 @@ USAGE="vp-build image.img bundlename1 name2 ... namen\n
  Example:
  vp-build /mnt/image.img clovr-standard
  \n
- To cleanup an aborted build run\n 
+ -c Cleanup an aborted build\n 
  vp-build -c image.img\n
  \n
+ -t Automatically bundle virtualbox or vmware tools
 "
 
 #
@@ -54,16 +55,18 @@ bundledir=/opt/vappio-install/bundles
 
 utildir=/opt/vappio-util
 
-while getopts "cdh" options; do
+while getopts "ctdh" options; do
   case $options in
-    d ) bundledir=$OPTARG
+      t ) bundletools="-t"
+	  ;;
+      d ) bundledir=$OPTARG
 	  shift
 	  ;;
-    c ) clear=1
+      c ) clear=1
 	  shift;;
-    h ) echo -e $USAGE
+      h ) echo -e $USAGE
 	  exit 1;;
-    \? ) echo -e $USAGE
+      \? ) echo -e $USAGE
          exit 1;;
   esac
 done
@@ -229,7 +232,7 @@ do
     echo "Created raw disk image $currimg"
 
     #Build VMware/VBox
-    $utildir/vp-bundle-release $currimg $namepfx
+    $utildir/vp-bundle-release $bundletools $currimg $namepfx
     mv $currimg $namepfx.img
     #Compress img
     $utildir/vp-compress-img $namepfx.img $namepfx.img.tgz || true
