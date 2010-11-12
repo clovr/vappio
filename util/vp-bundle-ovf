@@ -16,10 +16,8 @@ rm -rf /mnt/.VirtualBox
 mkdir -p /mnt/.VirtualBox
 ln -f -s /mnt/.VirtualBox /root/.VirtualBox
 
-
 #Clean up any old vms with the same name
 
-#VBoxManage -q storageattach $2 --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium none
 VBoxManage -q closemedium disk $1
 VBoxManage -q unregistervm $2 
 
@@ -30,7 +28,6 @@ VBoxManage -q createvm --name $2 --register
 VBoxManage -q modifyvm $2 --ostype "Ubuntu_64" --memory 2048 --boot1 disk --nic1 bridged
 
 #VBoxManage -q storagectl $2 --name "IDE Controller" --add ide
-
 #VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium $1
 echo "Attaching SATA drive"
 VBoxManage -q storagectl $2 --name "SATA Controller" --add sata --controller IntelAhci
@@ -55,6 +52,7 @@ rm -rf $3
 VBoxManage export $2 -o $3
 
 #To create VDI
+echo "Creating vdi"
 vdibname=`basename $1`
 vdidirname=`dirname $1`
 
@@ -67,6 +65,8 @@ VBoxManage clonehd --existing $1 $vdibname.vdi
 #VBoxManage clonehd $1 $vdibname.vdi --format vdi
 
 mv /root/.VirtualBox/HardDisks/$vdibname.vdi /mnt/
+echo "Compressing vdi"
+gzip /mnt/$vdibname.vdi
 
 #To automatically import
 #rm -rf /root/.Virtualbox
