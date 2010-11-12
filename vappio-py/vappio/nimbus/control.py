@@ -35,17 +35,19 @@ def instantiateCredential(conf, cred):
         fout = open(tmpKeyFile, 'w')
         fout.write(cred.pkey)
         fout.close()
-        commands.runSystemEx(' '.join(['nimbusCerts2EC2.py',
-                                       '--in-cert=' + tmpCertFile,
-                                       '--out-cert=' + certFile,
-                                       '--in-key=' + tmpKeyFile,
-                                       '--out-key=' + keyFile,
-                                       '--java-cert-dir=/tmp',
-                                       '--java-cert-host=' + host,
-                                       '--java-cert-port=' + port]) + ' > /dev/null 2>&1', log=True)
-        commands.runSystemEx('chmod +r ' + keyFile)
-        os.unlink(tmpCertFile)
-        os.unlink(tmpKeyFile)
+        try:
+            commands.runSystemEx(' '.join(['nimbusCerts2EC2.py',
+                                           '--in-cert=' + tmpCertFile,
+                                           '--out-cert=' + certFile,
+                                           '--in-key=' + tmpKeyFile,
+                                           '--out-key=' + keyFile,
+                                           '--java-cert-dir=/tmp',
+                                           '--java-cert-host=' + host,
+                                           '--java-cert-port=' + port]) + ' > /dev/null 2>&1', log=True)
+            commands.runSystemEx('chmod +r ' + keyFile)
+        finally:
+            os.unlink(tmpCertFile)
+            os.unlink(tmpKeyFile)
     ec2Home = '/opt/ec2-api-tools-1.3-42584'
     newCred = func.Record(cert=certFile, pkey=keyFile, ec2Path=os.path.join(ec2Home, 'bin'),
                           env=dict(EC2_JVM_ARGS='-Djavax.net.ssl.trustStore=/tmp/jssecacerts',
