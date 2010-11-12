@@ -9,14 +9,16 @@
 import os
 
 from igs.utils import logging
-from igs.utils.logging import errorPrint
 from igs.utils import commands
 from igs.utils import functional
+from igs.utils import config
 
 ##
 # This module wants to go by
 NAME = 'EC2'
 DESC = """Control module for EC2"""
+
+DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr_ec2.conf'
 
 class Instance:
     """Represents running image"""
@@ -133,7 +135,7 @@ def parseInstanceLine(line):
                             None,
                             None)
         except ValueError:
-            errorPrint('Failed to parse line: ' + line)
+            logging.errorPrint('Failed to parse line: ' + line)
             return None
     elif line.startswith('SPOTINSTANCEREQUEST'):
         try:
@@ -153,7 +155,7 @@ def parseInstanceLine(line):
                             sir,
                             bid)
         except ValueError:
-            errorPrint('Failed to parse line: ' + line)
+            logging.errorPrint('Failed to parse line: ' + line)
             return None
     else:
         return None
@@ -165,6 +167,7 @@ def instantiateCredential(conf, cred):
     Takes a credential and instanitates it.  It returns a Record that has all of the
     information users of that instantiated credential will need
     """
+    conf = config.configFromStream(open(conf('general.conf_file', default=DEFAULT_CONFIG_FILE)), base=conf)
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
     if not os.path.exists(certFile) or open(certFile).read() != cred.cert:
@@ -173,10 +176,10 @@ def instantiateCredential(conf, cred):
         open(keyFile, 'w').write(cred.pkey)
     newCred = functional.Record(cert=certFile, pkey=keyFile, ec2URL=None, env={})
     if 'ec2_url' in cred.metadata:
-        return newCred.update(env=functional.updateDict(newCred.env,
-                                                        dict(EC2_URL=cred.metadata['ec2_url'])))
+        return (conf, newCred.update(env=functional.updateDict(newCred.env,
+                                                               dict(EC2_URL=cred.metadata['ec2_url']))))
     else:
-        return newCred
+        return (conf, newCred)
 
 def addCredInfo(cmd, cred):
     # Copy cmd since we'll be modifying it

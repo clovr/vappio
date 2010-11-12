@@ -3,6 +3,7 @@ import urlparse
 
 from igs.utils import commands
 from igs.utils import functional as func
+from igs.utils import config
 
 from vappio.ec2 import control as ec2_control
 
@@ -14,6 +15,7 @@ DESC = """Control module for Nimbus-based users"""
 
 
 def instantiateCredential(conf, cred):
+    conf = config.configFromStream(open(conf('general.conf_file')), base=conf)
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
     if not os.path.exists(certFile) and not os.path.exists(keyFile):
@@ -50,7 +52,7 @@ def instantiateCredential(conf, cred):
     if os.path.exists(conf('cluster.cluster_private_key') + '.pub'):
         pubKey = open(conf('cluster.cluster_private_key') + '.pub').read().rstrip()
         ec2_control.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"')
-    return newCred
+    return (conf, newCred)
         
 
 
