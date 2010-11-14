@@ -26,7 +26,7 @@ tar -C / -xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
 rm -rf /etc/ssh
-ln -s /usr/etc /etc/ssh
+ln -f -s /usr/etc /etc/ssh
 perl -pi -e 's/command=".*"\s+//' /root/.ssh/authorized_keys  
 /etc/init.d/ssh restart
 popd

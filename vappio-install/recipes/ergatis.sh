@@ -68,7 +68,7 @@ touch /opt/ergatis/global_id_repository/valid_id_repository
 
 #Install symlink to clovr project_saved_repository
 rm -rf /opt/ergatis/global_saved_templates
-ln -s /opt/clovr_pipelines/workflow/project_saved_templates /opt/ergatis/global_saved_templates
+ln -f -s /opt/clovr_pipelines/workflow/project_saved_templates /opt/ergatis/global_saved_templates
 
 #Configure website
 #Pull ergatis.ini, Config.pm

@@ -10,7 +10,7 @@ cp drmaa.jar $SGE_ROOT/lib
 cp drmaa.jar /opt/workflow-sforge/jars/
 apt-get -y install libdrmaa1.0 libdrmaa-dev
 
-ln -s /usr/lib $SGE_ROOT/lib/lx26-ia64
+ln -f -s /usr/lib $SGE_ROOT/lib/lx26-ia64
 
 mkdir /tmp/$$
 pushd /tmp/$$
@@ -18,7 +18,7 @@ wget http://search.cpan.org/CPAN/authors/id/T/TH/THARSCH/Schedule-DRMAAc-0.81.ta
 tar xvzf Schedule-DRMAAc-0.81.tar.gz 
 cd Schedule-DRMAAc-0.81
 export SGE_ROOT=/var/lib/gridengine
-ln -s /usr/include/drmaa.h
+ln -f -s /usr/include/drmaa.h
 perl Makefile.PL 
 make
 make install
