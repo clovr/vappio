@@ -1,38 +1,26 @@
 #!/bin/bash -e
 
-USAGE="vp-build [-t] [-d bundledir] image.img bundlename1 name2 ... namen\n
- Build script must either be in your path or can be URLs
- vp-build image.img http://urltobuildscriptbundle\n
- 
- Build new image(s) starting with image.img and running a build script named bundledir/bundlename1-N\n
+USAGE="vp-build [-z] [-t] [-d bundledir] image.img buildname buildscript1 [script2 ... scriptN]\n
+ \n
+ Builds new image(s) starting with image.img and running one or more build scripts\n
  Output is one or more directories containing VMs in raw, vmware, and vmx formats\n
- Requires build scripts named bundlename1 that are either on the starting image or installed via bootstrapscript\n
- Bootstrapscript can be a URL to an SVN repository\n
- Performs an equivalent of\n
- chroot image.img 'curl bootstrapscript'\n
- chroot image.img bundledir/bundlename1\n
- Default build name will be bundlename-$date\n
+ Build scripts must either be in your path or a URLs\n
+ Default build name will be buildname-$date\n
+ Process uses a chroot environment\n
+ chroot image.img buildscript.sh\n
  \n 
  \n
  Example:
- vp-build /mnt/image.img clovr-standard
+ vp-build /mnt/image.img clovr-standard\n
+ vp-build /mnt/image.img http://url/myappname.sh\n
  \n
- -c Cleanup an aborted build\n 
- vp-build -c image.img\n
- \n
+ -c Cleanup an aborted build. Failed builds may leave mounts and loopback devices. Cleanup with vp-build -c image.img\n
  -t Automatically bundle virtualbox or vmware tools
 "
 
 #
-#Takes a skeleton image (image.img) and applies build scripts name1 ... namen
-#creating one output directory per image
 #Requires vappio utilities and vmware, vbox guest tools
 #These are already installed on a clovr-build VM
-
-#Failed builds may leave mounts and loopback devices
-#To cleanup, run
-#vp-build [-c cleanup bad build] image.img
-
 #To clean up all builds on a build box
 #find /mnt -name image.img -exec /opt/vappio-util/vp-build -c {} \;
 
@@ -55,8 +43,10 @@ bundledir=/opt/vappio-install/bundles
 
 utildir=/opt/vappio-util
 
-while getopts "ctdh" options; do
+while getopts "ctdzh" options; do
   case $options in
+      z ) compress=1
+	  ;;
       t ) bundletools="-t"
 	  ;;
       d ) bundledir=$OPTARG
@@ -72,8 +62,9 @@ while getopts "ctdh" options; do
 done
 
 image=$1
+buildnamepfx=$2 
 
-if [ "$image" = "" ]
+if [ "$image" = "" ] || [ "$buildnamepfx" = "" ]
 then
     echo -e $USAGE
     exit 1;
@@ -116,127 +107,151 @@ else
     buildname=`date "+%Y%m%d"`
 fi
 
-#Remaining arguments are bundle names
+#Remaining arguments are build scripts, URLs
 shift
+shift
+sarray=("$@")
+#If no build scripts, try using buildname
+if [ ${#sarray[@]} = 0 ]
+then
+    sarray[0]=$buildnamepfx
+fi
 
 #Setup to kill background jobs
 trap handlekill SIGINT SIGTERM
 
-for b in $*
-do
-    namepfx="$b-$buildname"
-    i=1
-    while [ -d "$namepfx" ]
-    do
-	i=`expr $i + 1`;
-	namepfx="$b-$buildname-$i"
-    done
-    echo "Building $namepfx from script $bundledir/$b"
-    #Set up mounts points for loopback device
-    if [ "$BUILD_DIR" != "" ]
+namepfx="$buildnamepfx-$buildname"
+echo "Building $namepfx"
+#Set up mounts points for loopback device
+if [ "$BUILD_DIR" != "" ]
+then
+    builddir=$BUILD_DIR
+    currimg=$builddir/$namepfx.img
+    namepfx=$BUILD_NAME
+    echo "Recovering build $namepfx in $builddir"
+else
+    builddir=/mnt/$$/$buildnamepfx
+    mkdir -p $builddir
+    mkdir -p $builddir.live
+    currimg=$builddir/$namepfx.img
+    #Copy image
+    zfile=`file $image | grep gzip` || true
+    if [ "$zfile" != "" ]
     then
-	builddir=$BUILD_DIR
-	currimg=$builddir/$namepfx.img
-	namepfx=$BUILD_NAME
-	echo "Recovering build $namepfx in $builddir"
-    else
-	builddir=/mnt/$$/$b
-	mkdir -p $builddir
-	mkdir -p $builddir.live
-	currimg=$builddir/$namepfx.img
-        #Copy image
-	zfile=`file $image | grep gzip` || true
-	if [ "$zfile" != "" ]
-	then
         #Zipped sparse files provide faster copy
-	    image=`tar -C $builddir.live -xvzf $image` || true
-	    if [ -f "$builddir.live/$image" ]
-	    then
-		mv $builddir.live/$image $currimg
-	    else
-		echo "Bad compressed image $image. Can't fine $ibname in output"
-		exit 1
-	    fi
-	else
-	    echo "Copying $image to $currimg"
-	    cp --sparse=always $image $currimg
-	fi
-        #Set up loop back device of image
-	devname=`losetup --show -f $currimg`
-	mount $devname $builddir.live
-	
-        #Set up some things for the chroot jail
-	export bundledir=$bundledir
-	export b=$b
-	mount --bind /proc $builddir.live/proc
-	mount --bind /sys $builddir.live/sys
-	mount --bind /dev $builddir.live/dev
-#	mount -t devpts devpts $builddir.live/devpts
-	touch $builddir.live/var/run/utmp
-	touch $builddir.live/var/run/btmp
-	touch $builddir.live/var/run/wtmp
-	touch $builddir.live/var/run/lastlog
-	chgrp -v utmp $builddir.live/var/run/utmp $builddir.live/var/log/lastlog
-	chmod -v 664 $builddir.live/var/run/utmp $builddir.live/var/log/lastlog
-        #Set up resolv.conf so networking works in chroot
-	cp /etc/resolv.conf $builddir.live/etc/resolv.conf
-	cp /etc/hostname $builddir.live/etc/hostname
-	cp /etc/apt/sources.list.orig $builddir.live/etc/apt/sources.list
-        #Set up apt proxy to speed up downloads
-	mkdir -p  $builddir.live/etc/apt.conf.d
-        #Check for apt proxy for local caching of apt packages
-	set +e
-	curl http://localhost:3142 > /dev/null
-	set -e 
-	if [ $? = 0 ]
+	image=`tar -C $builddir.live -xvzf $image` || true
+	if [ -f "$builddir.live/$image" ]
 	then
-	    svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy $builddir.live/etc/apt/apt.conf.d/01proxy
+	    mv $builddir.live/$image $currimg
+	else
+	    echo "Bad compressed image $image. Can't fine $ibname in output"
+	    exit 1
 	fi
-	
-        #Download and run bootstrap script
-	#This will pull the latest recipes from SVN for the build
-	wget -c -P $builddir.live/tmp $bootstrapscript
-	bscript=`basename $bootstrapscript`
-	chroot $builddir.live bash -e /tmp/$bscript
+    else
+	echo "Copying $image to $currimg"
+	cp --sparse=always $image $currimg
     fi
+    #Set up loop back device of image
+    devname=`losetup --show -f $currimg`
+    mount $devname $builddir.live
+    
+    #Set up some things for the chroot jail
+    export bundledir=$bundledir
+    export b=$buildnamepfx
+    mount --bind /proc $builddir.live/proc
+    mount --bind /sys $builddir.live/sys
+    mount --bind /dev $builddir.live/dev
+#	mount -t devpts devpts $builddir.live/devpts
+    touch $builddir.live/var/run/utmp
+    touch $builddir.live/var/run/btmp
+    touch $builddir.live/var/run/wtmp
+    touch $builddir.live/var/run/lastlog
+    chgrp -v utmp $builddir.live/var/run/utmp $builddir.live/var/log/lastlog
+    chmod -v 664 $builddir.live/var/run/utmp $builddir.live/var/log/lastlog
+    #Set up resolv.conf so networking works in chroot
+    cp /etc/resolv.conf $builddir.live/etc/resolv.conf
+    cp /etc/hostname $builddir.live/etc/hostname
+    cp /etc/apt/sources.list.orig $builddir.live/etc/apt/sources.list
+    #Set up apt proxy to speed up downloads
+    mkdir -p  $builddir.live/etc/apt.conf.d
+    #Check for apt proxy for local caching of apt packages
+    set +e
+    curl http://localhost:3142 > /dev/null
+    if [ $? = 0 ]
+    then
+	svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy $builddir.live/etc/apt/apt.conf.d/01proxy
+    fi
+    set -e 
+    
+    #Download and run bootstrap script
+    #This will pull the latest recipes from SVN for the build
+    wget -c -P $builddir.live/tmp $bootstrapscript
+    bscript=`basename $bootstrapscript`
+    chroot $builddir.live bash -e /tmp/$bscript
+    #Save build metadata in /etc/vappio
+    mkdir -p $builddir.live/etc/vappio
+    touch $builddir.live/etc/vappio/bundle_name.info
+fi
+
+for b in $sarray
+do
+    bname=`basename $b`
     #Apply build script to the image
-    cp $bundledir/$b $builddir.live/$bundledir/$b
-    chroot $builddir.live $bundledir/$b    
-    sync
-
-    #Remove apt proxy
-    rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
-    #Reset hostname
-    echo -n > $builddir.live/etc/hostname
-
-    #Store build name
+    if [ -f "$bundledir/$b" ]
+    then
+	#Argument is a script
+	cp $bundledir/$b $builddir.live/$bundledir/$b
+    else
+	if [ -f "$b" ]
+	then
+	    #Argument is a script
+	    cp $b $builddir.live/$bundledir/$b
+	else
+	    #Check if argument is a url
+	    wget -c -P $bundledir.live/$bundledir $b
+	fi
+    fi
+    chroot $builddir.live $bundledir/$bname    
     echo "Storing build info $namepfx $b"
-    mkdir -p $builddir.live/etc/vappio/
-    echo "$namepfx" > $builddir.live/etc/vappio/release_name.info
-    echo "$b" > $builddir.live/etc/vappio/bundle_name.info
-    date "+%Y%m%d-%H%M%S" > $builddir.live/etc/vappio/build_time.info
+    echo "$b" >> $builddir.live/etc/vappio/bundle_name.info
     sync
-    #Exit from chroot
-    umount -l $builddir.live/proc
-    umount -l $builddir.live/sys
-    umount -l $builddir.live/dev
-    umount -l $builddir.live
-    sync
-    losetup -d $devname || true
-    #cleanup img, removing tmp files
-    echo "Cleaning image $currimg"
-    $utildir/vp-runonimg $currimg $utildir/cleanupimg
+done
 
-    #Build xen
-    #create example clovr-xen.conf and bundle kernel image
-    echo "Created raw disk image $currimg"
+#Remove apt proxy
+rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
+#Reset hostname
+echo -n > $builddir.live/etc/hostname
 
-    #Build VMware/VBox
-    $utildir/vp-bundle-release $bundletools $currimg $namepfx
-    mv $currimg $namepfx.img
-    #Compress img
+#Store additional build meta data
+echo "$namepfx" > $builddir.live/etc/vappio/release_name.info
+date "+%Y%m%d-%H%M%S" > $builddir.live/etc/vappio/build_time.info
+#Cleanup the proxy
+rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
+sync
+#Exit from chroot
+umount -l $builddir.live/proc
+umount -l $builddir.live/sys
+umount -l $builddir.live/dev
+umount -l $builddir.live
+sync
+losetup -d $devname || true
+#cleanup img, removing tmp files
+echo "Cleaning image $currimg"
+$utildir/vp-runonimg $currimg $utildir/cleanupimg
+
+#Build xen
+#create example clovr-xen.conf and bundle kernel image
+echo "Created raw disk image $currimg"
+
+#Build VMware/VBox release images
+$utildir/vp-bundle-release $bundletools $currimg $namepfx
+mv $currimg $namepfx.img
+if [ "$compress" != "" ]
+then
+    #Compress raw img
     $utildir/vp-compress-img $namepfx.img $namepfx.img.tgz || true
     #Cleanup tmp dir
     rm -rf /mnt/$$/
-done
+fi
+
 
