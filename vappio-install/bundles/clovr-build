@@ -30,8 +30,4 @@ bash -e $VAPPIO_RECIPES/hudson.sh
 sudo bash -e $VAPPIO_RECIPES/buildutils.sh
 
 #Additional hudson configuration for the build box only
-#Set executors to 2
-#<numExecutors>2</numExecutors>
-#Set default view to platform conversion
-#<primaryView>CloVR tests</primaryView>
 svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml.clovr-build /var/lib/hudson/config.xml
