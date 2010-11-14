@@ -22,5 +22,5 @@ chmod 755 /etc
 rm -rf $tmpdir
 
 # Add proxy modules
-ln -s /etc/apache2/mods-available/proxy.load /etc/apache2/mods-enabled/
-ln -s /etc/apache2/mods-available/proxy_http.load /etc/apache2/mods-enabled/
+ln -f -s /etc/apache2/mods-available/proxy.load /etc/apache2/mods-enabled/
+ln -f -s /etc/apache2/mods-available/proxy_http.load /etc/apache2/mods-enabled/
