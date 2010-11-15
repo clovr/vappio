@@ -48,10 +48,13 @@ utildir=/opt/vappio-util
 while getopts "oztdch" options; do
   case $options in
       o ) overwrite=1
+	  shift
 	  ;;
       z ) compress=1
+	  shift
 	  ;;
       t ) bundletools="-t"
+	  shift
 	  ;;
       d ) bundledir=$OPTARG
 	  shift

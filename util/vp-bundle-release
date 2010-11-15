@@ -9,8 +9,10 @@ Creates release-ready VMware (vmdk,vmx) and Virtualbox (ovf,vdi) VMs from a raw 
 while getopts "tfh" options; do
   case $options in
       t ) bundletools=1
+	  shift
 	  ;;
       f ) force=1
+	  shift
 	  ;;
       h ) echo -e $USAGE
 	  exit 1;;
