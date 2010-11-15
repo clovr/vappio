@@ -55,7 +55,9 @@ if set(requiredKeys) - set(kv.keys()):
 computedCPUHours = int(float(kv['pipeline.COMPUTED_CPU_HOURS']) + 1)
 
 cl = cluster.loadCluster('localhost', kv['cluster.CLUSTER_NAME'])
-maxExecNodes = int(kv.get('pipeline.EXEC_MAX_INSTANCES', 0)) or int(cl.config('cluster.exec_max_instances'))
+#
+# Artificial number here, this will go away at some point
+maxExecNodes = int(kv.get('pipeline.EXEC_MAX_INSTANCES', 0)) or int(cl.config('cluster.exec_max_instances', default=10000))
 maxExecCores = maxExecNodes * CORES_PER_CPU
 
 
