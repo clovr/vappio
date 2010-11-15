@@ -14,10 +14,6 @@ bash -e $VAPPIO_RECIPES/setup.sh
 bash -e $VAPPIO_RECIPES/sysconfigs.sh
 #bash -e $VAPPIO_RECIPES/useradd.sh
 
-#Hudson, install this early because it fails a lot due to network
-#issues
-bash -e $VAPPIO_RECIPES/hudson.sh
-
 #High performance SSH
 bash -e $VAPPIO_RECIPES/hpnssh.sh
 bash -e $VAPPIO_RECIPES/allowrootssh.sh
@@ -30,6 +26,10 @@ bash -e $VAPPIO_RECIPES/autologin.sh
 
 bash -e $VAPPIO_RECIPES/vappiocustoms.sh
 bash -e $VAPPIO_RECIPES/vappio-tasklets.sh
+
+#Hudson, install this early because it fails a lot due to network
+#issues
+bash -e $VAPPIO_RECIPES/hudson.sh
 
 #Grid utils
 bash -e $VAPPIO_RECIPES/ganglia.sh
