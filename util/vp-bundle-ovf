@@ -1,9 +1,19 @@
 #!/bin/bash
 
-USAGE="vp-bundle-ovf image.vmdk name output.ovf sharedpath"
+USAGE="vp-bundle-ovf [-z] [-s] image.vmdk name outputprefix sharedpath\n
+Converts image.vmdk to Virtualbox compatible formats.\n
+An OVF file with $outputprefix.ovf with embedded VM $name\n
+A VDI file with outputprefix.vdi\n
+-s skip creation of VDI file\n
+-z compress vdi
+"
 
-while getopts "h" options; do
+while getopts "hzs" options; do
   case $options in
+      z ) compress=1
+	  ;;
+      s ) skipvdi=1
+	  ;;
       h ) echo -e $USAGE
 	  exit 1;;
       \? ) echo -e $USAGE
@@ -37,9 +47,9 @@ VBoxManage -q storageattach $2 --storagectl "SATA Controller" --port 0 --device 
 echo "Attaching network device"
 VBoxManage -q modifyvm $2 --nic1 bridged --bridgeadapter1 "en0:Ethernet"
 
-echo "Specifying shared folders"
 if [ "$4" != "" ]
-then 
+then
+    echo "Specifying shared folders"
     VBoxManage sharedfolder add $2 --name shared --hostpath $4/shared/ 
     VBoxManage sharedfolder add $2 --name keys --hostpath $4/keys/ 
     VBoxManage sharedfolder add $2 --name user_data --hostpath $4/user_data/
@@ -49,24 +59,28 @@ fi
 echo "Creating ovf"
 #Create ovf
 rm -rf $3
-VBoxManage export $2 -o $3
+VBoxManage export $2 -o $3.ovf
 
+if [ "$skipvdi" = "" ]
+then
 #To create VDI
-echo "Creating vdi"
-vdibname=`basename $1`
-vdidirname=`dirname $1`
-
-#VBoxManage -q closemedium disk $1
-VBoxManage internalcommands sethduuid $1
-
-rm -f /root/.VirtualBox/HardDisks/$vdibname.vdi
-VBoxManage createhd --filename $vdibname.vdi --size 120000
-VBoxManage clonehd --existing $1 $vdibname.vdi 
-#VBoxManage clonehd $1 $vdibname.vdi --format vdi
-
-mv /root/.VirtualBox/HardDisks/$vdibname.vdi /mnt/
-echo "Compressing vdi"
-gzip /mnt/$vdibname.vdi
+    echo "Creating vdi"
+    #vdibname=`basename $1`
+    #vdidirname=`dirname $1`
+    vdibname=$2
+        
+    #VBoxManage -q closemedium disk $1
+    VBoxManage internalcommands sethduuid $1
+    
+    #rm -f /root/.VirtualBox/HardDisks/$vdibname.vdi
+    VBoxManage createhd --filename $vdibname.vdi --size 120000 --format vdi
+    VBoxManage clonehd --existing $1 $vdibname.vdi 
+    if [ "$compress" != "" ]
+    then
+	echo "Compressing vdi"
+	gzip $vdibname.vdi
+    fi
+fi
 
 #To automatically import
 #rm -rf /root/.Virtualbox

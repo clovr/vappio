@@ -1,21 +1,23 @@
 #!/bin/bash -e
 
-USAGE="vp-build [-z] [-t] [-d bundledir] image.img buildname buildscript1 [script2 ... scriptN]\n
+USAGE="vp-build [-o] [-z] [-t] [-c] [-d bundledir] image.img buildname buildscript1 [script2 ... scriptN]\n
  \n
  Builds new image(s) starting with image.img and running one or more build scripts\n
- Output is one or more directories containing VMs in raw, vmware, and vmx formats\n
+ Output is an image buildname.img and directory containing VMs in vmware and virtualbox formats\n
  Build scripts must either be in your path or a URLs\n
  Default build name will be buildname-$date\n
- Process uses a chroot environment\n
- chroot image.img buildscript.sh\n
+ Process uses a chroot environment, chroot image.img buildscript.sh\n
  \n 
  \n
  Example:
  vp-build /mnt/image.img clovr-standard\n
  vp-build /mnt/image.img http://url/myappname.sh\n
  \n
+ -o Overwrite input image. Useful for updating an existing image. Does not make a copy of image.img, moves, mounts and overwrites.\n
+ -z Compress output image.img\n
+ -t Automatically bundle virtualbox or vmware tools.\n
  -c Cleanup an aborted build. Failed builds may leave mounts and loopback devices. Cleanup with vp-build -c image.img\n
- -t Automatically bundle virtualbox or vmware tools
+
 "
 
 #
@@ -43,8 +45,10 @@ bundledir=/opt/vappio-install/bundles
 
 utildir=/opt/vappio-util
 
-while getopts "ctdzh" options; do
+while getopts "oztdch" options; do
   case $options in
+      o ) overwrite=1
+	  ;;
       z ) compress=1
 	  ;;
       t ) bundletools="-t"
@@ -125,9 +129,11 @@ echo "Building $namepfx"
 #Set up mounts points for loopback device
 if [ "$BUILD_DIR" != "" ]
 then
+    buildname=$BUILD_NAME
     builddir=$BUILD_DIR
-    currimg=$builddir/$namepfx.img
     namepfx=$BUILD_NAME
+    currimg=$builddir/$namepfx.img
+    devname=`losetup --show -f $currimg`
     echo "Recovering build $namepfx in $builddir"
 else
     builddir=/mnt/$$/$buildnamepfx
@@ -148,8 +154,14 @@ else
 	    exit 1
 	fi
     else
-	echo "Copying $image to $currimg"
-	cp --sparse=always $image $currimg
+	if [ "$overwrite" != "" ]
+	then
+	    echo "Moving $image to $currimg"
+	    mv -f $image $currimg
+	else
+	    echo "Copying $image to $currimg"
+	    cp --sparse=always $image $currimg
+	fi
     fi
     #Set up loop back device of image
     devname=`losetup --show -f $currimg`
@@ -170,6 +182,8 @@ else
     chmod -v 664 $builddir.live/var/run/utmp $builddir.live/var/log/lastlog
     #Set up resolv.conf so networking works in chroot
     cp /etc/resolv.conf $builddir.live/etc/resolv.conf
+    #chroot experiences dns problems with default conf. try using files dns
+    cp /etc/nsswitch.conf $builddir.live/etc/nsswitch.conf
     cp /etc/hostname $builddir.live/etc/hostname
     cp /etc/apt/sources.list.orig $builddir.live/etc/apt/sources.list
     #Set up apt proxy to speed up downloads
@@ -190,7 +204,8 @@ else
     chroot $builddir.live bash -e /tmp/$bscript
     #Save build metadata in /etc/vappio
     mkdir -p $builddir.live/etc/vappio
-    touch $builddir.live/etc/vappio/bundle_name.info
+    echo "$buildnamepfx" > $builddir.live/etc/vappio/bundle_name.info
+    touch $builddir.live/etc/vappio/build_scripts.info
 fi
 
 for b in $sarray
@@ -213,20 +228,18 @@ do
     fi
     chroot $builddir.live $bundledir/$bname    
     echo "Storing build info $namepfx $b"
-    echo "$b" >> $builddir.live/etc/vappio/bundle_name.info
+    echo "$b" >> $builddir.live/etc/vappio/build_scripts.info
     sync
 done
 
-#Remove apt proxy
-rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
 #Reset hostname
 echo -n > $builddir.live/etc/hostname
+#Cleanup the proxy
+rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
 
 #Store additional build meta data
 echo "$namepfx" > $builddir.live/etc/vappio/release_name.info
 date "+%Y%m%d-%H%M%S" > $builddir.live/etc/vappio/build_time.info
-#Cleanup the proxy
-rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
 sync
 #Exit from chroot
 umount -l $builddir.live/proc

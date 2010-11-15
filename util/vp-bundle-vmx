@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="vp-bundle_vmx image.vmdk template.vmx output.vmx [display_name]"
+USAGE="vp-bundle_vmx image.vmdk template.vmx output.vmx [display_name]\n"
 
 while getopts "h" options; do
   case $options in
