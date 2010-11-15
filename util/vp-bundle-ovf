@@ -11,8 +11,10 @@ A VDI file with outputprefix.vdi\n
 while getopts "hzs" options; do
   case $options in
       z ) compress=1
+	  shift
 	  ;;
       s ) skipvdi=1
+	  shift
 	  ;;
       h ) echo -e $USAGE
 	  exit 1;;

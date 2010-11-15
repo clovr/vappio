@@ -19,11 +19,11 @@ while getopts "fph" options; do
     p ) public=1
 	  i=`expr $i + 1`
 	  ;;
-    h ) echo -e $USAGE
-	  exit 1;;
     f ) force="force"
 	  i=`expr $i + 1`
 	  ;;
+    h ) echo -e $USAGE
+	  exit 1;;
     \? ) echo -e $USAGE
          exit 1;;
   esac
