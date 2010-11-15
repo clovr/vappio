@@ -38,17 +38,23 @@ vlog "wfcomponentdir: $wfcomponentdir"
 vlog "wfgroupdir: $wfgroupdir"
 vlog "group: $group"
 
-
-#Detect if this looks like a workflow iterator and transfer needed files; otherwise just transfer a wfxml
-#TODO transfer list of files as a single transfer instead of one at a time
 vlog "Start transfer of input from $wfgroupdir/$group.iter to $remotehost" 
+#Detect if this looks like a workflow iterator and transfer needed files; otherwise just transfer a wfxml
 #Check for $;I_FILE_PATH$;, if this exists good indicator we are in an iterator
 groupitertype=`cat $wfcomponentdir/$wfgroupdir/$group.iter | grep 'I_FILE_PATH'`
 if [ "$groupitertype" != "" ]
 then
     vlog "Found files in iterator $wfcomponentdir/$wfgroupdir/$group.iter. Parsing..."
+    #TODO transfer list of files as a single transfer instead of one at a time using --file-list
     for f in `cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v '^\\$' | perl -ne 'split(/\t/);print $_[2],"\n"'`; do
 	vlog "Transfering $f to $remotehost:$f" 
+
+	if [ ! -r "$f" ]
+	then
+	    vlog "ERROR: $f does not exist"
+	    verror "STAGING WF FAILURE. FILE DOES NOT EXIST"
+	    exit 100;
+	fi
 
 	# Commands can't be stored in variables, it just doesn't work w/ the quotes
 	# http://www.bash-hackers.org/wiki/doku.php/mirroring/bashfaq/050
@@ -70,6 +76,12 @@ else
 	#Just stage workflow xml
 	vlog "Transfering $wfxml to $remotehost:$wfxml" 
 	vlog "CMD: rsync -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" $wfxml root@$remotehost:/"
+	if [ ! -r "$wfxml" ]
+	then
+	    vlog "ERROR: $wfxml does not exist"
+	    verror "STAGING WF FAILURE. WORKFLOW XML FILE DOES NOT EXIST"
+	    exit 100;
+	fi
 	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $wfxml root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
 	if [ $? == 0 ]
 	then
@@ -83,20 +95,29 @@ fi
 
 #Stage config file for a workflow iterator
 configfiles=`ls $wfcomponentdir/*.final.config`
-if [ "$configfiles" != "" ]
+if [ "$configfiles" = "" ]
 then
-    cd $wfcomponentdir
-    vlog "Start transfer of workflow xml from $wfcomponentdir/$wfgroupdir to $remotehost:$wfcomponentdir" 
-    vlog "CMD: rsync -av -R -e \"$ssh_client -i $ssh_key $ssh_options\" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir" 
-    rsync -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir 1>> $vappio_log 2>> $vappio_log
-    if [ $? == 0 ]
+    wfcomponentdir=`dirname $wfxml`
+    configfiles=`ls $wfcomponentdir/*.final.config`
+    wfgroupdir=""
+    if [ "$configfiles" = "" ]
     then
-	vlog "rsync success. return value: $?"
-    else
-	vlog "ERROR: $0 rsync fail. return value: $?"
-	verror "STAGING WF XML,CONFIG FAILURE"
-	exit 1;
+	vlog "ERROR: Can't find $wfcomponendir/*.final.config"
+	verror "STAGING WF CONFIG FAILURE. Can't find $wfcomponendir/*.final.config"
     fi
 fi
+cd $wfcomponentdir
+vlog "Start transfer of workflow xml from $wfcomponentdir/$wfgroupdir to $remotehost:$wfcomponentdir" 
+vlog "CMD: rsync -av -R -e \"$ssh_client -i $ssh_key $ssh_options\" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir" 
+rsync -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir 1>> $vappio_log 2>> $vappio_log
+if [ $? == 0 ]
+then
+    vlog "rsync success. return value: $?"
+else
+    vlog "ERROR: $0 rsync fail. return value: $?"
+    verror "STAGING WF CONFIG FAILURE"
+    exit 1;
+fi
 
+exit 0
 
