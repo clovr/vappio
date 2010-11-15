@@ -182,9 +182,13 @@ def tagData(tagsDir, tagName, tagBaseDir, files, recursive, expand, compress, ap
                 cmd.extend([removeBase('/', f) for f in fs])
                 runSystemEx(' '.join(cmd), log=True)
 
-        runSystemEx('gzip ' + outTar, log=True)
-        metadata = func.updateDict(metadata, {'compressed': True,
-                                              'compressed_file': outGzip})
+        #
+        # It's possible we have no values here, if so, the tar was not created
+        # and should be ignored
+        if os.path.exists(outTar):
+            runSystemEx('gzip ' + outTar, log=True)
+            metadata = func.updateDict(metadata, {'compressed': True,
+                                                  'compressed_file': outGzip})
 
     #
     # If tagBaseDir is set it means we have some metadata to write
