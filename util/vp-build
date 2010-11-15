@@ -236,7 +236,7 @@ do
 done
 
 #Reset hostname
-echo -n > $builddir.live/etc/hostname
+#echo -n > $builddir.live/etc/hostname
 #Cleanup the proxy
 rm -f $builddir.live/etc/apt/apt.conf.d/01proxy
 
