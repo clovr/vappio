@@ -9,7 +9,7 @@ from vappio.pipeline_tools.blast import tagToRefDBPath
 
 ##
 # Need to know where the template lives
-TEMPLATE_NAME = 'clovr_metagenomics_noorf'
+TEMPLATE_NAME = 'clovr_metagenomics_noorfs'
 
 
 OPTIONS = [
