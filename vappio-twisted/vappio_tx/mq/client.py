@@ -12,14 +12,14 @@ import stomper
 
 class MQClientProtocol(protocol.Protocol):
 
-    ACTIONS = {'MESSAGE': lambda s, m : s.factory.msgReceived(m),
+    ACTIONS = {'CONNECTED': lambda s, m : s.factory.connectedReceived(m),
+               'MESSAGE': lambda s, m : s.factory.msgReceived(m),
                'RECEIPT': lambda s, m : s.factory.receiptReceived(m),
                'ERROR': lambda s, m : s.factory.errorReceived(m),
                }
     
     def __init__(self):
         self.data = ''
-        self.frames = []
     
     def connectionMade(self):
         pass
@@ -67,6 +67,26 @@ class IMQClientService(interface.Interface):
         Acknolwedge a message
         """
 
+    def connectedReceived(msg):
+        """
+        Client successfully connected
+        """
+
+    def msgReceived(msg):
+        """
+        Incoming message
+        """
+
+    def receiptReceived(msg):
+        """
+        Incoming receipt
+        """
+
+    def errorReceived(msg):
+        """
+        Incoming error
+        """
+
 class IMQClientFactory(interface.Interface)
     """
     Factory for MQ client protocol
@@ -77,6 +97,40 @@ class IMQClientFactory(interface.Interface)
         Return a protocol
         """
 
+    def connectedReceived(msg):
+        """
+        Client successfully connected
+        """
+
+    def msgReceived(msg):
+        """
+        Incoming message
+        """
+
+    def receiptReceived(msg):
+        """
+        Incoming receipt
+        """
+
+    def errorReceived(msg):
+        """
+        Incoming error
+        """
+        
+def MQClientFactoryFromService(protocol.ReconnectingClientFactory):
+    interface.implements(IMQClientFactory)
+
+    protocol = MQClientProtocol
+
+    def __init__(self, service):
+        self.service = service
+
+    def buildProtocol(self, addr):
+        self.mqClient = self.protocol()
+        self.mqClient.factory = self
+        return self.mqClient
+
+    
 def makeService(config):
     pass
 

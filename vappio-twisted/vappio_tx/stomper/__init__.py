@@ -130,12 +130,12 @@ class Frame(object):
     def pack(self):
         """Called to create a STOMP message from the internal values.
         """
-        headers = ['%s:%s'%(f,v) for f,v in self.headers.items()]
+        headers = ['%s:%s' % (h, str(v)) for h, v in self.headers.items()]
         headers = "\n".join(headers)        
         
-        stomp_mesage = "%s\n%s\n\n%s%s\n" % (self._cmd, headers, self.body, NULL)
+        stomp_message = "%s\n%s\n\n%s%s\n" % (self._cmd, headers, self.body, NULL)
 
-        return stomp_mesage
+        return stomp_message
 
         
     def unpack(self, message):
@@ -303,7 +303,7 @@ def disconnect():
     return Frame(cmd='DISCONNECT').pack()
 
     
-def send(dest, msg, headers=None, transactionid=None):
+def send(dest, body, headers=None, transactionid=None):
     """STOMP send command.
     
     dest:
@@ -317,10 +317,11 @@ def send(dest, msg, headers=None, transactionid=None):
         by default.
     
     """
-    transheader = ''
-    
     if transactionid:
         headers = functional.updateDict(noneOrEmptyDict(headers), {'transaction': transactionid})
+
+    headers = functional.updateDict(noneOrEmptyDict(headers),
+                                    {'content-length': len(msg)})
 
     return Frame(cmd='SEND', headers=headers, body=msg).pack()
     
