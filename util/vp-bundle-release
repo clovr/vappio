@@ -6,7 +6,7 @@ Creates release-ready VMware (vmdk,vmx) and Virtualbox (ovf,vdi) VMs from a raw 
 -t Bundle guest tools for VMware and VirtualBox. Off by default.\n
 "
 
-while getopts "fh" options; do
+while getopts "tfh" options; do
   case $options in
       t ) bundletools=1
 	  ;;
