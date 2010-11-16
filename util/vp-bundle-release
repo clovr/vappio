@@ -29,6 +29,12 @@ utildir=/opt/vappio-util
 vmxtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx
 sharedtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared
 
+if [ ! -f "$1" ]
+then
+    echo "Image not found $1"
+    exit 1;
+fi
+
 if [ "$force" != "" ] || [ ! -e $currimg.vmdk ]
 then
     wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
