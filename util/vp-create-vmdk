@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-USAGE="vp-create-vmdk image.img grub_install.tgz image.vmdk"
+USAGE="vp-create-vmdk image.img grub_install.tgz image.vmdk [size]"
 
 #Raw disk image to VMWare conversion
 #Allows for conversion of Xen images to VMware
@@ -9,16 +9,21 @@ USAGE="vp-create-vmdk image.img grub_install.tgz image.vmdk"
 #This must all be performed as root or sudo-ed
 #TODO, set -e except for zeros step
 
-if [ $# -ne 3 ] 
+if [ $# -ne 3 ] && [ $# -ne 4 ] 
     then
     echo "$USAGE"
     exit 2
 fi
 
-imgsize="10G" #size in #G
+if [ "$4" = "" ]
+then
+    imgsize="10G" #size in #G
+else
+    imgsize="$4"
+fi
 
 #blocksize=512 #Has put dd into uninterruptible sleep
-blocksize=32768 
+blocksize=1M #Not used at the moment
 
 #create a new blank raw disk image of desired size, eg 10G
 mkdir /mnt/$$
@@ -54,6 +59,9 @@ w
 #now we have a virtual hard drive aka /dev/loop0==/dev/hda
 #We need partition 1 like /dev/hda1==/dev/loop1
 
+#Optionally, force ext2
+#mke2fs $deva
+
 fdisk -ul $deva
 
 #Take sector start and covert to bytes 63*512=32256
@@ -65,8 +73,8 @@ losetup -o 32256 $devb $deva
 #ie. dump release image clovr-vXbXrX.raw in loopback loop1
 #TODO, mount file as parition and resizefs -M to minimum size first
 echo "Creating new image in $devb"
-#dd if=$1 of=$devb bs=$blocksize
-dd if=$1 of=$devb
+dd if=$1 of=$devb bs=$blocksize oflag=direct conv=fsync
+#dd if=$1 of=$devb conf=fsync
 
 #could stop at this point and format blank partition as ext3
 #mkfs.ext3 /dev/loop1
@@ -87,8 +95,8 @@ pushd /mnt/$$/foo1
 tar xvzf $2 boot/grub
 echo "Zeroing out filesystem to aid compression"
 #Write out zeros to better compress file system
-#dd if=/dev/zero of=tmp/ZEROS bs=$blocksize || true
-dd if=/dev/zero of=tmp/ZEROS || true
+dd if=/dev/zero of=tmp/ZEROS bs=$blocksize conv=fsync oflag=direct || true
+#dd if=/dev/zero of=tmp/ZEROS || true
 echo "Ignore out of space error, this is ok"
 sync
 rm -f tmp/ZEROS
