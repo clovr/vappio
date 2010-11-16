@@ -290,7 +290,14 @@ def connect(username, password):
     message which will contain our session id.
     
     """
-    return Frame(cmd='CONNECT', {'login': username, 'passcode': password}).pack()
+    headers = {}
+    if username:
+        headers['login'] = username
+
+    if password:
+        headers['passcode'] = password
+        
+    return Frame(cmd='CONNECT', headers).pack()
 
 
 def disconnect():
