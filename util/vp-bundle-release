@@ -82,8 +82,13 @@ mv $currimg.vmdk $namepfx/$namepfx.vmdk
 currimgbname=`basename $currimg`
 rm -f $namepfx/$currimgbname.vmdk
 
+#Move ovf into tar directory
+mv $namepfx.ovf $namepfx/$namepfx.ovf
 perl -pi -e "s/href=\".*\.vmdk\"/href=\"$namepfx.vmdk\"/" $namepfx/$namepfx.ovf
+
+#Chmod tar directory
 chmod 777 $namepfx
+
 #Manifest file may cause problems on import
 rm -f $namepfx/$namepfx.mf
 sync
