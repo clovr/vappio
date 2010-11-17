@@ -7,7 +7,7 @@ buildvm=$1
 force=$2
 netcat="clovrtest-lx.igs.umaryland.edu 5678"
 vmcheckdir="/data/clovr-build/shared/"
-maxrunning=3
+maxrunning=2
 
 for n in `ls $buildvm/shared/clovr-*.runtests`
 do
