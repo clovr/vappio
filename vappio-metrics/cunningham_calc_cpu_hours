@@ -22,12 +22,11 @@
 # params.SCALE_FACTOR - How much to scale the total number of queries, can be a float
 #                       defaults to 1 if not specified
 
-# also in case of unknown DB include:
+# Also, in case of unknown DB or tblastx or tblastn usage, we use original code, so include:
 # cluster.CLUSTER_NAME
-# params.MAX_QUERY_SEQ_LEN
-# params.MIN_QUERY_SEQ_LEN
 # params.AVG_QUERY_SEQ_LEN
 # params.NUM_QUERY_SEQ
+
 
 
 # Importing ************************************************************************
