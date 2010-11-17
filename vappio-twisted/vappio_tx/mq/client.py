@@ -6,6 +6,8 @@
 
 from zope import interface
 
+
+from twisted.application import internet
 from twisted.internet import protocol
 
 import stomper
@@ -129,6 +131,9 @@ class _ConnectedState:
         for handler, dst, headers in self.factory._subscriptions:
             self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers))
 
+        for d, h, b in self.factory._sends:
+            self.send(d, h, b)
+
     def subscribe(handler, destination, headers):
         self.factory._subscriptions.append((handler, destination, headers))
         self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers))
@@ -172,6 +177,9 @@ class _AuthenticatingState:
     def subscribe(self, handler, destination, headers):
         self.factory._subscriptions.append((handler, destination, headers))
 
+    def send(self, destination, headers, body):
+        self.factory._sends.append((destination, headers, body))
+
 class _ConnectingState:
     def __init__(self, factory):
         self.factory = factory
@@ -184,7 +192,9 @@ class _ConnectingState:
     def subscribe(self, handler, destination, headers):
         self.factory._subscriptions.append((handler, destination, headers))
                                                         
-
+    def send(self, destination, headers, body):
+        self.factory._sends.append((destination, headers, body))
+        
 class MQClientFactory(protocol.ReconnectingClientFactory):
     interface.implements(IMQClientFactory)
 
@@ -199,7 +209,9 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
         #
         # A map of destination queues to functions
         # to call
-        self.subscriptionHandlers = {}
+        self._subscriptions = []
+
+        self._sends = []
     
     def buildProtocol(self, addr):
         self.mqClient = self.protocol()
@@ -249,6 +261,11 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
 
         return None
     
-def makeService(config):
-    pass
+def makeService(conf):
+    mqFactory = MQClientFactory(conf('username', default=''), conf('password', default=''))
+    mqService = internet.TCPClient(int(conf('port')), mqFactory)
+    mqService.mqFactory = mqFactory
+    return mqService
+
+    
 
