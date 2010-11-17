@@ -159,5 +159,7 @@ for t in tags:
 
 totalHours  = float(sum(estimates))
 totalHours  = float(kv['params.SCALE_FACTOR'])*totalHours
+if totalHours < 1: 
+    totalHours = 1.01
 sys.stdout.write('\n'.join(['pipeline.COMPUTED_CPU_HOURS=' + str(totalHours)]) + '\n')
 
