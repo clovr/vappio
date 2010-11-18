@@ -27,7 +27,7 @@ do
 	echo "INIT NODETYPE $n" >> /tmp/vappio.log
 	run-parts --regex '^S.*' --arg start /etc/vappio/$n/ >> /tmp/vappio.log 
     else
-	echo "Unsupported node type: $nodetype"
+	echo "Skipping node type with no configuration: $nodetype"
     fi
 done
 
