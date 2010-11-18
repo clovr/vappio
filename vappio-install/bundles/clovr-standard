@@ -16,6 +16,7 @@ wget --no-dns-cache --tries 20 --retry-connrefused -c -O /tmp/hudson.deb http://
 bash -e $VAPPIO_RECIPES/setup.sh
 #Basic system config
 bash -e $VAPPIO_RECIPES/sysconfigs.sh
+bash -e $VAPPIO_RECIPES/disablesplash.sh
 #bash -e $VAPPIO_RECIPES/useradd.sh
 
 #High performance SSH
@@ -92,3 +93,9 @@ bash -e $VAPPIO_RECIPES/nimbus.sh
 # Adds symbolic link from /opt/opt-packages/bioinf-v1r4b1//MUSCLE//muscle
 # to /usr/local/bin/muscle
 bash -e $VAPPIO_RECIPES/clovrcomparative.sh
+
+#TODO
+#updating clovr SVN filesystem packages/packages.list cpan.packages
+#making svn tags
+
+echo -n "" > /etc/hostname

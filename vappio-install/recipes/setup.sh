@@ -87,7 +87,6 @@ apt-get -y install screen
 
 #If this is an ec2 vm, disable cloud services by default
 rm -f /etc/cron.d/cloudinit-updates
-rename -f 's/plymouth(\S*)\.conf/plymouth$1.conf.disabled/' /etc/init/plymouth*.conf
 rename -f 's/cloud-(\S*)\.conf/cloud-$1.conf.disabled/' /etc/init/cloud-*.conf
 
 #These are causing non-cloud boots to hang
