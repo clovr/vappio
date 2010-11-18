@@ -3,6 +3,9 @@
 ## Recipe to install gbrowse2
 ##
 
+export PERL_MM_USE_DEFAULT=1
+export PERL_AUTOINSTALL=1
+
 # Install pre-requisites
 cpan -fi Bio::Graphics
 cpan -fi Capture::Tiny
@@ -28,6 +31,7 @@ perl /tmp/gbrowse2_install/GBrowse-2.03/Build.PL --conf=/opt/gbrowse2-2.03 \
                                                  --wwwuser=www-data \
                                                  --apachemodules=/usr/lib/apache2/modules/ 
 
+apt-get --force-yes -y install expect
 ## We need an expect script here to handle the (stupid) final questions that
 ## gbrowse's installer will ask
 /usr/bin/expect - << EndMark
