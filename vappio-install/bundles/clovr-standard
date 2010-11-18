@@ -70,10 +70,6 @@ bash -e $VAPPIO_RECIPES/qiime.sh
 #AMOS
 bash -e $VAPPIO_RECIPES/amos.sh
 
-#Gbrowse2
-#Skip errors for now
-bash $VAPPIO_RECIPES/gbrowse2.sh
-
 #Non-standard packages
 bash -e $VAPPIO_RECIPES/clovroptpackages.sh
 bash -e $VAPPIO_RECIPES/clovrstow.sh
@@ -93,6 +89,10 @@ bash -e $VAPPIO_RECIPES/nimbus.sh
 # Adds symbolic link from /opt/opt-packages/bioinf-v1r4b1//MUSCLE//muscle
 # to /usr/local/bin/muscle
 bash -e $VAPPIO_RECIPES/clovrcomparative.sh
+
+#Gbrowse2
+#Skip errors for now
+bash $VAPPIO_RECIPES/gbrowse2.sh
 
 #TODO
 #updating clovr SVN filesystem packages/packages.list cpan.packages

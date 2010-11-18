@@ -15,3 +15,5 @@ apt-get -y install subversion
 apt-get -y install libreadline5-dev
 
 apt-get -y install expect
+
+apt-get -y install mysql-server

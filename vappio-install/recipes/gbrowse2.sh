@@ -10,6 +10,7 @@ cpan -fi CGI::Session
 cpan -fi Safe::World
 cpan -fi DB_File::Lock
 cpan -fi File::NFSLock
+cpan -fi Bio::DB::Sam
 
 # Download gbrowse2 to a temporary directory in prep for installation
 mkdir -p /tmp/gbrowse2_install
