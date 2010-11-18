@@ -16,6 +16,7 @@ sleep 5
 # Remove all hosts and queues
 $vappio_scripts/sge/wipe_queues.sh
 
+rm -f $vappio_runtime/syncinprogress
 #Stop execd
 #if -kej failed try again
 myhostnameshort=`hostname`
