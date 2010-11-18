@@ -43,7 +43,7 @@ def runPipeline(host, name, pipeline, pipelineName, args, pipelineQueue, overwri
                                                     overwrite=overwrite))
     
 
-def runPipelineConfig(host, name, pipeline, pipelineName, conf, pipelineQueue, overwrite=False, rerun=False):
+def runPipelineConfig(host, name, pipeline, pipelineName, conf, pipelineQueue, overwrite=False, resume=False):
     """
     pipeline is the type of pipeline (blastx, tblastn, ..)
     """
@@ -53,7 +53,7 @@ def runPipelineConfig(host, name, pipeline, pipelineName, conf, pipelineQueue, o
                                                     pipeline_config=config.configToDict(conf),
                                                     pipeline_queue=pipelineQueue,
                                                     overwrite=overwrite,
-                                                    rerun=rerun))
+                                                    resume=resume))
 
 
 def downloadPipelineOutput(host, name, pipelineName, outputDir, overwrite):

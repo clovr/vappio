@@ -15,7 +15,7 @@ OPTIONS = [
     ('pipeline', '-p', '--pipeline', 'Type of pipeline', func.identity),
     ('pipeline_name', '-n', '--pipeline-name', 'Name to give the pipeline', cli.notNone),
     ('pipeline_config', '', '--pipeline-config', 'Config file to use for the pipeline', func.identity),
-    ('pipeline_rerun', '', '--rerun', 'Rerun pipeline if it is not running or completed', cli.defaultIfNone(False), cli.BINARY),
+    ('pipeline_resume', '', '--resume', 'Resume pipeline if it is not running or completed', cli.defaultIfNone(False), cli.BINARY),
     ('pipeline_queue', '-q', '--pipeline-queue', 'Queue to use, not required', func.identity),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', cli.defaultIfNone(False), cli.BINARY),
     ]
@@ -23,11 +23,11 @@ OPTIONS = [
 URL = '/vappio/runPipeline_ws.py'
 
 def main(options, args):
-    if not options('general.pipeline_config') and not options('general.pipeline_rerun'):
-        raise Exception('Must provide at least either a pipeline config or that you wish to rerun')
+    if not options('general.pipeline_config') and not options('general.pipeline_resume'):
+        raise Exception('Must provide at least either a pipeline config or that you wish to resume')
 
-    if not options('general.pipeline_rerun') and not options('general.pipeline'):
-        raise Exception('Must provide a pipeline if not rerunning')
+    if not options('general.pipeline_resume') and not options('general.pipeline'):
+        raise Exception('Must provide a pipeline if not resuming')
     
     if args:
         raise Exception('No longer supporting passing arguments, all must be done through config files')
@@ -39,15 +39,15 @@ def main(options, args):
                                               options('general.pipeline_name'),
                                               conf,
                                               options('general.pipeline_queue'),
-                                              rerun=options('general.pipeline_rerun'))
-    elif options('general.pipeline_rerun'):
+                                              resume=options('general.pipeline_resume'))
+    elif options('general.pipeline_resume'):
         taskName = pipeline.runPipelineConfig(options('general.host'),
                                               options('general.name'),
                                               options('general.pipeline'),
                                               options('general.pipeline_name'),
                                               config.configFromMap({}),
                                               options('general.pipeline_queue'),
-                                              rerun=options('general.pipeline_rerun'))
+                                              resume=options('general.pipeline_resume'))
     else:
         raise Exception('I am not sure how I got here')
 

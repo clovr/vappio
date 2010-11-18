@@ -285,8 +285,8 @@ def runPipelineWithConfig(taskName, name, pipeline, conf, queue):
     # This should be the pipeline ID
     return createPipeline(taskName, name, res[0].strip(), pipeline, conf)
         
-def rerunPipeline(pipeline, queue=None):
-    cmd = ['rerun_pipeline.pl',
+def resumePipeline(pipeline, queue=None):
+    cmd = ['resume_pipeline.pl',
            '--pipeline_id=' + pipeline.pid,
            '--taskname=' + pipeline.taskName]
 
