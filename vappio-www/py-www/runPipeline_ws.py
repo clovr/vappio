@@ -22,8 +22,8 @@ class RunPipeline(CGIPage):
     def body(self):
         request = readQuery()
 
-        if not request['pipeline_config'] and not request['rerun']:
-            raise Exception('Must provide either a config or rerun')
+        if not request['pipeline_config'] and not request['resume']:
+            raise Exception('Must provide either a config or resume')
         
         matchingPipeline = pipeline_ws.pipelineStatus('localhost', 'local', lambda p: p.name == request['pipeline_name'])
 
@@ -58,8 +58,8 @@ class RunPipeline(CGIPage):
             pipeline = matchingPipeline[0]
             if pipeline.state == 'complete':
                 pass
-            elif request['rerun']:
-                pl.rerunPipeline(pipeline, request.get('pipeline_queue', None))
+            elif request['resume']:
+                pl.resumePipeline(pipeline, request.get('pipeline_queue', None))
                 task.updateTask(task.loadTask(pipeline.taskName).setState(task.TASK_RUNNING))
                 
             return pipeline.taskName
