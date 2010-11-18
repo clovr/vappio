@@ -46,6 +46,10 @@ export PATH=$EC2_HOME/bin:$PATH
 export HADOOP_NAMENODE_USER=www-data
 export HADOOP_DATANODE_USER=www-data
 
+##
+# Gbrowse needs the SAMTOOLS env variable set 
+export SAMTOOLS=/opt/samtools
+
 #Globus perl5lib is causing problems. This will be deactivated until
 #it works, see task 376.
 
