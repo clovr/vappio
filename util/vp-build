@@ -176,7 +176,8 @@ else
     mount --bind /proc $builddir.live/proc
     mount --bind /sys $builddir.live/sys
     mount --bind /dev $builddir.live/dev
-#	mount -t devpts devpts $builddir.live/devpts
+    mkdir -p $builddir.live/dev/pts
+    mount -t devpts devpts $builddir.live/dev/pts
     touch $builddir.live/var/run/utmp
     touch $builddir.live/var/run/btmp
     touch $builddir.live/var/run/wtmp
@@ -245,6 +246,7 @@ echo "$namepfx" > $builddir.live/etc/vappio/release_name.info
 date "+%Y%m%d-%H%M%S" > $builddir.live/etc/vappio/build_time.info
 sync
 #Exit from chroot
+umount -l $builddir.live/dev/pts
 umount -l $builddir.live/proc
 umount -l $builddir.live/sys
 umount -l $builddir.live/dev
