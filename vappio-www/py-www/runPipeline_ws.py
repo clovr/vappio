@@ -22,8 +22,11 @@ class RunPipeline(CGIPage):
     def body(self):
         request = readQuery()
 
-        matchingPipeline = pipeline_ws.pipelineStatus('localhost', 'local', lambda p: p.name == request['pipeline_name'])
+        if not request['pipeline_config'] and not request['rerun']:
+            raise Exception('Must provide either a config or rerun')
         
+        matchingPipeline = pipeline_ws.pipelineStatus('localhost', 'local', lambda p: p.name == request['pipeline_name'])
+
         #
         # If this request is local and there does not exist a pipeline with the same name
         if request['name'] == 'local' and (not matchingPipeline or request['overwrite']):
@@ -53,10 +56,14 @@ class RunPipeline(CGIPage):
             return taskName
         elif request['name'] == 'local':
             pipeline = matchingPipeline[0]
-            if pipeline.state == 'running' or pipeline.state == 'complete':
-                return matchingPipeline[0].taskName
-            else:
-                raise Exception('Currently do not handle running pipelines with the same name')
+            if pipeline.state == 'complete':
+                pass
+            elif request['rerun']:
+                pl.rerunPipeline(pipeline, request.get('pipeline_queue', None))
+                task.updateTask(task.loadTask(pipeline.taskName).setState(task.TASK_RUNNING))
+                
+            return pipeline.taskName
+
         else:
             #
             # Forward the request onto the appropriate machine
