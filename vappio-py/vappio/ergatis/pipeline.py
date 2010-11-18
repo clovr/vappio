@@ -272,7 +272,6 @@ def runPipelineWithConfig(taskName, name, pipeline, conf, queue):
         cmd.append('--queue=' + queue)
 
     cmd = ' '.join(cmd)
-    open('/tmp/foo', 'w').write(cmd + '\n')
     res = []
     exitCode = runSingleProgram(cmd, res.append, None)
 
@@ -286,3 +285,22 @@ def runPipelineWithConfig(taskName, name, pipeline, conf, queue):
     # This should be the pipeline ID
     return createPipeline(taskName, name, res[0].strip(), pipeline, conf)
         
+def rerunPipeline(pipeline, queue=None):
+    cmd = ['rerun_pipeline.pl',
+           '--pipeline_id=' + pipeline.pid,
+           '--taskname=' + pipeline.taskName]
+
+    if queue:
+        cmd.append('--queue=' + queue)
+
+    cmd = ' '.join(cmd)
+    res = []
+    exitCode = runSingleProgram(cmd, res.append, None)
+
+    ##
+    # If we got a weird exit code or more than one line was print or nothing was printed
+    # then something bad happened
+    if exitCode != 0 or len(res) > 1 or not res:
+        raise ProgramRunError(cmd, exitCode)
+    
+    return pipeline
