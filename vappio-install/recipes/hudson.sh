@@ -8,7 +8,13 @@ wget --tries 20 --retry-connrefused -c -O /tmp/key http://hudson-ci.org/debian/h
 sudo apt-key add /tmp/key
 #Latest is link is broken as of 9/4
 #wget -O /tmp/hudson.deb http://hudson-ci.org/latest/debian/hudson.deb
-wget --no-dns-cache --tries 20 --retry-connrefused -c -O /tmp/hudson.deb http://download.hudson-labs.org/debian/hudson_1.374_all.deb
+#Loop as this connection is unable, may hang build but hudson can kill if too long
+#while [ "$ret" != "0" ]
+#do
+#    wget --no-dns-cache --tries 20 --retry-connrefused -c -O /tmp/hudson.deb http://download.hudson-labs.org/debian/hudson_1.374_all.deb
+#    ret=$_
+#done
+wget -c -O /tmp/hudson.deb http://cb2.igs.umaryland.edu/hudson.deb
 sudo dpkg --install /tmp/hudson.deb
 #Wait in case hudson is starting
 sleep 20
@@ -38,7 +44,9 @@ updateAllDirs.py --hudson
 
 svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml /var/lib/hudson/config.xml
 
-wget --no-dns-cache --tries 20 --retry-connrefused -c -O /var/lib/hudson/plugins/build-timeout.hpi http://hudson-ci.org/latest/build-timeout.hpi
+#hudson-ci.org connection is too unreliable
+#wget --no-dns-cache --tries 20 --retry-connrefused -c -O /var/lib/hudson/plugins/build-timeout.hpi http://hudson-ci.org/latest/build-timeout.hpi
+wget -c -O /var/lib/hudson/plugins/build-timeout.hpi http://cb2.igs.umaryland.edu/build-timeout.hpi
 
 find /var/lib/hudson -type d -exec chmod 777 {} \;
 find /var/lib/hudson -type f -exec chmod 666 {} \;
