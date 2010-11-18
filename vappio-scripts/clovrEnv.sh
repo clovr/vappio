@@ -48,7 +48,7 @@ export HADOOP_DATANODE_USER=www-data
 
 ##
 # Gbrowse needs the SAMTOOLS env variable set 
-export SAMTOOLS=/opt/samtools
+export SAMTOOLS=/opt/opt-packages/samtools-0.1.7.5
 
 #Globus perl5lib is causing problems. This will be deactivated until
 #it works, see task 376.
