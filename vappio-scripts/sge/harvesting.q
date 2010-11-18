@@ -15,8 +15,10 @@ rerun                 TRUE
 slots                 1 
 tmpdir                /tmp
 shell                 /bin/csh
-prolog                NONE
-epilog                /opt/vappio-scripts/sge/vappio_harvestingepilog.sh
+prolog                /opt/vappio-scripts/sge/prolog $host $job_owner $job_id \
+                      $job_name $queue
+epilog                /opt/vappio-scripts/sge/epilog $host $job_owner $job_id \
+                      $job_name $queue
 shell_start_mode      unix_behavior
 starter_method        NONE
 suspend_method        NONE
