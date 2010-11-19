@@ -11,6 +11,11 @@ vlog "###"
 
 sdir=/var/lib/cloud/data/scripts
 
+if [ ! -d "$sdir" ]
+then
+    mkdir -p $sdir
+fi
+
 chmod 777 /mnt
 chmod 777 /tmp
 
