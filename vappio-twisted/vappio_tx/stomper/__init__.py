@@ -174,28 +174,31 @@ def unpack_frame(message):
 
     This returns a tuple (unpacked_frame, remaining bytes)
     """
+
     def _splitStrip(s):
-        (k, v) = s.split(':', 1)
+        k, v = s.split(':', 1)
         return (k.strip(), v.strip())
+    
     try:
-        (msg, rest) = message.split('\x000', 1)
-        (cmd_headers, body) = msg.split('\n\n', 1)
+        msg, rest = message.split('\000', 1)
+        cmd_headers, body = msg.split('\n\n', 1)
         if len(cmd_headers.split('\n', 1)) == 2:
-            (cmd, headers) = cmd_headers.split('\n', 1)
+            cmd, headers = cmd_headers.lstrip().split('\n', 1)
             headers = dict([_splitStrip(s) for s in headers.split('\n')])
         else:
             cmd = cmd_headers
             headers = {}
-            
+
+
         if 'content-length' in headers:
             nlen = int(headers['content-length']) - len(body)
             if nlen > 0 and len(rest) >= nlen:
-                body += '\x000' + rest[:nlen]
+                body += '\000' + rest[:nlen]
                 rest = rest[nlen:]
 
-        return ({'cmd': cmd,
-                 'headers': headers,
-                 'body': body},
+        return (Frame(cmd=cmd,
+                      headers=headers,
+                      body=body),
                 rest)
     except ValueError, err:
         if 'unpack' in str(err):
@@ -297,7 +300,7 @@ def connect(username, password):
     if password:
         headers['passcode'] = password
         
-    return Frame(cmd='CONNECT', headers).pack()
+    return Frame(cmd='CONNECT', headers=headers).pack()
 
 
 def disconnect():
@@ -328,9 +331,10 @@ def send(dest, body, headers=None, transactionid=None):
         headers = functional.updateDict(noneOrEmptyDict(headers), {'transaction': transactionid})
 
     headers = functional.updateDict(noneOrEmptyDict(headers),
-                                    {'content-length': len(msg)})
+                                    {'content-length': len(body),
+                                     'destination': dest})
 
-    return Frame(cmd='SEND', headers=headers, body=msg).pack()
+    return Frame(cmd='SEND', headers=headers, body=body).pack()
     
 def subscribe(dest, ack='auto', headers=None):
     """STOMP subscribe command.
@@ -344,7 +348,9 @@ def subscribe(dest, ack='auto', headers=None):
         will assume delivery failure.
     
     """
-    return Frame(cmd='SUBSCRIBE', functional.updateDict(noneOrEmptyDict(headers), {'ack': ack})).pack()
+    return Frame(cmd='SUBSCRIBE',
+                 headers=functional.updateDict(noneOrEmptyDict(headers), {'ack': ack,
+                                                                          'destination': dest})).pack()
 
 def unsubscribe(dest):
     """STOMP unsubscribe command.
@@ -356,7 +362,8 @@ def unsubscribe(dest):
     further messages for the given subscription.
     
     """
-    return Frame(cmd='UNSUBSCRIBE', {'destination': dest}).pack()
+    return Frame(cmd='UNSUBSCRIBE',
+                 headers={'destination': dest}).pack()
 
 class Engine(object):
     """This is a simple state machine to return a response to received 
@@ -366,7 +373,7 @@ class Engine(object):
     def __init__(self, testing=False):
         self.testing = testing
         
-        self.log = logging.getLogger("stomper.Engine")
+        #self.log = logging.getLogger("stomper.Engine")
         
         self.sessionId = ''
         
@@ -460,7 +467,7 @@ class Engine(object):
         if msg['headers'].has_key('message'):
             brief_msg = msg['headers']['message']
         
-        self.log.error("Received server error - message%s\n\n%s" % (brief_msg, body))
+        #self.log.error("Received server error - message%s\n\n%s" % (brief_msg, body))
         
         returned = NO_RESPONSE_NEEDED
         if self.testing:
@@ -484,7 +491,7 @@ class Engine(object):
         if msg['headers'].has_key('receipt-id'):
             brief_msg = msg['headers']['receipt-id']
         
-        self.log.info("Received server receipt message - receipt-id:%s\n\n%s" % (brief_msg, body))
+        #self.log.info("Received server receipt message - receipt-id:%s\n\n%s" % (brief_msg, body))
         
         returned = NO_RESPONSE_NEEDED
         if self.testing:

@@ -10,35 +10,10 @@ from zope import interface
 from twisted.application import internet
 from twisted.internet import protocol
 
-import stomper
-
-class IMQClientService(interface.Interface):
-    """
-    A message queue client
-    """
+from vappio_tx import stomper
 
 
-    def connectedReceived(msg):
-        """
-        Client successfully connected
-        """
-
-    def msgReceived(msg):
-        """
-        Incoming message
-        """
-
-    def receiptReceived(msg):
-        """
-        Incoming receipt
-        """
-
-    def errorReceived(msg):
-        """
-        Incoming error
-        """
-
-class IMQClientFactory(interface.Interface)
+class IMQClientFactory(interface.Interface):
     """
     Factory for MQ client protocol
     """
@@ -112,14 +87,14 @@ class MQClientProtocol(protocol.Protocol):
     def dataReceived(self, data):
         self.data += data
 
-        (msg, remainingData) = stomper.unpack_frame()
+        (msg, remainingData) = stomper.unpack_frame(self.data)
         if msg is not None:
-            self.ACTIONS[msg['cmd']](self, msg)
+            self.ACTIONS[msg.cmd](self, msg)
             self.data = remainingData
 
 
     def sendMessage(self, msg):
-        self.transport.write(stomper.pack_frame(msg))
+        self.transport.write(msg)
 
 
 def transition(factory, newState):
@@ -129,14 +104,14 @@ class _ConnectedState:
     def __init__(self, factory):
         self.factory = factory
         for handler, dst, headers in self.factory._subscriptions:
-            self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers))
+            self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers=headers))
 
         for d, h, b in self.factory._sends:
             self.send(d, h, b)
 
     def subscribe(handler, destination, headers):
         self.factory._subscriptions.append((handler, destination, headers))
-        self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers))
+        self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers=headers))
         
     def unsubscribe(self, destination):
         #
@@ -170,7 +145,7 @@ class _AuthenticatingState:
         self.factory = factory
 
     def connectedReceived(self, msg):
-        self.factory.session = msg['session']
+        self.factory.session = msg.headers['session']
 
         transition(self.factory, _ConnectedState)
 
@@ -262,8 +237,8 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
         return None
     
 def makeService(conf):
-    mqFactory = MQClientFactory(conf('username', default=''), conf('password', default=''))
-    mqService = internet.TCPClient(int(conf('port')), mqFactory)
+    mqFactory = MQClientFactory(conf('mq.username', default=''), conf('mq.password', default=''))
+    mqService = internet.TCPClient(conf('mq.host'), int(conf('mq.port')), mqFactory)
     mqService.mqFactory = mqFactory
     return mqService
 

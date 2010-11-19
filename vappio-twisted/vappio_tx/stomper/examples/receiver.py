@@ -12,7 +12,7 @@ import itertools
 from twisted.internet import reactor
 from twisted.internet.protocol import Protocol, ReconnectingClientFactory
 
-import stomper
+from vappio_tx import stomper
 
 stomper.utils.log_init(logging.DEBUG)
 
