@@ -105,6 +105,6 @@ def handleMsg(mq, msg):
 
 def makeService(conf):
     mqService = client.makeService(conf)
-    mqService.mqFactory.subscribe(lambda m : handleMsg(mqService.mqFactory, m), conf('tasklets.queue'), {'prefecth': int(conf('tasklets.concurrent_tasklets'))})
+    mqService.mqFactory.subscribe(lambda m : handleMsg(mqService.mqFactory, m), conf('tasklets.queue'), {'prefetch': int(conf('tasklets.concurrent_tasklets'))})
     return mqService
     
