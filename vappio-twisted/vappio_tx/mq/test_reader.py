@@ -22,15 +22,7 @@ conf = config.configFromMap({'username': '',
 
 application = service.Application('test')
 
-s2 = client.makeService(conf)
-s2.setServiceParent(application)
-s2.mqFactory.subscribe(lambda m : printIt(s2.mqFactory, m), '/queue/inbox', {})
-
 s1 = client.makeService(conf)
 s1.setServiceParent(application)
+s1.mqFactory.subscribe(lambda m : printIt(s1.mqFactory, m), '/queue/inbox', {})
 
-def loopingCall():
-    lc = task.LoopingCall(lambda : s1.mqFactory.send('/queue/inbox', {'ack-timeout': 60}, 'foo'))
-    lc.start(0)
-
-#reactor.callLater(1, loopingCall)

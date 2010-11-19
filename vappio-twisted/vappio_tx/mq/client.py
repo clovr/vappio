@@ -6,9 +6,9 @@
 
 from zope import interface
 
-
 from twisted.application import internet
 from twisted.internet import protocol
+from twisted.python import log
 
 from vappio_tx import stomper
 
@@ -32,7 +32,7 @@ class IMQClientFactory(interface.Interface):
         Unsubscribe form a destination
         """
 
-    def send(destination, headers, body):
+    def send(destination, body, headers):
         """
         Send a message to the destination with the headers and the body.
 
@@ -106,8 +106,8 @@ class _ConnectedState:
         for handler, dst, headers in self.factory._subscriptions:
             self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers=headers))
 
-        for d, h, b in self.factory._sends:
-            self.send(d, h, b)
+        for d, b, h in self.factory._sends:
+            self.send(d, b, h)
 
     def subscribe(handler, destination, headers):
         self.factory._subscriptions.append((handler, destination, headers))
@@ -120,7 +120,7 @@ class _ConnectedState:
 
         self.factory.mqClient.sendMessage(stomper.unsubscribe(destination))
 
-    def send(self, destination, headers, body):
+    def send(self, destination, body, headers):
         self.factory.mqClient.sendMessage(stomper.send(destination, body, headers))
         
     def ack(self, messageId, headers):
@@ -152,8 +152,8 @@ class _AuthenticatingState:
     def subscribe(self, handler, destination, headers):
         self.factory._subscriptions.append((handler, destination, headers))
 
-    def send(self, destination, headers, body):
-        self.factory._sends.append((destination, headers, body))
+    def send(self, destination, body, headers):
+        self.factory._sends.append((destination, body, headers))
 
 class _ConnectingState:
     def __init__(self, factory):
@@ -167,17 +167,18 @@ class _ConnectingState:
     def subscribe(self, handler, destination, headers):
         self.factory._subscriptions.append((handler, destination, headers))
                                                         
-    def send(self, destination, headers, body):
-        self.factory._sends.append((destination, headers, body))
+    def send(self, destination, body, headers):
+        self.factory._sends.append((destination, body, headers))
         
 class MQClientFactory(protocol.ReconnectingClientFactory):
     interface.implements(IMQClientFactory)
 
     protocol = MQClientProtocol
 
-    def __init__(self, username='', password=''):
+    def __init__(self, username='', password='', debug=False):
         self.username = username
         self.password = password
+        self.debug = debug
         self.session = None
         self.state = _ConnectingState(self)
 
@@ -195,22 +196,29 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
 
 
     def clientConnectionLost(self, connector, _reason):
+        if self.debug:
+            log.msg('MQClient - Connection lost, reconnecting')
         transition(self, _ConnectingState)
         connector.connect()
         
-    def subscribe(self, handler, destination, headers):
+    def subscribe(self, handler, destination, headers=None):
+        if headers is None: headers = {}
         return self.state.subscribe(handler, destination, headers)
 
     def unsubscribe(self, destination):
         return self.state.unsubscribe(destination)
     
-    def send(self, destination, headers, body):
-        return self.state.send(destination, headers, body)
+    def send(self, destination, body, headers=None):
+        if headers is None: headers = {}
+        return self.state.send(destination, body, headers)
     
-    def ack(self, messageId, headers):
+    def ack(self, messageId, headers=None):
+        if headers is None: headers = {}
         return self.state.ack(messageId, headers)
 
     def connectionMade(self):
+        if self.debug:
+            log.msg('MQClient - Connection made')
         return self.state.connectionMade()
     
     def connectedReceived(self, msg):
@@ -237,7 +245,7 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
         return None
     
 def makeService(conf):
-    mqFactory = MQClientFactory(conf('mq.username', default=''), conf('mq.password', default=''))
+    mqFactory = MQClientFactory(conf('mq.username', default=''), conf('mq.password', default=''), debug=conf('mq.debug', default=False))
     mqService = internet.TCPClient(conf('mq.host'), int(conf('mq.port')), mqFactory)
     mqService.mqFactory = mqFactory
     return mqService
