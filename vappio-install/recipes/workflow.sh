@@ -1,11 +1,13 @@
 #!/bin/bash
-#wget http://cb2.igs.umaryland.edu/wf_clovr.tgz
+wget http://cb2.igs.umaryland.edu/wf_clovr.tgz
+tar -C / -xvzf wf_clovr.tgz
 #Mod with dcespec/queue support
-wget http://cb2.igs.umaryland.edu/wf_clovr_3.0vp2.tgz
-wget http://cb2.igs.umaryland.edu/drmaa.jar
-tar -C / -xvzf wf_clovr_3.0vp2.tgz
+#wget http://cb2.igs.umaryland.edu/wf_clovr_3.0vp2.tgz
+#tar -C / -xvzf wf_clovr_3.0vp2.tgz
 chmod 777 /opt/workflow-sforge/idfile
 chown www-data:www-data /opt/workflow-sforge/idfile
+
+wget http://cb2.igs.umaryland.edu/drmaa.jar
 SGE_ROOT=/var/lib/gridengine
 mkdir -p $SGE_ROOT/lib
 cp drmaa.jar $SGE_ROOT/lib
