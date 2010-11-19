@@ -37,6 +37,12 @@ sge_id=$3
 job_name=$4
 queue=$5
 
+##
+##Import vappio config
+export vappio_root=/opt/vappio-scripts
+vappio_scripts=$vappio_root
+source $vappio_scripts/vappio_config.sh
+
 # Determine if this is an array job
 array_job
 ARRAY=$?
@@ -53,22 +59,13 @@ if [ -n "$request_cwd" ]; then
     if [ -w "$EVENT_LOG" ] && [ -n "$htc_id" ]; then
         print_eventinfo >> "$EVENT_LOG" 2>&1
     fi
-##
-##Import vappio config
-    export vappio_root=/opt/vappio-scripts
-    vappio_scripts=$vappio_root
-    source $vappio_scripts/vappio_config.sh
-##
-##
-    vappio_data_placement=1
     if [ -n "$vappio_data_placement" ]; then
-	vappio_scripts=$vappio_root
 	$vappio_scripts/sge/vappio_epilog.sh $hostname $request_cwd $command_str "$command_args" 1>> $vappio_log 2>> $vappio_log
 	ret1=$?
 	vlog "vappio_epilog return code: $ret1"
 	if [ $ret1 -ne 0 ] 
 	    then
-	    echo echo "I~~~vappio harvesting failure. See $vappio_log";
+	    echo echo "I~~~vappio harvesting failure. See $vappio_log" >> $EVENT_LOG;
 	    exit $ret1
 	fi 
     fi

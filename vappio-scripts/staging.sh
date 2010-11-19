@@ -84,6 +84,12 @@ then
 	if [ -d "$1" ]
 	then
 	    vlog "Start staging of directory $1 to $remotehost:$1"
+	    if [ ! -r "$1" ]
+	    then
+		vlog "ERROR: $1 does not exist"
+		verror "STAGING FAILURE. FILE DOES NOT EXIST"
+		exit 100;
+	    fi
 	    #Must remove trailing slash if specified
 	    dname=`echo "$1" | perl -ne 's/\/\s*$//g;print'`
 	    vlog "CMD: rsync -R --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" $dname root@$remotehost:/"
@@ -93,6 +99,18 @@ then
 	    vlog "Start staging of file $1 to $remotehost:$1"
 	    vlog "CMD: rsync --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" $1 root@$remotehost:$1"
 	    dname=`dirname $1`
+	    if [ ! -r "$dname" ]
+	    then
+		vlog "ERROR: $dname does not exist"
+		verror "STAGING FAILURE. DIRECTORY DOES NOT EXIST"
+		exit 100;
+	    fi
+	    if [ ! -r "$1" ]
+	    then
+		vlog "ERROR: $1 does not exist"
+		verror "STAGING FAILURE. FILE DOES NOT EXIST"
+		exit 100;
+	    fi
 	    rsync --filter '- .*' --rsync-path "mkdir -p $dname && rsync" -av -e "$ssh_client -i $ssh_key $ssh_options" $1 root@$remotehost:$1 1>> $vappio_log 2>> $vappio_log
 	    ret=$?
 	    case $1 in 

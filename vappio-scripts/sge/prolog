@@ -64,11 +64,11 @@ vappio_scripts=$vappio_root
 source $vappio_scripts/vappio_config.sh
 ##
 ##
-vappio_data_placement=1
 vlog "###" 
 vlog "### $0 (`whoami`)" 
 vlog "###" 
 
+#Stage input data for Ergatis jobs
 if [ -n "$vappio_data_placement" ]; then
 	vappio_scripts=$vappio_root
 	#$request_cwd $command_str $command_args are already set in the environment by Workflow
@@ -89,6 +89,8 @@ array_job
 ARRAY=$?
 # Determine if this is being invoked by Ergatis/Workflow
 if [ -n "$request_cwd" ]; then
+    mkdir -p $request_cwd
+    touch $request_cwd/event.log
     if [ "$ARRAY" = "0" ]; then
         # The job is *NOT* an array job
         EVENT_LOG="${request_cwd}/event.log"
@@ -96,16 +98,17 @@ if [ -n "$request_cwd" ]; then
         # The job *IS* an array job
         EVENT_LOG="${request_cwd}/event.log.$SGE_TASK_ID"
     fi
-	touch $EVENT_LOG
+    touch $EVENT_LOG
     if [ -w "$EVENT_LOG" ] && [ -n "$htc_id" ]; then
         print_eventinfo >> "$EVENT_LOG" 2>&1
     fi
+    #Optionally, copy event.log back to the master to indicate the job has started
     if [ -n "$vappio_data_placement" ]; then 
 
 	#To update status to running back at master
-	#Triggers a ssh connection to the master
+	#Triggers a ssh connec        tion to the master
 	#consider throttling using transferq
-	if [ "$updatestatus" = "y" ]
+	if [ "$updatestatus" = "y" ] && [ -f "${request_cwd}/event.log" ]
 	then
 		if [ -z "$master" ]
 		then
@@ -115,15 +118,14 @@ if [ -n "$request_cwd" ]; then
 		rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" ${request_cwd}/event.log root@$master:${request_cwd}/ 1>> $vappio_log 2>> $vappio_log
 	        ret2=$?
 	  	vlog "rsync return value: $?"
-		if [ $ret1 -ne 0 ]
+		if [ $ret2 -ne 0 ]
 		then
-		 echo "I~~~vappio event.log capture failure. See $vappio_log";
-		 exit $ret1
+		 echo "I~~~vappio event.log capture failure. See $vappio_log" >> ${request_cwd}/event.log
+		 exit $ret2
 		fi
 
 	fi
-    fi
-    
+    fi    
 fi > /dev/null 2>&1
 
 exit  

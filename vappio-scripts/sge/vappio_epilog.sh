@@ -22,8 +22,9 @@ myhost=`hostname -f`
 
 vlog "Running epilog on $myhost. Script arguments exechost=$1 request_cwd=$2 command_str=$3 args=$4" 
 
+#Attempt to harvest the output directory
 #Only handle RunWorkflow commands submitted by Ergatis
-#All other commands will do nothing
+#All other commands will skip harvesting output directory
 if [ "$command_str" == "RunWorkflow" ]
 then
     wfdir=`cat ${request_cwd}/wfdir`
@@ -82,17 +83,23 @@ then
 	#Job error
 	exit 100
     fi
+fi
 
+#For all Workflow jobs, we need to harvest the event.log from the exec host
+#For RunWorkflow jobs, we also need to harvest $wfdir set in the previous code block
+#If this is a job submitted by Workflow, it must have an event.log. Otherwise, do nothing
+if [ -f "${request_cwd}/event.log" ]
+then
     #Harvest wf xml
     vlog "Submitting harvesting of workflow xml on $exechost:$wfdir to $wfq" 
-    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $harvestingwf_script $exechost $wfdir ${request_cwd}"
+    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $harvestingwf_script $exechost \"$wfdir\" ${request_cwd}"
     vlog "CMD: $cmd" 
     $cmd 1>> $vappio_log 2>> $vappio_log
     ret2=$?
     vlog "rsync return value: $ret2"
     if [ $ret2 -ne 0 ]
     then
-	verror "EPILOG Error during harvesting workflow qsub return code: $ret2"
+	verror "EPILOG Error during harvesting event.log qsub return code: $ret2"
 	#Job error
 	exit 100
     fi

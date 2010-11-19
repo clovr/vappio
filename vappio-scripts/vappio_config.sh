@@ -66,7 +66,7 @@ vnodestatus() {
     hostn=`hostname`
     timeout=60
     i=0
-    while ( [ "$nodetype" = 'PENDING' ] || [ "$nodetype" = "" ] || [ "$hostn" = "(none)" ] ) && [ $i -lt $timeout ]
+    while ( [ "$nodetype" = 'OFFLINE' ] || [ "$nodetype" = 'PENDING' ] || [ "$nodetype" = "" ] || [ "$hostn" = "(none)" ] ) && [ $i -lt $timeout ]
     do
 	echo -n '.'
 	if [ -f "$vappio_runtime/node_type" ]
@@ -140,6 +140,7 @@ user_data_file=/mnt/user-data.txt
 
 
 ##Data placement config
+vappio_data_placement=1
 ##Staging
 #Dedicated queue for data staging
 stagingq=staging.q
