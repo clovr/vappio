@@ -367,7 +367,7 @@ def updateInstances(cred, instances, log=False):
                 retInst.append(instance)                
 
     ##
-    # First determine if any of these are spot instances without an instance type associated
+    # First determine if any of these are spot instances
     spotRequests = [i for i in instances if i.spotRequestId]
     ##
     # If there are unfulfilled spot requests then update spot instance list so we can update

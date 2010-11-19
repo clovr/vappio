@@ -18,7 +18,7 @@ def main(options, _args):
     
     cluster = cluster_ctl.loadCluster('local')
 
-    if cluster.ctype.NAME in ['EC2', 'Nimbus']:
+    if cluster.ctype.NAME in ['EC2', 'Nimbus', 'DIAG']:
         cluster = cluster.update(dataNodes=cluster.ctype.updateInstances(cluster.credInst, cluster.dataNodes),
                                  execNodes=cluster.ctype.updateInstances(cluster.credInst, cluster.execNodes))
 
