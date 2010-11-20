@@ -132,8 +132,9 @@ if [ "$sync" == "y" ]; then
 	fi
       done
       sleep 3
-      echo "Finished jobs=$finishedjobs. Number of jobs submitted=${#jobs[*]}"
+      vlog "Finished jobs=$finishedjobs. Number of jobs submitted=${#jobs[*]}"
     done
+    vlog "Finished removing sync"
     rm $vappio_runtime/syncinprogress
 fi
 

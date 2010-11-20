@@ -69,7 +69,7 @@ vlog "### $0 (`whoami`)"
 vlog "###" 
 
 #Stage input data for Ergatis jobs
-if [ -n "$vappio_data_placement" ]; then
+if [ "$vappio_data_placement" = 1 ]; then
 	vappio_scripts=$vappio_root
 	#$request_cwd $command_str $command_args are already set in the environment by Workflow
 	#For commands submitted outside of workflow, these variables will be empty
