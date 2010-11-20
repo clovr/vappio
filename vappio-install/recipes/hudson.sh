@@ -4,8 +4,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get -y install openjdk-6-jre daemon gcj-4.4-base gcj-4.4-jre-headless gcj-4.4-jre-lib libgcj-common libgcj10
 apt-get -y install libxml-xpath-perl
-wget --tries 20 --retry-connrefused -c -O /tmp/key http://hudson-ci.org/debian/hudson-ci.org.key
-sudo apt-key add /tmp/key
+#wget --tries 20 --retry-connrefused -c -O /tmp/key http://hudson-ci.org/debian/hudson-ci.org.key
+#sudo apt-key add /tmp/key
 #Latest is link is broken as of 9/4
 #wget -O /tmp/hudson.deb http://hudson-ci.org/latest/debian/hudson.deb
 #Loop as this connection is unable, may hang build but hudson can kill if too long

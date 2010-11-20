@@ -8,10 +8,6 @@ VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
 apt-get -y update
 $VAPPIO_HOME/vappio-install/vp-bootstrap-install
 
-#Cache hudson because it has caused problems in the past
-wget --tries 20 --retry-connrefused -c -O /tmp/key http://hudson-ci.org/debian/hudson-ci.org.key
-wget --no-dns-cache --tries 20 --retry-connrefused -c -O /tmp/hudson.deb http://download.hudson-labs.org/debian/hudson_1.374_all.deb
-
 #Setup virgin image
 bash -e $VAPPIO_RECIPES/setup.sh
 #Basic system config
