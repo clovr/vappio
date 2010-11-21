@@ -74,7 +74,7 @@ if [ "$vappio_data_placement" = 1 ]; then
 	#$request_cwd $command_str $command_args are already set in the environment by Workflow
 	#For commands submitted outside of workflow, these variables will be empty
 	vlog "Running $vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str \"$command_args\""
-	$vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str "$command_args" 1>> $vappio_log 2>> $vappio_log
+	$vappio_scripts/sge/vappio_prolog.sh $request_cwd $command_str "$command_args" #1>> $vappio_log 2>> $vappio_log
 	ret1=$?
 	vlog "vappio_prolog return code: $ret1"
 	if [ $ret1 -ne 0 ] 
@@ -115,7 +115,7 @@ if [ -n "$request_cwd" ]; then
         		master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 		fi
 		vlog "CMD: rsync -rlDvh -e \"$ssh_client -i $ssh_key $ssh_options\" ${request_cwd}/event.log root@$master:${request_cwd}/"
-		rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" ${request_cwd}/event.log root@$master:${request_cwd}/ 1>> $vappio_log 2>> $vappio_log
+		rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" ${request_cwd}/event.log root@$master:${request_cwd}/ #1>> $vappio_log 2>> $vappio_log
 	        ret2=$?
 	  	vlog "rsync return value: $?"
 		if [ $ret2 -ne 0 ]

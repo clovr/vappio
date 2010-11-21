@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo '$ModLoad imudp' > /etc/rsyslog.d/59-remoteenable.conf
+echo '$UDPServerRun 514' >>  /etc/rsyslog.d/59-remoteenable.conf
+echo '$template TraditionalFormatWithPRI,"%PRI-text%: %timegenerated% %HOSTNAME% %syslogtag%%msg:::drop-last-lf%\n"' >> /etc/rsyslog.d/59-remoteenable.conf
+echo 'local0.* /var/log/vappio.log;TraditionalFormatWithPRI' >> /etc/rsyslog.d/59-remoteenable.conf
+
+restart rsyslog

@@ -15,7 +15,7 @@ source $vappio_scripts/vappio_config.sh
 ##
 
 vlog "###"
-vlog "### $0 (`whoami`)"
+vlog "### $0 aka seeding.sh (`whoami`)"
 vlog "###"
 
 remotehost=$1
@@ -31,7 +31,7 @@ maxretries=5
 i=0
 while [ "$changes" != "" ];
   do
-  $staging_script $remotehost 1>> $vappio_log 2>> $vappio_log  
+  $staging_script $remotehost #1>> $vappio_log 2>> $vappio_log  
   ret=$?
   if [ $ret != 0 ]
   then

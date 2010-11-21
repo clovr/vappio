@@ -60,7 +60,7 @@ if [ -n "$request_cwd" ]; then
         print_eventinfo >> "$EVENT_LOG" 2>&1
     fi
     if [ -n "$vappio_data_placement" ]; then
-	$vappio_scripts/sge/vappio_epilog.sh $hostname $request_cwd $command_str "$command_args" 1>> $vappio_log 2>> $vappio_log
+	$vappio_scripts/sge/vappio_epilog.sh $hostname $request_cwd $command_str "$command_args" #1>> $vappio_log 2>> $vappio_log
 	ret1=$?
 	vlog "vappio_epilog return code: $ret1"
 	if [ $ret1 -ne 0 ] 

@@ -93,7 +93,7 @@ then
 	    #Must remove trailing slash if specified
 	    dname=`echo "$1" | perl -ne 's/\/\s*$//g;print'`
 	    vlog "CMD: rsync -R --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" $dname root@$remotehost:/"
-	    rsync -R --filter '- .*' -av -e "$ssh_client -i $ssh_key $ssh_options" $dname root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+	    rsync -R --filter '- .*' -av -e "$ssh_client -i $ssh_key $ssh_options" $dname root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
 	    ret=$?
 	else
 	    vlog "Start staging of file $1 to $remotehost:$1"
@@ -111,14 +111,14 @@ then
 		verror "STAGING FAILURE. FILE DOES NOT EXIST"
 		exit 100;
 	    fi
-	    rsync --filter '- .*' --rsync-path "mkdir -p $dname && rsync" -av -e "$ssh_client -i $ssh_key $ssh_options" $1 root@$remotehost:$1 1>> $vappio_log 2>> $vappio_log
+	    rsync --filter '- .*' --rsync-path "mkdir -p $dname && rsync" -av -e "$ssh_client -i $ssh_key $ssh_options" $1 root@$remotehost:$1 #1>> $vappio_log 2>> $vappio_log
 	    ret=$?
 	    case $1 in 
 		*.list) 
 		    if [ $ret == 0 ]
 		    then
 			vlog "Handling as list file";
-			rsync --files-from=$1 -av -e "$ssh_client -i $ssh_key $ssh_options" / root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+			rsync --files-from=$1 -av -e "$ssh_client -i $ssh_key $ssh_options" / root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
 		    fi
 		    ;;
 	    esac
@@ -142,7 +142,7 @@ else
         #These files are "synced" based on size only, datestamps are ignored
         #First list only large files and print out list for gridftp, using rsync -n (dry-run)
 	vlog "CMD:rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --min-size $largefilesize --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep \"<f\" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print \"file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n\"}' > /tmp/$$.gridftp.staging.list"
-	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --min-size $largefilesize --size-only --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir 2>> $vappio_log | grep "<f" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print "file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n"}' $remotehost $staging_dir > /tmp/$$.gridftp.staging.list
+	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --min-size $largefilesize --size-only --itemize-changes -n --delete $staging_dir/ root@$remotehost:$staging_dir | grep "<f" | perl -e 'while(<STDIN>){chomp;split(/\s+/);print "file://$ARGV[1]/$_[1] ftp://$ARGV[0]:5000/$ARGV[1]/$_[1]\n"}' $remotehost $staging_dir > /tmp/$$.gridftp.staging.list
 	ret=$?
 	if [ $ret == 0 ]
 	    then
@@ -165,7 +165,7 @@ else
 	    #/opt/globus-5.0.0/bin/globus-url-copy -udt -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
 	    #/opt/globus-5.0.0/bin/globus-url-copy -tcp-bs 1MB -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
 	    #/opt/globus-5.0.0/bin/globus-url-copy -tcp-bs 17500 -p 8 -vb -cd -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
-	    /opt/globus-5.0.0/bin/globus-url-copy -p 8 -vb -cd -pp -f /tmp/$$.gridftp.staging.list 1>> $vappio_log 2>> $vappio_log 
+	    /opt/globus-5.0.0/bin/globus-url-copy -p 8 -vb -cd -pp -f /tmp/$$.gridftp.staging.list #1>> $vappio_log 2>> $vappio_log 
 	    ret=$?
 	    if [ $ret == 0 ]
 		then
@@ -179,7 +179,7 @@ else
         #Want to update permissions but avoid second copy, need --size-only because globus-url-copy does not preserve time
         #The rest through rsync: smaller files, delete, and reset permissions etc
         #vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" --delete $staging_dir/ root@$remotehost:$staging_dir"
-	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --itemize-changes --max-size $largefilesize --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
+	rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --itemize-changes --max-size $largefilesize --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir #1>> $vappio_log 2>> $vappio_log
 	ret=$?
 	if [ $ret == 0 ]
 	    then
@@ -192,7 +192,7 @@ else
     else
     #Plain ole' rsync
 	vlog "CMD: rsync --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" --temp-dir $scratch_dir --delete $staging_dir/ root@$remotehost:$staging_dir"
-	rsync --filter '- .*' -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ root@$remotehost:$staging_dir 1>> $vappio_log 2>> $vappio_log
+	rsync --filter '- .*' -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $staging_dir/ root@$remotehost:$staging_dir #1>> $vappio_log 2>> $vappio_log
 	ret=$?
 	if [ $ret == 0 ]
 	    then

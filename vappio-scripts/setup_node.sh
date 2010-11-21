@@ -8,7 +8,7 @@ source $vappio_scripts/clovrEnv.sh
 source $vappio_scripts/vappio_config.sh
 
 vlog "###"
-vlog "### $0 (`whoami`)"
+vlog "### $0 aka setup_node.sh (`whoami`)"
 vlog "###"
 
 # Gather some data
@@ -47,21 +47,21 @@ case $MASTER_NODE in
   localhost)
 	echo "Configuring localhost as MASTER_NODE"
     vlog "Configuring localhost as MASTER_NODE"
-    $vappio_scripts/start_master.sh 1>> $vappio_log 2>> $vappio_log
+    $vappio_scripts/start_master.sh #1>> $vappio_log 2>> $vappio_log
   ;;
 esac
 
 case $EXEC_NODE in
   localhost)
     vlog "Configuring localhost as EXEC_NODE"
-    $vappio_scripts/start_exec.sh $MASTER_NODE 1>> $vappio_log 2>> $vappio_log
+    $vappio_scripts/start_exec.sh $MASTER_NODE #1>> $vappio_log 2>> $vappio_log
   ;;
 esac
 
 case $DATA_NODE in
   localhost)
     vlog "Configuring localhost as DATA_NODE"
-    $vappio_scripts/start_data.sh $MASTER_NODE 1>> $vappio_log 2>> $vappio_log
+    $vappio_scripts/start_data.sh $MASTER_NODE #1>> $vappio_log 2>> $vappio_log
   ;;
 esac
 

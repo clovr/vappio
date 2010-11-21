@@ -74,7 +74,7 @@ then
     #Get iterator input, workflow xml and final.config from the master to the exec host
     cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $stagingwf_script $myhost $wfxml"
     vlog "CMD: $cmd" 
-    $cmd 1>> $vappio_log 2>> $vappio_log
+    $cmd #1>> $vappio_log 2>> $vappio_log
     ret1=$?
     if [ $ret1 -ne 0 ] 
     then
@@ -134,7 +134,7 @@ then
 	vlog "Submitting staging of input from $SGE_O_HOST to $myhost:$stagedata via $stagingq,$stagingsubq"
 	cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -l hostname=$SGE_O_HOST -q $stagingq,$stagingsubq $staging_script $myhost $stagedata"
 	vlog "CMD: $cmd" 
-	$cmd 1>> $vappio_log 2>> $vappio_log
+	$cmd #1>> $vappio_log 2>> $vappio_log
 	if [ $? -ne 0 ]
 	then
 	    verror "PROLOG. Unable to copy $stagedata to $myhost"

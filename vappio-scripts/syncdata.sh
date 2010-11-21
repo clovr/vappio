@@ -12,6 +12,7 @@
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 ##
+
 sync="n"
 if [ $1 ]; then
     if [ "$1" == "--synchronous" ]; then
@@ -20,7 +21,7 @@ if [ $1 ]; then
 fi
 
 vlog "###" 
-vlog "### $0 (`whoami`) on `hostname`" 
+vlog "### $0 aka syncdata.sh (`whoami`) on `hostname`" 
 vlog "###" 
 
 #This script should be run on the master

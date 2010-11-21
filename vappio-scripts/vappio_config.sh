@@ -3,32 +3,63 @@ vappio_userdata=/mnt/
 vappio_runtime=/var/vappio/runtime/
 user_data_scripts=/mnt/user-scripts
 
+#Use of vappio_log is deprecated
 vappio_log=/tmp/vappio.log
+#Set to 1 to report logs through rsyslogd
+mirrorlogs=1
 ##
 #Debugging and error reporting functions
 #Report errors to the error log
-vlog() { echo [`date +'%T %D'`] $1 >> $vappio_log; }
+vlogmirror() {
+ npipe=/tmp/$$.tmp
+ npipe2=/tmp/$$e.tmp
+ trap "rm -f $npipe $npipe2" EXIT
+ mknod $npipe p
+ mknod $npipe2 p
+ tee <$npipe >(/usr/bin/logger -p local0.info -t VS.$0 --) &
+ tee <$npipe2 >(/usr/bin/logger -p local0.info -t VE.$0 --) 1>&2 &
+ exec 1>$npipe
+ exec 2>$npipe2
+}
+
+if [ "$mirrorlogs" = 1 ]
+then
+    vlogmirror
+fi
+
+vlog() { 
+    if [ "$2" != "" ]
+    then
+	pri="$2"
+    else
+	pri="info"
+    fi
+    echo [`date +'%T %D'`] $1 | /usr/bin/logger -p local0.$pri -t VP -- $1;
+}
+
 #Report an error back to the master nodes
 #Simplies debugging by keeping all error messages in one spot
 if [ -f "$vappio_log" ]
 then
     logcount=`wc -l < $vappio_log`
 fi
+
 verror() { 
-    msg=$1
-    master_node=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
-    if [ "$master_node" != "" ]
-    then
-	stamp=`date +'%T %D'`
-	myhostname=`hostname -f`
+    vlog "ERROR LOGGED: $1" error
+    #msg=$1
+    #master_node=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
+    #if [ "$master_node" != "" ]
+    #then
+#	stamp=`date +'%T %D'`
+#	myhostname=`hostname -f`
     #Get latest log messages
-	newlogcount=`wc -l < $vappio_log`
-	newloglines=`expr $newlogcount - $logcount`
-	logmsg=`tail -n $newloglines $vappio_log`
-	reportstr=`echo -e "[$myhostname $stamp]\n$msg\n$logmsg"`
-	errorfile=`curl --retry 2 --silent --show-error --fail -d "msg=$reportstr" "http://$master_node:8080/announce.cgi"`
-        vlog "ERROR LOGGED: $vappio_runtime/$errorfile"
-    fi
+#	newlogcount=`wc -l < $vappio_log`
+#	newloglines=`expr $newlogcount - $logcount`
+#	logmsg=`tail -n $newloglines $vappio_log`
+#	reportstr=`echo -e "[$myhostname $stamp]\n$msg\n$logmsg"`
+#	errorfile=`curl --retry 2 --silent --show-error --fail -d "msg=$reportstr" "http://$master_node:8080/announce.cgi"`
+#       vlog "ERROR LOGGED: $1"
+#    fi
 }
 
 # This is used to make changes to the configuration at boot time

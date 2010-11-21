@@ -61,7 +61,7 @@ then
 	# -R = recursive.  Needed for getting the entire directory tree up to the target file
 	# -O = omit directories when preserving times (prevents error when trying to change timestamp of / dirs)
 	vlog "CMD: rsync -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" $f root@$remotehost:/"
-	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $f root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $f root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
 	if [ $? == 0 ]
 	then
 	    vlog "rsync success. return value: $?"
@@ -82,7 +82,7 @@ else
 	    verror "STAGING WF FAILURE. WORKFLOW XML FILE DOES NOT EXIST"
 	    exit 100;
 	fi
-	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $wfxml root@$remotehost:/ 1>> $vappio_log 2>> $vappio_log
+	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $wfxml root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
 	if [ $? == 0 ]
 	then
 	    vlog "rsync success. return value: $?"
@@ -109,7 +109,7 @@ fi
 cd $wfcomponentdir
 vlog "Start transfer of workflow xml from $wfcomponentdir/$wfgroupdir to $remotehost:$wfcomponentdir" 
 vlog "CMD: rsync -av -R -e \"$ssh_client -i $ssh_key $ssh_options\" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir" 
-rsync -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir 1>> $vappio_log 2>> $vappio_log
+rsync -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir #1>> $vappio_log 2>> $vappio_log
 if [ $? == 0 ]
 then
     vlog "rsync success. return value: $?"
