@@ -93,3 +93,11 @@ $SGE_ROOT/bin/$ARCH/qconf -ds $deadhostname
 $SGE_ROOT/bin/$ARCH/qconf -kej $deadhostname
 $SGE_ROOT/bin/$ARCH/qconf -dh $deadhostname
 $SGE_ROOT/bin/$ARCH/qconf -dconf $deadhostname
+
+#Occasionally, the host is known by another name to SGE
+#Check for this and remove that name as well
+alias=`$SGE_ROOT/utilbin/$ARCH/gethostbyname -name $deadhostname`
+if [ "$alias" != "$deadhostname" ]
+then
+    $vappio_scripts/remove_sgehost.sh $alias
+fi
