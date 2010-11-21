@@ -13,10 +13,11 @@ master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 if [ "$master" = "$deadhostname" ]
 then
     echo "Attempt to remove master $master, exiting"
+    vlog "Attempt to remove master $master, exiting"
     exit 1
 fi
 
-
+vlog "Attempting to remove sge host $deadhostname"
 
 ##
 #Attempt to reschedule jobs before removing host
@@ -29,11 +30,12 @@ fi
 #Disable all queues on this host
 
 isactive=`$SGE_ROOT/bin/$ARCH/qhost -xml -q -h $deadhostname | xpath -e "//queue"`
+vlog "Querying SGE for queues:$isactive"
 
 if [ "$isactive" != "" ]
 then
-    echo "Removing dead host $deadhostname\n"
     $SGE_ROOT/bin/$ARCH/qmod -d "*@$deadhostname"
+    vlog "Removing $deadhostname\n"
 #Reschedule any running jobs on this machine
 #This does not work for single hosts, rescheds all $SGE_ROOT/bin/$ARCH/qmod -f -rq $execq@$deadhostname
 #$SGE_ROOT/bin/$ARCH/qmod -f -rq $stagingsubq@$myhostname
@@ -41,7 +43,8 @@ then
     $SGE_ROOT/bin/$ARCH/qstat -q $stagingq@$deadhostname -u '*' -xml | xpath -e "//JB_job_number/text()" | perl -ne 'print "qmod -f -rj $_"' | sh
 #Remove any other jobs on this host?
 else
-  echo "Node not active, skipping"
+    $SGE_ROOT/bin/$ARCH/qmod -d "*@$deadhostname"
+    vlog "Node not active, skipping"
 fi
 
 if [ "$wait" != "" ]
@@ -51,6 +54,7 @@ then
     i=0
     while [ "$i" -le "$maxwait" ]
     do 
+	vlog "Waiting for jobs to finish on host $deadhostname, iteration $i"
 #Check for any jobs submitted from this host to finish. such jobs include wf transfer jobs stagingwf
 	isrunning=0
 	alljobs=`$SGE_ROOT/bin/$ARCH/qstat -u '*' | perl -ne 's/^\s+//;print' | cut -f 1 -d ' ' | perl -ne 'chomp;if(/(\d+)/){print "$1 "}'`
@@ -59,14 +63,14 @@ then
 	    runningjobs=`$SGE_ROOT/bin/$ARCH/qstat -j $job | grep sge_o_host | grep $deadhostname`
 	    if [ "$runningjobs" != "" ]
 	    then
-		echo "Job $job submitted from $deadhostname is still running"
+		vlog "Job $job submitted from $deadhostname is still running"
 		isrunning=1
 	    fi
 	done
     
 	if [ $isrunning == 1 ]
-    then
-	    vlog "Jobs still running from this submit host"
+	then
+	    vlog "Jobs still running from submit host $deadhostname"
 	else
 	    jobs1=`$SGE_ROOT/bin/$ARCH/qstat -q $execq@$deadhostname -u '*'`
 	    jobs2=`$SGE_ROOT/bin/$ARCH/qstat -q $stagingsubq@$deadhostname -u '*'`
@@ -80,6 +84,7 @@ then
     done
 fi
 
+vlog "Removing $deadhostname from SGE"
 #Remove host from SGE
 $SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $deadhostname $stagingsubq
 $SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $deadhostname $execq
