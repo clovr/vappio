@@ -13,27 +13,14 @@ then
 	if [ "$new_ip_address" != "$old_ip_address" ]
 	then
 	    vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
-	    
-	    hostn=`hostname -f`
-	    if [ $? = 0 ]
-	    then
-	    #Check if hostname is reachable
-		isreachable=`printf "kv\nhostname=$hostn\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
-	    else
-	     #We have no hostname
-		/etc/init.d/hostnamecheck start
-		isreachable=""
-	    fi	
+	    vlog "DHCP change, forcing removal of current host `hostname -f` from SGE"
+	    /opt/vappio-scripts/remove_sgehost.sh `hostname -f`
+	    #Reset hostname
+	    /etc/init.d/hostnamecheck start $new_ip_address	    
+	    vlog "DHCP change, reset hostname to SGE"
 	    echo "$ipaddr" > /mnt/clovr_ip
-	    if [ "$isreachable" = "" ]
-	    then
-		hostn=`hostname`
-		hostnf=`hostname -f`
-		echo "127.0.0.1 $hostnf $host" > /etc/hosts
-	    fi
 	    #This can take a few minutes
 	    $vappio_scripts/vp-restart-node
-	    /opt/vappio-scripts/remove_sgehost.sh $old_ip_address
 	fi
     fi
 fi

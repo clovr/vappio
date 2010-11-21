@@ -42,7 +42,12 @@ do_start() {
     #There appears to be no DNS at boot
     if [ $nodns = "1" ]
     then
-	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	if [ "$2" = "" ]
+	then
+	    ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	else
+	    ipaddr=$2
+	fi
 	if [ "$ipaddr" = "" ]
 	then
 	    ipaddr="127.0.0.1"
@@ -83,7 +88,7 @@ case "$1" in
 	do_start
 	;;
     *)
-	echo $"Usage: $0 {start|stop}"
+	echo $"Usage: $0 {start|stop} [ipaddr]"
 	exit 1
 esac
 
