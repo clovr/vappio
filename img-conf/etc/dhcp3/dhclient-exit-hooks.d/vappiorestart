@@ -7,20 +7,29 @@ then
     
     nodetype=`cat $vappio_runtime/node_type`
     
-    if [ "$reason" = "BOUND" ] && [ "$nodetype" != "PENDING" ] && [ "$nodetype" != "OFFLINE" ] && [ "$nodetype" != "" ]
+    if [ "$reason" = "BOUND" ] 
     then
-	old_ip_address=`cat /mnt/clovr_ip`
-	if [ "$new_ip_address" != "$old_ip_address" ]
+	vlog "DHCP new address $new_ip_address"
+	if[ "$nodetype" != "PENDING" ] && [ "$nodetype" != "OFFLINE" ] && [ "$nodetype" != "" ]
 	then
-	    vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
-	    vlog "DHCP change, forcing removal of current host `hostname -f` from SGE"
-	    /opt/vappio-scripts/remove_sgehost.sh `hostname -f`
-	    #Reset hostname
-	    /etc/init.d/hostnamecheck start $new_ip_address	    
-	    vlog "DHCP change, reset hostname to SGE"
-	    echo "$ipaddr" > /mnt/clovr_ip
-	    #This can take a few minutes
-	    $vappio_scripts/vp-restart-node
+	    old_ip_address=`cat /mnt/clovr_ip`
+	    if [ "$new_ip_address" != "$old_ip_address" ]
+	    then
+		vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
+		vlog "DHCP change, forcing removal of current host `hostname -f` from SGE"
+	        #Attempt to remove if not master
+		/opt/vappio-scripts/remove_sgehost.sh `hostname -f`
+	        #Reset hostname
+		/etc/init.d/hostnamecheck start $new_ip_address	    
+		vlog "DHCP change, reset hostname to SGE"
+		echo "$new_ip_address" > /mnt/clovr_ip
+	        #This can take a few minutes
+		$vappio_scripts/vp-restart-node
+	    else
+		vlog "DHCP, same address as previous. skipping reset"
+	    fi
+	else
+	    vlog "DHCP, node is $nodetype, skipping reset"
 	fi
     fi
 fi
