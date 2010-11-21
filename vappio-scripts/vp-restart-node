@@ -15,7 +15,7 @@ if [ -e "/etc/vappio/$platform/vp-detect-nodetype" ]
 then	 
     nodetype=`/etc/vappio/$platform/vp-detect-nodetype` 
 else
-    echo "Skipping node type detection for platform. Using default node type" >> /tmp/vappio.log
+    echo "Skipping node type detection for platform. Using default node type"
     nodetype="master"
 fi
 $vappio_scripts/vp-stop-node

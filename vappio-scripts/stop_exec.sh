@@ -23,6 +23,7 @@ then
         echo "Killing $execpid"
         kill $execpid
 fi
+kill `ps h -C sge_execd -o pid`
 
 ##
 #Zero out sgemaster preventing further use of SGE on this node

@@ -24,8 +24,8 @@ for n in $@
 do
     if [ -d "/etc/vappio/$n" ]
     then
-	echo "INIT NODETYPE $n" >> /tmp/vappio.log
-	run-parts --regex '^S.*' --arg start /etc/vappio/$n/ >> /tmp/vappio.log 
+	echo "INIT NODETYPE $n" 
+	run-parts --regex '^S.*' --arg start /etc/vappio/$n/ 
     else
 	echo "Skipping node type with no configuration: $nodetype"
     fi

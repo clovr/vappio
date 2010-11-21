@@ -28,6 +28,7 @@ then
     echo "Killing $execpid"
     kill $execpid
 fi
+kill `ps h -C sge_execd -o pid`
 
 /etc/init.d/gridengine-master stop
 

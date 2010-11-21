@@ -23,7 +23,12 @@ $vappio_scripts/prep_directories.sh
 myhostname=`hostname -f`
 echo "$myhostname" > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 
-/etc/init.d/gridengine-master start
+/etc/init.d/gridengine-master restart
+sleep 3
+echo "Started master"
+
+# add an administrative host
+qconf -ah $myhostname 
 
 # Remove all hosts and queues from a pre-existing save (task #100)
 # Goes here because it kills sgeexecd
@@ -37,8 +42,6 @@ qconf -ao $sge_exec_user
 qconf -am $sge_exec_user
 # add apache user to manager list
 qconf -am $apache_user
-# add an administrative host
-qconf -ah $myhostname 
 # add a submit host
 qconf -as $myhostname
 # add project from file
