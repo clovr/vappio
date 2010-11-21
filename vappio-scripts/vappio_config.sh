@@ -22,7 +22,7 @@ vlogmirror() {
  exec 2>$npipe2
 }
 
-if [ "$mirrorlogs" = 1 ]
+if [ "$mirrorlogs" = 1 ] && [ -z "$PS1" ]
 then
     vlogmirror
 fi
