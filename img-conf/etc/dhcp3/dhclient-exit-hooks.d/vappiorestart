@@ -1,36 +1,39 @@
 #!/bin/bash
 
-vappio_scripts=/opt/vappio-scripts
-source $vappio_scripts/vappio_config.sh
-
-nodetype=`cat $vappio_runtime/node_type`
-
-if [ "$reason" = "BOUND" ] && [ "$nodetype" != "PENDING" ] && [ "$nodetype" != "OFFLINE" ]
+if [ -f "/var/vappio/runtime/node_type" ]
 then
-    old_ip_address=`cat /mnt/clovr_ip`
-    if [ "$new_ip_address" != "$old_ip_address" ]
+    vappio_scripts=/opt/vappio-scripts
+    source $vappio_scripts/vappio_config.sh
+    
+    nodetype=`cat $vappio_runtime/node_type`
+    
+    if [ "$reason" = "BOUND" ] && [ "$nodetype" != "PENDING" ] && [ "$nodetype" != "OFFLINE" ] && [ "$nodetype" != "" ]
     then
-	vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
-
-	hostn=`hostname -f`
-	if [ $? = 0 ]
+	old_ip_address=`cat /mnt/clovr_ip`
+	if [ "$new_ip_address" != "$old_ip_address" ]
 	then
+	    vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
+	    
+	    hostn=`hostname -f`
+	    if [ $? = 0 ]
+	    then
 	    #Check if hostname is reachable
-	    isreachable=`printf "kv\nhostname=$hostn\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
-	else
+		isreachable=`printf "kv\nhostname=$hostn\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+	    else
 	     #We have no hostname
-	    /etc/init.d/hostnamecheck start
-	    isreachable=""
-	fi	
-	echo "$ipaddr" > /mnt/clovr_ip
-	if [ "$isreachable" = "" ]
-	then
-	    hostn=`hostname`
-	    hostnf=`hostname -f`
-	    echo "127.0.0.1 $hostnf $host" > /etc/hosts
+		/etc/init.d/hostnamecheck start
+		isreachable=""
+	    fi	
+	    echo "$ipaddr" > /mnt/clovr_ip
+	    if [ "$isreachable" = "" ]
+	    then
+		hostn=`hostname`
+		hostnf=`hostname -f`
+		echo "127.0.0.1 $hostnf $host" > /etc/hosts
+	    fi
+	    #This can take a few minutes
+	    $vappio_scripts/vp-restart-node
+	    /opt/vappio-scripts/remove_sgehost.sh $old_ip_address
 	fi
-	#This can take a few minutes
-	$vappio_scripts/vp-restart-node
-	/opt/vappio-scripts/remove_sgehost.sh $old_ip_address
     fi
 fi

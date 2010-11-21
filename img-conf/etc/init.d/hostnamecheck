@@ -1,5 +1,10 @@
 #!/bin/bash 
 
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+##
+
 do_start() {
 ##
 #To support ad-hoc virtual clusters, 
@@ -9,18 +14,21 @@ do_start() {
     cp /etc/hosts.orig /etc/hosts
     myhostname=`hostname -f`
     #Simple check to see if there is DNS
-    if [ $? != "0" ]
+    if [ $? != "0" ] 
     then
+	echo "Detected no DNS"
 	nodns=1
     else
 	clovrhostname=`echo $myhostname | grep clovr-`
 	if [ "$clovrhostname" != "" ]
 	then
+	    echo "Detected no DNS, clovr hostname"
 	    nodns=1
 	else
 	    localhostname=`echo $myhostname | grep localhost`
 	    if [ "$localhostname" != "" ]
 	    then
+		echo "Detected no DNS, localhostname"
 		nodns=1
 	    else
 		ping -c 1 $myhostname

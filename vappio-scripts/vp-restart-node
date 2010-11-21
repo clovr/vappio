@@ -19,5 +19,6 @@ else
     nodetype="master"
 fi
 $vappio_scripts/vp-stop-node
+echo "Node type is `cat $vappio_runtime/node_type` after shutdown"
 $vappio_scripts/vp-start-node $nodetype
 
