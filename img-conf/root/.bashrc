@@ -46,21 +46,22 @@ then
 	fi
 	if [ "$ipaddr" != "" ]
 	then
+	    echo
 	    echo "IP address: $ipaddr"
-	    if [ -f "$vappio_runtime/node_type" ]; then
-		nodetype=`cat $vappio_runtime/node_type`;
-	    else
-		nodetype="PENDING"
-	    fi
-	    
-            #Wait for vappio boot process to complete
-	    if [ "$nodetype" = 'PENDING' ]
-	    then
-		echo -n "Node state is $nodetype. Waiting for setup to finish."
-		vnodestatus
-		echo
-	    fi
+	else
+	    echo
+	    echo "No external network access"
 	fi
+	if [ -f "$vappio_runtime/node_type" ]; then
+	    nodetype=`cat $vappio_runtime/node_type`;
+	else
+	    nodetype="PENDING"
+	fi
+	
+        #Wait for vappio boot process to complete
+	echo -n "Node state is $nodetype. Checking status."
+	vnodestatus
+	echo
     fi
 
     if [ -f "$vappio_runtime/node_type" ]

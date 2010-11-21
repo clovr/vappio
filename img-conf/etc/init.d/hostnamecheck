@@ -8,6 +8,7 @@ do_start() {
     nodns=0
     cp /etc/hosts.orig /etc/hosts
     myhostname=`hostname -f`
+    #Simple check to see if there is DNS
     if [ $? != "0" ]
     then
 	nodns=1
@@ -30,13 +31,24 @@ do_start() {
 	    fi
 	fi
     fi
+    #There appears to be no DNS at boot
     if [ $nodns = "1" ]
     then
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
-	ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
+	if [ "$ipaddr" = "" ]
+	then
+	    ipaddr="127.0.0.1"
+	    ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
+	    #Set as the only line in the file
+	    echo "$ipaddr clovr-$ipalias clovr-$ipalias" > /etc/hosts
+	else
+	    cp /etc/hosts.orig /etc/hosts
+	    ipalias=`echo $ipaddr | sed -e 's/\./-/g'`;
+	    echo "$ipaddr clovr-$ipalias clovr-$ipalias" >> /etc/hosts
+	fi
+	echo "Attempting to set hostname clovr-$ipalias"
 	hostname clovr-$ipalias
-	cp /etc/hosts.orig /etc/hosts
-	echo "$ipaddr clovr-$ipalias clovr-$ipalias" >> /etc/hosts
+	echo "$ipaddr" > /mnt/clovr_ip
 	#If vappio is installed, mark no_dns
 	if [ -f "/var/vappio/runtime" ]
 	then
