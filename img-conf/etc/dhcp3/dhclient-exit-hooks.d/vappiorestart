@@ -2,6 +2,7 @@
 
 if [ -f "/var/vappio/runtime/node_type" ]
 then
+    mirrorlogs=0
     vappio_scripts=/opt/vappio-scripts
     source $vappio_scripts/vappio_config.sh
     

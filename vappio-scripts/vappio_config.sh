@@ -5,8 +5,11 @@ user_data_scripts=/mnt/user-scripts
 
 #Use of vappio_log is deprecated
 vappio_log=/tmp/vappio.log
-#Set to 1 to report logs through rsyslogd
-mirrorlogs=1
+#Set default to 1 to report logs through rsyslogd
+if [ "$mirrorlogs" != 0 ]
+then
+    mirrorlogs=1
+fi
 ##
 #Debugging and error reporting functions
 #Report errors to the error log
