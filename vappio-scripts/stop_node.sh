@@ -12,7 +12,7 @@ vlog "###"
 myhostname=`hostname -f`
 
 nodetype=`cat $vappio_runtime/node_type`
-echo "Node is $nodetype. Shutting down"
+echo "Node $myhostname is $nodetype. Shutting down"
 
 case $nodetype in
     master) 

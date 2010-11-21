@@ -16,8 +16,8 @@ vlogmirror() {
  trap "rm -f $npipe $npipe2" EXIT
  mknod $npipe p
  mknod $npipe2 p
- tee <$npipe >(/usr/bin/logger -p local0.info -t VS.$0 --) &
- tee <$npipe2 >(/usr/bin/logger -p local0.info -t VE.$0 --) 1>&2 &
+ tee <$npipe >(/usr/bin/logger -p local0.info -t VP.$0 --) &
+ tee <$npipe2 >(/usr/bin/logger -p local0.warning -t VP.$0 --) 1>&2 &
  exec 1>$npipe
  exec 2>$npipe2
 }
@@ -34,7 +34,7 @@ vlog() {
     else
 	pri="info"
     fi
-    echo [`date +'%T %D'`] $1 | /usr/bin/logger -p local0.$pri -t VP --;
+    echo $1 | /usr/bin/logger -p local0.$pri -t VP --;
 }
 
 #Report an error back to the master nodes
