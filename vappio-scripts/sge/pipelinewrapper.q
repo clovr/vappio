@@ -14,7 +14,7 @@ pe_list               make
 rerun                 TRUE
 slots                 3
 tmpdir                /tmp
-shell                 /bin/csh
+shell                 /bin/bash
 prolog                NONE
 epilog                NONE 
 shell_start_mode      unix_behavior

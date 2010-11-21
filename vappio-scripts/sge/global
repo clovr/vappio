@@ -6,7 +6,7 @@ load_sensor                  none
 prolog                       none
 epilog                       none
 shell_start_mode             posix_compliant
-login_shells                 sh,ksh,csh,tcsh
+login_shells                 bash,sh,ksh,csh,tcsh
 min_uid                      0
 min_gid                      0
 user_lists                   none

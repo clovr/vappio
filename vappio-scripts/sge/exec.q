@@ -14,7 +14,7 @@ pe_list               make
 rerun                 TRUE 
 slots                 1  
 tmpdir                /tmp
-shell                 /bin/csh
+shell                 /bin/bash
 prolog                /opt/vappio-scripts/sge/prolog $host $job_owner $job_id $job_name $queue
 epilog                /opt/vappio-scripts/sge/epilog $host $job_owner $job_id $job_name $queue 
 shell_start_mode      unix_behavior
