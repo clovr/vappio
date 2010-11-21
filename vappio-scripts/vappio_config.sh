@@ -34,7 +34,7 @@ vlog() {
     else
 	pri="info"
     fi
-    echo [`date +'%T %D'`] $1 | /usr/bin/logger -p local0.$pri -t VP -- $1;
+    echo [`date +'%T %D'`] $1 | /usr/bin/logger -p local0.$pri -t VP --;
 }
 
 #Report an error back to the master nodes
