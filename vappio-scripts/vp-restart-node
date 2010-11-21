@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+vlog "###"
+vlog "### $0 (`whoami`)"
+vlog "###"
+
+platform=`/etc/vappio/vp-detect-platform`
+
+#Detect node types
+if [ -e "/etc/vappio/$platform/vp-detect-nodetype" ]
+then	 
+    nodetype=`/etc/vappio/$platform/vp-detect-nodetype` 
+else
+    echo "Skipping node type detection for platform. Using default node type" >> /tmp/vappio.log
+    nodetype="master"
+fi
+$vappio_scripts/vp-stop-node
+$vappio_scripts/vp-start-node $nodetype
+
