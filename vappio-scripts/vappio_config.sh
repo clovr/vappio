@@ -162,7 +162,7 @@ ssh_key=/mnt/keys/devel1.pem
 #ssh_client=/usr/local/bin/ssh-hpn
 ssh_client=/usr/bin/ssh
 #turn off ssh encryption for faster transfer on trusted networks
-ssh_options="-oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
+ssh_options="-q -oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 
 # VAPPIO SETUP
 default_node_type=master
