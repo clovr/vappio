@@ -5,7 +5,5 @@ vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 ##
 
-crontab -u root -l | grep -v reaper.sh > $vappio_runtime/master.crontab
 #Run cron every 5 minutes
-echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * $vappio_scripts/reaper.sh >> $vappio_runtime/reaper.log" >> $vappio_runtime/master.crontab 2>&1
-crontab -u root $vappio_runtime/master.crontab
+echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * $vappio_scripts/reaper.sh 2>&1 >> $vappio_runtime/reaper.log" > /etc/cron.d/sgereaper
