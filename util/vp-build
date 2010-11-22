@@ -256,6 +256,9 @@ losetup -d $devname || true
 #cleanup img, removing tmp files
 echo "Cleaning image $currimg"
 $utildir/vp-runonimg $currimg $utildir/cleanupimg
+#DIAG and Nimbus clusters require no hostname
+#EC2 ignores and resets your hostname
+$utildir/vp-runonimg $currimg $utildir/erasehostname
 
 #Build xen
 #create example clovr-xen.conf and bundle kernel image
