@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#Set up remote logging
+if [ -f "/mnt/master_node" ]
+then
+    echo "local0.* @`cat /mnt/master_node`" > /etc/rsyslog.d/60-remote.conf
+fi
+restart rsyslog

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-#Set up remote logging
-echo "local0.* @`cat $vappio_userdata/master_node`" > /etc/rsyslog.d/60-remote.conf
-restart rsyslog
