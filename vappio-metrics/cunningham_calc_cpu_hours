@@ -31,6 +31,7 @@
 
 # Importing ************************************************************************
 import sys
+import os
 from igs.utils import commands
 from vappio.webservice import tag
 # **********************************************************************************
@@ -65,8 +66,7 @@ def cunninghamIt(f):
 
 
 # *****************************************************************************
-# Bailout code not using cunningham
-# use if cunningham can't handle it
+# code to use if cunningham can't handle it
 # *****************************************************************************
 WORK_FACTOR = {'blastn': 1,
                'blastp': 1,
@@ -90,7 +90,12 @@ def calculateCPUHours(program, numSeqs, avgLen, scale):
 
 
 def bail():
-        
+
+    if kv['misc.REP_DB'] not in DBS: # then rescale the scaling factor
+        tagData = tag.queryTag('localhost', 'local', kv['misc.REP_DB'])  
+        size = sum([os.stat(f).st_size for f in tagData('files')])        
+        kv['params.SCALE_FACTOR'] = size/3.0e9 # here we assume the size of the ncbi-nr database is 3.0 Gigabytes    
+    
     kv['params.NUM_QUERY_SEQ'] = int(kv['params.NUM_QUERY_SEQ'])
     for i in ['params.SCALE_FACTOR',
               'params.AVG_QUERY_SEQ_LEN',
@@ -106,10 +111,10 @@ def bail():
     sys.stdout.write('\n'.join(['pipeline.COMPUTED_CPU_HOURS=' + str(totalHours)]) + '\n')
     exit(0)
 
+# **********************************************************************************************************
+# **********************************************************************************************************
 
-# *****************************************************************************
-
-
+# BEGIN
 
 # Ensure we are dealing with kv pairs
 if sys.stdin.readline().strip() != 'kv':
@@ -118,7 +123,7 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-
+# Expected key value pairs
 kv = {'misc.PROGRAM': None,
       'misc.REP_DB': None,
       'params.AVG_QUERY_SEQ_LEN': 1,
@@ -126,7 +131,7 @@ kv = {'misc.PROGRAM': None,
       'params.SCALE_FACTOR': 1,
      }
 
-
+# Tag recording
 tags = []
 for line in sys.stdin:
     sys.stdout.write(line.strip() + '\n')
@@ -139,13 +144,11 @@ for line in sys.stdin:
 if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
 
-
 if kv['misc.PROGRAM'] not in WORK_FACTOR:
     raise Exception('Undefined blast program ' + kv['misc.PROGRAM'] + ' try a different program.')
 
 if kv['misc.PROGRAM'] not in PROGS:
     bail()
-
 
 if kv['misc.REP_DB'] not in DBS:
     bail()
