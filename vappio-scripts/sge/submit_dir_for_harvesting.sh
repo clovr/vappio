@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ### Import Vappio config
 vappio_scripts=/opt/vappio-scripts

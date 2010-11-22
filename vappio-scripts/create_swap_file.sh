@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ## Create a swap file for use on EC2
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh

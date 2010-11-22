@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #Mirrors harvested data to the master
 #This ensures that data harvested on a DATA_NODE is correctly
 #harvested back to the master node

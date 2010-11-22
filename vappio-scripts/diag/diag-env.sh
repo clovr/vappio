@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Simple script to give you the diag env to run ec2 commands.
 # Takes 2 parameters, first is path to cert file, second is path to key file
 
