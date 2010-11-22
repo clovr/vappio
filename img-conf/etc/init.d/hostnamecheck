@@ -70,6 +70,13 @@ do_start() {
 	    touch $vappio_runtime/no_dns
 	fi
     fi
+
+    #Set MAC address in dhclient.conf
+    export macaddr=`ifconfig -a | perl -ne 'if(/^eth0.*HWaddr\s+(\S+)/){print $1}'`
+    if [ "$macaddr" != "" ]
+    then
+	perl -pi -e 's/^send\s+dhcp-client-identifier\s+(\S+)/send dhcp-client-identifier "$ENV{macaddr}";/' /etc/dhcp3/dhclient.conf
+    fi
 }
 
 do_stop() {
