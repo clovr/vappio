@@ -94,7 +94,7 @@ def bail():
     if kv['misc.REP_DB'] not in DBS: # then rescale the scaling factor
         tagData = tag.queryTag('localhost', 'local', kv['misc.REP_DB'])  
         size = sum([os.stat(f).st_size for f in tagData('files')])        
-        kv['params.SCALE_FACTOR'] = size/3.0e9 # here we assume the size of the ncbi-nr database is 3.0 Gigabytes    
+        kv['params.SCALE_FACTOR'] = size/4.9e9 # here we assume the size of the uncompressed (no .tgz) ncbi-nr database is 4.9 Gigabytes    
     
     kv['params.NUM_QUERY_SEQ'] = int(kv['params.NUM_QUERY_SEQ'])
     for i in ['params.SCALE_FACTOR',
