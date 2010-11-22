@@ -36,7 +36,11 @@ vlog "Running vappio prolog on host $myhost. Script arguments request_cwd=$reque
 #All other commands will do nothing
 if [ "$command_str" == "RunWorkflow" ]
 then
-    vlog "This job appears to be submitted by Ergatis. Running directory is $request_cwd" 
+    vlog "This job appears to be submitted by Ergatis. Event log is $request_cwd" 
+
+    mkdir -p $request_cwd 	 
+    touch $request_cwd/event.log
+    
     wfxml=`echo -E "$command_args" | perl -ne '$_ =~ s/\s+/ /g;@x=split(/[\s=]/,$_);%args=@x;print $args{"-i"},"\n"'`
     wfdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1$dir2"'`
     wfcomponentdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1"'`
