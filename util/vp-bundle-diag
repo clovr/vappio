@@ -76,7 +76,7 @@ then
     cloud-client.sh --delete --name $image
 fi
 
-if [ ! "$IMAGE_EXISTS" = "" ] && [ ! "$force" = "force"]
+if [ ! "$IMAGE_EXISTS" = "" ] && [ ! "$force" = "force" ]
 then
     rm -rf ~/.globus
     echo "Image is already on diag"
