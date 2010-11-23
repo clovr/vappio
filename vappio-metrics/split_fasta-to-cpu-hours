@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+#
+# This takes pipeline and cluster information and calculates
+# the number of cpu hours the jobs are expected to take.
+#
+# Required keys:
+# cluster.CLUSTER_NAME
+# params.NUM_QUERY_SEQ
+# params.CPU_HRS_PER_FILE 
+# params.SEQS_PER_FILE
+#
+# Resulting value output:
+# pipeline.COMPUTED_CPU_HOURS
+# and all input keys are output
+
+import sys
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+requiredKeys = ['cluster.CLUSTER_NAME',
+                'params.NUM_QUERY_SEQ',
+                'params.CPU_HRS_PER_FILE',
+                'params.SEQS_PER_FILE',
+                ]
+
+allKeys = set(requiredKeys)
+kv = {}
+
+for line in sys.stdin:
+    sys.stdout.write(line.strip() + '\n')
+    k, v = line.strip().split('=', 1)
+    if k in allKeys:
+        kv[k] = v
+
+if set(requiredKeys) - set(kv.keys()):
+    raise Exception('Not all required keys specified')
+
+#
+# We are adding 1 here because almost every calculationg is going to be
+# hours + some fraction and we always get charged a whole hour for a fraction
+# well add 1 to the cpu hours and then cut it off at the int value.  This is only
+# going over if we have calculated the number of CPU hours exactly on an integer
+# value, but the chances of that are really slim
+computedCPUHours = int( float(kv['params.CPU_HRS_PER_FILE'])*(float(kv['params.NUM_QUERY_SEQ'])/float(kv['params.SEQS_PER_FILE'])) + 1)
+
+sys.stdout.write('\n'.join(['pipeline.COMPUTED_CPU_HOURS=' + str(computedCPUHours)]) + '\n')
+
