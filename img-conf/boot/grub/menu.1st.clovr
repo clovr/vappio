@@ -1,0 +1,18 @@
+default=0
+timeout=2
+
+title vmlinuz-2.6.32-23-generic (Default)
+root (hd0,0) 
+kernel /boot/vmlinuz-2.6.32-23-generic root=/dev/sda1 ro ipv6.disable=1 quiet splash vga=0x0311
+initrd /boot/initrd.img-2.6.32-23-generic
+
+title vmlinuz-2.6.32-23-generic (Safe boot, skip splash screen)
+root (hd0,0) 
+kernel /boot/vmlinuz-2.6.32-23-generic root=/dev/sda1 ro ipv6.disable=1 quiet
+initrd /boot/initrd.img-2.6.32-23-generic
+
+#title vmlinuz-2.6.32-21-server
+#root (hd0,0) 
+#kernel /boot/vmlinuz-2.6.32-21-server root=/dev/sda1 ro ipv6.disable=1 quiet
+#initrd /boot/initrd.img-2.6.32-21-server
+
