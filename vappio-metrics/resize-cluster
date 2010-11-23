@@ -3,6 +3,8 @@ import sys
 
 from vappio.webservice import cluster
 
+from igs.utils import commands
+
 # Ensure we are dealing with kv pairs
 if sys.stdin.readline().strip() != 'kv':
     raise Exception('Header needs to be kv')
@@ -22,6 +24,8 @@ for line in sys.stdin:
 
 if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
+
+commands.runSystemEx('updateClusterInfo.py')
 
 cl = cluster.loadCluster('localhost', kv['cluster.CLUSTER_NAME'])
 
