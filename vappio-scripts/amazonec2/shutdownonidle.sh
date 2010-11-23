@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #shutdownonidle.sh
 #Checks if a node is performing any work and if not schedules a shutdown in 5 minutes
@@ -64,7 +64,7 @@ if [ -s $vappio_runtime/sge.running ]
  then
 	cat $vappio_runtime/sge.running	
  else
-    $vappio_scripts/remove_sgehost.sh
+    $vappio_scripts/remove_sgehost.sh `hostname -f`
     verror "Scheduling shutdown in $delayshutdown minutes of $myhostname"
     /sbin/shutdown -h +$delayshutdown "Cron enabled shutdown scheduled. Override by running 'shutdown -c'" 
 fi

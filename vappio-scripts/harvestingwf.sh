@@ -16,11 +16,11 @@ request_cwd=$3
 hostname=`hostname -f`
 
 vlog "Running harvestingwf.sh. Script arguments exechost=$1 wfdir=$2 request_cwd=$3"
-
+wfdir=`echo "$wfdir" | perl -ne 's/\"//g;print'`
 parentdir=`echo "$wfdir" | perl -ne '/(.*\/)[^\/]+/;print $1'`
 
 #Harvest workflow XML if this is a workflow command
-if [ "$wfdir" != "" ] && [ -d "$parentdir" ]
+if [ "$wfdir" != "" ] 
 then
     vlog "Harvesting workflow output from $exechost:$wfdir to $parentdir"
     mkdir -p $parentdir
