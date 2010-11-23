@@ -113,7 +113,6 @@ if [ -d "$imagedir" ] && [ -f "$imagedir/shared/vappio-conf/clovr_ec2.conf" ]
 then
     echo "Writing $ami to $imagedir/shared/vappio-conf/clovr*.conf"
     perl -pi -e "s/^ami=.*/ami=$ami/" $imagedir/shared/vappio-conf/clovr_ec2.conf
-    perl -pi -e "s/^ami=.*/ami=$imgname.img/" $imagedir/shared/vappio-conf/clovr_diag.conf
 fi
 echo "Bundled and uploaded AMI: $ami"
 

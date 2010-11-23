@@ -1,0 +1,97 @@
+#!/bin/bash -e
+
+USAGE="vp-bundle-diag [-f] image.img|imagedir [init script]\n
+Bundles and uploads an AMI of image.img\n
+Requires authentication information in the following files\n
+/mnt/keys/diagcert /mnt/keys/diagkey
+Use -f to force rebundle and upload even if the bucket already exists\n
+If a directory imagedir is specified, looks for imagedir.img and attempts to write AMI to imagedir/clovr.conf
+Will tar imagedir upon successful completion
+If an init script is specified, this script is run before bundling the image
+"
+
+
+i=0
+while getopts "fh" options; do
+  case $options in
+    f ) force="force"
+	  i=`expr $i + 1`
+	  ;;
+    h ) echo -e $USAGE
+	  exit 1;;
+    \? ) echo -e $USAGE
+         exit 1;;
+  esac
+done
+for (( c=1; c<=$i; c++ ))
+do
+    shift
+done
+
+if [ -d "$1" ]
+then
+    imagedir=$1
+    image="$1.img"
+else
+    image=$1
+fi
+
+if [ ! -f "$image" ]
+then
+    echo "Can't find image $image"
+    echo "$USAGE"
+    exit 1
+fi
+if [ ! -f "/mnt/keys/diagcert" ] || [ ! -f "/mnt/keys/diagkey" ]
+then
+    echo "Save diag cert and key /mnt/keys"
+    echo "Files: diagcert, diagkey"
+    exit 2
+fi
+
+imgname=`basename $1`
+
+#Assumes running on a clovr build image
+source /opt/vappio-scripts/clovrEnv.sh
+export PATH=$PATH:/opt/opt-packages/nimbus-cloud-client-016/bin
+
+utildir=/opt/vappio-util
+
+
+if [ "$3" != "" ]
+then
+#Run init script on image
+    $utildir/vp-runonimg $1 $3
+fi
+
+# Setup keys
+mkdir ~/.globus
+cp /mnt/keys/diagcert ~/.globus/usercert.pem
+cp /mnt/keys/diagkey ~/.globus/uesrkey.pem
+
+IMAGE_EXISTS=`cloud-client.sh --list | grep $imgname.img`
+
+if [ ! "$IMAGE_EXISTS" = "" ] && [ "$force" = "force" ]
+then
+    cloud-client.sh --delete --name $image
+fi
+
+if [ ! "$IMAGE_EXISTS" = "" ] && [ ! "$force" = "force"]
+then
+    rm -rf ~/.globus
+    echo "Image is already on diag"
+    exit 2
+fi
+
+cloud-client.sh --transfer --sourcefile $image
+
+rm -rf ~/.globus
+
+#Set AMI in clovr.conf if this is a clovr image
+if [ -d "$imagedir" ] && [ -f "$imagedir/shared/vappio-conf/clovr_diag.conf" ]
+then
+    echo "Writing $imagename.img to $imagedir/shared/vappio-conf/clovr*.conf"
+    perl -pi -e "s/^ami=.*/ami=$imgname.img/" $imagedir/shared/vappio-conf/clovr_diag.conf
+fi
+echo "Bundled and uploaded image"
+
