@@ -12,7 +12,9 @@ $VAPPIO_HOME/vappio-install/vp-bootstrap-install
 bash -e $VAPPIO_RECIPES/setup.sh
 #Basic system config
 bash -e $VAPPIO_RECIPES/sysconfigs.sh
-bash -e $VAPPIO_RECIPES/disablesplash.sh
+#bash -e $VAPPIO_RECIPES/disablesplash.sh
+bash -e $VAPPIO_RECIPES/clovrsplash.sh
+
 #bash -e $VAPPIO_RECIPES/useradd.sh
 
 #High performance SSH
