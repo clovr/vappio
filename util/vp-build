@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-USAGE="vp-build [-o] [-z] [-t] [-c] [-d bundledir] image.img buildname buildscript1 [script2 ... scriptN]\n
+USAGE="vp-build [-s splashscript] [-o] [-z] [-t] [-c] [-d bundledir] image.img buildname buildscript1 [script2 ... scriptN]\n
  \n
  Builds new image(s) starting with image.img and running one or more build scripts\n
  Output is an image buildname.img and directory containing VMs in vmware and virtualbox formats\n
@@ -17,6 +17,7 @@ USAGE="vp-build [-o] [-z] [-t] [-c] [-d bundledir] image.img buildname buildscri
  -z Compress output image.img\n
  -t Automatically bundle virtualbox or vmware tools.\n
  -c Cleanup an aborted build. Failed builds may leave mounts and loopback devices. Cleanup with vp-build -c image.img\n
+ -s script to install and configure splash screen\n
 
 "
 
@@ -45,7 +46,7 @@ bundledir=/opt/vappio-install/bundles
 
 utildir=/opt/vappio-util
 
-while getopts "oztdch" options; do
+while getopts "soztdch" options; do
   case $options in
       o ) overwrite=1
 	  shift
@@ -57,6 +58,9 @@ while getopts "oztdch" options; do
 	  shift
 	  ;;
       d ) bundledir=$OPTARG
+	  shift
+	  ;;
+      s ) splashscript=$OPTARG
 	  shift
 	  ;;
       c ) clear=1
@@ -265,7 +269,7 @@ $utildir/vp-runonimg $currimg $utildir/erasehostname
 echo "Created raw disk image $currimg"
 
 #Build VMware/VBox release images
-$utildir/vp-bundle-release $bundletools $currimg $namepfx
+$utildir/vp-bundle-release $bundletools $currimg $namepfx $splashscript
 mv $currimg $namepfx.img
 if [ "$compress" != "" ]
 then

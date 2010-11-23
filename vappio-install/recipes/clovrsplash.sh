@@ -1,5 +1,13 @@
 #!/bin/bash
 
+#install kernel mods
+apt-get -y install build-essential
+apt-get -y install linux-headers-`uname -r`
+apt-get -y install linux-image-`uname -r`
+
+#Not being used?
+#rename -f 's/plymouth(\S*)\.conf.disabled/plymouth$1.conf/' /etc/init/plymouth*.conf
+
 #Get base theme
 apt-get -y install plymouth-theme-ubuntu-logo
 

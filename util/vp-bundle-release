@@ -1,9 +1,10 @@
 #!/bin/bash
 
-USAGE="vp-bundle-release [-f] [-t] image.img releasename\n
+USAGE="vp-bundle-release [-f] [-t] image.img releasename [script1 script2 ...]\n
 Creates release-ready VMware (vmdk,vmx) and Virtualbox (ovf,vdi) VMs from a raw disk image, image.img\n
 -f force remakes a vmdk even if one already exists. Default is resume using an existing vmdk\n
 -t Bundle guest tools for VMware and VirtualBox. Off by default.\n
+Additional parameters will be interpreted as scripts to run on the image. This can be used to install and configure a splash screen for the vmware and virtualbox images\n
 "
 
 while getopts "tfh" options; do
@@ -23,15 +24,19 @@ done
 
 currimg=$1
 namepfx=$2
+shift
+shift
+
+sarray=("$@")
 
 recipedir=/opt/vappio-install/recipes
 utildir=/opt/vappio-util
 vmxtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx
 sharedtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared
 
-if [ ! -f "$1" ]
+if [ ! -f "$currimg" ]
 then
-    echo "Image not found $1"
+    echo "Image not found $currimg"
     exit 1;
 fi
 
@@ -42,13 +47,34 @@ then
     pushd /mnt
     tar cvzf grub-boot.tgz boot
     popd
-    
+
+    echo "Copying $currimg to $currimg.vmbundle"
     cp --sparse=always $currimg $currimg.vmbundle
+    
+    if [ "$sarray" != "" ]
+    then
+	for b in $sarray
+	do
+	    if [ -f "$b" ]
+	    then
+		echo "Running $b on image"
+		$utildir/vp-runonimg $currimg.vmbundle $b
+	    else
+		echo "Skipping script $b. Not found"
+	    fi
+	done
+    fi
+
     if [ "$bundletools" != "" ]
     then
+	echo "Bundling vmware guest tools"
 	$utildir/vp-runonimg $currimg.vmbundle $recipedir/vmware.sh
+	echo "Bundling virtualbox guest tools"
 	$utildir/vp-runonimg $currimg.vmbundle $recipedir/vbox.sh
     fi
+
+    
+
     $utildir/vp-runonimg $currimg.vmbundle $utildir/cleanupimg
     
     $utildir/vp-create-vmdk $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
