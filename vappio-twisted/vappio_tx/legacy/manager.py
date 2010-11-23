@@ -41,40 +41,44 @@ class QueueRequest(resource.Resource):
             return MissingRequest()
 
         req = json.loads(request.args['request'][0])
-        retQueue = queue.randomQueueName('www-data')
-        newReq = {'payload': req,
-                  'return_queue': retQueue}
+        if True or req['cluster'] == 'local':
+            retQueue = queue.randomQueueName('www-data')
+            newReq = {'payload': req,
+                      'return_queue': retQueue,
+                      'user_name': 'guest'}
 
-        d = defer.Deferred()
+            d = defer.Deferred()
 
-        def _timeout():
-            self.mq.unsubscribe(retQueue)
-            d.errback()
+            def _timeout():
+                self.mq.unsubscribe(retQueue)
+                d.errback()
             
-        delayed = reactor.callLater(TIMEOUT, _timeout)
+            delayed = reactor.callLater(TIMEOUT, _timeout)
         
-        def _handleMsg(m):
-            delayed.cancel()
-            self.mq.unsubscribe(retQueue)
-            d.callback(m.body)
+            def _handleMsg(m):
+                delayed.cancel()
+                self.mq.unsubscribe(retQueue)
+                d.callback(m.body)
 
 
             
-        self.mq.subscribe(_handleMsg, retQueue)
-        self.mq.send('/queue/' + self.name, json.dumps(newReq))
+            self.mq.subscribe(_handleMsg, retQueue)
+            self.mq.send('/queue/' + self.name, json.dumps(newReq))
             
 
-        d.addCallback(request.write)
+            d.addCallback(request.write)
 
-        def _error(_):
-            request.write(TimeoutRequest())
+            def _error(_):
+                request.write(TimeoutRequest())
 
-        d.addErrback(_error)
+            d.addErrback(_error)
         
-        def _finish(_):
-            request.finish()
+            def _finish(_):
+                request.finish()
 
-        d.addCallback(_finish)
+            d.addCallback(_finish)
+        else:
+            raise Exception('Not implemented yet')
         
         return server.NOT_DONE_YET
 

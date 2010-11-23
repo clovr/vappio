@@ -25,7 +25,7 @@ class MetricError(Exception):
         self.stderr = stderr
 
     def __str__(self):
-        return 'Failed on metric: ' + self.m
+        return 'Failed on metric "%s" with error "%s"' % (self.m, self.stderr)
 
 def splitAndSanitizeMetrics(metrics):
     """
