@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Get base theme
-apt-get install plymouth-theme-ubuntu-logo
+apt-get -y install plymouth-theme-ubuntu-logo
 
 #Made custom theme following
 #http://maketecheasier.com/change-login-and-boot-screen-in-ubuntu-lucid/2010/05/13
