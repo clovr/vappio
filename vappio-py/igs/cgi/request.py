@@ -18,7 +18,7 @@ def performQueryNoParse(host, url, var, timeout=30, debug=False):
         ##
         # Incredibly cheap hack
         conn.sock.settimeout(60)
-        conn.request('POST', url, params)
+        conn.request('POST', url, params, headers={'Content-Type': 'application/x-www-form-urlencoded'})
         return conn.getresponse().read()
 
     count = 4
