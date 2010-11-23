@@ -73,7 +73,8 @@ IMAGE_EXISTS=`cloud-client.sh --list | grep $imgname.img`
 
 if [ ! "$IMAGE_EXISTS" = "" ] && [ "$force" = "force" ]
 then
-    cloud-client.sh --delete --name $image
+    echo "Deleting $imgname.img"
+    cloud-client.sh --delete --name $imgname.img
 fi
 
 if [ ! "$IMAGE_EXISTS" = "" ] && [ ! "$force" = "force" ]
