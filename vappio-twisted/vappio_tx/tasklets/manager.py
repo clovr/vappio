@@ -13,6 +13,7 @@ from igs_tx.utils import errors
 from vappio_tx.mq import client
 
 from vappio_tx.tasks import tasks
+from vappio_tx.tasks import utils as task_utils
 from vappio.tasks import task
 
 class InvalidMetricNameError(Exception):
@@ -44,9 +45,9 @@ def splitAndSanitizeMetrics(metrics):
 
 
 def parseCmd(s):
-    return s.split(' ', 1)[0]
+    return s.split(' ')
 
-def runMetrics(initialText, metrics):
+def runMetrics(taskName, initialText, metrics):
     def _errback(metric, stderr):
         raise MetricError(metric, stderr)
     
@@ -55,56 +56,64 @@ def runMetrics(initialText, metrics):
             m = ms.next()
             stdout = StringIO.StringIO()
             stderr = StringIO.StringIO()
-            p = commands.runProcess(parseCmd(m), initialText=initialText.getvalue(), stdoutf=stdout.write, stderrf=stderr.write)
-            p.addCallback(lambda _ : _run(stdout, ms)).addErrback(lambda _ : _errback(m, stderr))
+            p = commands.runProcess(parseCmd(m),
+                                    initialText=initialText.getvalue(),
+                                    stdoutf=stdout.write,
+                                    stderrf=stderr.write)
+            tasks.updateTask(taskName,
+                             lambda t : t.progress()).addCallback(lambda _ : p)
+            p.addErrback(lambda _ : _errback(m, stderr))
+            p.addCallback(lambda _ : _run(stdout, ms))
             return p
         except StopIteration:
-            return True
+            return initialText.getvalue()
 
     metricsIter = iter(metrics)
     return _run(StringIO.StringIO(initialText), metricsIter)
 
-def createTask(mq, metrics, retQueue):
-    def _err(failure):
-        log.err(failure)
-        mq.send(retQueue, json.dumps({'success': False}))
-        return failure
-
-    def _sendMq(taskName):
-        mq.send(retQueue, json.dumps({'success': True, 'data': taskName}))
-        return taskName
-    
-    d = tasks.createTaskAndSave('runMetric', 1, 'Running ' + ' | '.join(metrics))
-    d.addCallback(_sendMq)
-    d.addErrback(_err)
-
 def runMetricsWithTask(taskName, initialText, metrics):
-    d = tasks.updateTask(taskName, lambda t : t.setState(task.TASK_RUNNING
-                                                         ).addMessage(task.MSG_SILENT,
-                                                                      'Starting to run metric'))
-    d.addCallback(lambda _ : runMetrics(initialText, metrics))
-    d.addCallback(lambda o : tasks.updateTask(taskName, lambda t : t.setState(task.TASK_COMPLETED
-                                                                              ).addMessage(task.MSG_NOTIFICATION, 'Completed'
-                                                                                           ).addResult(o).progress()))
+    d = tasks.updateTask(taskName,
+                         lambda t : t.setState(task.TASK_RUNNING
+                                               ).addMessage(task.MSG_SILENT,
+                                                            'Starting to run ' + ' | '.join(metrics)).update(numTasks=len(metrics)))
+    d.addCallback(lambda _ : runMetrics(taskName, initialText, metrics))
+    d.addCallback(lambda o : tasks.updateTask(taskName,
+                                              lambda t : t.setState(task.TASK_COMPLETED
+                                                                    ).addMessage(task.MSG_NOTIFICATION, 'Completed'
+                                                                                 ).addResult(o)))
     
     def _err(f):
-        tasks.updateTask(taskName, lambda t : t.setState(task.TASK_FAILED
-                                                         ).addException(f.getErrorMessage(), f, errors.stackTraceToString(f)))
+        tasks.updateTask(taskName,
+                         lambda t : t.setState(task.TASK_FAILED
+                                               ).addException(f.getErrorMessage(), f, errors.stackTraceToString(f)))
+
     d.addErrback(_err)
+
+    return d
     
     
 def handleMsg(mq, msg):
     request = json.loads(msg.body)
     payload = request['payload']
     initialConf = payload['conf']
-    initialText = '\n'.join(['kv'] + [k + '=' + v for k, v in initialConf.iteritems()]) + '\n'
-    metrics = splitAndSanitizeMetrics(payload['metrics'])
+    initialText = ('\n'.join(['kv'] + [k + '=' + v for k, v in initialConf.iteritems()]) + '\n').encode('utf_8')
+    metrics = splitAndSanitizeMetrics(payload['metrics'].encode('utf_8'))
+    runMetricsWithTask(request['task_name'], initialText, metrics).addCallback(lambda _ : mq.ack(msg.headers['message-id']))
     
-    createTask(mq, metrics, request['return_queue']).addCallback(runMetricsWithTask, initialText, metrics)
+def verifyRequest(r):
+    return 'conf' in r['payload'] and 'metrics' in r['payload']
     
-
 def makeService(conf):
     mqService = client.makeService(conf)
-    mqService.mqFactory.subscribe(lambda m : handleMsg(mqService.mqFactory, m), conf('tasklets.queue'), {'prefetch': int(conf('tasklets.concurrent_tasklets'))})
+    mqService.mqFactory.subscribe(task_utils.createTaskAndForward(mqService.mqFactory,
+                                                                  conf('tasklets.internal_queue'),
+                                                                  'runMetric',
+                                                                  1,
+                                                                  verifyRequest),
+                                  conf('tasklets.queue'))
+                                  
+    mqService.mqFactory.subscribe(lambda m : handleMsg(mqService.mqFactory, m),
+                                  conf('tasklets.internal_queue'),
+                                  {'prefetch': int(conf('tasklets.concurrent_tasklets'))})
     return mqService
     

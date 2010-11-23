@@ -11,24 +11,30 @@ from vappio_tx.mq import client
 from vappio_tx.legacy import cgi as vappio_cgi
 from vappio_tx.utils import queue
 
+TIMEOUT = 30
+
 def TimeoutRequest():
     return json.dumps({'success': False,
                        'data': {'stacktrace': '',
-                                'name': ''
+                                'name': '',
                                 'msg': 'Timed out waiting for response'}})
     
 def MissingRequest():
     return json.dumps({'success': False,
                        'data': {'stacktrace': '',
-                                'name': ''
+                                'name': '',
                                 'msg': 'Must pass request object'}})
 
 class QueueRequest(resource.Resource):
     """Pushes work down a queue and returns the results"""
 
+    isLeaf = True
+    
     def __init__(self, mq, name):
         self.mq = mq
         self.name = name
+
+        resource.Resource.__init__(self)
     
     def render_GET(self, request):
         if 'request' not in request.args:
@@ -40,19 +46,23 @@ class QueueRequest(resource.Resource):
                   'return_queue': retQueue}
 
         d = defer.Deferred()
-        
-        def _handleMsg(m):
-            self.mq.unsubscribe(retQueue)
-            d.callback(m.body)
 
         def _timeout():
             self.mq.unsubscribe(retQueue)
             d.errback()
             
+        delayed = reactor.callLater(TIMEOUT, _timeout)
+        
+        def _handleMsg(m):
+            delayed.cancel()
+            self.mq.unsubscribe(retQueue)
+            d.callback(m.body)
+
+
+            
         self.mq.subscribe(_handleMsg, retQueue)
         self.mq.send('/queue/' + self.name, json.dumps(newReq))
             
-        reactor.callLater(TIMEOUT, _timeout)
 
         d.addCallback(request.write)
 
@@ -68,16 +78,21 @@ class QueueRequest(resource.Resource):
         
         return server.NOT_DONE_YET
 
+    # Make them the same
+    render_POST = render_GET
+
 class Root(resource.Resource):
     """Root resource"""
 
     def __init__(self, mq):
         self.mq = mq
         self.childFiles = []
+
+        resource.Resource.__init__(self)
     
-    def putChild(self, name, resource):
+    def putChild(self, name, r):
         self.childFiles.append(name)
-        resource.Resource.putChild(self, name, resource)
+        return resource.Resource.putChild(self, name, r)
     
     def getChild(self, name, request):
         if name in self.childFiles:
@@ -89,10 +104,9 @@ def makeService(conf):
     ms = service.MultiService()
     
     mqService = client.makeService(conf)
-    root = Root(mqService)
+    root = Root(mqService.mqFactory)
     vappio_cgi.addCGIDir(root, conf('legacy.cgi_dir'), filterF=lambda f : f.endswith('.py'))
-
-    mqService.addServiceParent(ms)
+    mqService.setServiceParent(ms)
     internet.TCPServer(int(conf('www.port')), server.Site(root)).setServiceParent(ms)
     
     return ms

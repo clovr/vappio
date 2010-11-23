@@ -109,9 +109,9 @@ class _ConnectedState:
         for d, b, h in self.factory._sends:
             self.send(d, b, h)
 
-    def subscribe(handler, destination, headers):
+    def subscribe(self, handler, destination, headers):
         self.factory._subscriptions.append((handler, destination, headers))
-        self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers=headers))
+        self.factory.mqClient.sendMessage(stomper.subscribe(destination, ack='client', headers=headers))
         
     def unsubscribe(self, destination):
         #
@@ -235,7 +235,7 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
 
 
     def _removeSubscription(self, dest):
-        self._subscriptions = [(handler, dst, hd) for handler, dst, hd in self._subscriptions if dst != destination]
+        self._subscriptions = [(handler, dst, hd) for handler, dst, hd in self._subscriptions if dst != dest]
 
     def _findSubscription(self, dest):
         for handler, dst, _hd in self._subscriptions:

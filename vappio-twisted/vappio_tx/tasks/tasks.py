@@ -13,5 +13,5 @@ def updateTask(taskName, f):
     d = threads.deferToThread(task.loadTask, taskName)
     d.addCallback(f)
     d.addCallback(lambda t : threads.deferToThread(task.updateTask, t))
-
+    return d
 

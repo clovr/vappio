@@ -55,7 +55,6 @@ class NonInteractiveProcessProtocol(protocol.ProcessProtocol):
         if reason.value.exitCode in self.expected:
             self.deferred.callback(reason.value)
         else:
-            print 'ere?'
             self.deferred.errback(reason.value)
 
     def processEnded(self, reason):
@@ -94,7 +93,10 @@ def runProcess(cmdArgs,
     if addEnv:
         newEnv = func.updateDict(newEnv, addEnv)
 
-    
+
+    if expected is None:
+        expected = [0]
+        
     pp = NonInteractiveProcessProtocol(stdoutf=stdoutf,
                                        stderrf=stderrf,
                                        expected=expected,
