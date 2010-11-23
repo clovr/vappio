@@ -46,33 +46,27 @@ bundledir=/opt/vappio-install/bundles
 
 utildir=/opt/vappio-util
 
-while getopts "soztdch" options; do
+while getopts "s:oztd:ch" options; do
   case $options in
       o ) overwrite=1
-	  shift
 	  ;;
       z ) compress=1
-	  shift
 	  ;;
       t ) bundletools="-t"
-	  shift
 	  ;;
       d ) bundledir=$OPTARG
-	  shift
-	  shift
 	  ;;
       s ) splashscript=$OPTARG
-	  shift
-	  shift
 	  ;;
-      c ) clear=1
-	  shift;;
+      c ) clear=1;;
       h ) echo -e $USAGE
 	  exit 1;;
       \? ) echo -e $USAGE
          exit 1;;
   esac
 done
+
+shift `expr $OPTIND - 1`
 
 image=$1
 buildnamepfx=$2 
