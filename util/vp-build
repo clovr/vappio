@@ -59,8 +59,10 @@ while getopts "soztdch" options; do
 	  ;;
       d ) bundledir=$OPTARG
 	  shift
+	  shift
 	  ;;
       s ) splashscript=$OPTARG
+	  shift
 	  shift
 	  ;;
       c ) clear=1
