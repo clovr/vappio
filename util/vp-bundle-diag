@@ -65,7 +65,7 @@ then
 fi
 
 # Setup keys
-mkdir ~/.globus
+mkdir -p ~/.globus
 cp /mnt/keys/diagcert ~/.globus/usercert.pem
 cp /mnt/keys/diagkey ~/.globus/uesrkey.pem
 
