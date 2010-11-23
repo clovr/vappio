@@ -17,5 +17,6 @@ then
     then
 	shutdownmin=$((60 + $shutdownmin));
     fi
-    echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > /etc/cron.d/ec2autoshutdown
+    echo "$shutdownmin * * * * $vappio_scripts/amazonec2/shutdownonidle.sh" > $vappio_runtime/shutdown.crontab
+    crontab -u root $vappio_runtime/shutdown.crontab
 fi
