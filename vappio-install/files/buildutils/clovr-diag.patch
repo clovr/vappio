@@ -1,0 +1,85 @@
+Only in .: clovr-diag.patch
+diff -crB /tmp/nimbus-cloud-client-016/conf/cloud.properties ./conf/cloud.properties
+*** /tmp/nimbus-cloud-client-016/conf/cloud.properties	2010-07-26 17:40:50.000000000 -0400
+--- ./conf/cloud.properties	2010-10-13 14:15:48.806536000 -0400
+***************
+*** 28,34 ****
+  # Host+port of the Nimbus central service (not the URL)
+  ###########################################################################
+  
+! vws.factory=localhost:8443
+  
+  
+  ###########################################################################
+--- 28,34 ----
+  # Host+port of the Nimbus central service (not the URL)
+  ###########################################################################
+  
+! vws.factory=diagcloud.igs.umaryland.edu:8443
+  
+  
+  ###########################################################################
+***************
+*** 43,49 ****
+  # Host+port of image repository (not the URL)
+  ###########################################################################
+  
+! vws.repository=localhost:8888
+  
+  
+  ###########################################################################
+--- 43,49 ----
+  # Host+port of image repository (not the URL)
+  ###########################################################################
+  
+! vws.repository=diagcloud.igs.umaryland.edu:8888
+  
+  
+  ###########################################################################
+***************
+*** 51,57 ****
+  # right machine.
+  ###########################################################################
+  
+! vws.factory.identity=/O=Auto/OU=something/CN=localhost
+  
+  
+  ###########################################################################
+--- 51,57 ----
+  # right machine.
+  ###########################################################################
+  
+! vws.factory.identity=/O=Auto/OU=DiagCA/CN=diagcloud.igs.umaryland.edu
+  
+  
+  ###########################################################################
+***************
+*** 61,73 ****
+  vws.repository.type=cumulus
+  vws.repository.s3basekey=VMS
+  vws.repository.s3bucket=Repo
+! 
+  
+  ###########################################################################
+  # Your image repository credentials
+  ###########################################################################
+  
+! vws.repository.s3id=QCUESc1vkgCfsmBkJevW7
+! vws.repository.s3key=______________
+! 
+! 
+--- 61,73 ----
+  vws.repository.type=cumulus
+  vws.repository.s3basekey=VMS
+  vws.repository.s3bucket=Repo
+! vws.repository.s3https=false
+! vws.repository.s3acceptallcerts=false
+  
+  ###########################################################################
+  # Your image repository credentials
+  ###########################################################################
+  
+! vws.repository.s3id=RIJH68F12YMCCAchgglR1
+! vws.repository.s3key=4bT2kVEr0jDFbyul9LFGWaSyyCapXnUqZeOsbSaSZA
+! vws.repository.canonicalid=a3c1057e-d6f5-11df-83bc-001b213bcc5e
+

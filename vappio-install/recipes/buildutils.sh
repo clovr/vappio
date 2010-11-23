@@ -54,3 +54,10 @@ svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-pac
 
 sudo apt-get -y install apt-cacher apache2 
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher
+
+# Install Nimbus stuff
+wget -P /tmp http://www.nimbusproject.org/downloads/nimbus-cloud-client-016.tar.gz
+tar -C /opt/opt-packages/ -zxvf /tmp/nimbus-cloud-client-016.tar.gz
+
+(cd /opt/opt-packages/nimbus-cloud-client-016 && patch -p1 -i /opt/vappio-install/files/buildutils/clovr-diag.patch)
+cp /opt/vappio-install/files/buildutils/b43aa9f3* /opt/opt-packages/nimbus-cloud-client-016/lib/certs
