@@ -6,24 +6,34 @@ from twisted.application import internet
 from twisted.application import service
 from twisted.web import resource
 from twisted.web import server
+from twisted.python import log
+
+from igs_tx.utils import http
 
 from vappio_tx.mq import client
 from vappio_tx.legacy import cgi as vappio_cgi
 from vappio_tx.utils import queue
+from vappio_tx import clusters
 
 TIMEOUT = 30
 
-def TimeoutRequest():
+def TimeoutRequestError():
     return json.dumps({'success': False,
                        'data': {'stacktrace': '',
                                 'name': '',
                                 'msg': 'Timed out waiting for response'}})
     
-def MissingRequest():
+def MissingRequestError():
     return json.dumps({'success': False,
                        'data': {'stacktrace': '',
                                 'name': '',
                                 'msg': 'Must pass request object'}})
+
+def UnknownError():
+    return json.dumps({'success': False,
+                       'data': {'stacktrace': '',
+                                'name': '',
+                                'msg': 'Unable to perform routing request'}})
 
 class QueueRequest(resource.Resource):
     """Pushes work down a queue and returns the results"""
@@ -38,10 +48,10 @@ class QueueRequest(resource.Resource):
     
     def render_GET(self, request):
         if 'request' not in request.args:
-            return MissingRequest()
+            return MissingRequestError()
 
         req = json.loads(request.args['request'][0])
-        if True or req['cluster'] == 'local':
+        if 'cluster' not in req or req['cluster'] == 'local':
             retQueue = queue.randomQueueName('www-data')
             newReq = {'payload': req,
                       'return_queue': retQueue,
@@ -69,7 +79,7 @@ class QueueRequest(resource.Resource):
             d.addCallback(request.write)
 
             def _error(_):
-                request.write(TimeoutRequest())
+                request.write(TimeoutRequestError())
 
             d.addErrback(_error)
         
@@ -78,7 +88,28 @@ class QueueRequest(resource.Resource):
 
             d.addCallback(_finish)
         else:
-            raise Exception('Not implemented yet')
+            d = clusters.loadCluster('localhost', req['cluster'], partial=True)
+
+            def _performQuery(cl):
+                req['cluster'] = 'local'
+                req['name'] = 'local'
+                return http.performQueryNoParse(cl.master.publicDNS,
+                                                '/vappio/' + self.name,
+                                                req)
+
+            d.addCallback(_performQuery)
+
+            def _error(f):
+                log.err(f)
+                return UnknownError()
+            
+            d.addErrback(_error)
+            d.addCallback(request.write)
+            
+            def _finish(_):
+                request.finish()
+
+            d.addCallback(_finish)
         
         return server.NOT_DONE_YET
 
