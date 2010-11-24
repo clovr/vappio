@@ -35,8 +35,7 @@ def main(options, args):
                                        '-nv',
                                        url]), log=logging.DEBUG)
         for f in reliableDownloader.getDownloadFilenames('/tmp', url):
-            sys.stdout.write(open(f).read().strip().split()[0] +
-                             ' ' + os.path.join(os.path.dirname(url), os.path.basename(f[:-len(options('general.suffix'))])) + '\n')
+            sys.stdout.write('\n'.join(['%s %s' % (l.strip().split()[0], os.path.join(os.path.dirname(url), l.strip().split()[1])) for l in open(f)]) + '\n')
 
         reliableDownloader.deleteDownloadedFiles('/tmp', url)
         
