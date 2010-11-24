@@ -14,13 +14,25 @@ sys.stdout.write('kv\n')
 
 pipelineName = sys.argv[1]
 
+confopts = {}
 for line in sys.stdin:
-    sys.stdout.write(line.strip() + '\n')
+    k, v = line.strip().split('=', 1)
+    confopts[k] = v
 
+pipeopts = {}  
 pl = pipeline.pipelineStatus('localhost', 'local', lambda p : p.name == pipelineName)[0]
-sys.stdout.write('\n'.join([k + '=' + str(pl.config(k)).encode('string_escape') for k in pl.config.keys()]) + '\n')
+for k in pl.config.keys():
+    pipeopts[k] = str(pl.config(k)) 
+    
+# now reset all need config vals and add on new ones
+for k in confopts.keys():
+    pipeopts[k] = confopts[k]
+
+for k in pipeopts.keys():
+    sys.stdout.write(str(k) + '=' + str(pipeopts[k]) + "\n")
+
+# the following line of code is saved from the previous version in case i mess up - jrw
+#sys.stdout.write('\n'.join([k + '=' + str(pl.config(k)).encode('string_escape') for k in pl.config.keys()]) + '\n')
 if 'pipeline.PIPELINE_ID' not in pl.config.keys():
-    sys.stdout.write('pipeline.PIPELINE_ID=' + pl.pid)
-
-
+    sys.stdout.write('pipeline.PIPELINE_ID=' + pl.pid + "\n")
 
