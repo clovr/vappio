@@ -1,0 +1,43 @@
+#!/bin/bash
+
+USAGE="vp-runonimg image.img source dest\n
+Copies files or directories from the image.img:source to dest\n
+source must be a file or directory on image.img
+dest must be a file or directory off image
+cp -r is used for a recursive copy
+"
+while getopts "h" options; do
+  case $options in
+      h ) echo -e $USAGE
+	  exit 1;;
+      \? ) echo -e $USAGE
+          exit 1;;
+  esac
+done
+
+#Mounts image as loopback, copies CMD onto the image and runs
+
+devname=`losetup --show -f $1`
+rm -rf /mnt/$$
+mkdir /mnt/$$
+
+mount $devname /mnt/$$
+#mount --bind /proc /mnt/$$/proc
+mount -t proc none /mnt/$$/proc
+mount --bind /sys /mnt/$$/sys
+mount --bind /dev /mnt/$$/dev
+
+cp -r /mnt/$$/$2 $3
+
+sync
+
+umount -l /mnt/$$/proc
+umount -l /mnt/$$/sys
+umount -l /mnt/$$/dev
+umount -l /mnt/$$
+
+rmdir /mnt/$$
+
+losetup -d $devname
+
+exit

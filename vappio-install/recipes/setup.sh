@@ -107,3 +107,5 @@ apt-get -y install ntpdate
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/ntpdate.sh /etc/init.d/ntpdate.sh
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cron.hourly/ntpdate /etc/cron.hourly/ntpdate
 
+#Install default boot loader, can be overwritten later
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /boot

@@ -8,6 +8,8 @@ apt-get -y install linux-image-`uname -r`
 #Not being used?
 #rename -f 's/plymouth(\S*)\.conf.disabled/plymouth$1.conf/' /etc/init/plymouth*.conf
 
+svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /boot/
+
 #Get base theme
 apt-get -y install plymouth-theme-ubuntu-logo
 

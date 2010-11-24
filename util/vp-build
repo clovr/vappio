@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-USAGE="vp-build [-s splashscript] [-o] [-z] [-t] [-c] [-d bundledir] image.img buildname buildscript1 [script2 ... scriptN]\n
+USAGE="vp-build [-o] [-z] [-t] [-c] [-s splashscript] [-b bootloader] [-d bundledir] image.img buildname buildscript1 [script2 ... scriptN]\n
  \n
  Builds new image(s) starting with image.img and running one or more build scripts\n
  Output is an image buildname.img and directory containing VMs in vmware and virtualbox formats\n
@@ -18,7 +18,7 @@ USAGE="vp-build [-s splashscript] [-o] [-z] [-t] [-c] [-d bundledir] image.img b
  -t Automatically bundle virtualbox or vmware tools.\n
  -c Cleanup an aborted build. Failed builds may leave mounts and loopback devices. Cleanup with vp-build -c image.img\n
  -s script to install and configure splash screen\n
-
+ -b Custom boot loader. Must be a .tgz containing a /boot directory compatible with the kernel on image.img. If not specified, will use /boot on the image. Specify -b \"default\" to use img-conf/boot in SVN.
 "
 
 #
@@ -46,7 +46,7 @@ bundledir=/opt/vappio-install/bundles
 
 utildir=/opt/vappio-util
 
-while getopts "s:oztd:ch" options; do
+while getopts "b:s:oztd:ch" options; do
   case $options in
       o ) overwrite=1
 	  ;;
@@ -57,6 +57,8 @@ while getopts "s:oztd:ch" options; do
       d ) bundledir=$OPTARG
 	  ;;
       s ) splashscript=$OPTARG
+	  ;;
+      b ) bootloader="-b $OPTARG"
 	  ;;
       c ) clear=1;;
       h ) echo -e $USAGE
@@ -260,12 +262,20 @@ $utildir/vp-runonimg $currimg $utildir/cleanupimg
 #EC2 ignores and resets your hostname
 $utildir/vp-runonimg $currimg $utildir/erasehostname
 
-#Build xen
-#create example clovr-xen.conf and bundle kernel image
+#Raw disk image is ready
 echo "Created raw disk image $currimg"
 
+#if [ "$bootloader" = "default" ]
+#then
+#    svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /mnt/boot
+#    pushd /mnt
+#    tar cvzf grub-boot.tgz boot
+#    popd
+#    bootloader="-b /mnt/grub-boot.tgz"
+#fi
+
 #Build VMware/VBox release images
-$utildir/vp-bundle-release $bundletools $currimg $namepfx $splashscript
+$utildir/vp-bundle-release $bundletools $bootloader $currimg $namepfx $splashscript 
 mv $currimg $namepfx.img
 if [ "$compress" != "" ]
 then

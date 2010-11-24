@@ -1,19 +1,20 @@
 #!/bin/bash
 
-USAGE="vp-bundle-release [-f] [-t] image.img releasename [script1 script2 ...]\n
+USAGE="vp-bundle-release [-b bootloader] [-f] [-t] image.img releasename [script1 script2 ...]\n
 Creates release-ready VMware (vmdk,vmx) and Virtualbox (ovf,vdi) VMs from a raw disk image, image.img\n
 -f force remakes a vmdk even if one already exists. Default is resume using an existing vmdk\n
 -t Bundle guest tools for VMware and VirtualBox. Off by default.\n
+-b Custom boot loader. Must be a .tgz containing a /boot directory compatible with the kernel on image.img. If none is specified, will use the /boot directory from the image
 Additional parameters will be interpreted as scripts to run on the image. This can be used to install and configure a splash screen for the vmware and virtualbox images\n
 "
 
-while getopts "tfh" options; do
+while getopts "b:tfh" options; do
   case $options in
+      b ) bootloader=$OPTARG
+	  ;;
       t ) bundletools=1
-	  shift
 	  ;;
       f ) force=1
-	  shift
 	  ;;
       h ) echo -e $USAGE
 	  exit 1;;
@@ -22,8 +23,11 @@ while getopts "tfh" options; do
   esac
 done
 
+shift `expr $OPTIND - 1`
+
 currimg=$1
 namepfx=$2
+
 shift
 shift
 
@@ -42,11 +46,6 @@ fi
 
 if [ "$force" != "" ] || [ ! -e $currimg.vmdk ]
 then
-    wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
-    svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /mnt/boot
-    pushd /mnt
-    tar cvzf grub-boot.tgz boot
-    popd
 
     echo "Copying $currimg to $currimg.vmbundle"
     cp --sparse=always $currimg $currimg.vmbundle
@@ -73,12 +72,22 @@ then
 	$utildir/vp-runonimg $currimg.vmbundle $recipedir/vbox.sh
     fi
 
-    
+    if [ "$bootloader" = "" ]
+    then
+	mkdir /mnt/boot$$
+	$utildir/vp-copyfromimg $currimg.vmbundle /boot /mnt/boot$$/
+	pushd /mnt/boot$$
+	tar cvzf /mnt/grub-boot$$.tgz boot
+	popd
+	rm -rf /mnt/boot$$
+	bootloader=/mnt/grub-boot$$.tgz
+    fi
 
     $utildir/vp-runonimg $currimg.vmbundle $utildir/cleanupimg
     
-    $utildir/vp-create-vmdk $currimg.vmbundle /mnt/grub-boot.tgz $currimg.vmdk
+    $utildir/vp-create-vmdk $currimg.vmbundle $bootloader $currimg.vmdk
     echo "Created $currimg.vmdk"
+    rm -f /mnt/grub-boot$$.tgz
     rm -rf $currimg.vmbundle
 fi
 
