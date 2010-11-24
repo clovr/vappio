@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash 
 
 USAGE="vp-bundle-diag [-f] image.img|imagedir [init script]\n
 Bundles and uploads an AMI of image.img\n
@@ -69,6 +69,7 @@ mkdir -p ~/.globus
 cp /mnt/keys/diagcert ~/.globus/usercert.pem
 cp /mnt/keys/diagkey ~/.globus/uesrkey.pem
 
+echo "Checking for image"
 IMAGE_EXISTS=`cloud-client.sh --list | grep $imgname.img`
 
 if [ ! "$IMAGE_EXISTS" = "" ] && [ "$force" = "force" ]
@@ -84,6 +85,7 @@ then
     exit 2
 fi
 
+echo "Running cloud client"
 cloud-client.sh --transfer --sourcefile $image
 
 rm -rf ~/.globus
