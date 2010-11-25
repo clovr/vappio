@@ -6,7 +6,7 @@ apt-get -y install linux-headers-`uname -r`
 apt-get -y install linux-image-`uname -r`
 
 #Not being used?
-#rename -f 's/plymouth(\S*)\.conf.disabled/plymouth$1.conf/' /etc/init/plymouth*.conf
+rename -f 's/plymouth(\S*)\.conf.disabled/plymouth$1.conf/' /etc/init/plymouth*.conf
 
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /boot/
 
@@ -29,7 +29,7 @@ update-alternatives --install /lib/plymouth/themes/default.plymouth default.plym
 sudo update-alternatives --set default.plymouth /lib/plymouth/themes/clovr/clovr.plymouth
 
 #Enable framebuffer
-echo "FRAMEBUFFER=y" > /etc/update-initramfs/conf.d/framebuffer.conf
+echo "FRAMEBUFFER=y" > /etc/initramfs-tools/conf.d/framebuffer.conf
 mv -f /etc/modprobe.d/blacklist-framebuffer.conf /etc/modprobe.d/blacklist-framebuffer.conf.disabled
 
 #Update menu.1st
