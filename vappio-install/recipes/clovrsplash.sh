@@ -29,8 +29,10 @@ update-alternatives --install /lib/plymouth/themes/default.plymouth default.plym
 sudo update-alternatives --set default.plymouth /lib/plymouth/themes/clovr/clovr.plymouth
 
 #Enable framebuffer
-echo "FRAMEBUFFER=y" > /etc/initramfs-tools/conf.d/framebuffer.conf
-mv -f /etc/modprobe.d/blacklist-framebuffer.conf /etc/modprobe.d/blacklist-framebuffer.conf.disabled
+echo "FRAMEBUFFER=y" > /etc/initramfs-tools/conf.d/splash
+
+#Keep this disabled for now
+#mv -f /etc/modprobe.d/blacklist-framebuffer.conf /etc/modprobe.d/blacklist-framebuffer.conf.disabled
 
 #Update menu.1st
 #Need to reset menu.1st vga=0x0314 800x600, vga=0x0311 640x480
