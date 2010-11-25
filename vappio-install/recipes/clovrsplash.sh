@@ -6,7 +6,7 @@ apt-get -y install linux-headers-`uname -r`
 apt-get -y install linux-image-`uname -r`
 
 #Not being used?
-rename -f 's/plymouth(\S*)\.conf.disabled/plymouth$1.conf/' /etc/init/plymouth*.conf
+rename -f 's/plymouth(\S*)\.conf\.disabled/plymouth$1.conf/' /etc/init/plymouth*.conf.disabled
 
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /boot/
 
