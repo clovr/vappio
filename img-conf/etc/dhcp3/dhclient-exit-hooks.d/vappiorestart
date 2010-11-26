@@ -33,6 +33,9 @@ then
 		    nodetype="master"
 		fi
 		$vappio_scripts/vp-start-node $nodetype
+		#TODO, move this to /etc/vappio startup sequence
+		/opt/vappio-py/vappio/cli/createLocalMachineConf.py --conf=/mnt/vappio-conf/clovr_base.conf -o /tmp/machine.conf
+		/opt/vappio-py/vappio/cli/remote/startUpNode.py
 	    else
 		vlog "DHCP, same address as previous. skipping reset"
 	    fi

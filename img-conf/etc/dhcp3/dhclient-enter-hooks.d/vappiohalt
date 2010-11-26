@@ -1,0 +1,25 @@
+if [ -f "/var/vappio/runtime/node_type" ]
+then
+    mirrorlogs=0
+    vappio_scripts=/opt/vappio-scripts
+    source $vappio_scripts/vappio_config.sh
+    
+    nodetype=`cat $vappio_runtime/node_type`
+    
+    if [ "$reason" = "BOUND" ] 
+    then
+	vlog "DHCP new address $new_ip_address"
+	if [ "$nodetype" != "PENDING" ] && [ "$nodetype" != "OFFLINE" ] && [ "$nodetype" != "" ]
+	then
+	    old_ip_address=`cat /mnt/clovr_ip`
+	    if [ "$new_ip_address" != "$old_ip_address" ]
+	    then
+		vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
+		vlog "DHCP change, forcing removal of current host `hostname -f` from SGE"
+		$vappio_scripts/vp-stop-node
+		#TODO, move this to /etc/vappio shutdown sequence
+		/opt/vappio-py/vappio/cli/remote/shutdownNode.py	
+	    fi
+	fi
+    fi
+fi
