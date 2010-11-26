@@ -52,14 +52,13 @@ class NonInteractiveProcessProtocol(protocol.ProcessProtocol):
         pass
         
     def processExited(self, reason):
+        pass
+    
+    def processEnded(self, reason):
         if reason.value.exitCode in self.expected:
             self.deferred.callback(reason.value)
         else:
             self.deferred.errback(reason.value)
-
-    def processEnded(self, reason):
-        # This function is basically deprecated, ignore
-        pass
 
 
 def runProcess(cmdArgs,

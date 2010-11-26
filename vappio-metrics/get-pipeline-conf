@@ -24,10 +24,7 @@ for line in sys.stdin:
     pipelineValues[k] = v
 
 
-# the following line of code is saved from the previous version in case i mess up - jrw
-#sys.stdout.write('\n'.join([k + '=' + str(pl.config(k)).encode('string_escape') for k in pl.config.keys()]) + '\n')
-if 'pipeline.PIPELINE_ID' not in pl.config.keys():
-    pipelineValues['pipeline.PIPELINE_ID'] = pl.pid
+pipelineValues['pipeline.PIPELINE_ID'] = pl.pid
     
 for k, v in pipelineValues.iteritems():
     sys.stdout.write(str(k) + '=' + str(v) + '\n')
