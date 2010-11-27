@@ -61,7 +61,7 @@ class QueueRequest(resource.Resource):
 
             def _timeout():
                 self.mq.unsubscribe(retQueue)
-                d.errback()
+                d.errback(Exception('Waiting for request failed'))
             
             delayed = reactor.callLater(TIMEOUT, _timeout)
         
