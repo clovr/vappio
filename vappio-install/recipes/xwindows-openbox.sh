@@ -9,7 +9,7 @@ apt-get -y install conky
 apt-get -y install tint2
 
 #Install better terminal
-apt-get -y sakura
+apt-get -y install sakura
 
 #/root/.config sakura
 tmpdir=/tmp/$$
