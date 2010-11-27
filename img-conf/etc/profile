@@ -4,8 +4,9 @@
 tty=`who am i | grep "[[:space:]]tty1[[:space:]]"`
 if [ -z "$DISPLAY" ] && [ "$tty" != "" ]
 then
-#. startx
-echo "Run startx to enter graphical console"
+ echo "Starting graphical console. Control-C to abort"
+ sleep 2
+ . startx
 fi
 
 if [ -d /etc/profile.d ]; then
