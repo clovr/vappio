@@ -1,6 +1,13 @@
 # /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
 # and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
 
+tty=`who am i | grep "[[:space:]]tty1[[:space:]]"`
+if [ -z "$DISPLAY" ] && [ "$tty" != "" ]
+then
+#. startx
+echo "Run startx to enter graphical console"
+fi
+
 if [ -d /etc/profile.d ]; then
   for i in /etc/profile.d/*.sh; do
     if [ -r $i ]; then

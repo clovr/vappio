@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=CloVR logo
+Description=A theme that features a blank background with a logo.
+ModuleName=script
+
+[script]
+ImageDir=/lib/plymouth/themes/clovr
+ScriptFile=/lib/plymouth/themes/clovr/clovr.script

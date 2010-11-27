@@ -1,0 +1,212 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+"http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+<Menu> <!-- Bioinformatics -->
+  <Name>Applications</Name>
+  <Menu>
+    <Name>Bioinformatics</Name>
+    <Directory>bioinformatics.directory</Directory>
+    <Include><And><Category>Bioinformatics</Category></And></Include>
+    <Menu> <!-- QTLCart -->
+      <Name>QTLCart</Name>
+      <Directory>qtlcart.directory</Directory>
+      <Include><And><Category>QTLCart</Category></And></Include>
+    </Menu>
+    
+    <Menu> <!-- Top-level Emboss directory -->
+      <Name>Emboss</Name>
+      <Directory>emboss.directory</Directory>
+      
+      <!-- all EMBOSS subdirectories sit under here -->
+      <Menu> <!-- EMBOSS Alignment -->
+	<Name>Alignment</Name>
+	<Directory>alignment.directory</Directory>
+	<Include>
+	  <And><Category>Alignment</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Alignment consensus -->
+	<Name>Alignment consensus</Name>
+	<Directory>alignmentconsensus.directory</Directory>
+	<Include>
+	  <And><Category>Alignment consensus</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Alignment dot -->
+	<Name>Alignment dot</Name>
+	<Directory>alignmentdot.directory</Directory>
+	<Include>
+	  <And><Category>Alignment dot</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Alignment multiple -->
+	<Name>Alignment multiple</Name>
+	<Directory>alignmentmultiple.directory</Directory>
+	<Include>
+	  <And><Category>Alignment multiple</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Display -->
+	<Name>Display</Name>
+	<Directory>display.directory</Directory>
+	<Include>
+	  <And><Category>Display</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Edit -->
+	<Name>Edit</Name>
+	<Directory>edit.directory</Directory>
+	<Include>
+	  <And><Category>Edit</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Enzyme kinetics -->
+	<Name>Enzyme kinetics</Name>
+	<Directory>enzymekinetics.directory</Directory>
+	<Include>
+	  <And><Category>Enzyme kinetics</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Feature tables -->
+	<Name>Feature tables</Name>
+	<Directory>featuretables.directory</Directory>
+	<Include>
+	  <And><Category>Feature tables</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Information -->
+	<Name>Information</Name>
+	<Directory>information.directory</Directory>
+	<Include>
+	  <And><Category>Information</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid 2D -->
+	<Name>Nucleic acid 2D</Name>
+	<Directory>nucleicacid2d.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid 2D</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid codon -->
+	<Name>Nucleic acid codon</Name>
+	<Directory>nucleicacidcodon.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid codon</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid composition -->
+	<Name>Nucleic acid composition</Name>
+	<Directory>nucleicacidcomposition.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid composition</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid CPG -->
+	<Name>Nucleic acid CPG</Name>
+	<Directory>nucleicacidcpg.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid CPG</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid gene -->
+	<Name>Nucleic acid gene</Name>
+	<Directory>nucleicacidgene.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid gene</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid motifs -->
+	<Name>Nucleic acid motifs</Name>
+	<Directory>nucleicacidmotifs.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid motifs</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid primers -->
+	<Name>Nucleic acid primers</Name>
+	<Directory>nucleicacidprimers.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid primers</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid repeats -->
+	<Name>Nucleic acid repeats</Name>
+	<Directory>nucleicacidrepeats.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid repeats</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid restriction -->
+	<Name>Nucleic acid restriction</Name>
+	<Directory>nucleicacidrestriction.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid restriction</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acids mutation -->
+	<Name>Nucleic acids mutation</Name>
+	<Directory>nucleicacidsmutation.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acids mutation</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acids transcription -->
+	<Name>Nucleic acids transcription</Name>
+	<Directory>nucleicacidstranscription.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acids transcription</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Nucleic acid translation -->
+	<Name>Nucleic acid translation</Name>
+	<Directory>nucleicacidtranslation.directory</Directory>
+	<Include>
+	  <And><Category>Nucleic acid translation</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Phylogeny -->
+	<Name>Phylogeny</Name>
+	<Directory>phylogeny.directory</Directory>
+	<Include>
+	  <And><Category>Phylogeny</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Protein 2D -->
+	<Name>Protein 2D</Name>
+	<Directory>protein2d.directory</Directory>
+	<Include>
+	  <And><Category>Protein 2D</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Protein composition -->
+	<Name>Protein composition</Name>
+	<Directory>proteincomposition.directory</Directory>
+	<Include>
+	  <And><Category>Protein composition</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Protein motifs -->
+	<Name>Protein motifs</Name>
+	<Directory>proteinmotifs.directory</Directory>
+	<Include>
+	  <And><Category>Protein motifs</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Protein profiles -->
+	<Name>Protein profiles</Name>
+	<Directory>proteinprofiles.directory</Directory>
+	<Include>
+	  <And><Category>Protein profiles</Category></And>
+	</Include>
+      </Menu>
+      <Menu> <!-- EMBOSS Utils database -->
+	<Name>Utils database</Name>
+	<Directory>utilsdatabase.directory</Directory>
+	<Include>
+	  <And><Category>Utils database</Category></And>
+	</Include>
+      </Menu>
+    </Menu> <!-- EMBOSS end -->
+  </Menu> <!-- Bioinformatics -->
+</Menu>
+  

@@ -18,9 +18,17 @@ apt-get -y install plymouth-theme-ubuntu-logo
 #update-alternatives --install /lib/plymouth/themes/default.plymouth default.plymouth /lib/plymouth/themes/mytheme/mytheme.plymouth 100
 
 #Get theme
-wget -P /lib/plymouth/themes/ http://cb2.igs.umaryland.edu/plymouth-clovr.tgz
-pushd /lib/plymouth/themes/
-tar xvzf plymouth-clovr.tgz
+#wget -P /lib/plymouth/themes/ http://cb2.igs.umaryland.edu/plymouth-clovr.tgz
+tmpdir=/tmp/$$
+rm -rf $tmpdir
+mkdir -p $tmpdir /lib/plymouth/themes/clovr
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/lib/plymouth/themes/clovr $tmpdir/lib/plymouth/themes/clovr
+pushd $tmpdir
+echo "Creating install$$.tgz"
+tar cvzf ../install$$.tgz .
+echo "Creating install$$.tgz"
+tar -C / -xvzf ../install$$.tgz
+rm ../install$$.tgz
 popd
 
 #Change theme to clovr
@@ -39,6 +47,8 @@ echo "FRAMEBUFFER=y" > /etc/initramfs-tools/conf.d/splash
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot/grub/menu.lst.clovr /boot/grub/menu.lst
 sudo update-initramfs -u -k `uname -r`
 
+#Add xwindows system support
+/opt/vappio-install/recipes/xwindows-openbox.sh
 
 
 
