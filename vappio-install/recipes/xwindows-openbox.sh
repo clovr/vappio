@@ -2,7 +2,7 @@
 
 apt-get -y install x-window-system
 apt-get -y install openbox openbox-themes
-apt-get -y install hsetterm
+apt-get -y install hsetroot
 hsetterm -full /lib/plymouth/themes/clovr/clovr_topleft.png
 
 apt-get -y install conky
