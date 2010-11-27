@@ -3,7 +3,6 @@
 apt-get -y install x-window-system
 apt-get -y install openbox openbox-themes
 apt-get -y install hsetroot
-hsetterm -full /lib/plymouth/themes/clovr/clovr_topleft.png
 
 apt-get -y install conky
 apt-get -y install tint2
@@ -52,6 +51,16 @@ echo "Creating install$$.tgz"
 tar -C / -xvzf ../install$$.tgz
 rm ../install$$.tgz
 popd
+
+#Add auto-startup to /etc/profile
+echo 'tty=`who am i | grep "[[:space:]]tty1[[:space:]]"`' > /tmp/$$.profile
+echo 'if [ -z "$DISPLAY" ] && [ "$tty" != "" ]' >> /tmp/$$.profile
+echo 'then' >> /tmp/$$.profile
+echo 'echo "Starting graphical console. Control-C to abort"' >> /tmp/$$.profile
+echo 'sleep 2' >> /tmp/$$.profile
+echo '. startx' >> /tmp/$$.profile
+echo 'fi' >> /tmp/$$.profile
+cat /tmp/$$.profile /etc/profile > /etc/profile
 
 #apt-get install trayer
 #Add clickable links for shared folders
