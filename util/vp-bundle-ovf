@@ -37,7 +37,10 @@ rm -rf ~/.VirtualBox/Machines/$2
 
 VBoxManage -q createvm --name $2 --register
 
-VBoxManage -q modifyvm $2 --ostype "Ubuntu_64" --memory 2048 --boot1 disk --nic1 bridged
+VBoxManage -q modifyvm $2 --ostype "Ubuntu_64" --memory 2048 --boot1 disk --nic1 bridged 
+
+#For debugging while in beta, enable remote desktop
+#VBoxManage -q modifyvm $2 --vrdp on --vrdpmulticon on
 
 #VBoxManage -q storagectl $2 --name "IDE Controller" --add ide
 #VBoxManage -q storageattach $2 --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium $1
