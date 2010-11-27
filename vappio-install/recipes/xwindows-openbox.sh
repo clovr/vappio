@@ -7,6 +7,7 @@ apt-get -y install hsetroot
 apt-get -y install conky
 apt-get -y install tint2
 apt-get -y install xwit
+apt-get -y install rox-filer
 
 #Install better terminal
 apt-get -y install sakura
