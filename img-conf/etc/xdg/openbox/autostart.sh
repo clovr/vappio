@@ -50,3 +50,5 @@ conky -c /etc/conky/clovr-jobs.conf &
 conky -c /etc/conky/clovr-system.conf &
 
 sakura &
+
+xwith -iconify -names '         CloVR'

@@ -6,6 +6,7 @@ apt-get -y install hsetroot
 
 apt-get -y install conky
 apt-get -y install tint2
+apt-get -y install xwit
 
 #Install better terminal
 apt-get -y install sakura
