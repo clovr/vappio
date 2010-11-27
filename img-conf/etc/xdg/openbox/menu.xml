@@ -6,8 +6,11 @@
                 file:///usr/share/openbox/menu.xsd">
 
 <menu id="root-menu" label="Openbox 3">
-  <item label="Terminal emulator">
+  <item label="Terminal">
     <action name="Execute"><execute>x-terminal-emulator</execute></action>
+  </item>
+  <item label="File manager">
+    <action name="Execute"><execute>rox-filer</execute></action>
   </item>
 <!--
   <item label="Web browser">
@@ -15,6 +18,7 @@
   </item>
 -->
   <!-- This requires the presence of the 'menu' package to work -->
+<!--
   <menu id="Debian" />
   <separator />
   <menu id="client-list-menu" />
@@ -25,6 +29,8 @@
   <item label="Reconfigure">
     <action name="Reconfigure" />
   </item>
+!-->
+  <separator />
   <item label="Restart">
     <action name="Restart" />
   </item>
