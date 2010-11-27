@@ -60,7 +60,9 @@ echo 'echo "Starting graphical console. Control-C to abort"' >> /tmp/$$.profile
 echo 'sleep 2' >> /tmp/$$.profile
 echo '. startx' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
-cat /tmp/$$.profile /etc/profile > /etc/profile
+cat /etc/profile >> /tmp/$$.profile
+mv /tmp/$$.profile /etc/profile
+
 
 #apt-get install trayer
 #Add clickable links for shared folders
