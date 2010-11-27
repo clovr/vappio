@@ -10,6 +10,8 @@ apt-get -y install tint2
 
 #Install better terminal
 apt-get -y install sakura
+#Remove annoying sakura - from title bar
+perl -pi -e 's/sakura - /         /'
 
 #/root/.config sakura
 tmpdir=/tmp/$$
