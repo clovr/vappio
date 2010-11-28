@@ -1,0 +1,35 @@
+#!/bin/bash
+
+USAGE="vp-join-cluster master_ip"
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+##
+
+while getopts "h" options; do
+  case $options in
+      h ) echo -e $USAGE
+	  exit 1;;
+      \? ) echo -e $USAGE
+          exit 1;;
+  esac
+done
+
+if [ "$1" = "" ]
+then
+    echo -e "$USAGE"
+    exit 1;
+else
+    ping $1 -c 1 
+    if [ $? != 0 ]
+    then
+	echo -e "Can't find master node $1"
+	exit 1;
+    fi
+fi
+
+$vappio_scripts/vp-stop-node
+echo "$1" > $vappio_userdata/master_node
+$vappio_scripts/vp-start-node exec
+
