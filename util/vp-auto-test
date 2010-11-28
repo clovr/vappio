@@ -25,8 +25,12 @@ do
     shutdownhour=$(($hour-1))
     echo "echo \"0 $shutdownhour * * * root /sbin/shutdown -h +10\" > /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user-scripts/03-schedshutdown
     echo "chmod +x /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user-scripts/03-schedshutdown
+    echo "#!/bin/bash" > $dname/$bname/shared/user-scripts/04-startvnc
+    echo "apt-get -y install x11vnc" >> $dname/$bname/shared/user-scripts/04-startvnc
+    echo "x11vnc -http -forever -xkb -find &" >> $dname/$bname/shared/user-scripts/04-startvnc
     chmod a+rx $dname/$bname/shared/user-scripts/02-starthudson
     chmod a+rx $dname/$bname/shared/user-scripts/03-schedshutdown
+    chmod a+rx $dname/$bname/shared/user-scripts/04-startvnc
     if [ "$vmcheckdir" != "" ] && [ "$force" != "force" ]
     then
 	numrunning=`find $vmcheckdir -type d -name "clovr-*.lck" -maxdepth 2 | wc -l`
