@@ -117,7 +117,7 @@ $SGE_ROOT/bin/$ARCH/qconf -as $myhostname
 # On completion, add this host to the stagingsub queue so that it can stage other hosts
 # This is a blocking call, so that the node does not come "online" until staging completes
 # Currently makes 2 attempts at staging
-qsubcmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
+qsubcmd="sudo -E -u www-data $SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
 vlog "Running $qsubcmd"
 $qsubcmd 1>> $vappio_log 2>> $vappio_log
 if [ $? == 0 ]
@@ -125,7 +125,7 @@ then
     echo "Successfully seeded node $myhostname"
 else
     echo "ERROR: Failed to seed node $myhostname. See error log /mnt/scratch. Retrying"
-    qsubcmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
+    qsubcmd="sudo -E -u www-data $SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
     vlog "Running $qsubcmd"
     $qsubcmd 1>> $vappio_log 2>> $vappio_log
     if [ $? == 0 ]
