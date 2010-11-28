@@ -5,13 +5,13 @@ echo "kv"
 for l in `df`
 do
 case "$l" in
-    shared*)
+    *shared*)
 	echo "shared_folder=shared"
 	;;
-    user_data*)
+    *user_data*)
 	echo "shared_folder=user_data"
 	;;
-    keys*)
+    *keys*)
 	echo "shared_folder=keys"
 	;;
 esac
