@@ -63,10 +63,8 @@ do_start() {
 	hostname clovr-$ipalias
 	echo "$ipaddr" > /mnt/clovr_ip
 	#If vappio is installed, mark no_dns
-	if [ -f "/var/vappio/runtime" ]
+	if [ -d "/var/vappio/runtime" ]
 	then
-	    vappio_scripts=/opt/vappio-scripts
-	    . $vappio_scripts/vappio_config.sh
 	    touch $vappio_runtime/no_dns
 	fi
     fi
@@ -77,6 +75,8 @@ do_start() {
     then
 	perl -pi -e 's/^send\s+dhcp-client-identifier\s+(\S+)/send dhcp-client-identifier "$ENV{macaddr}";/' /etc/dhcp3/dhclient.conf
     fi
+    #Open permissions on /etc/hosts for web services
+    chmod a+rw /etc/hosts
 }
 
 do_stop() {
