@@ -87,7 +87,7 @@ for node in $stagingnodes
 do
     if [ "$node" != "$master" ]; then
 	vlog "Reseeding $node in $stagingq"
-	jobid=`$SGE_ROOT/bin/$ARCH/qsub -o $scratch_dir -e scratch_dir -S /bin/sh -b n -q $stagingq $seeding_script $node $stagingq 2>> $vappio_log | perl -ne '($jobid) = ($_ =~ /Your job (\d+)/);print $jobid'`
+	jobid=`$SGE_ROOT/bin/$ARCH/qsub -o $scratch_dir -e scratch_dir -S /bin/sh -b n -q $stagingq $seeding_script $node $stagingq | perl -ne '($jobid) = ($_ =~ /Your job (\d+)/);print $jobid'`
 	if [ $jobid ]; then
 	    jobs[$i]=$jobid
 	    i=`expr $i + 1`
@@ -105,7 +105,7 @@ for node in `for h in $stagingsubnodes $execnodes; do echo $h; done | sort -u`
 do
     if [ "$node" != "$master" ]; then 
 	vlog "Reseeding $node in $stagingsubq"
-	jobid=`$SGE_ROOT/bin/$ARCH/qsub -o $scratch_dir -e $scratch_dir -S /bin/sh -b n -q $stagingq,$stagingsubq $seeding_script $node $stagingsubq 2>> $vappio_log | perl -ne '($jobid) = ($_ =~ /Your job (\d+)/);print $jobid'`
+	jobid=`$SGE_ROOT/bin/$ARCH/qsub -o $scratch_dir -e $scratch_dir -S /bin/sh -b n -q $stagingq,$stagingsubq $seeding_script $node $stagingsubq | perl -ne '($jobid) = ($_ =~ /Your job (\d+)/);print $jobid'`
 	if [ $jobid ]; then
 	    jobs[$i]=$jobid
 	    i=`expr $i + 1`

@@ -119,7 +119,7 @@ $SGE_ROOT/bin/$ARCH/qconf -as $myhostname
 # Currently makes 2 attempts at staging
 qsubcmd="sudo -E -u www-data $SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
 vlog "Running $qsubcmd"
-$qsubcmd 1>> $vappio_log 2>> $vappio_log
+$qsubcmd 
 if [ $? == 0 ]
 then
     echo "Successfully seeded node $myhostname"
@@ -127,7 +127,7 @@ else
     echo "ERROR: Failed to seed node $myhostname. See error log /mnt/scratch. Retrying"
     qsubcmd="sudo -E -u www-data $SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -b y -sync y -q $stagingq,$stagingsubq $seeding_script $myhostname $stagingsubq"
     vlog "Running $qsubcmd"
-    $qsubcmd 1>> $vappio_log 2>> $vappio_log
+    $qsubcmd
     if [ $? == 0 ]
     then
 	echo "Successfully seeded node $myhostname on second try"
