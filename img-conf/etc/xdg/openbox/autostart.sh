@@ -51,5 +51,6 @@ conky -c /etc/conky/clovr-system.conf &
 
 sakura &
 rox-filer /mnt/user_data &
+#rox-filer /mnt/output &
 #Wait for WM to start and then minimze these windows
-bash -c "sleep 4;xwit -iconify -names '         CloVR' '/mnt/user_data'" &
+bash -c "sleep 6;xwit -iconify -names '         CloVR' '/mnt/user_data' '/mnt/output'" &
