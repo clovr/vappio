@@ -35,8 +35,8 @@
     <action name="Restart" />
   </item>
   <separator />
-  <item label="Exit">
-    <action name="Exit" />
+  <item label="Exit to terminal">
+    <action name="Execute"><execute>/etc/xdg/openbox/safeexit.sh</execute></action>
   </item>
 </menu>
 
