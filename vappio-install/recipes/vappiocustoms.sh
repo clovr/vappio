@@ -6,7 +6,7 @@
 #date +%m%d%Y > etc/vappio/release_name
 
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.bashrc /root/.bashrc
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root /root/README
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/README /root/README
 
 #Remove startup messages
 rm -f /etc/update-motd.d/51_update-motd
