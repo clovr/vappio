@@ -24,11 +24,18 @@ else
     ping $1 -c 1 
     if [ $? != 0 ]
     then
-	echo -e "Can't find master node $1"
+	echo -e "Can't ping master node $1"
 	exit 1;
     fi
 fi
 
+isreachable=`printf "kv\nhostname=$remotehost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+if [ "$isreachable" = "" ]
+then
+    echo -e "Can't connect to master node $1. Ensure that you have a copy of the master node key in /mnt/keys/devel1.pem"
+    exit 1;
+fi
+bootStrapKeys.py
 $vappio_scripts/vp-stop-node
 echo "$1" > $vappio_userdata/master_node
 $vappio_scripts/vp-start-node exec
