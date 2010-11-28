@@ -92,6 +92,7 @@ then
 	fi
 	echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 	ipaddr=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print ""$2"" }'`
+	#TODO, add support for sending ssh-key
 	curl --retry 5 --silent --show-error --fail "http://$MASTER_NODE/vappio/addHost_ws.py?host=$myhostname&ipaddr=$ipaddr"
     fi
 else
@@ -100,8 +101,13 @@ fi
 
 sgemaster=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 
+#Force new name resolution
+$SGE_ROOT/utilbin/$ARCH/gethostbyname $sgemaster
+$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$sgemaster $SGE_ROOT/utilbin/$ARCH/gethostbyname $myhostname
+
 #start execd
 /etc/init.d/gridengine-exec start
+sleep 2
 
 #add as submit host , needed to submit to staging q
 $SGE_ROOT/bin/$ARCH/qconf -as $myhostname
