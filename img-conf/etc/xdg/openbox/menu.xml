@@ -29,13 +29,14 @@
   <item label="Reconfigure">
     <action name="Reconfigure" />
   </item>
-!-->
   <separator />
   <item label="Restart">
     <action name="Restart" />
   </item>
   <separator />
-  <item label="Exit to terminal">
+!-->
+
+  <item label="Exit to text console">
     <action name="Execute"><execute>/etc/xdg/openbox/safeexit.sh</execute></action>
   </item>
 </menu>
