@@ -55,7 +55,8 @@ rm ../install$$.tgz
 popd
 
 #Add auto-startup to /etc/profile
-echo 'trap "SKIPX=\"yes\"" SIGINT' > /tmp/$$.profile
+#TODO move this to profile.d
+echo 'trap "SKIPX=yes" SIGINT' > /tmp/$$.profile
 echo 'tty=`who am i | grep "[[:space:]]tty1[[:space:]]"`' >> /tmp/$$.profile
 echo 'if [ -z "$DISPLAY" ] && [ "$tty" != "" ]' >> /tmp/$$.profile
 echo 'then' >> /tmp/$$.profile
