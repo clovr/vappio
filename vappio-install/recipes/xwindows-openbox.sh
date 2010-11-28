@@ -55,13 +55,19 @@ rm ../install$$.tgz
 popd
 
 #Add auto-startup to /etc/profile
-echo 'tty=`who am i | grep "[[:space:]]tty1[[:space:]]"`' > /tmp/$$.profile
+echo 'trap "SKIPX=\"yes\"" SIGINT' > /tmp/$$.profile
+echo 'tty=`who am i | grep "[[:space:]]tty1[[:space:]]"`' >> /tmp/$$.profile
 echo 'if [ -z "$DISPLAY" ] && [ "$tty" != "" ]' >> /tmp/$$.profile
 echo 'then' >> /tmp/$$.profile
 echo 'echo "Starting graphical console. Control-C to abort"' >> /tmp/$$.profile
 echo 'sleep 2' >> /tmp/$$.profile
+echo 'if [ "$SKIPX" != "yes" ]' >> /tmp/$$.profile
+echo 'then' >> /tmp/$$.profile
 echo '. startx' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
+echo 'fi' >> /tmp/$$.profile
+echo 'trap SIGINT' >> /tmp/$$.profile
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/profile /etc/profile
 cat /etc/profile >> /tmp/$$.profile
 mv /tmp/$$.profile /etc/profile
 
