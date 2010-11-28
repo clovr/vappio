@@ -1,0 +1,47 @@
+#!/bin/bash
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+read header
+
+if [ "$header" != "kv" ]
+then
+    echo "Header needs to be kv"
+    exit 1;
+fi
+
+while read line
+do
+    set -- `echo $line | tr '=' ' '`
+    key=$1
+    value=$2
+    if [ "$key" = "hostname" ]
+    then
+	hostname=$value
+    fi
+    echo "$key,$value"
+done 
+
+if [ -f "$vappio_runtime/node_type" ]
+then
+    nodetype=`cat $vappio_runtime/node_type`
+fi
+hostn=`hostname`
+timeout=60
+i=0
+while ( [ "$nodetype" = 'PENDING' ] || [ "$nodetype" = "" ] || [ "$hostn" = "(none)" ] ) && [ $i -lt $timeout ]
+do
+    echo -n '.'
+    if [ -f "$vappio_runtime/node_type" ]
+    then
+	nodetype=`cat $vappio_runtime/node_type`
+    fi
+    sleep 1
+    hostn=`hostname`
+    i=`expr $i + 1`
+done 
+
+echo "kv"
+echo "nodetype=$nodetype"

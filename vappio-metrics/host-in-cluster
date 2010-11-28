@@ -1,0 +1,37 @@
+#!/bin/bash
+
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+read header
+
+if [ "$header" != "kv" ]
+then
+    echo "Header needs to be kv"
+    exit 1;
+fi
+
+while read line
+do
+    set -- `echo $line | tr '=' ' '`
+    key=$1
+    value=$2
+    if [ "$key" = "hostname" ]
+    then
+	hostname=$value
+    fi
+    echo "$key,$value"
+done 
+
+isactive=`$ssh_client -i $ssh_key $ssh_options $hostname echo "active"`
+#isactive=`$SGE_ROOT/bin/$ARCH/qhost -xml -q -h $hostname | xpath -e "//queue" 2> /dev/null`
+if [ "$isactive" != "active" ]
+then
+    echo "kv"
+    echo "active=no"
+else
+    echo "kv"
+    echo "active=yes"
+fi

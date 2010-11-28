@@ -1,0 +1,31 @@
+#!/bin/bash
+
+
+##Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+read header
+
+if [ "$header" != "kv" ]
+then
+    echo "Header needs to be kv"
+    exit 1;
+fi
+
+while read line
+do
+    set -- `echo $line | tr '=' ' '`
+    key=$1
+    value=$2
+    if [ "$key" = "hostname" ]
+    then
+	hostname=$value
+    fi
+    echo "$key,$value"
+done 
+
+md5list=`vp-describe-dataset --tag-name=$tagname | grep FILE | cut -f 2 | xargs md5sum`
+
+echo "kv"
+echo "tag_checksum=md5list"
