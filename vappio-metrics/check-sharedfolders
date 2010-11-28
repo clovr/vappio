@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "kv"
+
+for l in `df`
+case $l in
+    ^shared*)
+	echo "shared_folder=shared"
+	;;
+    ^user_data*)
+	echo "shared_folder=user_data"
+	;;
+    ^keys*)
+	echo "shared_folder=keys"
+esac
+
+	
