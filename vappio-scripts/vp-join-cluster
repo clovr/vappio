@@ -1,6 +1,7 @@
 #!/bin/bash
 
-USAGE="vp-join-cluster master_ip"
+USAGE="vp-join-cluster master_ip\n
+You must save the master node SSH key in /mnt/keys/devel1.pem before you are able to join a cluster\n"
 
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
@@ -29,10 +30,11 @@ else
     fi
 fi
 
-isreachable=`printf "kv\nhostname=$remotehost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+isreachable=`printf "kv\nhostname=$1\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
 if [ "$isreachable" = "" ]
 then
-    echo -e "Can't connect to master node $1. Ensure that you have a copy of the master node key in /mnt/keys/devel1.pem"
+    echo -e "Can't connect to master node $1"
+    echo -e "Ensure that you have obtained copy of the master node key and saved as /mnt/keys/devel1.pem"
     exit 1;
 fi
 bootStrapKeys.py
