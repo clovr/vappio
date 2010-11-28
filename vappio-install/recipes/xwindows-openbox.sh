@@ -65,7 +65,7 @@ echo 'sleep 2' >> /tmp/$$.profile
 echo 'if [ "$SKIPX" != "yes" ]' >> /tmp/$$.profile
 echo 'then' >> /tmp/$$.profile
 #Start on tty8
-echo '. startx -- :1 &' >> /tmp/$$.profile
+echo '. startx -- :1 >/dev/null 2>&1 &' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
 echo 'trap SIGINT' >> /tmp/$$.profile
