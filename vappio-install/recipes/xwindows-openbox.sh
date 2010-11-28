@@ -64,7 +64,8 @@ echo 'echo "Starting graphical console. Control-C to abort"' >> /tmp/$$.profile
 echo 'sleep 2' >> /tmp/$$.profile
 echo 'if [ "$SKIPX" != "yes" ]' >> /tmp/$$.profile
 echo 'then' >> /tmp/$$.profile
-echo '. startx' >> /tmp/$$.profile
+#Start on tty8
+echo '. startx -- :1 2>&1 >/dev/null &' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
 echo 'trap SIGINT' >> /tmp/$$.profile
