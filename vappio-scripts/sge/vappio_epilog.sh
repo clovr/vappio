@@ -79,9 +79,8 @@ then
     vlog "rsync return value: $ret"
     if [ $ret1 -ne 0 ]
     then
-	verror "EPILOG Error during harvesting data qsub return code: $ret1"
 	#Job error
-	exit $ret1
+	verror "EPILOG Error during harvesting data qsub return code: $ret1"
     fi
 fi
 
@@ -101,7 +100,6 @@ then
     then
 	verror "EPILOG Error during harvesting event.log qsub return code: $ret2"
 	#Job error
-	exit $ret2
     fi
 fi
 
