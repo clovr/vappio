@@ -3,12 +3,15 @@
 #reaper.sh 
 #Clean up dead hosts. To be run on master
 
+#This is run in cron, avoid overly verbose logs
+mirrorlogs=0
+
 ##Import vappio config
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 ##
 
-#Attempt to ping and ssh hosts up to maxretry
+#TODO, attempt to ping and ssh hosts up to maxretry
 
 #Gather list of likely dead hosts from unreachabe state 'u'
 #On testing, we've encountered state combinations including u,du,uo,duo
