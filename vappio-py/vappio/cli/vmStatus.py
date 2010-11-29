@@ -7,8 +7,8 @@
 # - Is networking enabled
 # - What clusters are running
 
-from igs.utils.cli import buildConfigN
-from igs.utils.functional import identity
+from igs.utils import cli
+from igs.utils import functional as func
 from igs.utils.commands import runSystemEx, runSingleProgramEx
 from igs.utils import config
 
@@ -18,7 +18,7 @@ from vappio.credentials import manager
 
 
 OPTIONS = [
-    ('one_line', '-1', '--one-line', 'Give a condenced version of output in one line', identity, True),
+    ('one_line', '-1', '--one-line', 'Give a condenced version of output in one line', func.identity, cli.BINARY),
     ]
 
 
@@ -43,14 +43,14 @@ def networkingEnabled():
 
 def getNumberOfInstances():
     try:
-        credentials = [(c.ctype, c.ctype.instantiateCredential(config.configFromEnv(), c)[1]) for c in manager.loadAllCredentials()]
-        instances = []
-        for ctype, credInst in credentials:
-            instances.extend([i.instanceId
-                              for i in ctype.listInstances(credInst)
-                              if i.state != ctype.Instance.TERMINATED])
+        credentials = [(c, c.ctype.instantiateCredential(config.configFromEnv(), c)[1]) for c in manager.loadAllCredentials()]
+        credCount = []
+        for c, credInst in credentials:
+            credCount.append((c.name, len([i
+                                           for i in c.ctype.listInstances(credInst)
+                                           if i.state != c.ctype.Instance.TERMINATED])))
 
-        return str(len(set(instances)))
+        return credCount
     except:
         #return 'Unknown'
         raise
@@ -61,7 +61,7 @@ def listClustersSafe(host):
     such as networking being down
     """
     try:
-        return [c.name for c in cluster_ctl.loadAllClusters()]
+        return cluster_ctl.loadAllClusters()
     except:
         return []
     
@@ -81,8 +81,8 @@ def main(options, _args):
             line.append('Networking Is Not Enabled, Please Restart!')
 
         if not line:
-             line.append('Instances: %s' % getNumberOfInstances())
-             line.append('Clusters: ' + ' '.join(state['clusters']))
+             line.append('Credentials: %s' % ' '.join(['%s (%d)' % credInfo for credInfo in getNumberOfInstances()]))
+             line.append('Clusters: ' + ' '.join(['%s (%d)' % (c.name, len(c.execNodes)) for c in state['clusters']]))
 
         print ' :: '.join(line)
     else:
@@ -98,4 +98,4 @@ def main(options, _args):
 
 
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS))
+    main(*cli.buildConfigN(OPTIONS))
