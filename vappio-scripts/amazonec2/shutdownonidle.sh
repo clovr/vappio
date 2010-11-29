@@ -12,6 +12,7 @@ nodetype=`cat $vappio_runtime/node_type`
 #Don't shutdown master
 if [ $nodetype = "master" ]
 then
+    echo "Detected node_type:$nodetype. Aborting shutdown"
     exit 0
 fi
 
@@ -34,6 +35,7 @@ $SGE_ROOT/bin/$ARCH/qstat | grep sge_o_host | grep $myhostname >> $vappio_runtim
 
 if [ -s $vappio_runtime/sge.running ]
     then
+    echo "Active jobs on $myhostname, aborting shutdown"
     cat $vappio_runtime/sge.running
     exit 0
 fi
@@ -52,6 +54,7 @@ do
     #Shortcircuit if any running jobs
     if [ -s $vappio_runtime/sge.running ]
 	then
+	echo "Active jobs on $myhostname, aborting shutdown"
 	cat $vappio_runtime/sge.running
 	exit 0
     fi
@@ -62,7 +65,9 @@ done
 #If empty file then proceed with shutdown
 if [ -s $vappio_runtime/sge.running ]
  then
+        echo "Active jobs on $myhostname, aborting shutdown"
 	cat $vappio_runtime/sge.running	
+	exit 0
  else
     $vappio_scripts/remove_sgehost.sh `hostname -f`
     verror "Scheduling shutdown in $delayshutdown minutes of $myhostname"
