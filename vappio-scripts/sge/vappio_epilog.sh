@@ -74,13 +74,13 @@ then
     vlog "Submitting harvesting of output $exechost:$outdir to $harvestingq"
     cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync $waitonharvest -q $harvestingq $harvesting_script $exechost $outdir"
     vlog "CMD: $cmd"
-    $cmd #1>> $vappio_log 2>> $vappio_log
+    $cmd 
     ret1=$?
     vlog "rsync return value: $ret"
     if [ $ret1 -ne 0 ]
     then
-	#Job error
 	verror "EPILOG Error during harvesting data qsub return code: $ret1"
+	#Job error, logging and continuing to avoid "hung jobs" in Eqw state
     fi
 fi
 
@@ -93,13 +93,13 @@ then
     vlog "Submitting harvesting of workflow xml on $exechost:$wfdir to $wfq" 
     cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $harvestingwf_script $exechost \"$wfdir\" ${request_cwd}"
     vlog "CMD: $cmd" 
-    $cmd #1>> $vappio_log 2>> $vappio_log
+    $cmd 
     ret2=$?
     vlog "rsync return value: $ret2"
     if [ $ret2 -ne 0 ]
     then
 	verror "EPILOG Error during harvesting event.log qsub return code: $ret2"
-	#Job error
+	#Job error, logging and continuing to avoid "hung jobs" in Eqw state
     fi
 fi
 

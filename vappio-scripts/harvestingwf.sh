@@ -58,7 +58,8 @@ else
     verror "HARVESTING WF event.log FAILURE"
     #requeue if certain conditions met
     isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
-    if [ -d "${request_cwd}" ] && [ "$isreachable" = "" ]
+    fileexists=`$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$exechost ls ${request_cwd}/event.log`
+    if [ -d "${request_cwd}" ] && [ "$isreachable" = "" ] && [ "$fileexists" = "${request_cwd}/event.log" ]
     then
 	echo "I~~~Failed to retrieve event.log from host $exechost" >> ${request_cwd}/event.log
 	echo "I~~~host $exechost isreachable=$isreachable" >> ${request_cwd}/event.log
