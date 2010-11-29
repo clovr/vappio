@@ -42,6 +42,7 @@ else
     if [ -d "$parentdir" ] && [ "$isreachable" != "" ] && [ "$direxists" = "$dir" ]
     then
 	#retry, directory appears to be online
+	vlog "Attempting rescheduling of harvesting job"
 	exit 99
     else
 	#output directory missing, fail silently allowing resched of workflow job
@@ -50,7 +51,8 @@ else
 	    exit 0
 	else
 	    #job error
-	    exit 100
+	    vlog "Aborting harvesting job"
+	    exit 1
 	fi
     fi
 fi

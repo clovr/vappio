@@ -81,7 +81,7 @@ then
     then
 	verror "EPILOG Error during harvesting data qsub return code: $ret1"
 	#Job error
-	exit 100
+	exit $ret1
     fi
 fi
 
@@ -101,7 +101,7 @@ then
     then
 	verror "EPILOG Error during harvesting event.log qsub return code: $ret2"
 	#Job error
-	exit 100
+	exit $ret2
     fi
 fi
 

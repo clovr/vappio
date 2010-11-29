@@ -36,9 +36,11 @@ then
 	isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
 	if [ -d "${request_cwd}" ] && [ "$isreachable" = "" ]
 	then
+	    vlog "Attempting rescheduling of harvesting job"
 	    exit 99;
 	else
-	    exit 100;
+	    vlog "Aborting harvesting job"
+	    exit 1;
 	fi
     fi
 fi
@@ -66,6 +68,6 @@ else
 	#Print error to event.log
 	echo "I~~~Failed to retrieve event.log from host $exechost" >> ${request_cwd}/event.log
 	echo "I~~~host $exechost isreachable=$isreachable" >> ${request_cwd}/event.log
-	exit 100;
+	exit 1;
     fi
 fi
