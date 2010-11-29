@@ -10,7 +10,7 @@ apt-get -y install xwit
 apt-get -y install rox-filer
 
 #Install better terminal
-apt-get -y install sakura
+apt-get -y install sakura xfonts-terminus
 #Remove annoying sakura - from title bar
 perl -pi -e 's/sakura - /         /' /usr/bin/sakura
 
@@ -73,6 +73,10 @@ svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-c
 cat /etc/profile >> /tmp/$$.profile
 mv /tmp/$$.profile /etc/profile
 
+#vboxvideo can screw up resolution, hack to force removal
+#rm -f /etc/X11/Xsession.d/98vboxadd-xclient
+#rm -f /usr/lib/dri/vboxvideo_dri.so
+#rm -f /usr/lib/xorg/modules/drivers/vboxvideo_drv.so
 
 #apt-get install trayer
 #Add clickable links for shared folders
