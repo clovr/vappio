@@ -38,7 +38,7 @@ then
 	then
 	    exit 99;
 	else
-	    exit 1;
+	    exit 100;
 	fi
     fi
 fi
@@ -66,6 +66,6 @@ else
 	#Print error to event.log
 	echo "I~~~Failed to retrieve event.log from host $exechost" >> ${request_cwd}/event.log
 	echo "I~~~host $exechost isreachable=$isreachable" >> ${request_cwd}/event.log
-	exit 1;
+	exit 100;
     fi
 fi

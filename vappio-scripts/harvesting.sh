@@ -29,7 +29,7 @@ parentdir=`echo "$dir" | perl -ne '/(.*\/)[^\/]+/;print $1'`
 vlog "Harvesting output from $exechost:$dir to $parentdir"
 mkdir -p $parentdir
 vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" root@$exechost:$dir $parentdir"
-rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --temp-dir $scratch_dir root@$exechost:$dir $parentdir #1>> $vappio_log 2>> $vappio_log
+rsync -av -e "$ssh_client -i $ssh_key $ssh_options" --temp-dir $scratch_dir root@$exechost:$dir $parentdir 
 if [ $? == 0 ]
 then
     vlog "rsync success. return value: $?"
@@ -38,10 +38,19 @@ else
     verror "HARVESTING FAILURE"
     #requeue if certain conditions met
     isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
-    if [ -d "$parentdir" ] && [ "$isreachable" = "" ]
+    direxists=`$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$exechost ls -d $dir`
+    if [ -d "$parentdir" ] && [ "$isreachable" != "" ] && [ "$direxists" = "$dir" ]
     then
+	#retry, directory appears to be online
 	exit 99
     else
-	exit 1
+	#output directory missing, fail silently allowing resched of workflow job
+	if [ -d "$parentdir" ] && [ "$isreachable" != "" ] && [ "$direxists" != "$dir" ]
+	then
+	    exit 0
+	else
+	    #job error
+	    exit 100
+	fi
     fi
 fi
