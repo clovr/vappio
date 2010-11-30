@@ -49,7 +49,7 @@ def parseCmd(s):
 
 def runMetrics(taskName, initialText, metrics):
     def _errback(metric, stderr):
-        raise MetricError(metric, stderr)
+        raise MetricError(metric, stderr.getvalue())
     
     def _run(initialText, ms):
         try:
