@@ -82,7 +82,7 @@ def main(options, _args):
 
         if not line:
              line.append('Credentials: %s' % ' '.join(['%s (%d)' % credInfo for credInfo in getNumberOfInstances()]))
-             line.append('Clusters: ' + ' '.join(['%s (%d)' % (c.name, len(c.execNodes)) for c in state['clusters']]))
+             line.append('Clusters: ' + ' '.join(['%s (%d)' % (c.name, 1 + len(c.execNodes)) for c in state['clusters']]))
 
         print ' :: '.join(line)
     else:

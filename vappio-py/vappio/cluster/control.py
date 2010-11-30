@@ -95,7 +95,7 @@ class Cluster(functional.Record):
 
         masterConf = createDataFile(self.config,
                                     mode,
-                                    outFile='/tmp/machine.tmp.conf')
+                                    outFile='/tmp/machine.' + str(time.time()) + '-' + str(os.getpid()) + '.conf')
     
         dataFile = createMasterDataFile(self, masterConf)
 
@@ -433,7 +433,7 @@ def runAndTerminateBad(cluster, func):
         return func()
     except TryError, err:
         slaves, bad = err.result
-        cluster.ctype.terminateInstances(bad)
+        cluster.ctype.terminateInstances(cluster.credInst, bad)
         return slaves
     
 def runCommandOnCluster(cluster, command, justMaster=False):
