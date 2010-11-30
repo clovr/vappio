@@ -50,5 +50,9 @@ EndMark
 # Create a sym link to the /opt/gbrowse2 folder 
 ln -f -s /opt/gbrowse2-2.03 /opt/gbrowse2
 
+# Need to open up our permissions here to allow www-data to create and modify files
+# so that the ergatis component won't fail
+chmod -R 777 /opt/gbrowse2-2.03
+
 # Clean up all directories
 rm -rf /tmp/gbrowse2_install/
