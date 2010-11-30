@@ -1,6 +1,52 @@
 #!/usr/bin/perl
+
+=head1 NAME
+
+tag-is-fasta --checks whether the given tag has files that are fasta
+             --also checks whether the input files are compatible with blast database selected (optional)
+
+=head1 SYNOPSIS
+
+    ./tag-is-fasta [--db_type=blastn|blastx|blastp|tblastn|tblastx
+		    --help ]
+
+=head1 PARAMETERS
+
+B<--db_type, -d>
+	The type of database selected
+	accepted values: blastn, blastp, blastx, tblastn, tblastx
+
+B<--help>
+	Prints this documentation
+
+=head1 DESCRIPTON
+
+Checks whether the files in the given tag are all of fasta type.
+Adds metadata such as filetype=fasta, seqtype=Protein or DNA or mixed to tag.metadata
+Also checks whether given blast database is compatible with input type
+
+=head1 INPUT
+
+tag name that has input files, (optional: db_type to check the compatibility)
+
+=head1 OUTPUT
+
+returns true (0) or false (other than 0)
+
+=head1 AUTHOR
+
+	Mahesh Vangala
+	mvangala@som.umaryland.edu
+	vangalamaheshh@gmail.com
+
+=cut
+
 use strict;
 use warnings;
+use Getopt::Long qw(:config no_ignore_case no_auto_abbrev pass_through);
+use Pod::Usage;
+
+my %options = parse_options();
 
 my $header = <>;
 unless(trim($header) eq 'kv') {
@@ -10,28 +56,62 @@ print STDOUT $header;
 
 while(my $arg = <>) {
 	if(trim($arg) =~ /^input\.(.+)=(.+)$/) {
-		my $command = "vp-describe-dataset --tag-name=$2";
+		my $first_seq_type = undef;
+		my $tag_name = $2;
+		my $command = "vp-describe-dataset --tag-name=$tag_name";
 		open(COMMAND, "$command |") or die "Error in executing the command, $command, $!\n";
 		while(my $output = <COMMAND>) {
 			if($output =~ /^FILE\t(.+)/) {
-				open(FILE, "<$1") or die "Error in opening the file, $1, $!\n";
-				my $firstLine = <FILE>;
-				unless(substr(trim($firstLine), 0, 1) eq '>') {
-					die "$1 is not a fasta file";
+				my $cur_file = $1;
+				my $seq_stat_command = "seqstat $cur_file";
+				open(SEQ_COMMAND, "$seq_stat_command |") or die "Error in executing the command, $seq_stat_command, $!\n";
+				while(my $seq_output = <SEQ_COMMAND>) {
+					if($seq_output =~ /Format:\s*(.+)/) {
+						die "$cur_file is not of fasta type\n" unless($1 eq 'FASTA');
+					} elsif($seq_output =~ /Type\s+\(of\s+1st\s+seq\):\s+(.+)/) {
+						my $cur_seq_type = $1;
+						unless($first_seq_type) {
+							$first_seq_type = $cur_seq_type;
+						}
+						unless($cur_seq_type eq $first_seq_type) {
+							$first_seq_type = 'mixed';
+						}
+					}
 				}
-				while(my $line = <FILE>) {
-					last if($line =~ /^>/);
-					die "$1 is not a fasta file" if($line =~ /\d/g);
-				}
-				close FILE;
+				die "Error in executing the command, $seq_stat_command, $!\n" if( $? );
+				close SEQ_COMMAND;
 			}
 		}
 		close COMMAND;
+		add_seq_type_to_tag_metadata( $tag_name, $first_seq_type );
 		die "Error in executing the command $command; Error code: $?\n" if( $? );
+		if($options{'db_type'}) {
+			check_compatibility($first_seq_type, $options{'db_type'});
+		}
 	}
 	print STDOUT $arg;
 }
 exit(0);
+
+sub check_compatibility {
+	my ($seq_type, $blast_type) = @_;
+	if($blast_type eq 'blastn' || $blast_type eq 'tblastx' || $blast_type eq 'blastx') {
+		die "Sequence type is not of nucleotides\n" unless( $seq_type eq 'DNA' );
+	}
+	elsif( $blast_type eq 'blastp' || $blast_type eq 'tblastn' ) {
+		die "Sequence type is not of protein\n" unless( $seq_type eq 'Protein' );
+	} 
+	else {
+		die "Given blast parameter, $blast_type, is of unknown type\n";
+	}
+}
+
+sub add_seq_type_to_tag_metadata {
+	my ($tag, $seq_type) = @_;
+	my $command = "vp-add-dataset --tag-name $tag -a -m filetype=fasta -m seqtype=$seq_type";
+	`$command`;
+	die "Error executing the command, $command, $\n" if( $? );	
+}
 
 sub trim {
 	my ($temp) = @_;
@@ -39,3 +119,16 @@ sub trim {
 	$temp =~ s/\s+$//;
 	return $temp;
 }
+
+
+sub parse_options {
+    my %opts = ();
+    GetOptions(\%opts,
+		'db_type|d:s',
+                'help') || pod2usage();
+
+    &pod2usage( {-exitval => 1, -verbose => 1, -output => \*STDOUT}) if ($opts{'help'} );
+
+    return %opts;
+}
+
