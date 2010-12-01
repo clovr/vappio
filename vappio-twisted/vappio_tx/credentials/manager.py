@@ -179,6 +179,25 @@ def handleAuthorizeGroup(cred, state, mq, request):
                                                       True))
     return d
 
+def handleWWWListAddCredential(state, mq, request):
+    if 'cred' in request:
+        d = persist.saveCredential(persist.createCredential(name=request['cred_name'],
+                                                            desc=request['description'],
+                                                            ctype=request['ctype'],
+                                                            cert=request['cert'],
+                                                            pkey=request['pkey'],
+                                                            active=True,
+                                                            metadata=request['metadata']))
+        d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
+                                                          request['return_queue'],
+                                                          True))
+        return d
+    else:
+        d = persist.loadAllCredentials()
+        d.addCallback(lambda cs : queue.returnQueueSuccess(mq,
+                                                           request['return_queue'],
+                                                           [{'name': c.name, 'description': c.desc} for c in cs]))
+        return d
 
 def makeService(conf):
     mqService = client.makeService(conf)
@@ -188,7 +207,7 @@ def makeService(conf):
     state = State()
     
     def _mqFactoryF(f):
-        def _verifyMsg(m):
+        def _validateMsg(m):
             try:
                 v = json.loads(m.body)
                 return 'return_queue' in v
@@ -196,7 +215,7 @@ def makeService(conf):
                 False
                 
         def _handleMsg(m):
-            if _verifyMsg(m):
+            if _validateMsg(m):
                 body = json.loads(m.body)
                 d = getCredential(state, body['credential_name'])
                 d.addCallback(f, state, mqFactory, body)
@@ -252,7 +271,27 @@ def makeService(conf):
 
     #
     # Now add web frontend queues
+    def _WWWRequest(f):
+        def _validateMsg(m):
+            try:
+                v = json.loads(m.body)
+                return 'return_queue' in v
+            except:
+                False
+                
+        def _handleMsg(m):
+            if _validateMsg(m):
+                d = defer.succeed(True)
+                d.addCallback(lambda _ : f(state, mqFactory, json.loads(m.body)))
+                d.addErrback(lambda f : queue.returnQueueFailure(mqFactory, json.loads(m.body)['return_queue'], f))
+            else:
+                log.err('Incoming www request failed verification: ' + m.body)
+
+        return _handleMsg
     
+    mqFactory.subscribe(_WWWRequest(handleWWWListAddCredential),
+                        conf('credentials.listaddcredentials_queue'),
+                        {'prefetch': int(conf('concurrent_listaddcredentials'))})
     
     return mqService
     
