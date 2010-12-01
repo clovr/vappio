@@ -24,6 +24,7 @@ import time
 import json
 
 from twisted.internet import defer
+from twisted.internet import reactor
 
 from twisted.python import log
 
@@ -48,7 +49,7 @@ class State:
         self.credInstanceCache = {}
         self.instanceCache = {}
 
-def getCredential(state, credName):
+def loadAndCacheCredential(state, credName):
     if credName in state.credInstanceCache:
         return defer.succeed(state.credInstanceCache[credName].value)
     else:
@@ -62,7 +63,10 @@ def getCredential(state, credName):
 
         d.addCallback(_cacheCredential)
         return d
-        
+
+def refreshInstances(state):
+    pass
+    
 def cacheInstances(instances, cred, state):
     state.instanceCache.setdefault(cred.name, []).extend(instances)
     return instances
@@ -180,14 +184,16 @@ def handleAuthorizeGroup(cred, state, mq, request):
     return d
 
 def handleWWWListAddCredential(state, mq, request):
-    if 'cred' in request:
-        d = persist.saveCredential(persist.createCredential(name=request['cred_name'],
-                                                            desc=request['description'],
-                                                            ctype=request['ctype'],
-                                                            cert=request['cert'],
-                                                            pkey=request['pkey'],
-                                                            active=True,
-                                                            metadata=request['metadata']))
+    if 'cred_name' in request:
+        cred = persist.createCredential(name=request['cred_name'],
+                                        desc=request['description'],
+                                        ctype=request['ctype'],
+                                        cert=request['cert'],
+                                        pkey=request['pkey'],
+                                        active=True,
+                                        metadata=request['metadata'])
+        d = persist.saveCredential(cred)
+        d.addCallback(lambda _ : loadAndCacheCredential(state, request['cred_name']))
         d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
                                                           request['return_queue'],
                                                           True))
@@ -196,7 +202,8 @@ def handleWWWListAddCredential(state, mq, request):
         d = persist.loadAllCredentials()
         d.addCallback(lambda cs : queue.returnQueueSuccess(mq,
                                                            request['return_queue'],
-                                                           [{'name': c.name, 'description': c.desc} for c in cs]))
+                                                           [{'name': c.name, 'description': c.desc}
+                                                            for c in cs]))
         return d
 
 def makeService(conf):
@@ -205,6 +212,14 @@ def makeService(conf):
     mqFactory = mqService.mqFactory
 
     state = State()
+
+    def _loadCredentials():
+        d = persist.loadAllCredentials()
+        d.addCallback(lambda cs : defer.DeferredList([loadAndCacheCredential(state, c.name)
+                                                      for c in cs]))
+        d.addCallback(lambda _ : reactor.callLater(REFRESH_FREQUENCY, refreshInstances, state))
+        d.addErrback(log.err)
+    reactor.callLater(0, _loadCredentials)
     
     def _mqFactoryF(f):
         def _validateMsg(m):
@@ -217,7 +232,7 @@ def makeService(conf):
         def _handleMsg(m):
             if _validateMsg(m):
                 body = json.loads(m.body)
-                d = getCredential(state, body['credential_name'])
+                d = loadAndCacheCredential(state, body['credential_name'])
                 d.addCallback(f, state, mqFactory, body)
                 d.addErrback(lambda f : queue.returnQueueFailure(mqFactory, body['return_queue'], f))
             else:
