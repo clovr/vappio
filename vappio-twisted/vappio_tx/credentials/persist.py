@@ -1,7 +1,7 @@
 import pymongo
 
 from twisted.internet import threads
-from twised.python import reflect
+from twisted.python import reflect
 
 from igs.utils import functional as func
 
@@ -10,7 +10,7 @@ class CredentialDoesNotExistError(Exception):
     """A task does not exist in the db"""
     pass
 
-class Credential(Record):
+class Credential(func.Record):
     """
     Represents a credentail that can actually be used (as opposed to copied outside of the machine)
     """
@@ -30,9 +30,17 @@ def createCredential(name, desc, ctype, cert, pkey, active, metadata):
     
     *** This is subject to change as this is a first pass
     """
+
+    #
+    # Some transition code
+    if ctype.startswith('vappio.'):
+        ctype = ctype.split('.')[1]
+
+    print repr(ctype)
+    
     return Credential(name=name,
                       desc=desc,
-                      ctype=reflect.fullyQualifiedName('vappio_tx.credentials.ctypes.' + ctype),
+                      ctype=reflect.namedAny('vappio_tx.credentials.ctypes.' + ctype),
                       cert=cert,
                       pkey=pkey,
                       active=active,
@@ -46,7 +54,7 @@ def credentialToDict(cred):
     """
     return dict(name=cred.name,
                 desc=cred.desc,
-                ctype=reflect.fullyQualifiedName(cred.ctype),
+                ctype=reflect.fullyQualifiedName(cred.ctype).split('.')[-1],
                 cert=cred.cert,
                 pkey=cred.pkey,
                 active=cred.active,
@@ -59,7 +67,7 @@ def credentialFromDict(d):
     """
     return createCredential(d['name'],
                             d['desc'],
-                            reflect.namedAny(d['ctype']),
+                            d['ctype'],
                             d['cert'],
                             d['pkey'],
                             d['active'],

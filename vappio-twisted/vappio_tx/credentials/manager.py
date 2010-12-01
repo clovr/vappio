@@ -36,6 +36,9 @@ from vappio_tx.mq import client
 
 from vappio_tx.credentials import persist
 
+
+REFRESH_INTERVAL = 30
+
 class CacheEntry(func.Record):
     def __init__(self, val):
         func.Record.__init__(self, entryTime=time.time(), value=val)
@@ -48,6 +51,7 @@ class State:
     def __init__(self):
         self.credInstanceCache = {}
         self.instanceCache = {}
+        self.refreshInstancesDelayed = None
 
 def loadAndCacheCredential(state, credName):
     if credName in state.credInstanceCache:
@@ -65,10 +69,55 @@ def loadAndCacheCredential(state, credName):
         return d
 
 def refreshInstances(state):
-    pass
+    credIter = iter(state.credInstanceCache.values())
+
+    def _refresh():
+        try:
+            cred = credIter.next()
+
+            cachedInstances = state.instanceCache
+            
+            d = cred.ctype.listInstances(cred)
+
+            def _cacheInstances(instances):
+                if state.instanceCache.entryTime == cachedInstances.entryTime:
+                    state.instanceCache[cred.name] = CacheEntry(instances)
+                else:
+                    instanceMap = {}
+                    for i in state.instanceCache.value + instances:
+                        if i.spotRequestId:
+                            instanceMap[i.spotRequestId] = i
+                        else:
+                            instanceMap[i.instanceId] = i
+
+                    state.instanceCache = CacheEntry(instanceMap.values())
+
+                return state.instanceCache.value
+
+            def _logAndConsumeError(f):
+                log.err(f)
+                return None
+
+            d.addCallback(_cacheInstances)
+            d.addErrback(_logAndConsumeError)
+
+            d.addCallback(lambda _ : _refresh())
+            return d
+        except StopIteration:
+            return None
+        
+    d = defer.succeed(None)
+    d.addCallback(lambda _ : _refresh())
+
+    def _refreshAgain(_ignore):
+        state.refreshInstancesDelayed = reactor.callLater(REFRESH_INTERVAL, refreshInstances, state)
+
+    d.addCallback(_refreshAgain)
     
 def cacheInstances(instances, cred, state):
-    state.instanceCache.setdefault(cred.name, []).extend(instances)
+    cachedInstances = state.instanceCache.get(cred.name, CacheEntry([])).value
+    cachedInstances.extend(instances)
+    state.instanceCache[cred.name] = CacheEntry(cachedInstances)
     return instances
     
 def handleCredentialConfig(cred, state, mq, request):
@@ -217,8 +266,18 @@ def makeService(conf):
         d = persist.loadAllCredentials()
         d.addCallback(lambda cs : defer.DeferredList([loadAndCacheCredential(state, c.name)
                                                       for c in cs]))
-        d.addCallback(lambda _ : reactor.callLater(REFRESH_FREQUENCY, refreshInstances, state))
-        d.addErrback(log.err)
+        
+        def _refreshInstances(_ignore):
+            state.refreshInstancesDelayed = reactor.callLater(0, refreshInstances, state)
+
+        def _logErrorAndTryAgainSoon(f):
+            log.err(f)
+            reactor.callLater(10, _loadCredentials)
+
+        d.addCallback(_refreshInstances)
+        d.addErrback(_logErrorAndTryAgainSoon)
+        return d
+
     reactor.callLater(0, _loadCredentials)
     
     def _mqFactoryF(f):
@@ -306,7 +365,7 @@ def makeService(conf):
     
     mqFactory.subscribe(_WWWRequest(handleWWWListAddCredential),
                         conf('credentials.listaddcredentials_queue'),
-                        {'prefetch': int(conf('concurrent_listaddcredentials'))})
+                        {'prefetch': int(conf('credentials.concurrent_listaddcredentials'))})
     
     return mqService
     
