@@ -8,6 +8,7 @@
 # Delete credentials - requires: username, cred name list
 #
 # Requests directly off the queue (all of these require a return queue id as well):
+# credentialConfig - req: cred name
 # runInstances - req: cred name, ami, key, instance type, groups list; opt: availzone, number, userdata, userdatafile
 # runSpotInstances - same as runInstances but requires bid price
 # listInstances - req: cred name
@@ -19,19 +20,24 @@
 # addGroup - req: cred name, group name, group description
 # authorizeGroup : req cred name, group name, prootcol, portRange, sourceGroup, sourceGrouPuser, sourceSubnet
 # 
-import os
-import StringIO
+import time
 import json
+
+from twisted.internet import defer
 
 from twisted.python import log
 
-from igs_tx.utils import commands
-from igs_tx.utils import errors
+from igs.utils import functional as func
+from igs.utils import config
 
+from vappio_tx.utils import queue
 from vappio_tx.mq import client
 
-from igs.utils import functional as func
+from vappio_tx.credentials import persist
 
+class CacheEntry(func.Record):
+    def __init__(self, val):
+        func.Record.__init__(self, entryTime=time.time(), value=val)
 
 class State:
     """
@@ -39,39 +45,139 @@ class State:
     and anything else of value
     """
     def __init__(self):
-        self.credInstanceMap = {}
+        self.credInstanceCache = {}
         self.instanceCache = {}
 
+def getCredential(state, credName):
+    if credName in state.credInstanceCache:
+        return defer.succeed(state.credInstanceCache[credName].value)
+    else:
+        d = persist.loadCredential(credName)
 
-def handleRunInstances(state, mq, request):
-    pass
+        d.addCallback(lambda c : c.ctype.instantiateCredential(config.configFromEnv(), c))
+        
+        def _cacheCredential(cred):
+            state.credInstanceCache[credName] = CacheEntry(cred)
+            return cred
 
-def handleRunSpotInstances(state, mq, request):
-    pass
+        d.addCallback(_cacheCredential)
+        return d
+        
+def cacheInstances(instances, cred, state):
+    state.instanceCache.setdefault(cred.name, []).extend(instances)
+    return instances
+    
+def handleCredentialConfig(cred, state, mq, request):
+    conf = {}
+    for k in cred.conf.keys():
+        conf[k] = cred.conf(k)
+        
+    queue.returnQueueSuccess(mq, request['return_queue'], conf)
 
-def handleListInstances(state, mq, request):
-    pass
+def handleRunInstances(cred, state, mq, request):
+    d = cred.ctype.runInstances(cred,
+                                amiId=request['ami'],
+                                key=request['key'],
+                                instanceType=request['instance_type'],
+                                groups=request['groups'],
+                                availabilityZone=request.get('availability_zone', None),
+                                number=request.get('num_instances', 1),
+                                userData=request.get('user_data', None),
+                                userDataFile=request.get('user_data_file'),
+                                log=True)
+    d.addCallback(cacheInstances)
+    
+    d.addCallback(lambda instances : queue.returnQueueSuccess(mq,
+                                                              request['return_queue'],
+                                                              [cred.ctype.instanceToDict(i)
+                                                               for i in instances]))
+    return d
 
-def handleTerminateInstances(state, mq, request):
-    pass
+def handleRunSpotInstances(cred, state, mq, request):
+    d = cred.ctype.runInstances(cred,
+                                bidPice=request['bid_price'],
+                                amiId=request['ami'],
+                                key=request['key'],
+                                instanceType=request['instance_type'],
+                                groups=request['groups'],
+                                availabilityZone=request.get('availability_zone', None),
+                                number=request.get('num_instances', 1),
+                                userData=request.get('user_data', None),
+                                userDataFile=request.get('user_data_file'),
+                                log=True)
+    d.addCallback(cacheInstances)
+    
+    d.addCallback(lambda instances : queue.returnQueueSuccess(mq,
+                                                              request['return_queue'],
+                                                              [cred.ctype.instanceToDict(i)
+                                                               for i in instances]))
+    return d
+        
+def handleListInstances(cred, state, mq, request):
+    queue.returnQueueSuccess(mq,
+                             request['return_queue'],
+                             [cred.ctype.instanceToDict(i)
+                              for i in state.instanceCache.get(cred.name, [])])
+    
+def handleTerminateInstances(cred, state, mq, request):
+    d = cred.ctype.terminateInstances(cred,
+                                      [cred.ctype.instanceFromDict(i)
+                                       for i in request['instances']])
+    d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
+                                                      request['return_queue'],
+                                                      True))
 
-def handleListInstances(state, mq, request):
-    pass
+def handleUpdateInstances(cred, state, mq, request):
+    convertedInstances = [cred.ctype.instanceFromDict(i) for i in request['instances']]
+    queue.returnQueueSuccess(mq,
+                             request['return_queue'],
+                             [ci
+                              for ci in state.instanceCache.get(cred.name, [])
+                              for i in convertedInstances
+                              if (ci.spotRequestId and ci.spotRequestId == i.spotRequestId) or ci.instanceId == i.instanceId])
+    
+    
 
-def handleListKeypairs(state, mq, request):
-    pass
+def handleListKeypairs(cred, state, mq, request):
+    d = cred.ctype.listKeypairs(cred)
+    d.addCallback(lambda keypairs : queue.returnQueueSuccess(mq,
+                                                             request['return_queue'],
+                                                             keypairs))
+    return d
+    
+def handleAddKeypair(cred, state, mq, request):
+    d = cred.ctype.addKeypair(cred, request['keypair_name'])
+    d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
+                                                      request['return_queue'],
+                                                      True))
+    return d
 
-def handleAddKeypair(state, mq, request):
-    pass
+def handleListGroups(cred, state, mq, request):
+    d = cred.ctype.listGroups(cred)
+    d.addCallback(lambda groups : queue.returnQueueSuccess(mq,
+                                                           request['return_queue'],
+                                                           groups))
+    return d
 
-def handleListGroups(state, mq, request):
-    pass
+def handleAddGroup(cred, state, mq, request):
+    d = cred.ctype.addGroup(cred, request['group_name'], request['group_description'])
+    d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
+                                                      request['return_queue'],
+                                                      True))
+    return d
 
-def handleAddGroup(state, mq, request):
-    pass
-
-def handleAuthorizeGroup(state, mq, request):
-    pass
+def handleAuthorizeGroup(cred, state, mq, request):
+    d = cred.ctype.authorizeGroup(cred,
+                                  groupName=request['group_name'],
+                                  protocol=request.get('protocol', None),
+                                  portRange=request['port_range'],
+                                  sourceGroup=request.get('source_group', None),
+                                  sourceGroupUser=request.get('source_group_user', None),
+                                  sourceSubnet=request.get('source_subnet', None))
+    d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
+                                                      request['return_queue'],
+                                                      True))
+    return d
 
 
 def makeService(conf):
@@ -91,10 +197,17 @@ def makeService(conf):
                 
         def _handleMsg(m):
             if _verifyMsg(m):
-                f(state, mqFactory, json.loads(m.body))
+                body = json.loads(m.body)
+                d = getCredential(state, body['credential_name'])
+                d.addCallback(f, state, mqFactory, body)
+                d.addErrback(lambda f : queue.returnQueueFailure(mqFactory, body['return_queue'], f))
             else:
                 log.err('Incoming request failed verification: ' + m.body)
         return _handleMsg
+
+    mqFactory.subscribe(_mqFactoryF(handleCredentialConfig),
+                        conf('credentials.credentialconfig_queue'),
+                        {'prefetch': int(conf('credentials.concurrent_credentialconfig'))})
     
     mqFactory.subscribe(_mqFactoryF(handleRunInstances),
                         conf('credentials.runinstances_queue'),
@@ -112,7 +225,7 @@ def makeService(conf):
                         conf('credentials.terminateinstances_queue'),
                         {'prefetch': int(conf('credentials.concurrent_terminateinstances'))})
 
-    mqFactory.subscribe(_mqFactoryF(handleListInstances),
+    mqFactory.subscribe(_mqFactoryF(handleUpdateInstances),
                         conf('credentials.updateinstances_queue'),
                         {'prefetch': int(conf('credentials.concurrent_updateinstances'))})
 
@@ -135,6 +248,11 @@ def makeService(conf):
     mqFactory.subscribe(_mqFactoryF(handleAuthorizeGroup),
                         conf('credentials.authorizegroup_queue'),
                         {'prefetch': int(conf('credentials.concurrent_authorizegroup'))})
+
+
+    #
+    # Now add web frontend queues
+    
     
     return mqService
     

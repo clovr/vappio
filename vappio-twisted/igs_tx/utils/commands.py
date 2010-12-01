@@ -5,8 +5,18 @@ import os
 from twisted.internet import reactor
 from twisted.internet import protocol
 from twisted.internet import defer
+from twisted.python import log as logger
 
 from igs.utils import functional as func
+
+
+class ProgramRunError(Exception):
+    def __init__(self, cmd, stderr):
+        self.cmd = cmd
+        self.stderr = stderr
+
+    def __str__(self):
+        return 'Command %r failed with %s' % (self.cmd, self.stderr)
 
 class NonInteractiveProcessProtocol(protocol.ProcessProtocol):
     """
@@ -70,7 +80,8 @@ def runProcess(cmdArgs,
                newEnv=None,
                workingDir=None,
                uid=None,
-               gid=None):
+               gid=None,
+               log=False):
     """
     The only required function is cmdArgs.  cmdArgs is a list of strings, cmdArgs[0] must be the executable.
     stdoutf and stderrf are functions that will be called with the input data.  There is no guarantee
@@ -108,6 +119,9 @@ def runProcess(cmdArgs,
         kwargs['uid'] = uid
     if gid:
         kwargs['gid'] = gid
+
+    if log:
+        logger.log('Running command: ' + ' '.join(cmdArgs))
         
     reactor.spawnProcess(pp,
                          executable=cmdArgs[0],

@@ -18,9 +18,8 @@ DESC = """Control module for Nimbus-based users"""
 
 
 def instantiateCredential(conf, cred):
-    if not conf('config_loaded', default=False):
-        conf = config.configFromMap({'config_loaded': True},
-                                    base=config.configFromStream(open(conf('general.conf_file')), base=conf))
+    conf = config.configFromConfig(conf, base=config.configFromStream(open(conf('conf_file'),
+                                                                           base=config.configFromEnv()))    
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
 
@@ -68,7 +67,7 @@ def instantiateCredential(conf, cred):
         mainDeferred.addCallback(lambda _ : d)
         
     ec2Home = '/opt/ec2-api-tools-1.3-42584'
-    newCred = func.Record(cert=certFile, pkey=keyFile, ec2Path=os.path.join(ec2Home, 'bin'),
+    newCred = func.Record(name=cred.name, conf=conf, cert=certFile, pkey=keyFile, ec2Path=os.path.join(ec2Home, 'bin'),
                           env=dict(EC2_JVM_ARGS='-Djavax.net.ssl.trustStore=/tmp/jssecacerts',
                                    EC2_HOME=ec2Home,
                                    EC2_URL=cred.metadata['ec2_url']))
@@ -76,7 +75,7 @@ def instantiateCredential(conf, cred):
         pubKey = open(conf('cluster.cluster_private_key') + '.pub').read().rstrip()
         mainDeferred.addCallback(lambda _ : ec2_control.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"'))
         
-    mainDeferred.addCallback(lambda _ : (conf, newCred))
+    mainDeferred.addCallback(lambda _ : newCred)
     return mainDeferred
         
 

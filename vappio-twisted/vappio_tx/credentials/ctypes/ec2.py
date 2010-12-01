@@ -199,21 +199,20 @@ def instantiateCredential(conf, cred):
     Takes a credential and instanitates it.  It returns a Record that has all of the
     information users of that instantiated credential will need
     """
-    if not conf('config_loaded', default=False):
-        conf = config.configFromMap({'config_loaded': True},    
-                                    base=config.configFromStream(open(conf('general.conf_file', default=DEFAULT_CONFIG_FILE)), base=conf))
+    conf = config.configFromConfig(conf, base=config.configFromStream(open(conf('conf_file', default=DEFAULT_CONFIG_FILE),
+                                                                           base=config.configFromEnv()))
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
     if not os.path.exists(certFile) or open(certFile).read() != cred.cert:
         open(certFile, 'w').write(cred.cert)
     if not os.path.exists(keyFile) or open(keyFile).read() != cred.pkey:
         open(keyFile, 'w').write(cred.pkey)
-    newCred = functional.Record(cert=certFile, pkey=keyFile, ec2URL=None, env={})
+    newCred = functional.Record(name=cred.name, conf=conf, cert=certFile, pkey=keyFile, ec2URL=None, env={})
     if 'ec2_url' in cred.metadata:
-        return defer.succeed((conf, newCred.update(env=functional.updateDict(newCred.env,
-                                                                             dict(EC2_URL=cred.metadata['ec2_url'])))))
+        return defer.succeed(newCred.update(env=functional.updateDict(newCred.env,
+                                                                      dict(EC2_URL=cred.metadata['ec2_url']))))
     else:
-        return defer.succeed((conf, newCred))
+        return defer.succeed(newCred)
 
     
 def runInstances(cred,

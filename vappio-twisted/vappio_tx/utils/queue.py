@@ -22,18 +22,21 @@ def randomQueueName(baseName):
 def returnQueueSuccess(mq, queue, data):
     mq.send(queue, json.dumps({'success': True,
                                'data': data}))
+    return data
 
 def returnQueueFailure(mq, queue, failure):
     mq.send(queue, json.dumps({'success': False,
                                'data': {'stacktrace': errors.stackTraceToString(failure),
                                         'name': '',
                                         'msg': failure.getErrorMessage()}}))
+    return failure
 
 def returnQueueError(mq, queue, msg):
     mq.send(queue, json.dumps({'success': False,
                                'data': {'stacktrace': '',
                                         'name': '',
                                         'msg': msg}}))
+    return None
 
 def returnQueueException(mq, queue):
     excType, excValue, _traceback = sys.exc_info()
@@ -41,3 +44,4 @@ def returnQueueException(mq, queue):
                                'data': {'stacktrace': errors.getStacktrace(),
                                         'name': reflect.fullyQualifiedName(excType),
                                         'msg': str(excValue)}}))
+    return None
