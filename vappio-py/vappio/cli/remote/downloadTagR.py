@@ -78,7 +78,7 @@ def main(options, _args):
                                   files=fs,
                                   recursive=False,
                                   expand=options('general.expand'),
-                                  compress=compress,
+                                  compress=None,
                                   append=True,
                                   overwrite=False,
                                   metadata={})
@@ -88,6 +88,24 @@ def main(options, _args):
                                                          tsk)
         if endState == task.TASK_FAILED:
             raise Exception('Tagging failed')
+
+    tagTaskName = tag.tagData(host='localhost',
+                              name=options('general.dst_cluster'),
+                              tagName=options('general.tag_name'),
+                              tagBaseDir=fileTag('metadata.tag_base_dir'),
+                              files=[],
+                              recursive=False,
+                              expand=False,
+                              compress=compress,
+                              append=True,
+                              overwrite=False,
+                              metadata={})
+    endState, tsk = task_utils.blockOnTaskAndForward('localhost',
+                                                     options('general.dst_cluster'),
+                                                     tagTaskName,
+                                                     tsk)
+    if endState == task.TASK_FAILED:
+        raise Exception('Tagging failed')
 
     tsk = task.updateTask(tsk.progress().addMessage(task.MSG_NOTIFICATION, 'Download complete'))
 

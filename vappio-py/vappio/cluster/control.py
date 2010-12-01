@@ -418,9 +418,6 @@ def runInstancesWithRetry(cluster, ami, key, itype, groups, availzone, bidPrice,
 
     return instances
 
-
-
-
 def runAndTerminateBad(cluster, func):
     """
     This calls func and if a TryError is thrown
