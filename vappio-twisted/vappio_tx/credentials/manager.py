@@ -59,7 +59,7 @@ def loadAndCacheCredential(state, credName):
     else:
         d = persist.loadCredential(credName)
 
-        d.addCallback(lambda c : c.ctype.instantiateCredential(config.configFromEnv(), c))
+        d.addCallback(lambda c : c.ctype.instantiateCredential(config.configFromEnv(), c).addCallback(lambda cr : cr.update(ctype=c.ctype)))
         
         def _cacheCredential(cred):
             state.credInstanceCache[credName] = CacheEntry(cred)
@@ -74,25 +74,21 @@ def refreshInstances(state):
     def _refresh():
         try:
             cred = credIter.next()
+            cred = cred.value
 
-            cachedInstances = state.instanceCache
-            
             d = cred.ctype.listInstances(cred)
 
             def _cacheInstances(instances):
-                if state.instanceCache.entryTime == cachedInstances.entryTime:
-                    state.instanceCache[cred.name] = CacheEntry(instances)
-                else:
-                    instanceMap = {}
-                    for i in state.instanceCache.value + instances:
-                        if i.spotRequestId:
-                            instanceMap[i.spotRequestId] = i
-                        else:
-                            instanceMap[i.instanceId] = i
+                instanceMap = {}
+                for i in state.instanceCache.get(cred.name, CacheEntry([])).value + instances:
+                    if i.spotRequestId:
+                        instanceMap[i.spotRequestId] = i
+                    else:
+                        instanceMap[i.instanceId] = i
+                        
+                state.instanceCache[cred.name] = CacheEntry(instanceMap.values())
 
-                    state.instanceCache = CacheEntry(instanceMap.values())
-
-                return state.instanceCache.value
+                return state.instanceCache[cred.name].value
 
             def _logAndConsumeError(f):
                 log.err(f)
@@ -249,10 +245,16 @@ def handleWWWListAddCredential(state, mq, request):
         return d
     else:
         d = persist.loadAllCredentials()
+
+        print request['payload']
         d.addCallback(lambda cs : queue.returnQueueSuccess(mq,
                                                            request['return_queue'],
-                                                           [{'name': c.name, 'description': c.desc}
-                                                            for c in cs]))
+                                                           [{'name': c.name,
+                                                             'description': c.desc,
+                                                             'num_instances': len(state.instanceCache.get(c.name, CacheEntry([])).value)}
+                                                            for c in cs
+                                                            if ('cred_names' in request['payload'] and c.name in request['payload']['cred_names']) or
+                                                            'cred_names' not in request['payload']]))
         return d
 
 def makeService(conf):
@@ -293,7 +295,19 @@ def makeService(conf):
                 body = json.loads(m.body)
                 d = loadAndCacheCredential(state, body['credential_name'])
                 d.addCallback(f, state, mqFactory, body)
-                d.addErrback(lambda f : queue.returnQueueFailure(mqFactory, body['return_queue'], f))
+
+                def _ack(x):
+                    mqFactory.ack(m.headers['message-id'])
+                    return x
+
+                d.addCallback(_ack)
+
+                def _logAndReturn(f):
+                    log.err(f)
+                    queue.returnQueueFailure(mqFactory, body['return_queue'], f)
+                    return f
+                
+                d.addErrback(_logAndReturn)
             else:
                 log.err('Incoming request failed verification: ' + m.body)
         return _handleMsg
@@ -357,6 +371,13 @@ def makeService(conf):
             if _validateMsg(m):
                 d = defer.succeed(True)
                 d.addCallback(lambda _ : f(state, mqFactory, json.loads(m.body)))
+
+
+                def _ack(x):
+                    mqFactory.ack(m.headers['message-id'])
+                    return x
+
+                d.addCallback(_ack)
                 d.addErrback(lambda f : queue.returnQueueFailure(mqFactory, json.loads(m.body)['return_queue'], f))
             else:
                 log.err('Incoming www request failed verification: ' + m.body)

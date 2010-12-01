@@ -8,7 +8,7 @@ from igs_tx.utils import commands
 from igs.utils import functional as func
 from igs.utils import config
 
-from vappio.ec2 import control as ec2_control
+from vappio_tx.credentials.ctypes import ec2
 
 
 ##
@@ -18,8 +18,8 @@ DESC = """Control module for Nimbus-based users"""
 
 
 def instantiateCredential(conf, cred):
-    conf = config.configFromConfig(conf, base=config.configFromStream(open(conf('conf_file'),
-                                                                           base=config.configFromEnv()))    
+    conf = config.configFromConfig(conf, base=config.configFromStream(open(conf('conf_file')),
+                                                                      base=config.configFromEnv()))
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
 
@@ -73,7 +73,7 @@ def instantiateCredential(conf, cred):
                                    EC2_URL=cred.metadata['ec2_url']))
     if os.path.exists(conf('cluster.cluster_private_key') + '.pub'):
         pubKey = open(conf('cluster.cluster_private_key') + '.pub').read().rstrip()
-        mainDeferred.addCallback(lambda _ : ec2_control.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"'))
+        mainDeferred.addCallback(lambda _ : ec2.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"'))
         
     mainDeferred.addCallback(lambda _ : newCred)
     return mainDeferred
@@ -81,16 +81,16 @@ def instantiateCredential(conf, cred):
 
 
 # Set all of these to what ec2 does
-Instance = ec2_control.Instance
-addGroup = ec2_control.addGroup
-addKeypair = ec2_control.addKeypair
-authorizeGroup = ec2_control.authorizeGroup
-instanceFromDict = ec2_control.instanceFromDict
-instanceToDict = ec2_control.instanceToDict
-listGroups = ec2_control.listGroups
-listInstances = ec2_control.listInstances
-listKeypairs = ec2_control.listKeypairs
-runInstances = ec2_control.runInstances
-runSpotInstances = ec2_control.runSpotInstances
-terminateInstances = ec2_control.terminateInstances
-updateInstances = ec2_control.updateInstances
+Instance = ec2.Instance
+addGroup = ec2.addGroup
+addKeypair = ec2.addKeypair
+authorizeGroup = ec2.authorizeGroup
+instanceFromDict = ec2.instanceFromDict
+instanceToDict = ec2.instanceToDict
+listGroups = ec2.listGroups
+listInstances = ec2.listInstances
+listKeypairs = ec2.listKeypairs
+runInstances = ec2.runInstances
+runSpotInstances = ec2.runSpotInstances
+terminateInstances = ec2.terminateInstances
+updateInstances = ec2.updateInstances

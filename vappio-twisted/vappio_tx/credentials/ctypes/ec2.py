@@ -127,7 +127,7 @@ def runWithCred(cred, cmd, stdoutf=logging.OUTSTREAM.write, stderrf=logging.ERRS
 
     cmd = addCredInfo(cmd, cred)
     cmd[0] = cmdPrefix + cmd[0]
-    return commands.runProcess(cmd, stdoutf=stdoutf, stdoutf=stderrf, log=log, addEnv=cred.env)
+    return commands.runProcess(cmd, stdoutf=stdoutf, stderrf=stderrf, log=log, addEnv=cred.env)
 
 def run(cred, cmd, log=False):
     stdout = []
@@ -199,8 +199,8 @@ def instantiateCredential(conf, cred):
     Takes a credential and instanitates it.  It returns a Record that has all of the
     information users of that instantiated credential will need
     """
-    conf = config.configFromConfig(conf, base=config.configFromStream(open(conf('conf_file', default=DEFAULT_CONFIG_FILE),
-                                                                           base=config.configFromEnv()))
+    conf = config.configFromConfig(conf, base=config.configFromStream(open(conf('conf_file', default=DEFAULT_CONFIG_FILE)),
+                                                                      base=config.configFromEnv()))
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
     if not os.path.exists(certFile) or open(certFile).read() != cred.cert:

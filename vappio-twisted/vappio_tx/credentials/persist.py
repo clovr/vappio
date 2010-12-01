@@ -36,8 +36,6 @@ def createCredential(name, desc, ctype, cert, pkey, active, metadata):
     if ctype.startswith('vappio.'):
         ctype = ctype.split('.')[1]
 
-    print repr(ctype)
-    
     return Credential(name=name,
                       desc=desc,
                       ctype=reflect.namedAny('vappio_tx.credentials.ctypes.' + ctype),
