@@ -1,3 +1,5 @@
+import json
+
 from twisted.internet import defer
 
 from igs.utils import functional as func
@@ -10,10 +12,16 @@ def performQuery(mq, queryQueue, request):
     
     def _handleMsg(m):
         mq.unsubscribe(retQueue)
-        return d.callback(json.loads(m.body))
+        ret = json.loads(m.body)
+        if ret['success']:
+            return d.callback(ret['data'])
+        else:
+            d.errback(queue.RemoteError(ret['data']['name'],
+                                        ret['data']['msg'],
+                                        ret['data']['stacktrace']))
 
     mq.subscribe(_handleMsg, retQueue)
-    mq.send(queyQueue, func.updateDict(request, {'return_queue': retQueue}))
+    mq.send(queryQueue, json.dumps(func.updateDict(request, {'return_queue': retQueue})))
     return d
 
 class CredentialClient:
@@ -24,7 +32,7 @@ class CredentialClient:
 
 
     def credentialConfig(self):
-        query = dict(cred_name=self.credName)
+        query = dict(credential_name=self.credName)
         return performQuery(self.mq,
                             self.conf('credentials.credentialconfig_queue'),
                             query)
@@ -36,13 +44,13 @@ class CredentialClient:
                      groups,
                      availabilityZone=None,
                      numInstances=1,
-                     userData=None
+                     userData=None,
                      userDataFile=None):
-        query = dict(cred_name=self.credName,
+        query = dict(credential_name=self.credName,
                      ami=ami,
-                     key=key
+                     key=key,
                      instance_type=instanceType,
-                     groups=groups
+                     groups=groups,
                      availability_zone=availabilityZone,
                      num_instances=numInstances,
                      user_data=userData,
@@ -53,21 +61,21 @@ class CredentialClient:
     
 
     def runSpotInstances(self,
-                         bidPrice
+                         bidPrice,
                          ami,
                          key,
                          instanceType,
                          groups,
                          availabilityZone=None,
                          numInstances=1,
-                         userData=None
+                         userData=None,
                          userDataFile=None):
-        query = dict(cred_name=self.credName,
+        query = dict(credential_name=self.credName,
                      ami=ami,
                      bid_price=bidPrice,
-                     key=key
+                     key=key,
                      instance_type=instanceType,
-                     groups=groups
+                     groups=groups,
                      availability_zone=availabilityZone,
                      num_instances=numInstances,
                      user_data=userData,
@@ -78,47 +86,47 @@ class CredentialClient:
     
     
     def listInstances(self):
-        query = dict(cred_name=self.credName)
+        query = dict(credential_name=self.credName)
         return performQuery(self.mq,
                             self.conf('credentials.listinstances_queue'),
                             query)
 
     
     def updateInstances(self, instances):
-        query = dict(cred_name=self.credName,
+        query = dict(credential_name=self.credName,
                      instances=instances)
         return performQuery(self.mq,
                             self.conf('credentials.updateinstances_queue'),
                             query)
     
     def terminateInstances(self, instances):
-        query = dict(cred_name=self.credName,
+        query = dict(credential_name=self.credName,
                      instances=instances)
         return performQuery(self.mq,
                             self.conf('credentials.terminateinstances_queue'),
                             query)
 
     def listKeypairs(self):
-        query = dict(cred_name=self.credName)
+        query = dict(credential_name=self.credName)
         return performQuery(self.mq,
                             self.conf('credentials.listkeypairs_queue'),
                             query)
 
     def addKeypair(self, keypairName):
-        query = dict(cred_name=self.credName,
+        query = dict(credential_name=self.credName,
                      keypair_name=keypairName)
         return performQuery(self.mq,
                             self.conf('credentials.addkeypairs_queue'),
                             query)        
 
     def listGroups(self):
-        query = dict(cred_name=self.credName)
+        query = dict(credential_name=self.credName)
         return performQuery(self.mq,
                             self.conf('credentials.listgroups_queue'),
                             query)
 
     def addGroup(self, groupName, groupDescription):
-        query = dict(cred_name=self.credName,
+        query = dict(credential_name=self.credName,
                      group_name=groupName,
                      group_description=groupDescription)
         return performQuery(self.mq,
@@ -131,8 +139,8 @@ class CredentialClient:
                        portRange,
                        sourceGroup=None,
                        sourceGroupUser=None,
-                       souceSubnet=None):
-        query = dict(cred_name=self.credName,
+                       sourceSubnet=None):
+        query = dict(credential_name=self.credName,
                      group_name=groupName,
                      protocol=protocol,
                      port_range=portRange,

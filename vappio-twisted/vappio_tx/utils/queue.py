@@ -8,6 +8,16 @@ from igs_tx.utils import errors
 
 RANDOM_QUEUE_STATE = 0
 
+class RemoteError(Exception):
+    def __init__(self, name, msg, stacktrace):
+        self.name = name
+        self.msg = msg
+        self.stacktrace = stacktrace
+
+    def __str__(self):
+        return 'RemoteError(%r)' % ((self.name, self.msg, self.stacktrace),)
+
+
 def randomQueueName(baseName):
     # Evil I know, storing state like this
     global RANDOM_QUEUE_STATE

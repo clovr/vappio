@@ -79,15 +79,12 @@ def refreshInstances(state):
             d = cred.ctype.listInstances(cred)
 
             def _cacheInstances(instances):
-                instanceMap = {}
-                for i in state.instanceCache.get(cred.name, CacheEntry([])).value + instances:
-                    if i.spotRequestId:
-                        instanceMap[i.spotRequestId] = i
-                    else:
-                        instanceMap[i.instanceId] = i
-                        
-                state.instanceCache[cred.name] = CacheEntry(instanceMap.values())
-
+                #
+                # Possible race condition here, what if you start some
+                # instances while a refresh is happening?  They will be
+                # possibly be lost.  Ignoring at this point but
+                # must fix soon
+                state.instanceCache[cred.name] = CacheEntry(instances)
                 return state.instanceCache[cred.name].value
 
             def _logAndConsumeError(f):
@@ -166,7 +163,8 @@ def handleListInstances(cred, state, mq, query):
     queue.returnQueueSuccess(mq,
                              query['return_queue'],
                              [cred.ctype.instanceToDict(i)
-                              for i in state.instanceCache.get(cred.name, [])])
+                              for i in state.instanceCache.get(cred.name, CacheEntry([])).value])
+
     
 def handleTerminateInstances(cred, state, mq, query):
     d = cred.ctype.terminateInstances(cred,
@@ -175,6 +173,7 @@ def handleTerminateInstances(cred, state, mq, query):
     d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
                                                       query['return_queue'],
                                                       True))
+    return d
 
 def handleUpdateInstances(cred, state, mq, query):
     convertedInstances = [cred.ctype.instanceFromDict(i) for i in query['instances']]
@@ -185,7 +184,7 @@ def handleUpdateInstances(cred, state, mq, query):
                               for i in convertedInstances
                               if (ci.spotRequestId and ci.spotRequestId == i.spotRequestId) or ci.instanceId == i.instanceId])
     
-    
+    return d
 
 def handleListKeypairs(cred, state, mq, query):
     d = cred.ctype.listKeypairs(cred)
@@ -229,8 +228,8 @@ def handleAuthorizeGroup(cred, state, mq, query):
     return d
 
 def handleWWWListAddCredential(state, mq, request):
-    if 'cred_name' in request:
-        cred = persist.createCredential(name=request['payload']['cred_name'],
+    if 'credential_name' in request:
+        cred = persist.createCredential(name=request['payload']['credential_name'],
                                         desc=request['payload']['description'],
                                         ctype=request['payload']['ctype'],
                                         cert=request['payload']['cert'],
@@ -238,7 +237,7 @@ def handleWWWListAddCredential(state, mq, request):
                                         active=True,
                                         metadata=request['payload']['metadata'])
         d = persist.saveCredential(cred)
-        d.addCallback(lambda _ : loadAndCacheCredential(state, request['payload']['cred_name']))
+        d.addCallback(lambda _ : loadAndCacheCredential(state, request['payload']['credential_name']))
         d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
                                                           request['return_queue'],
                                                           True))
@@ -251,8 +250,8 @@ def handleWWWListAddCredential(state, mq, request):
                                                              'description': c.desc,
                                                              'num_instances': len(state.instanceCache.get(c.name, CacheEntry([])).value)}
                                                             for c in cs
-                                                            if ('cred_names' in request['payload'] and c.name in request['payload']['cred_names']) or
-                                                            'cred_names' not in request['payload']]))
+                                                            if ('credential_names' in request['payload'] and c.name in request['payload']['credential_names']) or
+                                                            'credential_names' not in request['payload']]))
         return d
 
 def makeService(conf):
@@ -307,6 +306,8 @@ def makeService(conf):
                 
                 d.addErrback(_logAndReturn)
             else:
+                # If it's bad data, ack it and get rid of it
+                mqFactory.ack(m.headers['message-id'])
                 log.err('Incoming request failed verification: ' + m.body)
         return _handleMsg
 
@@ -378,6 +379,8 @@ def makeService(conf):
                 d.addCallback(_ack)
                 d.addErrback(lambda f : queue.returnQueueFailure(mqFactory, json.loads(m.body)['return_queue'], f))
             else:
+                # If it's bad data, ack it and get rid of it
+                mqFactory.ack(m.headers['message-id'])
                 log.err('Incoming www request failed verification: ' + m.body)
 
         return _handleMsg
