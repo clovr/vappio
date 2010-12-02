@@ -20,6 +20,7 @@ rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init $tmpdir/etc/init
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/rsyslog.d $tmpdir/etc/rsyslog.d
+svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/logrotate.d $tmpdir/etc/logrotate.d
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio $tmpdir/etc/vappio
 
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sudoers $tmpdir/etc/sudoers

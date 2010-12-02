@@ -1,0 +1,9 @@
+/var/log/vappio.log {
+       size 20M 
+       rotate 10 
+       delaycompress
+       compress
+       notifempty
+       missingok
+}
+
