@@ -2,6 +2,7 @@
 
 ## Recipe to install gbrowse2
 ##
+set -x
 
 export PERL_MM_USE_DEFAULT=1
 export PERL_AUTOINSTALL=1
@@ -14,6 +15,8 @@ cpan -fi Safe::World
 cpan -fi DB_File::Lock
 cpan -fi File::NFSLock
 cpan -fi Bio::DB::Sam
+
+apt-get -y install python-mysqldb
 
 # Download gbrowse2 to a temporary directory in prep for installation
 mkdir -p /tmp/gbrowse2_install
@@ -36,6 +39,7 @@ apt-get --force-yes -y install expect
 ## gbrowse's installer will ask
 /usr/bin/expect - << EndMark
     exp_internal 1
+    set timeout 600
     spawn /tmp/gbrowse2_install/GBrowse-2.03/Build install
 
     expect "Do you wish to*"
