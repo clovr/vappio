@@ -116,70 +116,70 @@ def cacheInstances(instances, cred, state):
     state.instanceCache[cred.name] = CacheEntry(cachedInstances)
     return instances
     
-def handleCredentialConfig(cred, state, mq, request):
+def handleCredentialConfig(cred, state, mq, query):
     conf = {}
     for k in cred.conf.keys():
         conf[k] = cred.conf(k)
         
-    queue.returnQueueSuccess(mq, request['return_queue'], conf)
+    queue.returnQueueSuccess(mq, query['return_queue'], conf)
 
-def handleRunInstances(cred, state, mq, request):
+def handleRunInstances(cred, state, mq, query):
     d = cred.ctype.runInstances(cred,
-                                amiId=request['ami'],
-                                key=request['key'],
-                                instanceType=request['instance_type'],
-                                groups=request['groups'],
-                                availabilityZone=request.get('availability_zone', None),
-                                number=request.get('num_instances', 1),
-                                userData=request.get('user_data', None),
-                                userDataFile=request.get('user_data_file'),
+                                amiId=query['ami'],
+                                key=query['key'],
+                                instanceType=query['instance_type'],
+                                groups=query['groups'],
+                                availabilityZone=query.get('availability_zone', None),
+                                number=query.get('num_instances', 1),
+                                userData=query.get('user_data', None),
+                                userDataFile=query.get('user_data_file'),
                                 log=True)
     d.addCallback(cacheInstances)
     
     d.addCallback(lambda instances : queue.returnQueueSuccess(mq,
-                                                              request['return_queue'],
+                                                              query['return_queue'],
                                                               [cred.ctype.instanceToDict(i)
                                                                for i in instances]))
     return d
 
-def handleRunSpotInstances(cred, state, mq, request):
+def handleRunSpotInstances(cred, state, mq, query):
     d = cred.ctype.runInstances(cred,
-                                bidPice=request['bid_price'],
-                                amiId=request['ami'],
-                                key=request['key'],
-                                instanceType=request['instance_type'],
-                                groups=request['groups'],
-                                availabilityZone=request.get('availability_zone', None),
-                                number=request.get('num_instances', 1),
-                                userData=request.get('user_data', None),
-                                userDataFile=request.get('user_data_file'),
+                                bidPice=query['bid_price'],
+                                amiId=query['ami'],
+                                key=query['key'],
+                                instanceType=query['instance_type'],
+                                groups=query['groups'],
+                                availabilityZone=query.get('availability_zone', None),
+                                number=query.get('num_instances', 1),
+                                userData=query.get('user_data', None),
+                                userDataFile=query.get('user_data_file'),
                                 log=True)
     d.addCallback(cacheInstances)
     
     d.addCallback(lambda instances : queue.returnQueueSuccess(mq,
-                                                              request['return_queue'],
+                                                              query['return_queue'],
                                                               [cred.ctype.instanceToDict(i)
                                                                for i in instances]))
     return d
         
-def handleListInstances(cred, state, mq, request):
+def handleListInstances(cred, state, mq, query):
     queue.returnQueueSuccess(mq,
-                             request['return_queue'],
+                             query['return_queue'],
                              [cred.ctype.instanceToDict(i)
                               for i in state.instanceCache.get(cred.name, [])])
     
-def handleTerminateInstances(cred, state, mq, request):
+def handleTerminateInstances(cred, state, mq, query):
     d = cred.ctype.terminateInstances(cred,
                                       [cred.ctype.instanceFromDict(i)
-                                       for i in request['instances']])
+                                       for i in query['instances']])
     d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
-                                                      request['return_queue'],
+                                                      query['return_queue'],
                                                       True))
 
-def handleUpdateInstances(cred, state, mq, request):
-    convertedInstances = [cred.ctype.instanceFromDict(i) for i in request['instances']]
+def handleUpdateInstances(cred, state, mq, query):
+    convertedInstances = [cred.ctype.instanceFromDict(i) for i in query['instances']]
     queue.returnQueueSuccess(mq,
-                             request['return_queue'],
+                             query['return_queue'],
                              [ci
                               for ci in state.instanceCache.get(cred.name, [])
                               for i in convertedInstances
@@ -187,66 +187,64 @@ def handleUpdateInstances(cred, state, mq, request):
     
     
 
-def handleListKeypairs(cred, state, mq, request):
+def handleListKeypairs(cred, state, mq, query):
     d = cred.ctype.listKeypairs(cred)
     d.addCallback(lambda keypairs : queue.returnQueueSuccess(mq,
-                                                             request['return_queue'],
+                                                             query['return_queue'],
                                                              keypairs))
     return d
     
-def handleAddKeypair(cred, state, mq, request):
-    d = cred.ctype.addKeypair(cred, request['keypair_name'])
+def handleAddKeypair(cred, state, mq, query):
+    d = cred.ctype.addKeypair(cred, query['keypair_name'])
     d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
-                                                      request['return_queue'],
+                                                      query['return_queue'],
                                                       True))
     return d
 
-def handleListGroups(cred, state, mq, request):
+def handleListGroups(cred, state, mq, query):
     d = cred.ctype.listGroups(cred)
     d.addCallback(lambda groups : queue.returnQueueSuccess(mq,
-                                                           request['return_queue'],
+                                                           query['return_queue'],
                                                            groups))
     return d
 
-def handleAddGroup(cred, state, mq, request):
-    d = cred.ctype.addGroup(cred, request['group_name'], request['group_description'])
+def handleAddGroup(cred, state, mq, query):
+    d = cred.ctype.addGroup(cred, query['group_name'], query['group_description'])
     d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
-                                                      request['return_queue'],
+                                                      query['return_queue'],
                                                       True))
     return d
 
-def handleAuthorizeGroup(cred, state, mq, request):
+def handleAuthorizeGroup(cred, state, mq, query):
     d = cred.ctype.authorizeGroup(cred,
-                                  groupName=request['group_name'],
-                                  protocol=request.get('protocol', None),
-                                  portRange=request['port_range'],
-                                  sourceGroup=request.get('source_group', None),
-                                  sourceGroupUser=request.get('source_group_user', None),
-                                  sourceSubnet=request.get('source_subnet', None))
+                                  groupName=query['group_name'],
+                                  protocol=query.get('protocol', None),
+                                  portRange=query['port_range'],
+                                  sourceGroup=query.get('source_group', None),
+                                  sourceGroupUser=query.get('source_group_user', None),
+                                  sourceSubnet=query.get('source_subnet', None))
     d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
-                                                      request['return_queue'],
+                                                      query['return_queue'],
                                                       True))
     return d
 
 def handleWWWListAddCredential(state, mq, request):
     if 'cred_name' in request:
-        cred = persist.createCredential(name=request['cred_name'],
-                                        desc=request['description'],
-                                        ctype=request['ctype'],
-                                        cert=request['cert'],
-                                        pkey=request['pkey'],
+        cred = persist.createCredential(name=request['payload']['cred_name'],
+                                        desc=request['payload']['description'],
+                                        ctype=request['payload']['ctype'],
+                                        cert=request['payload']['cert'],
+                                        pkey=request['payload']['pkey'],
                                         active=True,
-                                        metadata=request['metadata'])
+                                        metadata=request['payload']['metadata'])
         d = persist.saveCredential(cred)
-        d.addCallback(lambda _ : loadAndCacheCredential(state, request['cred_name']))
+        d.addCallback(lambda _ : loadAndCacheCredential(state, request['payload']['cred_name']))
         d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
                                                           request['return_queue'],
                                                           True))
         return d
     else:
         d = persist.loadAllCredentials()
-
-        print request['payload']
         d.addCallback(lambda cs : queue.returnQueueSuccess(mq,
                                                            request['return_queue'],
                                                            [{'name': c.name,
