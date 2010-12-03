@@ -9,9 +9,9 @@ Welcome to Vappio's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   docs/webservices/index
+   docs/api/index
 
 Indices and tables
 ==================
