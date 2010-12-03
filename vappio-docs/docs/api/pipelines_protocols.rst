@@ -75,7 +75,7 @@ protocol_name  No        String  Specific protocol get configuration options
 
 webservice response
 ^^^^^^^^^^^^^^^^^^^
-if ``protocol_name`` is not specified then a list of protocol names is returned.  If ``protocol_name`` is 
+If ``protocol_name`` is not specified then a list of protocol names is returned.  If ``protocol_name`` is 
 specified than a list of lists where the first element in the inner list is the config name and the second
 element in the inner list is a dictionary where each dictionary has the possible values:
 
