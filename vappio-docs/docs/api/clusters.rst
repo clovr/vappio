@@ -187,7 +187,7 @@ description
 ^^^^^^^^^^^
 Add exec or data instances to a running cluster.
 
-This tool is currently being exapnded upon
+This tool is currently being expanded
 
 command line
 ^^^^^^^^^^^^
