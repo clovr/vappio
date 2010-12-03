@@ -79,7 +79,7 @@ of options work together.  Play around with the options to get comfortable with 
 
 **Example 9**
     Make a tag called ``example9`` that has all the files that start with foo in ``/path/to/boom`` in it and add two
-    metadata keys to it, filetype and author:
+    metadata keys to it, ``filetype`` and ``author``:
 
     ``vp-add-dataset --tag-name=example9 -m filetype=foos -m author=me_of_course /path/to/boom/foo*``
 
