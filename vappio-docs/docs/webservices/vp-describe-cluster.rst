@@ -1,4 +1,0 @@
-vp-describe-cluster
-===================
-
-Foobar
