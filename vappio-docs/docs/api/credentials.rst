@@ -13,9 +13,9 @@ command line
 ^^^^^^^^^^^^
 .. program-output:: vp-add-credential --help
 
+
 command line examples
 ^^^^^^^^^^^^^^^^^^^^^
-
 Command
 
 ``vp-add-credential --cred-name=foo --ctype=ec2 -c /path/to/cert.pem -p /path/to/pkey.pem``
@@ -25,13 +25,13 @@ Output
 ``None``
 
 
-url
-^^^
+webservice url
+^^^^^^^^^^^^^^
 /vappio/credential_ws.py
 
-parameters
-^^^^^^^^^^
 
+webservice parameters
+^^^^^^^^^^^^^^^^^^^^^
 ===============  ========  ==========  ===================================================
 Paramater        Required  Type        Meaning
 ===============  ========  ==========  ===================================================
@@ -44,9 +44,8 @@ metadata         Yes       Dictionary  Key value pairs for metadata used in the 
 ===============  ========  ==========  ===================================================
 
 
-response
-^^^^^^^^
-
+webservice response
+^^^^^^^^^^^^^^^^^^^
 ``None``
 
 
@@ -58,13 +57,14 @@ description
 Get a list of the available credentials as well as the number of running instances
 associated with that credential.
 
+
 command line
 ^^^^^^^^^^^^
 .. program-output:: vp-describe-credentials --help
 
+
 command line example
 ^^^^^^^^^^^^^^^^^^^^
-
 Command
 
 ``vp-describe-credentials``
@@ -74,23 +74,23 @@ Output::
     CRED    local   0
     CRED    diag    0
 
-url
-^^^
+
+webservice url
+^^^^^^^^^^^^^^
 /vappio/credential_ws.py
 
 
-parameters
-^^^^^^^^^^
-
+webservice parameters
+^^^^^^^^^^^^^^^^^^^^^
 ================  ========  ===============  ===================================================================
 Parameter         Required  Type             Meaning
 ================  ========  ===============  ===================================================================
 credential_names  No        List of Strings  This list limits the returned credentials to just those in the list
 ================  ========  ===============  ===================================================================
 
-response
-^^^^^^^^
 
+webservice response
+^^^^^^^^^^^^^^^^^^^
 A list of dictionaries is returned where each dictionary contains the following keys:
 
 =============  ======  =========================================================
