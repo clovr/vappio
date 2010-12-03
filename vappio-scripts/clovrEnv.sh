@@ -15,10 +15,9 @@ export PATH=$PATH:/opt/cdhit/:/opt/fasttree:/opt/rdp_classifier:/opt/uclust/:/op
 
 ##
 # mugsy install
-export MUGSY_INSTALL=/opt/opt-packages/mugsy_x86-64-v1r2/mugsy
-export MUGSY_DIR=/opt/opt-packages/mugsy_x86-64-v1r2
-export PATH=$PATH:$MUGSY_DIR:$MUGSY_DIR/mapping
-export PERL5LIB=$MUGSY_DIR/perllibs:$MUGSY_DIR
+export MUGSY_INSTALL=/opt/mugsy_x86-64
+export PATH=$PATH:$MUGSY_INSTALL:$MUGSY_INSTALL/mapping
+export PERL5LIB=$MUGSY_INSTALL/perllibs
 
 ##
 # Something weird for mongodb
