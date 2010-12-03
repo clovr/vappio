@@ -78,7 +78,7 @@ of options work together.  Play around with the options to get comfortable with 
     ``vp-add-dataset --tag-name=example6 -o -r /foo/bar/baz /path/to/boom``
 
 **Example 9**
-    Make a tag called ``example9`` that has all the files that start with foo in ``/path/to/boom`` in it and add two
+    Make a tag called ``example9`` that has all the files that start with ``foo`` in ``/path/to/boom`` in it and add two
     metadata keys to it, ``filetype`` and ``author``:
 
     ``vp-add-dataset --tag-name=example9 -m filetype=foos -m author=me_of_course /path/to/boom/foo*``
@@ -104,3 +104,91 @@ append        Yes       Boolean         Append to the curent tag
 overwrite     Yes       Boolean         Overwrite the tag or not.  If the tag is already present and append is not specified the operation becomes a noop
 tag_metadata  Yes       Dictionary      Key value pairs of metadata for the tag
 ============  ========  ==============  =================================================================================================================
+
+webservice response
+^^^^^^^^^^^^^^^^^^^
+The return is the name of the task associated with tagging the data.
+
+vp-transfer-dataset - Upload a dataset
+--------------------------------------
+
+description
+^^^^^^^^^^^
+This uploads a dataset.  This is being expanded to support upload and download from any cluster to another cluster.
+
+command line
+^^^^^^^^^^^^
+.. program-output:: vp-transfer-dataset --help
+
+command line examples
+^^^^^^^^^^^^^^^^^^^^^
+Uploaded a tag named ``example_tag`` to cluster ``my_ec2_cluster``:
+
+``vp-transfer-dataset --tag-name=example_tag --dst-cluster=my_ec2_cluster``
+
+Output::
+
+    Specify output here
+
+webservice url
+^^^^^^^^^^^^^^
+/vappio/uploadTag_ws.py
+
+webservice parameters
+^^^^^^^^^^^^^^^^^^^^^
+===========  ========  =======  =========================================================
+Parameter    Required  Type     Meaning
+===========  ========  =======  =========================================================
+tag_name     Yes       String   The name of the tag to transfer
+src_cluster  Yes       String   The name of the source cluster, *should be local for now*
+dst_cluster  Yes       String   Name of the destination cluster
+expand       Yes       Boolean  Should the files be expanded after upload
+compress     Yes       Boolean  Should the files be compressed after upload
+===========  ========  =======  =========================================================
+
+webservice response
+^^^^^^^^^^^^^^^^^^^
+The name of the task associated with the upload
+
+
+
+vp-download-dataset - Download a dataset
+--------------------------------------
+
+description
+^^^^^^^^^^^
+This downloads a dataset.  This will be removed in the future, ``vp-transfer-dataset`` will be used for both upload and download
+
+command line
+^^^^^^^^^^^^
+.. program-output:: vp-download-dataset --help
+
+command line examples
+^^^^^^^^^^^^^^^^^^^^^
+Downloads a tag named ``example_tag`` from cluster ``my_ec2_cluster``:
+
+``vp-download-dataset --tag-name=example_tag --src-cluster=my_ec2_cluster``
+
+Output::
+
+    Specify output here
+
+webservice url
+^^^^^^^^^^^^^^
+/vappio/downloadTag_ws.py
+
+webservice parameters
+^^^^^^^^^^^^^^^^^^^^^
+===========  ========  =======  ==========================================================
+Parameter    Required  Type     Meaning
+===========  ========  =======  ==========================================================
+tag_name     Yes       String   The name of the tag to transfer
+src_cluster  Yes       String   The name of the source cluster
+dst_cluster  Yes       String   Name of the destination cluster, *should be local for now*
+expand       Yes       Boolean  Should the files be expanded after download
+compress     Yes       Boolean  Should the files be compressed after download
+===========  ========  =======  ==========================================================
+
+webservice response
+^^^^^^^^^^^^^^^^^^^
+The name of the task associated with the upload

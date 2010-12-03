@@ -63,8 +63,8 @@ command line
 .. program-output:: vp-describe-credentials --help
 
 
-command line example
-^^^^^^^^^^^^^^^^^^^^
+command line examples
+^^^^^^^^^^^^^^^^^^^^^
 Command
 
 ``vp-describe-credentials``
