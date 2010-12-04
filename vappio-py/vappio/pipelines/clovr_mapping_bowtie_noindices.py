@@ -7,7 +7,7 @@ from igs.utils.cli import notNone, defaultIfNone, restrictValues
 
 from vappio.pipeline_tools.blast import tagToRefDBPath
 
-TEMPLATE_NAME = 'clovr_align_bowtie'
+TEMPLATE_NAME = 'clovr_mapping_bowtie_noindices'
 
 OPTIONS = [
     ('input.REFERENCE_TAG', '', '--REFERENCE_TAG', 'The input file list of FASTA reference sequences', compose(lambda x : '${dirs.tag_dir}/' + x, notNone)),
