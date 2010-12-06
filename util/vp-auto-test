@@ -23,6 +23,10 @@ do
     echo "#!/bin/bash" > $dname/$bname/shared/user-scripts/03-schedshutdown
     hour=`date -u +"%-H"`
     shutdownhour=$(($hour-1))
+    if [ "$hour" -lt 0 ]
+    then
+	shutdownhour=$((24 + $shutdownhour));
+    fi
     echo "echo \"0 $shutdownhour * * * root /sbin/shutdown -h +10\" > /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user-scripts/03-schedshutdown
     echo "chmod +x /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user-scripts/03-schedshutdown
     echo "#!/bin/bash" > $dname/$bname/shared/user-scripts/04-startvnc
