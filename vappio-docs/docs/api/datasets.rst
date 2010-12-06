@@ -192,3 +192,83 @@ compress     Yes       Boolean  Should the files be compressed after download
 webservice response
 ^^^^^^^^^^^^^^^^^^^
 The name of the task associated with the upload
+
+vp-describe-dataset - Get information about datasets
+----------------------------------------------------
+
+description
+^^^^^^^^^^^
+
+With a dataset registered with the system the files and metadata can be queried.
+
+**Note:** Datasets are being expanded upon and redefined, this data will change.
+
+command line
+^^^^^^^^^^^^
+
+.. program-output:: vp-describe-dataset --help
+
+command line examples
+^^^^^^^^^^^^^^^^^^^^^
+
+**Example 1**
+    List all registered datasets:
+
+    ``vp-describe-dataset``
+
+    Output::
+
+        TAG     clovr-core-set-aligned-imputed-fasta
+	TAG     diag-2-iozone-test
+	TAG     clovr_search_11-29-2010-15:01:57_blastall_raw
+	TAG     clovr-prok-db
+	TAG     test-iozone-test
+	TAG     ncbi-nr
+	TAG     clovr-cogdb
+
+**Example 2**
+    List files and metadata about a particular dataset:
+
+    ``vp-describe-dataset --tag-name=clovr_search_12-01-2010-15:07:00_blastall_raw``
+
+    Output::
+
+        FILE    /mnt/output/clovr_search_12-01-2010-15:07:00/ncbi-blastall/6_default/i1/g3/NC_000964_1.ncbi-blastall.raw
+	FILE    /mnt/output/clovr_search_12-01-2010-15:07:00/ncbi-blastall/6_default/i1/g4/NC_000964_4.ncbi-blastall.raw
+	FILE    /mnt/output/clovr_search_12-01-2010-15:07:00/ncbi-blastall/6_default/i1/g1/NC_000964_2.ncbi-blastall.raw
+	FILE    /mnt/output/clovr_search_12-01-2010-15:07:00/ncbi-blastall/6_default/i1/g2/NC_000964_3.ncbi-blastall.raw
+	METADATA        pipeline_configs.clovr_search_12-01-2010-15:07:00.env.METHOD    dhcp
+	METADATA        pipeline_configs.clovr_search_12-01-2010-15:07:00.VAPPIO_CLI    /opt/vappio-py/vappio/cli/
+	METADATA        tag_base_dir    /mnt/output/clovr_search_12-01-2010-15:07:00
+	METADATA        pipeline_configs.clovr_search_12-01-2010-15:07:00.NODE_TYPE     MASTER
+	METADATA        pipeline_configs.clovr_search_12-01-2010-15:07:00.dirs.clovr_project    /mnt/projects/clovr
+	METADATA        pipeline_configs.clovr_search_12-01-2010-15:07:00.cluster.CLUSTER_NAME  local
+	METADATA        pipeline_configs.clovr_search_12-01-2010-15:07:00.cluster.EXEC_NODES    0
+
+webservice url
+^^^^^^^^^^^^^^
+
+/vappio/queryTag_ws.py
+
+webservice parameters
+^^^^^^^^^^^^^^^^^^^^^
+
+=========  ========  ===========  ========================================================
+Parameter  Required  Type         Meaning
+=========  ========  ===========  ========================================================
+cluster    Yes       String       Name of cluster to query.
+tag_name   Yes       String List  List of tags to get info for, an empty list of all tags.
+=========  ========  ===========  ========================================================
+
+webservice response
+^^^^^^^^^^^^^^^^^^^
+
+A list of datasets is returned where each entry is a dictionary containing the following values:
+
+============  ===========  =================================================================
+Parameter     Name         Meaning
+============  ===========  =================================================================
+name          String       Name of the dataset.
+files         String List  A list of all the files in the dataset.
+metadata.???  String       All metadata is stored with the string 'metadata.' infront of it.
+============  ===========  =================================================================
