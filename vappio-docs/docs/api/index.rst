@@ -9,6 +9,7 @@ API
    clusters
    datasets
    pipelines_protocols
-   metrics
+   tasks
+   tasklets
 
 
