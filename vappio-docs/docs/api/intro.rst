@@ -1,7 +1,7 @@
 Introduction
 ============
 
-What is the vappio api?
+What is the vappio API?
 -----------------------
 
 ``vappio`` is an API for the creation and manipulation of clusters on a cloud in a platform 
