@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -e
 
 USAGE="vp-bundle-diag [-f] image.img|imagedir [init script]\n
 Bundles and uploads an AMI of image.img\n
@@ -69,9 +69,10 @@ mkdir -p ~/.globus
 cp /mnt/keys/diagcert ~/.globus/usercert.pem
 cp /mnt/keys/diagkey ~/.globus/uesrkey.pem
 
+set +e
 echo "Checking for image"
 IMAGE_EXISTS=`cloud-client.sh --list | grep $imgname.img`
-
+set -e
 if [ ! "$IMAGE_EXISTS" = "" ] && [ "$force" = "force" ]
 then
     echo "Deleting $imgname.img"
