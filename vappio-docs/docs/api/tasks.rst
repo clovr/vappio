@@ -125,11 +125,11 @@ webservice parameters
 
 **Note:** The webservice interface is under considerable overhaul
 
-=========  ========  ======  =========================
+=========  ========  ======  ==========================
 Parameter  Required  Type    Meaning
-=========  ========  ======  =========================
-cluster    Yes       String  Name of cluster to run on
-=========  ========  ======  =========================
+=========  ========  ======  ==========================
+cluster    Yes       String  Name of cluster to run on.
+=========  ========  ======  ==========================
 
 
 webservice response

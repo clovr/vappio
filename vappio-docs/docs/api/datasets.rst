@@ -6,12 +6,14 @@ vp-add-dataset - Register a dataset
 
 description
 ^^^^^^^^^^^
+
 In order to be used with other tools a dataset must first be registered.  A set of files is
 given a name to be grouped by and metadata describing it.  In order to transfer data it
 must first be tagged.
 
 command line
 ^^^^^^^^^^^^
+
 .. program-output:: vp-add-dataset --help
 
 command line examples
@@ -69,9 +71,6 @@ command line examples
 
     ``vp-add-dataset --tag-name=example6 -a --compress=/path/to/compressed /foo/bar/baz``
 
-There are a number of ways to use ``vp-add-dataset``, it provides a lot of functionality.  Almost all of the combinations
-of options work together.  Play around with the options to get comfortable with it.
-
 **Example 8**
     Overwrite the tag ``example6`` with the file ``/foo/bar/baz`` and the contents the directory ``/path/to/boom``:
 
@@ -84,29 +83,35 @@ of options work together.  Play around with the options to get comfortable with 
     ``vp-add-dataset --tag-name=example9 -m filetype=foos -m author=me_of_course /path/to/boom/foo*``
 
 
+There are a number of ways to use ``vp-add-dataset``, it provides a lot of functionality.  Almost all of the combinations
+of options work together.  Play around with the options to get comfortable with it.
+
 webservice url
 ^^^^^^^^^^^^^^
+
 /vappio/tagData_ws.py
 
 webservice parameters
 ^^^^^^^^^^^^^^^^^^^^^
-============  ========  ==============  =================================================================================================================
+
+============  ========  ==============  ==================================================================================================================
 Parameter     Required  Type            Meaning
-============  ========  ==============  =================================================================================================================
-cluster       Yes       String          The name of the cluster to tag data on
-tag_name      Yes       String          The name of the tag
-tag_base_dir  Yes       String or null  If present, the base directory of the tag
-files         Yes       String list     A list of filenames to tag, an empty list is acceptable
-recursive     Yes       Boolean         Recursively tag the elements in ``files``
-expand        Yes       Boolean         Example any compressed files found in the tagging process
-compress      Yes       String or null  If the contents of the tag should be compressed give the base directory to compress into
-append        Yes       Boolean         Append to the curent tag
-overwrite     Yes       Boolean         Overwrite the tag or not.  If the tag is already present and append is not specified the operation becomes a noop
-tag_metadata  Yes       Dictionary      Key value pairs of metadata for the tag
-============  ========  ==============  =================================================================================================================
+============  ========  ==============  ==================================================================================================================
+cluster       Yes       String          The name of the cluster to tag data on.
+tag_name      Yes       String          The name of the tag.
+tag_base_dir  Yes       String or null  If present, the base directory of the tag.
+files         Yes       String list     A list of filenames to tag, an empty list is acceptable.
+recursive     Yes       Boolean         Recursively tag the elements in ``files``.
+expand        Yes       Boolean         Example any compressed files found in the tagging process.
+compress      Yes       String or null  If the contents of the tag should be compressed give the base directory to compress into.
+append        Yes       Boolean         Append to the curent tag.
+overwrite     Yes       Boolean         Overwrite the tag or not.  If the tag is already present and append is not specified the operation becomes a noop.
+tag_metadata  Yes       Dictionary      Key value pairs of metadata for the tag.
+============  ========  ==============  ==================================================================================================================
 
 webservice response
 ^^^^^^^^^^^^^^^^^^^
+
 The return is the name of the task associated with tagging the data.
 
 vp-transfer-dataset - Upload a dataset
@@ -114,42 +119,45 @@ vp-transfer-dataset - Upload a dataset
 
 description
 ^^^^^^^^^^^
+
 This uploads a dataset.  This is being expanded to support upload and download from any cluster to another cluster.
 
 command line
 ^^^^^^^^^^^^
+
 .. program-output:: vp-transfer-dataset --help
 
 command line examples
 ^^^^^^^^^^^^^^^^^^^^^
-Uploaded a tag named ``example_tag`` to cluster ``my_ec2_cluster``:
 
-``vp-transfer-dataset --tag-name=example_tag --dst-cluster=my_ec2_cluster``
+**Example 1**
+    Uploaded a tag named ``example_tag`` to cluster ``my_ec2_cluster``:
 
-Output::
+    ``vp-transfer-dataset --tag-name=example_tag --dst-cluster=my_ec2_cluster``
 
-    Specify output here
 
 webservice url
 ^^^^^^^^^^^^^^
+
 /vappio/uploadTag_ws.py
 
 webservice parameters
 ^^^^^^^^^^^^^^^^^^^^^
-===========  ========  =======  =========================================================
+
+===========  ========  =======  ==========================================================
 Parameter    Required  Type     Meaning
-===========  ========  =======  =========================================================
-tag_name     Yes       String   The name of the tag to transfer
-src_cluster  Yes       String   The name of the source cluster, *should be local for now*
-dst_cluster  Yes       String   Name of the destination cluster
-expand       Yes       Boolean  Should the files be expanded after upload
-compress     Yes       Boolean  Should the files be compressed after upload
-===========  ========  =======  =========================================================
+===========  ========  =======  ==========================================================
+tag_name     Yes       String   The name of the tag to transfer.
+src_cluster  Yes       String   The name of the source cluster, *should be local for now*.
+dst_cluster  Yes       String   Name of the destination cluster.
+expand       Yes       Boolean  Should the files be expanded after upload.
+compress     Yes       Boolean  Should the files be compressed after upload.
+===========  ========  =======  ==========================================================
 
 webservice response
 ^^^^^^^^^^^^^^^^^^^
-The name of the task associated with the upload
 
+The name of the task associated with the upload
 
 
 vp-download-dataset - Download a dataset
@@ -157,40 +165,44 @@ vp-download-dataset - Download a dataset
 
 description
 ^^^^^^^^^^^
+
 This downloads a dataset.  This will be removed in the future, ``vp-transfer-dataset`` will be used for both upload and download
 
 command line
 ^^^^^^^^^^^^
+
 .. program-output:: vp-download-dataset --help
 
 command line examples
 ^^^^^^^^^^^^^^^^^^^^^
-Downloads a tag named ``example_tag`` from cluster ``my_ec2_cluster``:
 
-``vp-download-dataset --tag-name=example_tag --src-cluster=my_ec2_cluster``
+**Example 1**
+    Downloads a tag named ``example_tag`` from cluster ``my_ec2_cluster``:
 
-Output::
+    ``vp-download-dataset --tag-name=example_tag --src-cluster=my_ec2_cluster``
 
-    Specify output here
 
 webservice url
 ^^^^^^^^^^^^^^
+
 /vappio/downloadTag_ws.py
 
 webservice parameters
 ^^^^^^^^^^^^^^^^^^^^^
-===========  ========  =======  ==========================================================
+
+===========  ========  =======  ===========================================================
 Parameter    Required  Type     Meaning
-===========  ========  =======  ==========================================================
-tag_name     Yes       String   The name of the tag to transfer
-src_cluster  Yes       String   The name of the source cluster
-dst_cluster  Yes       String   Name of the destination cluster, *should be local for now*
-expand       Yes       Boolean  Should the files be expanded after download
-compress     Yes       Boolean  Should the files be compressed after download
-===========  ========  =======  ==========================================================
+===========  ========  =======  ===========================================================
+tag_name     Yes       String   The name of the tag to transfer.
+src_cluster  Yes       String   The name of the source cluster.
+dst_cluster  Yes       String   Name of the destination cluster, *should be local for now*.
+expand       Yes       Boolean  Should the files be expanded after download.
+compress     Yes       Boolean  Should the files be compressed after download.
+===========  ========  =======  ===========================================================
 
 webservice response
 ^^^^^^^^^^^^^^^^^^^
+
 The name of the task associated with the upload
 
 vp-describe-dataset - Get information about datasets

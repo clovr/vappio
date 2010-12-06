@@ -10,7 +10,7 @@ terminology but the functionality is more generic.  As of this writing (Dec 6 20
 works on EC2 and Nimbus based infrastructures.
 
 This document provides the description of the API that a ``vappio`` implementation is expected
-to adhere to.  A command line and webservice based API is shown.
+to adhere.  A command line and webservice based API is shown.
 
 The command line API
 --------------------
@@ -24,7 +24,7 @@ share some functionality described here.
 Almost all command line programs take a ``--host`` and ``--name`` option.  Because the command line
 API is using the webservices in the background the host to connect to can be specified with
 ``--host``.  In many cases one wishes to specify a particular cluster to run a command on.  For example
-if one has an EC2 cluster up and want to add instances they would want to specify which cluster to
+if one has an EC2 cluster up and wants to add instances they would want to specify which cluster to
 add instances to.  This is done through the ``--name`` option.  These values default to ``localhost``
 and ``local`` respectively.  
 
@@ -42,22 +42,21 @@ with ``vp-describe-task``.  This allows the command line tools to be used asynch
 The webservice API
 ------------------
 
-All of the webservices use ``JSON`` as the language for communication because it is both easy for humans
-to read and for computers.  The documentation of the webservices include valid ``JSON`` input and the
-expected responses.  Many of the webservice operations actually initiate long running jobs in which case
-a task id (which is a string) is returned.  This task id can be queried using the tasks webservice API.
-Other webservices return more complicated data structures.  The response from a webservice is always
-wrapped in a ``JSON`` dictionary that describes if the operation was a success or failure.
+All of the webservices use ``JSON`` as the language for communication.  The documentation of the webservices 
+include valid ``JSON`` input and the expected responses.  Many of the webservice operations actually initiate 
+long running jobs in which case a task id (which is a string) is returned.  This task id can be queried using 
+the tasks webservice API. Other webservices return more complicated data structures.  The response from a 
+webservice is always wrapped in a ``JSON`` dictionary that describes if the operation was a success or failure.
 
 Response objects
 ^^^^^^^^^^^^^^^^
 
-**All** ``vappio`` webservice responses look like the following:
+All ``vappio`` webservice responses are a dictionary with the following attributes:
 
 =========  =======  ======================================================================================================================================= 
 Parameter  Type     Meaning
-=========  =======  ======================================================================================================================================= 
-success    Boolean  If true, the request was successfully and the ``data`` attribute contains the response.  If false ``data`` contains failure information.
+=========  =======  =======================================================================================================================================
+success    Boolean  If true, the request was successfull and the ``data`` attribute contains the response.  If false ``data`` contains failure information.
 data       Any      On success this is whatever the API documentation describes the output to be.  On failure it is an ``error`` object described below.
 =========  =======  ======================================================================================================================================= 
 

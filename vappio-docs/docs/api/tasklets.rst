@@ -4,7 +4,7 @@ Tasklets
 What is a tasklet?
 ------------------
 
-A ``tasklet`` represents a small peice of work that runs in combination with other tasklets to perform a task.
+A ``tasklet`` represents a small peice of work that runs in combination with other ``tasklets`` to perform a task.
 An example of a ``tasklet`` might be calculating how many CPU hours a pipeline will take then resizing
 the cluster to handle the workload.  Individual ``tasklets`` should generally be seen similar to UNIX utilities
 such as ``ls`` or ``grep`` which perform a single function well and are designed to be composed with other tools through
