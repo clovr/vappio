@@ -53,12 +53,12 @@ Response objects
 
 All ``vappio`` webservice responses are a dictionary with the following attributes:
 
-=========  =======  ======================================================================================================================================= 
+=========  =======  ======================================================================================================================================
 Parameter  Type     Meaning
-=========  =======  =======================================================================================================================================
-success    Boolean  If true, the request was successfull and the ``data`` attribute contains the response.  If false ``data`` contains failure information.
+=========  =======  ======================================================================================================================================
+success    Boolean  If true, the request was successful and the ``data`` attribute contains the response.  If false ``data`` contains failure information.
 data       Any      On success this is whatever the API documentation describes the output to be.  On failure it is an ``error`` object described below.
-=========  =======  ======================================================================================================================================= 
+=========  =======  ======================================================================================================================================
 
 An ``error`` object:
 
