@@ -314,7 +314,7 @@ sub set_time_and_state_info {
 	
 	$$node{$START_TIME} = UnixDate(&ParseDateString("epoch $start_time"), "%c") unless( $$node{$START_TIME} );
 	$$node{$END_TIME} = UnixDate(&ParseDateString("epoch $end_time"), "%c");
-	$$node{$ELAPSED_TIME} = $end_time - $start_time;
+	$$node{$ELAPSED_TIME} = UnixDate( $$node{$END_TIME}, "%s" ) - UnixDate( $$node{$START_TIME}, "%s" );
 	$$node{$STATE} = $state;
 	$$node{$CPU_TIME} += $end_time - $start_time if( $is_command );
 	if($end_time && $start_time) {
