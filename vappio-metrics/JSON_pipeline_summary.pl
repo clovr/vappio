@@ -119,6 +119,12 @@ process_file( $$options{'xml_file'} );
 my $data = {};
 add_component_or_command_info( $$root{$PIPELINE}{$CMPS}, $CMPS );
 add_component_or_command_info( $$root{$PIPELINE}{$CMDS}, $CMDS );
+## Now we will go ahead and add the pipeline info
+$$data{$CMPS}{$PIPELINE}{$START_TIME} = $$root{$PIPELINE}{$START_TIME};
+$$data{$CMPS}{$PIPELINE}{$END_TIME} = $$root{$PIPELINE}{$END_TIME};
+$$data{$CMPS}{$PIPELINE}{$CPU_TIME} = $$root{$PIPELINE}{$CPU_TIME};
+$$data{$CMPS}{$PIPELINE}{$ELAPSED_TIME} = $$root{$PIPELINE}{$ELAPSED_TIME};
+$$data{$CMPS}{$PIPELINE}{$STATE} = $$root{$PIPELINE}{$STATE};
 print encode_json( $data );
 exit(0);
 
