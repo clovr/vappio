@@ -10,8 +10,9 @@ JSON_command_summary.pl - creates and writes to disk command summary in JSON for
 =head1 SYNOPSIS
 	
 	./JSON_command_summary.pl
-		--xml_file=/path/to/xml/file
-		[--log_file=/path/to/log/file
+		--xml_file|-x=/path/to/xml/file
+		[--cmds_time_info| -c
+		 --log_file=/path/to/log/file
 		 --debug=<debug level>
 		 --help]
 				 
@@ -99,11 +100,13 @@ my $CMDS = 'commands';
 my $CMPS = 'components';
 my $CPU_TIME = 'cpu_time';
 my $ELAPSED_TIME = 'elapsed_time';
+my $ACTUAL_ELAPSED_TIME = 'actual_elapsed_time';
 my $START_TIME = 'start_time';
 my $END_TIME = 'end_time';
 my $STATE = 'state';
 my $COUNT = 'count';
 my $count = 1;
+my $TIME_INFO = 'time_info';
 
 ############################################
 #              MAIN PROGRAM                #
@@ -118,6 +121,7 @@ process_file( $$options{'xml_file'} );
 my $data = {};
 add_component_or_command_info( $$root{$PIPELINE}{$CMPS}, $CMPS );
 add_component_or_command_info( $$root{$PIPELINE}{$CMDS}, $CMDS );
+add_actual_elapsed_time( $$data{$CMDS} ) if( exists $$options{'cmds_time_info'} );
 
 ## Now we will go ahead and add the pipeline info
 $$data{$CMPS}{$PIPELINE}{$START_TIME} = $$root{$PIPELINE}{$START_TIME};
@@ -137,6 +141,41 @@ exit(0);
 ############################################
 #            SUB ROUTINES                  #
 ############################################
+
+sub add_actual_elapsed_time {
+	my ($command_node) = @_;
+	foreach my $key( keys %$command_node ) {
+		$$command_node{$key}{$ACTUAL_ELAPSED_TIME} = get_actual_elapsed_time( $$command_node{$key}{$TIME_INFO} );
+	}
+}
+
+sub get_actual_elapsed_time {
+	my ($ref_time_array) = @_;
+	my ($actual_elapsed_time, $counter, $start_time_info, $end_time_info) = (0, 0, undef, undef);
+	my ($start_flag, $end_flag) = ( $TRUE, $FALSE );
+	foreach my $time( @$ref_time_array ) {
+		my $time_only;
+		if( $time =~ /(.+)=(.+)/ ) {
+			$time_only = $2;
+			$1 eq $START_TIME ? $counter++ : $counter--;
+		}
+		if( $counter == 1 && $start_flag ) {
+			$start_time_info = $time_only;
+			$start_flag = $FALSE;
+			$end_flag = $TRUE;
+		} elsif( $counter == 0 && $end_flag ) {
+			$end_time_info = $time_only;
+			my $ssecs = UnixDate( $start_time_info, "%s" );
+			my $esecs = UnixDate( $end_time_info, "%s" );
+			print STDERR "Bad $start_time_info $end_time_info $ssecs - $esecs\n" if(!$ssecs || !$esecs);
+			$actual_elapsed_time += $esecs - $ssecs; 
+			$start_flag = $TRUE;
+			$end_flag = $FALSE;
+			($start_time_info, $end_time_info) = (undef, undef);
+		}
+	}
+	return $actual_elapsed_time;
+}
 
 sub sorted {
 	my ($data) = @_;
@@ -164,14 +203,31 @@ sub add_component_or_command_info {
 		$$data{$domain}{$key}{$STATE} = $$node{$key}{$STATE};
 		$$data{$domain}{$key}{$CPU_TIME} = $$node{$key}{$CPU_TIME};
 		$$data{$domain}{$key}{$COUNT} = $$node{$key}{$COUNT} if($domain eq $CMDS);
+		@{$$data{$domain}{$key}{$TIME_INFO}} = sort by_time @{$$node{$key}{$TIME_INFO}} if( $domain eq $CMDS && exists $$options{'cmds_time_info'});
 		#get_req_info($$node{$key}{$domain}) if( $domain eq $CMPS );
 	}
+}
+
+sub by_time {
+	my ($a_token, $b_token, $a_time, $b_time);
+	if( $a =~ /(.+)=(.+)/ ) {
+		$a_token = $1;
+		$a_time = $2;
+	}
+	if( $b =~ /(.+)=(.+)/ ) {
+		$b_token = $1;
+		$b_time = $2;
+	}
+	my $a_time_in_seconds = UnixDate( $a_time, "%s" );
+	my $b_time_in_seconds = UnixDate( $b_time, "%s" );
+	$a_time_in_seconds <=> $b_time_in_seconds;
 }
 
 sub parse_options {
 	my %options = ();
 	GetOptions( \%options, 
 		'xml_file|x=s',
+		'cmds_time_info|c',
 		'log_file|l:s',
 		'debug|d:s',
 		'help|h' ) || pod2usage();
@@ -189,8 +245,7 @@ sub parse_options {
 
 sub process_file {
 	my $path = shift;
-        print "processing $path\n";
-    
+            
     	my $fh = get_conditional_read_fh($path);
 
     	if ( $fh ) {
@@ -336,6 +391,7 @@ sub set_time_and_state_info {
 	$$node{$ELAPSED_TIME} = UnixDate( $$node{$END_TIME}, "%s" ) - UnixDate( $$node{$START_TIME}, "%s" );
 	$$node{$STATE} = $state;
 	$$node{$CPU_TIME} += $end_time - $start_time if( $is_command );
+	push @{$$node{$TIME_INFO}}, ( $START_TIME . "=" . UnixDate(&ParseDateString("epoch $start_time"), "%c"), $END_TIME . "=" . UnixDate(&ParseDateString("epoch $end_time"), "%c") ) if( $is_command && exists $$options{'cmds_time_info'});
 	if($end_time && $start_time) {
 		return $end_time - $start_time;
 	} else {
