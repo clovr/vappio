@@ -115,17 +115,19 @@ $$root{$PIPELINE}{$CMPS} = {};
 
 my $options = parse_options();
 process_file( $$options{'xml_file'} );
-#print encode_json( $root );
 my $data = {};
 add_component_or_command_info( $$root{$PIPELINE}{$CMPS}, $CMPS );
 add_component_or_command_info( $$root{$PIPELINE}{$CMDS}, $CMDS );
+
 ## Now we will go ahead and add the pipeline info
 $$data{$CMPS}{$PIPELINE}{$START_TIME} = $$root{$PIPELINE}{$START_TIME};
 $$data{$CMPS}{$PIPELINE}{$END_TIME} = $$root{$PIPELINE}{$END_TIME};
 $$data{$CMPS}{$PIPELINE}{$CPU_TIME} = $$root{$PIPELINE}{$CPU_TIME};
 $$data{$CMPS}{$PIPELINE}{$ELAPSED_TIME} = $$root{$PIPELINE}{$ELAPSED_TIME};
 $$data{$CMPS}{$PIPELINE}{$STATE} = $$root{$PIPELINE}{$STATE};
-print encode_json( $data );
+
+print encode_json( sorted( $data ) );
+
 exit(0);
 
 ############################################
@@ -135,6 +137,23 @@ exit(0);
 ############################################
 #            SUB ROUTINES                  #
 ############################################
+
+sub sorted {
+	my ($data) = @_;
+	my $sorted_keys;
+	foreach my $top_key( keys %$data ) {
+		@{$$sorted_keys{$top_key}} =  sort { $$data{$top_key}{$b}{$CPU_TIME} <=> $$data{$top_key}{$a}{$CPU_TIME} } keys %{$$data{$top_key}};
+	}
+	my $sorted_data;
+
+	foreach my $top_key ( keys %$data ) {
+		foreach my $sorted_key ( @{$$sorted_keys{$top_key}} ) {
+			push @{$$sorted_data{$top_key}}, { $sorted_key => $$data{$top_key}{$sorted_key} };
+		}
+	}
+	return $sorted_data;
+}
+
 
 sub add_component_or_command_info {
 	my ($node, $domain) = @_;
