@@ -119,18 +119,18 @@ $$root{$PIPELINE}{$CMPS} = {};
 my $options = parse_options();
 process_file( $$options{'xml_file'} );
 my $data = {};
-add_component_or_command_info( $$root{$PIPELINE}{$CMPS}, $CMPS );
-add_component_or_command_info( $$root{$PIPELINE}{$CMDS}, $CMDS );
-add_actual_elapsed_time( $$data{$CMDS} ) if( exists $$options{'cmds_time_info'} );
+$data = add_component_or_command_info($data, $$root{$PIPELINE}{$CMPS}, $CMPS, $TRUE, undef );
+$data = add_component_or_command_info($data, $$root{$PIPELINE}{$CMDS}, $CMDS, $TRUE, undef );
+$$data{$CMDS} = add_actual_elapsed_time( $$data{$CMDS} );
 
-## Now we will go ahead and add the pipeline info
-$$data{$CMPS}{$PIPELINE}{$START_TIME} = $$root{$PIPELINE}{$START_TIME};
-$$data{$CMPS}{$PIPELINE}{$END_TIME} = $$root{$PIPELINE}{$END_TIME};
-$$data{$CMPS}{$PIPELINE}{$CPU_TIME} = $$root{$PIPELINE}{$CPU_TIME};
-$$data{$CMPS}{$PIPELINE}{$ELAPSED_TIME} = $$root{$PIPELINE}{$ELAPSED_TIME};
-$$data{$CMPS}{$PIPELINE}{$STATE} = $$root{$PIPELINE}{$STATE};
-
-print encode_json( sorted( $data ) );
+if( exists $$options{'cmds_time_info'} ) {
+	print encode_json( sorted( add_pipeline_info( $data, $root ) ) );
+} else {
+	my $data_without_time_info = {};
+	$data_without_time_info = add_component_or_command_info( $data_without_time_info, $$root{$PIPELINE}{$CMPS}, $CMPS, $FALSE, undef );
+	$data_without_time_info = add_component_or_command_info( $data_without_time_info, $$root{$PIPELINE}{$CMDS}, $CMDS, $FALSE, $data );
+	print encode_json( sorted( add_pipeline_info( $data_without_time_info, $root ) ) );
+}
 
 exit(0);
 
@@ -142,11 +142,22 @@ exit(0);
 #            SUB ROUTINES                  #
 ############################################
 
+sub add_pipeline_info {
+	my ($copy_to, $copy_from) = @_;
+	$$copy_to{$CMPS}{$PIPELINE}{$START_TIME} = $$copy_from{$PIPELINE}{$START_TIME};
+	$$copy_to{$CMPS}{$PIPELINE}{$END_TIME} = $$copy_from{$PIPELINE}{$END_TIME};
+	$$copy_to{$CMPS}{$PIPELINE}{$CPU_TIME} = $$copy_from{$PIPELINE}{$CPU_TIME};
+	$$copy_to{$CMPS}{$PIPELINE}{$ELAPSED_TIME} = $$copy_from{$PIPELINE}{$ELAPSED_TIME};
+	$$copy_to{$CMPS}{$PIPELINE}{$STATE} = $$copy_from{$PIPELINE}{$STATE};
+	return $copy_to;
+}
+
 sub add_actual_elapsed_time {
 	my ($command_node) = @_;
 	foreach my $key( keys %$command_node ) {
 		$$command_node{$key}{$ACTUAL_ELAPSED_TIME} = get_actual_elapsed_time( $$command_node{$key}{$TIME_INFO} );
 	}
+	return $command_node;
 }
 
 sub get_actual_elapsed_time {
@@ -195,7 +206,7 @@ sub sorted {
 
 
 sub add_component_or_command_info {
-	my ($node, $domain) = @_;
+	my ($data, $node, $domain, $add_time_info, $node_with_time_info) = @_;
 	foreach my $key (keys %$node) {
 		$$data{$domain}{$key}{$START_TIME} = $$node{$key}{$START_TIME};
 		$$data{$domain}{$key}{$END_TIME} = $$node{$key}{$END_TIME};
@@ -203,9 +214,11 @@ sub add_component_or_command_info {
 		$$data{$domain}{$key}{$STATE} = $$node{$key}{$STATE};
 		$$data{$domain}{$key}{$CPU_TIME} = $$node{$key}{$CPU_TIME};
 		$$data{$domain}{$key}{$COUNT} = $$node{$key}{$COUNT} if($domain eq $CMDS);
-		@{$$data{$domain}{$key}{$TIME_INFO}} = sort by_time @{$$node{$key}{$TIME_INFO}} if( $domain eq $CMDS && exists $$options{'cmds_time_info'});
+		@{$$data{$domain}{$key}{$TIME_INFO}} = sort by_time @{$$node{$key}{$TIME_INFO}} if( $domain eq $CMDS && $add_time_info );
+		$$data{$domain}{$key}{$ACTUAL_ELAPSED_TIME} = $$node_with_time_info{$domain}{$key}{$ACTUAL_ELAPSED_TIME} if( $domain eq $CMDS && !$add_time_info );
 		#get_req_info($$node{$key}{$domain}) if( $domain eq $CMPS );
 	}
+	return $data;
 }
 
 sub by_time {
@@ -391,7 +404,7 @@ sub set_time_and_state_info {
 	$$node{$ELAPSED_TIME} = UnixDate( $$node{$END_TIME}, "%s" ) - UnixDate( $$node{$START_TIME}, "%s" );
 	$$node{$STATE} = $state;
 	$$node{$CPU_TIME} += $end_time - $start_time if( $is_command );
-	push @{$$node{$TIME_INFO}}, ( $START_TIME . "=" . UnixDate(&ParseDateString("epoch $start_time"), "%c"), $END_TIME . "=" . UnixDate(&ParseDateString("epoch $end_time"), "%c") ) if( $is_command && exists $$options{'cmds_time_info'});
+	push @{$$node{$TIME_INFO}}, ( $START_TIME . "=" . UnixDate(&ParseDateString("epoch $start_time"), "%c"), $END_TIME . "=" . UnixDate(&ParseDateString("epoch $end_time"), "%c") ) if( $is_command );
 	if($end_time && $start_time) {
 		return $end_time - $start_time;
 	} else {
