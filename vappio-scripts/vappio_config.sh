@@ -5,10 +5,10 @@ user_data_scripts=/mnt/user-scripts
 
 #Use of vappio_log is deprecated
 vappio_log=/tmp/vappio.log
-#Set default to 1 to report logs through rsyslogd
-if [ "$mirrorlogs" != 0 ]
+#Set default to report logs through rsyslogd
+if [ "$mirrorlogs" = "" ]
 then
-    mirrorlogs=1
+    mirrorlogs=0
 fi
 ##
 #Debugging and error reporting functions
@@ -48,6 +48,10 @@ then
 fi
 
 verror() { 
+    if [ -z "$PS1" ]
+    then
+	vlogmirror
+    fi
     vlog "ERROR LOGGED: $1" error
     #msg=$1
     #master_node=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
