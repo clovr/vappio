@@ -85,7 +85,8 @@ bash -e $VAPPIO_RECIPES/clovrdashboard.sh
 bash -e $VAPPIO_RECIPES/apache.sh
 
 # Adds an older version of ec2 tools and tools needed for nimbus
-bash -e $VAPPIO_RECIPES/nimbus.sh
+#remove -e due to transient failures at nimbusproject.org
+bash $VAPPIO_RECIPES/nimbus.sh
 
 # Adds symbolic link from /opt/opt-packages/bioinf-v1r4b1//MUSCLE//muscle
 # to /usr/local/bin/muscle
