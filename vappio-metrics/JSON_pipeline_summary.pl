@@ -105,6 +105,7 @@ my $START_TIME = 'start_time';
 my $END_TIME = 'end_time';
 my $STATE = 'state';
 my $COUNT = 'count';
+my $JOB_IDs = 'job_ids';
 my $count = 1;
 my $TIME_INFO = 'time_info';
 
@@ -113,6 +114,8 @@ my $TIME_INFO = 'time_info';
 ############################################
 
 my $root = {};
+my $hosts = {};
+
 $$root{$PIPELINE}{$CMDS} = {};
 $$root{$PIPELINE}{$CMPS} = {};
 
@@ -124,13 +127,15 @@ $data = add_component_or_command_info($data, $$root{$PIPELINE}{$CMDS}, $CMDS, $T
 $$data{$CMDS} = add_actual_elapsed_time( $$data{$CMDS} );
 
 if( exists $$options{'cmds_time_info'} ) {
-	print encode_json( sorted( add_pipeline_info( $data, $root ) ) );
+#	print encode_json( sorted( add_pipeline_info( $data, $root ) ) );
 } else {
 	my $data_without_time_info = {};
 	$data_without_time_info = add_component_or_command_info( $data_without_time_info, $$root{$PIPELINE}{$CMPS}, $CMPS, $FALSE, undef );
 	$data_without_time_info = add_component_or_command_info( $data_without_time_info, $$root{$PIPELINE}{$CMDS}, $CMDS, $FALSE, $data );
-	print encode_json( sorted( add_pipeline_info( $data_without_time_info, $root ) ) );
+#	print encode_json( sorted( add_pipeline_info( $data_without_time_info, $root ) ) );
 }
+
+print encode_json( add_count_attribute( $hosts ) );
 
 exit(0);
 
@@ -141,6 +146,14 @@ exit(0);
 ############################################
 #            SUB ROUTINES                  #
 ############################################
+
+sub add_count_attribute {
+	my ($node) = @_;
+	foreach( keys %$node ) {
+		$$node{$_}{$COUNT} = scalar @{$$node{$_}{$JOB_IDs}};
+	}
+	return $node;
+}
 
 sub add_pipeline_info {
 	my ($copy_to, $copy_from) = @_;
@@ -291,7 +304,10 @@ sub process_root {
         	                my $t = XML::Twig->new( twig_roots => { 'commandSetRoot' => sub {
                 	                my ($new_twig, $new_elt) = @_;
                         	        $$root{$PIPELINE}{$CPU_TIME} += process(  $new_elt, $$root{$PIPELINE}{$CMPS}{$name}{$CMPS}, $$root{$PIPELINE}{$CMPS}{$name}{$CMDS}, $$root{$PIPELINE}{$CMPS}{$name} );
-                       		 } } );
+                       		 }, 'dceSpec' => sub {
+                                	my ($new_twig, $new_elt) = @_;
+                                	push @{$$hosts{ $new_elt -> first_child( 'executionHost' ) -> text( ) }{$JOB_IDs}}, $new_elt -> first_child( 'jobID' ) -> text( ) if( $new_elt -> first_child( 'executionHost' ) );
+                        	} } );
 
                	        	 $t->parse( $fh );
                		 }
@@ -331,7 +347,10 @@ sub process {
         		my $t = XML::Twig->new( twig_roots => { 'commandSetRoot' => sub {
         			my ($new_twig, $new_elt) = @_;
         			$$parent_node{$CPU_TIME} += process( $new_elt, $$component_node{$name}{$CMPS}, $$component_node{$name}{$CMDS}, $$component_node{$name} );
-        		} } );
+        		}, 'dceSpec' => sub {
+				my ($new_twig, $new_elt) = @_;
+				push @{$$hosts{ $new_elt -> first_child( 'executionHost' ) -> text( ) }{$JOB_IDs}}, $new_elt -> first_child( 'jobID' ) -> text( ) if( $new_elt -> first_child( 'executionHost' ) );
+			} } );
 	
         		$t->parse( $fh ); 
     		} 		
