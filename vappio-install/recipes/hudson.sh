@@ -46,6 +46,7 @@ svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/
 
 #hudson-ci.org connection is too unreliable
 #wget --no-dns-cache --tries 20 --retry-connrefused -c -O /var/lib/hudson/plugins/build-timeout.hpi http://hudson-ci.org/latest/build-timeout.hpi
+mkdir -p /var/lib/hudson/plugins/ || true
 wget -c -O /var/lib/hudson/plugins/build-timeout.hpi http://cb2.igs.umaryland.edu/build-timeout.hpi
 
 find /var/lib/hudson -type d -exec chmod 777 {} \;
