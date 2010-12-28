@@ -22,8 +22,14 @@ rm -rf /opt/vappio-py /etc/vappio-checkout
 # Installing software requirements
 # Avoiding upgrade because it failes in grub
 # apt-get --force-yes -y upgrade
-# Extra pages that we might need: nfs-common 
-apt-get --force-yes -y install ubuntu-desktop openjdk-6-jdk libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran nfs-kernel-server libqt4-dev subversion ﻿r-base ﻿libqt3-mt-headers
+apt-get --force-yes -y install ubuntu-desktop openjdk-6-jdk libxml2 libxslt1.1
+apt-get --force-yes -y install libxslt1-dev ant subversion build-essential 
+apt-get --force-yes -y install zlib1g-dev libpng12-dev libfreetype6-dev mpich2
+apt-get --force-yes -y install libreadline-dev libgsl0-dev gfortran
+# nfs-common libqt3-mt-headers 
+apt-get --force-yes -y install nfs-kernel-server libqt4-dev 
+apt-get --force-yes -y install subversion r-base libqt3-mt-dev libqt3-headers
+# Accepting java license
 echo sun-java6-plugin shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
 apt-get --force-yes -y install sun-java6-plugin
 
