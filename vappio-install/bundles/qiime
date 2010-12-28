@@ -19,19 +19,10 @@ rm -f /etc/profile.d/vp-screenlogin
 rm -rf /opt/vappio-py /etc/vappio-checkout
 #TODO set custom /etc/environment 
 
-#High performance SSH
-#bash -e $VAPPIO_RECIPES/hpnssh.sh
-#bash -e $VAPPIO_RECIPES/allowrootssh.sh
-
-#Vappio appliance utils
-#bash -e $VAPPIO_RECIPES/vappioutil.sh
-#bash -e $VAPPIO_RECIPES/vappiopkg.sh
-#bash -e $VAPPIO_RECIPES/sethostname.sh
-#bash -e $VAPPIO_RECIPES/autologin.sh
-
 # Installing software requirements
-apt-get --force-yes -y upgrade
-apt-get --force-yes -y install ubuntu-desktop openjdk-6-jdk libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran
+# Avoiding upgrade because it failes in grub
+# apt-get --force-yes -y upgrade
+apt-get --force-yes -y install ubuntu-desktop openjdk-6-jdk libxml2 libxslt1.1 libxslt1-dev ant subversion build-essential zlib1g-dev libpng12-dev libfreetype6-dev mpich2 libreadline-dev libgsl0-dev gfortran nfs-kernel-server nfs-common
 echo sun-java6-plugin shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
 apt-get --force-yes -y install sun-java6-plugin
 
