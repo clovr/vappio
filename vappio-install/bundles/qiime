@@ -19,19 +19,28 @@ rm -f /etc/profile.d/vp-screenlogin
 rm -rf /opt/vappio-py /etc/vappio-checkout
 #TODO set custom /etc/environment 
 
-# Installing software requirements
-# Avoiding upgrade because it failes in grub
-# apt-get --force-yes -y upgrade
-apt-get --force-yes -y install ubuntu-desktop openjdk-6-jdk libxml2 libxslt1.1
+# Avoiding upgrade because it failes in grub: apt-get --force-yes -y upgrade
+
+# Installing GUI
+apt-get --force-yes -y install ubuntu-desktop
+# Installing basic requirements for pycogent QIIME
+apt-get --firce-yes -y install openjdk-6-jdk libxml2 libxslt1.1 libmysqlclient16-dev
 apt-get --force-yes -y install libxslt1-dev ant subversion build-essential 
 apt-get --force-yes -y install zlib1g-dev libpng12-dev libfreetype6-dev mpich2
 apt-get --force-yes -y install libreadline-dev libgsl0-dev gfortran
-# nfs-common libqt3-mt-headers 
-apt-get --force-yes -y install nfs-kernel-server libqt4-dev 
-apt-get --force-yes -y install subversion r-base libqt3-mt-dev libqt3-headers
 # Accepting java license
 echo sun-java6-plugin shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
 apt-get --force-yes -y install sun-java6-plugin
+
+# Installing basic requirements for EC2 
+# apt-get --force-yes -y install nfs-kernel-server  
+
+# Installing basic requirements for inVUE 
+apt-get --force-yes -y install libqt4-devr-base libqt3-mt-dev libqt3-headers
+
+# Cleaning up installation
+apt-get --force-yes -y autoremove
+apt-get --force-yes -y clean
 
 # Creating qiime user & setting up environment
 addgroup qiime
@@ -57,6 +66,9 @@ find /software -type d -exec chmod 777 {} \;
 find /software -exec chown qiime:qiime {} \;
 pushd /software/qiime-deploy/
 python /software/qiime-deploy/qiime-deploy.py -r -p /software/ --userhome /home/qiime/
+# Installing final requirement for pycogent
+/software/python-2.6.4-release/bin/easy_install MySQL-python
+/software/python-2.6.4-release/bin/easy_install SQLAlchemy
 popd
 find /software -exec chown qiime:qiime {} \;	
 
@@ -65,8 +77,6 @@ killall cupsd
 
 # Forcing some settings
 rm -f /etc/apt/apt.conf.d/01proxy
-apt-get --force-yes -y autoremove
-apt-get --force-yes -y clean
 
 ### 
 ### Adding extra configurations for the virtual machine
