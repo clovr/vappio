@@ -22,9 +22,9 @@ rm -rf /opt/vappio-py /etc/vappio-checkout
 # Avoiding upgrade because it failes in grub: apt-get --force-yes -y upgrade
 
 # Installing GUI
-apt-get --force-yes -y install ubuntu-desktop
+# apt-get --force-yes -y install ubuntu-desktop
 # Installing basic requirements for pycogent QIIME
-apt-get --firce-yes -y install openjdk-6-jdk libxml2 libxslt1.1 libmysqlclient16-dev
+apt-get --force-yes -y install openjdk-6-jdk libxml2 libxslt1.1 libmysqlclient16-dev
 apt-get --force-yes -y install libxslt1-dev ant subversion build-essential 
 apt-get --force-yes -y install zlib1g-dev libpng12-dev libfreetype6-dev mpich2
 apt-get --force-yes -y install libreadline-dev libgsl0-dev gfortran
