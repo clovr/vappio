@@ -36,7 +36,7 @@ apt-get --force-yes -y install sun-java6-plugin
 # apt-get --force-yes -y install nfs-kernel-server  
 
 # Installing basic requirements for inVUE 
-apt-get --force-yes -y install libqt4-devr-base libqt3-mt-dev libqt3-headers
+apt-get --force-yes -y install libqt4-dev r-base libqt3-mt-dev libqt3-headers
 
 # Cleaning up installation
 apt-get --force-yes -y autoremove
