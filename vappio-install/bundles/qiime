@@ -19,10 +19,11 @@ rm -f /etc/profile.d/vp-screenlogin
 rm -rf /opt/vappio-py /etc/vappio-checkout
 #TODO set custom /etc/environment 
 
-# Avoiding upgrade because it failes in grub: apt-get --force-yes -y upgrade
+# Avoiding upgrade because it failes in grub: 
+apt-get --force-yes -y upgrade
 
 # Installing GUI
-# apt-get --force-yes -y install ubuntu-desktop
+apt-get --force-yes -y install ubuntu-desktop
 # Installing basic requirements for pycogent QIIME
 apt-get --force-yes -y install openjdk-6-jdk libxml2 libxslt1.1 libmysqlclient16-dev
 apt-get --force-yes -y install libxslt1-dev ant subversion build-essential 
@@ -33,7 +34,7 @@ echo sun-java6-plugin shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debcon
 apt-get --force-yes -y install sun-java6-plugin
 
 # Installing basic requirements for EC2 
-# apt-get --force-yes -y install nfs-kernel-server  
+apt-get --force-yes -y install nfs-kernel-server  
 
 # Installing basic requirements for inVUE 
 apt-get --force-yes -y install libqt4-dev r-base libqt3-mt-dev libqt3-headers
@@ -45,7 +46,7 @@ apt-get --force-yes -y clean
 # Creating qiime user & setting up environment
 addgroup qiime
 useradd -g qiime -m qiime -s /bin/bash
-#echo "qiime" | passwd --stdin qiime
+passwd -d qiime
 touch /home/qiime/.bashrc
 chown qiime:qiime /home/qiime/.bashrc
 
