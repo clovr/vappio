@@ -81,6 +81,7 @@ rm -f /etc/apt/apt.conf.d/01proxy
 
 ### 
 ### Adding extra configurations for the virtual machine
+### Section only for VirtualBox
 ###
 
 # Setting up extra folders
@@ -95,7 +96,10 @@ ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/2.Fixing_Inter
 ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/3.Getting_started_with_QIIME.txt /home/qiime/Desktop/Before_you_start/3.Getting_started_with_QIIME.txt
 ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/4.Transferring_files_to_your_virtual_box.txt /home/qiime/Desktop/Before_you_start/4.Transferring_files_to_your_virtual_box.txt
 
-# ==> 3. Disable disk check after 20 reboots
+cd /software/qiime-1.2.0-release/doc/
+make html
+
+# ==> Disable disk check after 20 reboots
 # ... done by CLoVR
 
 # ==> Remove autoupdate
@@ -110,17 +114,13 @@ mv /etc/rc.local /etc/rc.local.bak
 echo "mount.vboxsf -w -o uid=1001 Shared_Folder /home/qiime/Desktop/Shared_Folder" >> /etc/rc.local
 cat /etc/rc.local.bak >> /etc/rc.local
 
-# ==> Make sym link to documentation.html
-ln -s /software/qiime-1.2.0-release/doc/_build/html/index.html /home/qiime/Desktop/Before_you_start/documentation.html
-
-# ==> Make sym link to /software/
-ln -s /software/ /home/qiime/Desktop/software
-
 # ==> Remove all sounds
 # ==> Make sym link to terminal in the top menu
 # ==> Changing background 
+# User configuration
 cd /home/qiime/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/xinitrc .xinitrc
+chmod +x /home/qiime/.xinitrc
 chown qiime:qiime /home/qiime/.xinitrc
 mkdir /usr/local/qiime_home/
 cd /usr/local/qiime_home/
@@ -128,13 +128,27 @@ svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/gconf.tgz
 tar zxvf gconf.tgz 
 rm gconf.tgz
 chown -R qiime:qiime /usr/local/qiime_home/
+/home/qiime/.xinitrc
+# Firefox configuration
+cd /home/qiime/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/mozilla.tgz
+tar zxvf mozilla.tgz
+rm mozilla.tgz
+# Poweroff/Restart configuration
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/ConsoleKit.conf ﻿/etc/dbus-1/system.d/ConsoleKit.conf
+chmod 644 ﻿/etc/dbus-1/system.d/ConsoleKit.conf
+# Autologin configuration
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/custom.conf ﻿/etc/gdm/custom.conf
+chmod 644 /etc/gdm/custom.conf
+# Desktop backgroud image
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/wordpressheader.png ﻿/home/qiime/Pictures/wordpressheader.png 
+chown qiime:qiime /home/qiime/Pictures/wordpressheader.png
+chmod 644 /home/qiime/Pictures/wordpressheader.png
 
 # ==> Allowing turning off, rebooting and autologin
 chmod +s /sbin/reboot
 chmod +s /sbin/shutdown
 chmod +s /sbin/initctl
-
-# ==> Allow user to write on qiime_tutorial but not remove the files
 
 # ==> Testing
 #_full_ pycogent test suite on the installed library, including setting the environment TEST_DB=1
