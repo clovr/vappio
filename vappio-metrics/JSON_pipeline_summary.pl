@@ -5,11 +5,11 @@ eval 'exec /usr/bin/perl  -S $0 ${1+"$@"}'
     
 =head1 NAME
 
-JSON_command_summary.pl - creates and writes to disk command summary in JSON format
+JSON_pipeline_summary.pl - creates and writes to disk pipeline summary in JSON format
 
 =head1 SYNOPSIS
 	
-	./JSON_command_summary.pl
+	./JSON_pipeline_summary.pl
 		--xml_file|-x=/path/to/xml/file
 		[--cmds_time_info| -c
 		 --log_file=/path/to/log/file
@@ -19,7 +19,7 @@ JSON_command_summary.pl - creates and writes to disk command summary in JSON for
 =head1 PARAMETERS
 
 B<--xml_file, -x>
-	The root xml file to build command summary
+	The root xml file to build pipeline summary
 	The root xml file can contain nested xml files
 
 B<--log_file, -l>
@@ -105,39 +105,39 @@ my $START_TIME = 'start_time';
 my $END_TIME = 'end_time';
 my $STATE = 'state';
 my $COUNT = 'count';
-my $JOB_IDs = 'job_ids';
 my $count = 1;
 my $TIME_INFO = 'time_info';
+my $HOSTS = 'hosts';
+my $EXEC_COUNT = 'exec_count';
 
 ############################################
 #              MAIN PROGRAM                #
 ############################################
 
 my $root = {};
-my $hosts = {};
 
 $$root{$PIPELINE}{$CMDS} = {};
 $$root{$PIPELINE}{$CMPS} = {};
 
 my $options = parse_options();
 process_file( $$options{'xml_file'} );
+
 my $data = {};
 $data = add_component_or_command_info($data, $$root{$PIPELINE}{$CMPS}, $CMPS, $TRUE, undef );
 $data = add_component_or_command_info($data, $$root{$PIPELINE}{$CMDS}, $CMDS, $TRUE, undef );
+
 $$data{$CMDS} = add_actual_elapsed_time( $$data{$CMDS} );
 
 if( exists $$options{'cmds_time_info'} ) {
-#	print encode_json( sorted( add_pipeline_info( $data, $root ) ) );
+	print encode_json( sorted( add_pipeline_info( $data, $root ) ) );
 } else {
 	my $data_without_time_info = {};
 	$data_without_time_info = add_component_or_command_info( $data_without_time_info, $$root{$PIPELINE}{$CMPS}, $CMPS, $FALSE, undef );
 	$data_without_time_info = add_component_or_command_info( $data_without_time_info, $$root{$PIPELINE}{$CMDS}, $CMDS, $FALSE, $data );
-#	print encode_json( sorted( add_pipeline_info( $data_without_time_info, $root ) ) );
+	print encode_json( sorted( add_pipeline_info( $data_without_time_info, $root ) ) );
 }
 
-print encode_json( add_count_attribute( $hosts ) );
-
-exit(0);
+exit($?);
 
 ############################################
 #             END OF MAIN                  #
@@ -147,16 +147,11 @@ exit(0);
 #            SUB ROUTINES                  #
 ############################################
 
-sub add_count_attribute {
-	my ($node) = @_;
-	foreach( keys %$node ) {
-		$$node{$_}{$COUNT} = scalar @{$$node{$_}{$JOB_IDs}};
-	}
-	return $node;
-}
 
 sub add_pipeline_info {
 	my ($copy_to, $copy_from) = @_;
+	$$copy_to{$CMPS}{$PIPELINE}{$HOSTS} = $$copy_from{$PIPELINE}{$HOSTS};
+	$$copy_to{$CMPS}{$PIPELINE}{$EXEC_COUNT} = scalar keys %{$$copy_from{$PIPELINE}{$HOSTS}};
 	$$copy_to{$CMPS}{$PIPELINE}{$START_TIME} = $$copy_from{$PIPELINE}{$START_TIME};
 	$$copy_to{$CMPS}{$PIPELINE}{$END_TIME} = $$copy_from{$PIPELINE}{$END_TIME};
 	$$copy_to{$CMPS}{$PIPELINE}{$CPU_TIME} = $$copy_from{$PIPELINE}{$CPU_TIME};
@@ -221,6 +216,8 @@ sub sorted {
 sub add_component_or_command_info {
 	my ($data, $node, $domain, $add_time_info, $node_with_time_info) = @_;
 	foreach my $key (keys %$node) {
+		$$data{$domain}{$key}{$HOSTS} = $$node{$key}{$HOSTS};
+		$$data{$domain}{$key}{$EXEC_COUNT} = scalar keys %{$$node{$key}{$HOSTS}};
 		$$data{$domain}{$key}{$START_TIME} = $$node{$key}{$START_TIME};
 		$$data{$domain}{$key}{$END_TIME} = $$node{$key}{$END_TIME};
 		$$data{$domain}{$key}{$ELAPSED_TIME} = $$node{$key}{$ELAPSED_TIME};
@@ -229,7 +226,6 @@ sub add_component_or_command_info {
 		$$data{$domain}{$key}{$COUNT} = $$node{$key}{$COUNT} if($domain eq $CMDS);
 		@{$$data{$domain}{$key}{$TIME_INFO}} = sort by_time @{$$node{$key}{$TIME_INFO}} if( $domain eq $CMDS && $add_time_info );
 		$$data{$domain}{$key}{$ACTUAL_ELAPSED_TIME} = $$node_with_time_info{$domain}{$key}{$ACTUAL_ELAPSED_TIME} if( $domain eq $CMDS && !$add_time_info );
-		#get_req_info($$node{$key}{$domain}) if( $domain eq $CMPS );
 	}
 	return $data;
 }
@@ -281,6 +277,13 @@ sub process_file {
     	}	
 }
 
+sub add_uniq_exec_hosts {
+	my ($dont_want_it, $child, $parent) = @_;
+	foreach my $child_host( keys %$child ) {
+		push @{$$parent{$child_host}}, @{$$child{$child_host}};
+	}
+}
+
 sub process_root {
 	my ($twig, $element) = @_;
 	if($element->first_child('name')->text() eq $PIPELINE_TOKEN) {
@@ -296,7 +299,7 @@ sub process_root {
 			$$root{$PIPELINE}{$CMPS}{$name}{$CMPS} = {};
 			$$root{$PIPELINE}{$CMPS}{$name}{$CMDS} = {};
 			$$root{$PIPELINE}{$CMPS}{$name}{$CPU_TIME} = 0;
-			set_time_and_state_info( $commandSet, $$root{$PIPELINE}{$CMPS}{$name} );
+			my ( $time, $child ) = set_time_and_state_info( $commandSet, $$root{$PIPELINE}{$CMPS}{$name} );
 			$$root{$PIPELINE}{$CPU_TIME} += process( $commandSet, $$root{$PIPELINE}{$CMPS}{$name}{$CMPS}, $$root{$PIPELINE}{$CMPS}{$name}{$CMDS}, $$root{$PIPELINE}{$CMPS}{$name} );
 			my $file = $commandSet -> first_child_text('fileName');
 	                my $fh = get_conditional_read_fh($file);
@@ -304,19 +307,20 @@ sub process_root {
         	                my $t = XML::Twig->new( twig_roots => { 'commandSetRoot' => sub {
                 	                my ($new_twig, $new_elt) = @_;
                         	        $$root{$PIPELINE}{$CPU_TIME} += process(  $new_elt, $$root{$PIPELINE}{$CMPS}{$name}{$CMPS}, $$root{$PIPELINE}{$CMPS}{$name}{$CMDS}, $$root{$PIPELINE}{$CMPS}{$name} );
-                       		 }, 'dceSpec' => sub {
-                                	my ($new_twig, $new_elt) = @_;
-                                	push @{$$hosts{ $new_elt -> first_child( 'executionHost' ) -> text( ) }{$JOB_IDs}}, $new_elt -> first_child( 'jobID' ) -> text( ) if( $new_elt -> first_child( 'executionHost' ) );
-                        	} } );
+                       		 } } );
 
                	        	 $t->parse( $fh );
                		 }
+
+			add_uniq_exec_hosts( undef, $child, $$root{$PIPELINE}{$HOSTS} );
 
 		}
 
 		foreach my $command ( $element->children('command') ) {
                 	$$root{$PIPELINE}{$CMDS}{$command -> first_child('name')->text()}{$COUNT}++;
-                	$$root{$PIPELINE}{$CPU_TIME} += set_time_and_state_info( $command, $$root{$PIPELINE}{$CMDS}{$command -> first_child('name') -> text()}, $TRUE );
+                	my ($time, $child) = set_time_and_state_info( $command, $$root{$PIPELINE}{$CMDS}{$command -> first_child('name') -> text()}, $TRUE );
+			$$root{$PIPELINE}{$CPU_TIME} += $time;
+			add_uniq_exec_hosts( undef, $child, $$root{$PIPELINE}{$HOSTS} );
         	}
 
 	}
@@ -338,7 +342,8 @@ sub process {
 		$$component_node{$name}{$CMPS} = {};
 		$$component_node{$name}{$CMDS} = {};
 		$$component_node{$name}{$CPU_TIME} = 0;
-		set_time_and_state_info( $commandSet, $$component_node{$name} );
+		my ( $time, $child ) = set_time_and_state_info( $commandSet, $$component_node{$name} );
+		
 		$$parent_node{$CPU_TIME} += process( $commandSet, $$component_node{$name}{$CMPS}, $$component_node{$name}{$CMDS}, $$component_node{$name} );
 
 		my $file = $commandSet -> first_child_text('fileName');
@@ -347,21 +352,22 @@ sub process {
         		my $t = XML::Twig->new( twig_roots => { 'commandSetRoot' => sub {
         			my ($new_twig, $new_elt) = @_;
         			$$parent_node{$CPU_TIME} += process( $new_elt, $$component_node{$name}{$CMPS}, $$component_node{$name}{$CMDS}, $$component_node{$name} );
-        		}, 'dceSpec' => sub {
-				my ($new_twig, $new_elt) = @_;
-				push @{$$hosts{ $new_elt -> first_child( 'executionHost' ) -> text( ) }{$JOB_IDs}}, $new_elt -> first_child( 'jobID' ) -> text( ) if( $new_elt -> first_child( 'executionHost' ) );
-			} } );
+        		} } );
 	
         		$t->parse( $fh ); 
     		} 		
+		
+		add_uniq_exec_hosts( undef, $child, $$parent_node{$HOSTS} );
 		
 	}
 
 	foreach my $command( $elt->children('command') ) {
         	$$command_node{$command -> first_child('name')->text()}{$COUNT}++;
-                set_time_and_state_info( $command, $$command_node{$command -> first_child('name')->text()}, $TRUE );
+                my ($time, $child) = set_time_and_state_info( $command, $$command_node{$command -> first_child('name')->text()}, $TRUE );
+		$$parent_node{$CPU_TIME} += $time;
+		add_uniq_exec_hosts( undef, $child, $$parent_node{$HOSTS} );
                 $$root{$PIPELINE}{$CMDS}{$command -> first_child('name')->text()}{$COUNT}++;
-                $$parent_node{$CPU_TIME} += set_time_and_state_info( $command, $$root{$PIPELINE}{$CMDS}{$command -> first_child('name') -> text()}, $TRUE );
+                set_time_and_state_info( $command, $$root{$PIPELINE}{$CMDS}{$command -> first_child('name') -> text()}, $TRUE );
         }
 
 	return $$parent_node{$CPU_TIME};
@@ -401,6 +407,15 @@ sub get_conditional_read_fh {
 sub set_time_and_state_info {
 	my ($command, $node, $is_command) = @_;
 	my ($start_time, $end_time, $elapsed_time);
+
+	if ( $command -> first_child( 'dceSpec' ) ) {
+		my $dceSpec_element = $command -> first_child( 'dceSpec' );
+		if( $dceSpec_element -> first_child( 'jobID' ) && $dceSpec_element -> first_child( 'executionHost' ) ) {
+			my $job_id = $dceSpec_element -> first_child( 'jobID' ) -> text( );
+			my $exec_host = $dceSpec_element -> first_child( 'executionHost' ) -> text( );
+			push @{$$node{$HOSTS}{$exec_host}}, $job_id;
+		}
+	}
     
     	## make sure we can at least get start time
     	if (! $command->first_child('startTime') ) {
@@ -424,9 +439,12 @@ sub set_time_and_state_info {
 	$$node{$STATE} = $state;
 	$$node{$CPU_TIME} += $end_time - $start_time if( $is_command );
 	push @{$$node{$TIME_INFO}}, ( $START_TIME . "=" . UnixDate(&ParseDateString("epoch $start_time"), "%c"), $END_TIME . "=" . UnixDate(&ParseDateString("epoch $end_time"), "%c") ) if( $is_command );
+	unless ( $$node{$HOSTS} ) {
+		$$node{$HOSTS} = {};
+	}
 	if($end_time && $start_time) {
-		return $end_time - $start_time;
+		return ( ( $end_time - $start_time ), $$node{$HOSTS} );
 	} else {
-		return 0;
+		return ( 0, $$node{$HOSTS} );
 	}
 }
