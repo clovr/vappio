@@ -97,6 +97,7 @@ ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/3.Getting_star
 ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/4.Transferring_files_to_your_virtual_box.txt /home/qiime/Desktop/Before_you_start/4.Transferring_files_to_your_virtual_box.txt
 
 cd /software/qiime-1.2.0-release/doc/
+source /home/qiime/.bashrc
 make html
 
 # ==> Disable disk check after 20 reboots
@@ -135,13 +136,17 @@ svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/mozilla.tgz
 tar zxvf mozilla.tgz
 rm mozilla.tgz
 # Poweroff/Restart configuration
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/ConsoleKit.conf ﻿/etc/dbus-1/system.d/ConsoleKit.conf
-chmod 644 ﻿/etc/dbus-1/system.d/ConsoleKit.conf
+cd /etc/dbus-1/system.d/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/ConsoleKit.conf
+chmod 644 ConsoleKit.conf
 # Autologin configuration
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/custom.conf ﻿/etc/gdm/custom.conf
+cd /etc/gdm/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/custom.conf
 chmod 644 /etc/gdm/custom.conf
 # Desktop backgroud image
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/wordpressheader.png ﻿/home/qiime/Pictures/wordpressheader.png 
+﻿mkdir /home/qiime/Pictures/
+cd ﻿/home/qiime/Pictures/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/wordpressheader.png 
 chown qiime:qiime /home/qiime/Pictures/wordpressheader.png
 chmod 644 /home/qiime/Pictures/wordpressheader.png
 
