@@ -279,7 +279,11 @@ def loadTagFile(fname):
 
         return configFromMap({'files': [f.strip() for f in open(fname) if f.strip()]}, metadata)
     elif not os.path.exists(fname) and os.path.exists(fname + '.phantom'):
-        return phantom
+	if os.path.exists(fname + '.metadata'):
+		metadata = configFromMap({'metadata': json.loads(open(fname + '.metadata').read())}, phantom)
+		return metadata
+	else :
+		return phantom
     else:
         raise MissingTagFileError(fname)
 
