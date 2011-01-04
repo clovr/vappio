@@ -98,6 +98,7 @@ ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/4.Transferring
 
 cd /software/qiime-1.2.0-release/doc/
 source /home/qiime/.bashrc
+export PATH=$PATH:/software/python-2.6.4-release/bin/:
 make html
 
 # ==> Disable disk check after 20 reboots
@@ -144,8 +145,8 @@ cd /etc/gdm/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/custom.conf
 chmod 644 /etc/gdm/custom.conf
 # Desktop backgroud image
-﻿mkdir /home/qiime/Pictures/
-cd ﻿/home/qiime/Pictures/
+mkdir /home/qiime/Pictures/
+cd /home/qiime/Pictures/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/wordpressheader.png 
 chown qiime:qiime /home/qiime/Pictures/wordpressheader.png
 chmod 644 /home/qiime/Pictures/wordpressheader.png
