@@ -4,8 +4,9 @@
 #Mod with dcespec/queue support
 #wget http://cb2.igs.umaryland.edu/wf_clovr_3.0vp2.tgz
 #+mods for mkdir retry and no fatal error on idgen retry
-wget http://cb2.igs.umaryland.edu/wf_clovr_3.0vp3.tgz
-tar -C / -xvzf wf_clovr_3.0vp3.tgz
+#v4 mod to update FileIdGenerator to fix bug #609
+wget http://cb2.igs.umaryland.edu/wf_clovr_3.0vp4.tgz
+tar -C / -xvzf wf_clovr_3.0vp4.tgz
 chmod 777 /opt/workflow-sforge/idfile
 chown www-data:www-data /opt/workflow-sforge/idfile
 
