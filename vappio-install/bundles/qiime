@@ -84,9 +84,9 @@ echo "qiimevm" > /etc/hostname
 hostname -b -F /etc/hostname
 
 # ==> Adding swap scripts
-cd /sbin/
+cd /etc/init.d/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/create_swap_file.sh
-update-rc.d /sbin/create_swap_file.sh defaults
+update-rc.d create_swap_file.sh defaults
 
 # Setting up extra folders
 sudo -u qiime mkdir /home/qiime/Desktop
