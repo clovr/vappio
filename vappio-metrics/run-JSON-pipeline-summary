@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my ($id) = @ARGV;
+
+my $task_file = '/tmp/task_id.txt';
+my $temp_file = '/tmp/task_id.temp';
+
+`vp-run-metrics -t \"JSON_pipeline_summary.pl -x /mnt/projects/clovr/workflow/runtime/pipeline/$id/pipeline.xml\" > $temp_file`;
+
+if( -f $task_file && -s $task_file ) {
+	print `cat $task_file`;
+} else {
+	print `cat $temp_file`;
+}
+
+`mv $temp_file $task_file`;
+
+exit $?;
