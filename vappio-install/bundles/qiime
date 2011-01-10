@@ -115,6 +115,7 @@ hostname -b -F /etc/hostname
 mv /etc/rc.local /etc/rc.local.bak
 echo "mount.vboxsf -w -o uid=1001 Shared_Folder /home/qiime/Desktop/Shared_Folder" >> /etc/rc.local
 cat /etc/rc.local.bak >> /etc/rc.local
+chmod 755 /etc/rc.local
 
 # ==> Remove all sounds
 # ==> Make sym link to terminal in the top menu
@@ -137,9 +138,9 @@ svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/mozilla.tgz
 tar zxvf mozilla.tgz
 rm mozilla.tgz
 # Poweroff/Restart configuration
-cd /etc/dbus-1/system.d/
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/ConsoleKit.conf
-chmod 644 ConsoleKit.conf
+cd /usr/share/polkit-1/actions/
+svn export --force svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/org.freedesktop.consolekit.policy
+chmod 644 org.freedesktop.consolekit.policy
 # Autologin configuration
 cd /etc/gdm/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/custom.conf
@@ -148,13 +149,9 @@ chmod 644 /etc/gdm/custom.conf
 mkdir /home/qiime/Pictures/
 cd /home/qiime/Pictures/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/wordpressheader.png 
-chown qiime:qiime /home/qiime/Pictures/wordpressheader.png
 chmod 644 /home/qiime/Pictures/wordpressheader.png
 
-# ==> Allowing turning off, rebooting and autologin
-chmod +s /sbin/reboot
-chmod +s /sbin/shutdown
-chmod +s /sbin/initctl
+chown -R qiime:qiime /home/qiime/
 
 # ==> Testing
 #_full_ pycogent test suite on the installed library, including setting the environment TEST_DB=1
