@@ -128,31 +128,33 @@ chmod 755 /etc/rc.local
 # ==> Remove all sounds
 # ==> Make sym link to terminal in the top menu
 # ==> Changing background 
+
 # User configuration
-cd /home/qiime/
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/xinitrc .xinitrc
-chmod +x /home/qiime/.xinitrc
-chown qiime:qiime /home/qiime/.xinitrc
-mkdir /usr/local/qiime_home/
 cd /usr/local/qiime_home/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/gconf.tgz
 tar zxvf gconf.tgz 
 rm gconf.tgz
 chown -R qiime:qiime /usr/local/qiime_home/
-/home/qiime/.xinitrc
+cd /etc/init.d/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/qiime_user_conf.sh
+update-rc.d qiime_user_conf.sh defaults
+
 # Firefox configuration
 cd /home/qiime/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/mozilla.tgz
 tar zxvf mozilla.tgz
 rm mozilla.tgz
+
 # Poweroff/Restart configuration
 cd /usr/share/polkit-1/actions/
 svn export --force svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/org.freedesktop.consolekit.policy
 chmod 644 org.freedesktop.consolekit.policy
+
 # Autologin configuration
 cd /etc/gdm/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/custom.conf
 chmod 644 /etc/gdm/custom.conf
+
 # Desktop backgroud image
 mkdir /home/qiime/Pictures/
 cd /home/qiime/Pictures/
@@ -160,6 +162,3 @@ svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/wordpressheade
 chmod 644 /home/qiime/Pictures/wordpressheader.png
 
 chown -R qiime:qiime /home/qiime/
-
-# ==> Testing
-#_full_ pycogent test suite on the installed library, including setting the environment TEST_DB=1
