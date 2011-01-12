@@ -106,6 +106,8 @@ source /home/qiime/.bashrc
 export PATH=$PATH:/software/python-2.6.4-release/bin/:
 make html
 
+#--non-interactive
+#--password  PASS
 
 
 ### 
@@ -130,6 +132,7 @@ chmod 755 /etc/rc.local
 # ==> Changing background 
 
 # User configuration
+mkdir /usr/local/qiime_home/
 cd /usr/local/qiime_home/
 svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/gconf.tgz
 tar zxvf gconf.tgz 
