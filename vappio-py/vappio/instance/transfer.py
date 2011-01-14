@@ -36,7 +36,7 @@ def uploadFiles(instance, conf, srcFiles, outDir, log=False):
     # we should wrap it up somehow in an exception
     runSystemInstanceEx(instance, 'mkdir -p ' + outDir, None, (log and errorPrintS or None), user=conf('ssh.user'), options=conf('ssh.options'), log=log)
     for f in srcFiles:
-        scpToEx(instance.publicDNS, f, outDir, user=conf('ssh.user'), options=conf('ssh.options'), log=log)
+        scpToEx(instance['public_dns'], f, outDir, user=conf('ssh.user'), options=conf('ssh.options'), log=log)
     
 
 def uploadTag(instance, conf, tagDir, tagName, srcFiles, outDir, log=False):
@@ -59,7 +59,7 @@ def uploadTag(instance, conf, tagDir, tagName, srcFiles, outDir, log=False):
 
     fout.close()
     runSystemInstanceEx(instance, 'mkdir -p ' + tagDir, None, (log and errorPrintS or None), user=conf('ssh.user'), options=conf('ssh.options'), log=log)
-    scpToEx(instance.publicDNS, tempFName, os.path.join(tagDir, tagName), user=conf('ssh.user'), options=conf('ssh.options'), log=log)
+    scpToEx(instance['public_dns'], tempFName, os.path.join(tagDir, tagName), user=conf('ssh.user'), options=conf('ssh.options'), log=log)
     os.remove(tempFName)
 
 def uploadAndTag(instance, conf, tagName, srcFiles, outDir, log=False):
@@ -108,7 +108,7 @@ def downloadPipeline(instance, conf, pipelineId, outDir, outBaseName, overwrite=
     fileExists = os.path.exists(outFilename)
     if fileExists and overwrite or not fileExists:
         runSystemEx('mkdir -p ' + outDir)
-        scpFromEx(instance.publicDNS, outF, outDir, user=conf('ssh.user'), options=conf('ssh.options'), log=log)
+        scpFromEx(instance['public_dns'], outF, outDir, user=conf('ssh.user'), options=conf('ssh.options'), log=log)
         runSystemInstanceEx(instance, 'rm ' + outF, None, (log and errorPrintS or None), user=conf('ssh.user'), options=conf('ssh.options'), log=log)
         return outFilename
     else:

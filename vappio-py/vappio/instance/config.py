@@ -60,10 +60,6 @@ def createMasterDataFile(cluster, machineConf):
     template = template.replace('<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>', clusterPublicKey)
     # Need to escape the ${ for bash
     template = template.replace('<TMPL_VAR NAME=MACHINE_CONF>', open(machineConf).read().replace('${', '\\${'))
-    template = template.replace('<TMPL_VAR NAME=CERT_FILE>', open(cluster.credInst.cert).read())
-    template = template.replace('<TMPL_VAR NAME=PK_FILE>', open(cluster.credInst.pkey).read())
-    template = template.replace('<TMPL_VAR NAME=CTYPE>', cluster.cred.getCtype())
-    template = template.replace('<TMPL_VAR NAME=METADATA>', ','.join([str(k) + '=' + str(v) for k, v in cluster.cred.metadata.iteritems()]))
 
     outf = os.path.join(cluster.config('general.secure_tmp'), 'master_user_data.sh')
     open(outf, 'w').write(template)

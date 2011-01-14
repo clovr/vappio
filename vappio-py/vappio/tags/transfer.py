@@ -27,20 +27,20 @@ def makeDirsOnCluster(cluster, dirNames):
     Creates a series of directories on a cluster
     """
     for d in dirNames:
-        runSystemInstanceEx(cluster.master,
+        runSystemInstanceEx(cluster['master'],
                             'mkdir -p ' + d,
                             None,
                             errorPrintS,
-                            user=cluster.config('ssh.user'),
-                            options=cluster.config('ssh.options'),
+                            user=cluster['config']['ssh.user'],
+                            options=cluster['config']['ssh.options'],
                             log=True)
         try:
-            runSystemInstanceEx(cluster.master,
-                                'chown -R %s %s' % (cluster.config('vappio.user'), d),
+            runSystemInstanceEx(cluster['master'],
+                                'chown -R %s %s' % (cluster['config']['vappio.user'], d),
                                 None,
                                 errorPrintS,
-                                user=cluster.config('ssh.user'),
-                                options=cluster.config('ssh.options'),
+                                user=cluster['config']['ssh.user'],
+                                options=cluster['config']['ssh.options'],
                                 log=True)
         except ProgramRunError, err:
             pass
@@ -53,7 +53,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
     tagName - The tag to be copied, will have the same name on the destination cluster,
               must exist on srcCluster
 
-    Tags are upload into dstCluster.config('dirs.upload_dir')
+    Tags are upload into dstCluster['config']['dirs.upload_dir']
 
     This returns a list of file names that were uploaded
     """
@@ -64,7 +64,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
      # First step is to create a list of directorys that we should make on
      # the destination cluster.  We also want to strip off our local dirs.tag_dir
      # from the dir names and add teh dstCluster's
-    dirNames = set([os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
+    dirNames = set([os.path.join(dstCluster['config']['dirs.upload_dir'], tagName,
                                  makePathRelative(os.path.dirname(f).replace(tagBaseDir, '')))
                     for f in tagData('files')])
 
@@ -73,7 +73,7 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
     # Next we want to take the list of local files, remove the dirs.tag_dir and replace it
     # with the destination clusters.  We maek a list of tuples so we know the local file
     # and destinatio file name which we will then loop over and upload
-    dstFileNames = [(f, os.path.join(dstCluster.config('dirs.upload_dir'), tagName,
+    dstFileNames = [(f, os.path.join(dstCluster['config']['dirs.upload_dir'], tagName,
                                      makePathRelative(f.replace(tagBaseDir, ''))))
                     for f in tagData('files')]
 
@@ -87,16 +87,16 @@ def uploadTag(srcCluster, dstCluster, tagName, tagData):
     ##
     # Now, copy up all of the files
     for l, d in dstFileNames:
-        scpToEx(dstCluster.master.publicDNS, l, d, user=srcCluster.config('ssh.user'), options=srcCluster.config('ssh.options'), log=True)
+        scpToEx(dstCluster['master']['public_dns'], l, d, user=srcCluster['config']['ssh.user'], options=srcCluster['config']['ssh.options'], log=True)
         ##
         # We are uploading as root, so chown everything to the user that everything in vappio will be done under
         try:
-            runSystemInstanceEx(dstCluster.master,
-                                'chown %s %s' % (dstCluster.config('vappio.user'), d),
+            runSystemInstanceEx(dstCluster['master'],
+                                'chown %s %s' % (dstCluster['config']['vappio.user'], d),
                                 None,
                                 errorPrintS,
-                                user=dstCluster.config('ssh.user'),
-                                options=dstCluster.config('ssh.options'),
+                                user=dstCluster['config']['ssh.user'],
+                                options=dstCluster['config']['ssh.options'],
                                 log=True)
         except ProgramRunError:
             errorPrint('Chown failed on ' + d)
@@ -125,10 +125,10 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     dstCluster - Cluster to download the tag to (this needs to be 'local' for now)
     tagName - The name of the tag to download
     dstDir - The destination directory to put downloaded data to.  If None, dstDir
-             is assumed to be dstCluster.config('dirs.upload_dir')
+             is assumed to be dstCluster['config']['dirs.upload_dir']
     baseDir - When we download a tag we replicate its directory structure, baseDir allows
               us to remove some portion of the prefix dir in downloading.  If baseDir is None
-              then srcCluster.config('dirs.upload_dir') is assumed to be the baseDir
+              then srcCluster['config']['dirs.upload_dir'] is assumed to be the baseDir
 
     Neither dstDir or baseDir should consider the 'tagname' as part of their name.
     This may change in the future though if we want to allow downloading to a new tag name
@@ -138,14 +138,14 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     to be part of another process.
     """
     if dstDir is None:
-        dstDir = os.path.join(dstCluster.config('dirs.upload_dir'), tagName)
+        dstDir = os.path.join(dstCluster['config']['dirs.upload_dir'], tagName)
 
     if baseDir is None:
-        baseDir = srcCluster.config('dirs.upload_dir')
+        baseDir = srcCluster['config']['dirs.upload_dir']
 
     #
     # Get the list of files
-    tagData = queryTag('localhost', srcCluster.name, [tagName])
+    tagData = queryTag('localhost', srcCluster['cluster_name'], [tagName])
 
     #
     # Some tags have a tag_base_dir metadata element which shows how much of the path
@@ -161,7 +161,7 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     if baseDirFiles:
         #
         # Write those files out to a temporary file so we can use it with --files-from in rysnc
-        tmpFName = os.path.join(dstCluster.config('general.secure_tmp'), 'rsync-tmp-' + str(time.time()))
+        tmpFName = os.path.join(dstCluster['config']['general.secure_tmp'], 'rsync-tmp-' + str(time.time()))
         fout = open(tmpFName, 'w')
         fout.writelines([f + '\n' for f in baseDirFiles])
         fout.close()
@@ -173,12 +173,12 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
         except TryError, err:
             errorPrint('Caught TryError, ignoring for now: %s - %s ' % (err.msg, str(err.result)))
             
-        rsyncOptions = ' '.join([dstCluster.config('rsync.options'), '--files-from=' + tmpFName])
-        rsyncFromEx(srcCluster.master.publicDNS,
+        rsyncOptions = ' '.join([dstCluster['config']['rsync.options'], '--files-from=' + tmpFName])
+        rsyncFromEx(srcCluster['master']['public_dns'],
                     baseDir,
                     dstDir,
                     rsyncOptions=rsyncOptions,
-                    user=srcCluster.config('rsync.user'),
+                    user=srcCluster['config']['rsync.user'],
                     log=True)
 
         os.unlink(tmpFName)
@@ -186,7 +186,7 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
     if nonBaseDirFiles:
         #
         # Write those files out to a temporary file so we can use it with --files-from in rysnc
-        tmpFName = os.path.join(dstCluster.config('general.secure_tmp'), 'rsync-tmp-' + str(time.time()))
+        tmpFName = os.path.join(dstCluster['config']['general.secure_tmp'], 'rsync-tmp-' + str(time.time()))
         fout = open(tmpFName, 'w')
         fout.writelines([f + '\n' for f in nonBaseDirFiles])
         fout.close()
@@ -197,12 +197,12 @@ def downloadTag(srcCluster, dstCluster, tagName, dstDir=None, baseDir=None):
             makeDirsOnCluster(dstCluster, [dstDir])
         except TryError, err:
             errorPrint('Caught TryError, ignoring for now: %s - %s ' % (err.msg, str(err.result)))        
-        rsyncOptions = ' '.join([srcCluster.config('rsync.options'), '--files-from=' + tmpFName])
-        rsyncFromEx(srcCluster.master.publicDNS,
+        rsyncOptions = ' '.join([srcCluster['config']['rsync.options'], '--files-from=' + tmpFName])
+        rsyncFromEx(srcCluster['master']['public_dns'],
                     '/',
                     dstDir,
                     rsyncOptions=rsyncOptions,
-                    user=srcCluster.config('rsync.user'),
+                    user=srcCluster['config']['rsync.user'],
                     log=True)
 
         os.unlink(tmpFName)    

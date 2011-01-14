@@ -28,11 +28,11 @@ def main(options, _args):
 
     try:
         cluster = loadCluster('localhost', 'local')
-        ctype = cluster.config('general.ctype')
-        tf = tagfile.loadTagFile(os.path.join(cluster.config('dirs.tag_dir'), options('general.tag_name')))
+        ctype = cluster['config']['general.ctype']
+        tf = tagfile.loadTagFile(os.path.join(cluster['config']['dirs.tag_dir'], options('general.tag_name')))
 
         if not tagfile.hasFiles(tf) and tagfile.isPhantom(tf):
-            outDir = os.path.join(cluster.config('dirs.upload_dir'), options('general.tag_name'))
+            outDir = os.path.join(cluster['config']['dirs.upload_dir'], options('general.tag_name'))
 
             runSystemEx('mkdir -p ' + outDir)
             tagfile.realizePhantom(ctype,

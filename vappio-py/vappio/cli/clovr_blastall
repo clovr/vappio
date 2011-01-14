@@ -286,7 +286,7 @@ def main(_options, args):
 
         if clusterName:
             clust = cluster_ws.loadCluster('localhost', clusterName)
-            credName = clust.cred.name
+            credName = clust['cred_name']
         else:
             credName = autoNodes
         

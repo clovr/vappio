@@ -12,10 +12,8 @@ from igs.utils import functional as func
 from igs.utils.commands import runSystemEx, runSingleProgramEx
 from igs.utils import config
 
-from vappio.cluster import control as cluster_ctl
-from vappio.credentials import manager
-
-
+from vappio.webservice import credential
+from vappio.webservice import cluster
 
 OPTIONS = [
     ('one_line', '-1', '--one-line', 'Give a condenced version of output in one line', func.identity, cli.BINARY),
@@ -43,14 +41,8 @@ def networkingEnabled():
 
 def getNumberOfInstances():
     try:
-        credentials = [(c, c.ctype.instantiateCredential(config.configFromEnv(), c)[1]) for c in manager.loadAllCredentials()]
-        credCount = []
-        for c, credInst in credentials:
-            credCount.append((c.name, len([i
-                                           for i in c.ctype.listInstances(credInst)
-                                           if i.state != c.ctype.Instance.TERMINATED])))
-
-        return credCount
+        creds = credential.loadCredentials('localhost', 'local', [])
+        return [(c['name'], c['num_instances']) for c in creds]
     except:
         #return 'Unknown'
         raise
@@ -60,9 +52,18 @@ def listClustersSafe(host):
     This tries to list the clusters, returns an empty list if listClusters fails at all
     such as networking being down
     """
+    def annotateNameWithState(name, state):
+        if state == 'unresponsive':
+            return '>%s<' % name
+        elif state == 'terminated':
+            return '(%s)' % name
+        else:
+            return name
     try:
-        return cluster_ctl.loadAllClusters()
-    except:
+        clusters = [cluster.loadCluster(host, c['cluster_name'], True)
+                    for c in cluster.listClusters(host)]
+        return [(annotateNameWithState(c['cluster_name'], c['state']), len(c['exec_nodes'] + c['data_nodes'])) for c in clusters]
+    except Exception, err:
         return []
     
 def main(options, _args):
@@ -82,7 +83,7 @@ def main(options, _args):
 
         if not line:
              line.append('Credentials: %s' % ' '.join(['%s (%d)' % credInfo for credInfo in getNumberOfInstances()]))
-             line.append('Clusters: ' + ' '.join(['%s (%d)' % (c.name, 1 + len(c.execNodes)) for c in state['clusters']]))
+             line.append('Clusters: ' + ' '.join(['%s (%d)' % (name, 1 + instances) for name, instances in state['clusters']]))
 
         print ' :: '.join(line)
     else:

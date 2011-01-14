@@ -34,7 +34,7 @@ def main(options, _args):
     try:
         srcCluster = loadCluster('localhost', options('general.src_cluster'))
         dstCluster = loadCluster('localhost', options('general.dst_cluster'))
-        tagFileName = os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name'))
+        tagFileName = os.path.join(srcCluster['config']['dirs.tag_dir'], options('general.tag_name'))
         tagFile = tagfile.loadTagFile(tagFileName)
     except tagfile.MissingTagFileError, err:
         raise
@@ -42,32 +42,32 @@ def main(options, _args):
     if tagfile.isPhantom(tagFile):
         tsk = task.updateTask(tsk.addMessage(task.MSG_SILENT, 'Tag is phantom, uploading tag'))
 
-        scpToEx(dstCluster.master.publicDNS,
-                os.path.join(srcCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
-                os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name') + '.phantom'),
-                user=srcCluster.config('ssh.user'),
-                options=srcCluster.config('ssh.options'),
+        scpToEx(dstCluster['master']['public_dns'],
+                os.path.join(srcCluster['config']['dirs.tag_dir'], options('general.tag_name') + '.phantom'),
+                os.path.join(dstCluster['config']['dirs.tag_dir'], options('general.tag_name') + '.phantom'),
+                user=srcCluster['config']['ssh.user'],
+                options=srcCluster['config']['ssh.options'],
                 log=True)
         
         # Upload any files this tag depends on
         for f in tagFile('phantom.depends_on', default='').split():
-            runSystemInstanceEx(dstCluster.master,
+            runSystemInstanceEx(dstCluster['master'],
                                 'mkdir -p ' + os.path.dirname(f),
                                 stdoutf=None,
                                 stderrf=None,
-                                user=srcCluster.config('ssh.user'),
-                                options=srcCluster.config('ssh.options'),
+                                user=srcCluster['config']['ssh.user'],
+                                options=srcCluster['config']['ssh.options'],
                                 log=True)
-            scpToEx(dstCluster.master.publicDNS,
+            scpToEx(dstCluster['master']['public_dns'],
                     f,
                     f,
-                    user=srcCluster.config('ssh.user'),
-                    options=srcCluster.config('ssh.options'),
+                    user=srcCluster['config']['ssh.user'],
+                    options=srcCluster['config']['ssh.options'],
                     log=True)
             
         tsk = task.updateTask(tsk.progress().addMessage(task.MSG_SILENT, 'realizing phantom tag'))
         
-        realizeTask = realizePhantom('localhost', dstCluster.name, options('general.tag_name'))
+        realizeTask = realizePhantom('localhost', dstCluster['cluster_name'], options('general.tag_name'))
         endState, tsk = task_utils.blockOnTaskAndForward('localhost',
                                                          options('general.dst_cluster'),
                                                          realizeTask,
@@ -96,7 +96,7 @@ def main(options, _args):
         metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
         metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])
 
-        dstDir = os.path.join(dstCluster.config('dirs.tag_dir'), options('general.tag_name'))
+        dstDir = os.path.join(dstCluster['config']['dirs.tag_dir'], options('general.tag_name'))
         if options('general.compress'):
             compress = os.path.split(dstDir)[0]
         else:

@@ -14,12 +14,14 @@ OPTIONS = [
     
 
 def main(options, _args):
-    cred = credential.loadCredentials(options('general.host'), options('general.name'))
-
     if options('general.cred_name'):
-        cred = [c for c in cred if c.name == options('general.cred_name')]
+        cred_names = [options('general.cred_name')]
+    else:
+        cred_names = []
+    
+    cred = credential.loadCredentials(options('general.host'), options('general.name'), cred_names)
 
-    print '\n'.join(['\t'.join(['CRED', c.name]) for c in cred])
+    print '\n'.join(['\t'.join(['CRED', c['name'], str(c['num_instances'])]) for c in cred])
 
 
 if __name__ == '__main__':

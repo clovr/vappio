@@ -98,6 +98,7 @@ class Config:
     def __init__(self, m, base, lazy=False, depth=None):
         self.conf = flattenMap(m, depth=depth)
         self.base = base
+        self.lazy = lazy
 
 
         ##
@@ -305,7 +306,10 @@ def configFromEnv(base=None, lazy=False, depth=None):
 
 
 def configToDict(config):
-    return dict([(k, config.get_raw(k)) for k in config.keys()])
+    if config.lazy:
+        return dict([(k, config.get_raw(k)) for k in config.keys()])
+    else:
+        return dict([(k, config.get(k)) for k in config.keys()])
 
 def test():
     c = configFromMap({

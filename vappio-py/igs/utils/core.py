@@ -22,3 +22,12 @@ def getStrBetween(haystack, start, end):
 
 def quoteEscape(s):
     return "'%s'" % str(s).encode('string_escape')
+
+def keysInDict(ks, d):
+    for k in ks:
+        if k not in d:
+            return False
+
+    return True
+
+keysInDictCurry = lambda ks : lambda d : keysInDict(ks, d)

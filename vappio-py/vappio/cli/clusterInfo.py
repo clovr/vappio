@@ -17,7 +17,7 @@ OPTIONS = [
 URL = '/vappio/clusterInfo_ws.py'
 
 def instanceToList(i):
-    return [i.instanceId or i.spotRequestId or 'Undefined', i.publicDNS or 'Undefined', i.state or 'Undefined']
+    return [i['instance_id'] or i['spot_request_id'] or 'Undefined', i['public_dns'] or 'Undefined', i['state'] or 'Undefined']
 
 
 def main(options, _args):
@@ -25,19 +25,20 @@ def main(options, _args):
         cluster = loadCluster(options('general.host'), options('general.name'), options('general.partial'))
 
 
-        print '\t'.join(['MASTER'] + instanceToList(cluster.master))
-        for e in cluster.execNodes:
+        print '\t'.join(['STATE'] + [cluster['state']])
+        print '\t'.join(['MASTER'] + instanceToList(cluster['master']))
+        for e in cluster['exec_nodes']:
             print '\t'.join(['EXEC'] + instanceToList(e))
-        for e in cluster.dataNodes:
+        for e in cluster['data_nodes']:
             print '\t'.join(['DATA'] + instanceToList(e))
 
-        print '\t'.join(['GANGLIA', 'http://%s/ganglia' % cluster.master.publicDNS])
-        print '\t'.join(['ERGATIS', 'http://%s/ergatis' % cluster.master.publicDNS])
-        print '\t'.join(['SSH', 'ssh %s %s@%s' % (cluster.config('ssh.options'), cluster.config('ssh.user'), cluster.master.publicDNS)])
+        print '\t'.join(['GANGLIA', 'http://%s/ganglia' % cluster['master']['public_dns']])
+        print '\t'.join(['ERGATIS', 'http://%s/ergatis' % cluster['master']['public_dns']])
+        print '\t'.join(['SSH', 'ssh %s %s@%s' % (cluster['config']['ssh.options'], cluster['config']['ssh.user'], cluster['master']['public_dns'])])
 
     else:
         for c in listClusters(options('general.host')):
-            print '\t'.join(['CLUSTER', c])
+            print '\t'.join(['CLUSTER', c['cluster_name']])
 
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS))

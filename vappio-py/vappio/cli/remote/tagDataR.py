@@ -54,7 +54,7 @@ def main(options, files):
 
 
     cluster = loadCluster('localhost', 'local')
-    tagData(cluster.config('dirs.tag_dir'),
+    tagData(cluster['config']['dirs.tag_dir'],
             options('general.tag_name'),
             options('general.tag_base_dir'),
             files,

@@ -16,11 +16,10 @@ def startCluster(host, name, conf, num, cred, updateDirs):
     """
     Start a cluster
     """
-    return performQuery(host, STARTCLUSTER_URL, dict(name=name,
-                                                     conf=conf,
-                                                     num=num,
-                                                     cred=cred,
-                                                     update_dirs=updateDirs))
+    return performQuery(host, STARTCLUSTER_URL, dict(cluster=name,
+                                                     num_exec=num,
+                                                     num_data=0,
+                                                     cred_name=cred))
 
 def loadCluster(host, name, partial=False):
     """
@@ -31,28 +30,27 @@ def loadCluster(host, name, partial=False):
     that it is ok if loadCluster returns only what it can load.  Otherwise
     it will fail out completely
     """
-    result = performQuery(host, CLUSTERINFO_URL, dict(name=name,
-                                                      partial=partial))
-    return clusterFromDict(result)
+    return performQuery(host, CLUSTERINFO_URL, dict(cluster=name,
+                                                    partial=partial))
 
 
-def addInstances(host, name, num, updateDirs=False):
+
+def addInstances(host, name, numExec, numData):
     """
     Add instance to a cluster
 
     updateDirs is being deprecated
     """
-    cluster = loadCluster(host, name)
-    return performQuery(cluster.master.publicDNS, ADDINSTANCES_URL, dict(num=num,
-                                                                         update_dirs=updateDirs))
+    return performQuery(host, ADDINSTANCES_URL, dict(cluster=name,
+                                                     num_exec=numExec,
+                                                     num_data=numData))
 
-def terminateCluster(host, name, force):
-    return performQuery(host, TERMINATECLUSTER_URL, dict(name=name,
-                                                         force=force))
+def terminateCluster(host, name):
+    return performQuery(host, TERMINATECLUSTER_URL, dict(cluster=name))
     
 
 def listClusters(host):
     """
     Return a list of existing cluters
     """
-    return performQuery(host, LISTCLUSTERS_URL, dict())
+    return performQuery(host, LISTCLUSTERS_URL, dict(cluster='local'))

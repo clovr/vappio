@@ -19,7 +19,7 @@ def runSystemInstanceA(instance, cmd, stdoutf, stderrf, user=None, options=None,
     """
 
     # We need to wrap calls in runCmd.sh to get our environment
-    return runSystemSSHA(instance.publicDNS, 'source clovrEnv.sh; ' + cmd, stdoutf, wrapStream(stderrf), user, options, log)
+    return runSystemSSHA(instance['public_dns'], 'source clovrEnv.sh; ' + cmd, stdoutf, wrapStream(stderrf), user, options, log)
 
 
 def runSystemInstance(*args, **kwargs):

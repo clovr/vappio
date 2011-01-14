@@ -17,7 +17,7 @@ class TryError(Exception):
         self.result = result
 
     def __str__(self):
-        return str(self.msg)
+        return str(self.msg) + '\n' + str(self.result)
 
 
 
