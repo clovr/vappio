@@ -25,16 +25,14 @@ for line in sys.stdin:
 if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
 
-commands.runSystemEx('updateClusterInfo.py')
-
 cl = cluster.loadCluster('localhost', kv['cluster.CLUSTER_NAME'])
 
 wantInstances = int(kv['pipeline.EXEC_WANT_INSTANCES'])
 
-diffInstances = wantInstances - len([i for i in cl.execNodes if i.state != i.TERMINATED])
+diffInstances = wantInstances - len([i for i in cl['exec_nodes'] if i['state'] != 'terminated'])
 
 if diffInstances > 0:
-    taskName = cluster.addInstances('localhost', kv['cluster.CLUSTER_NAME'], diffInstances)
+    taskName = cluster.addInstances('localhost', kv['cluster.CLUSTER_NAME'], diffInstances, 0)
     sys.stdout.write('pipeline.ADD_INSTANCES_TASKNAME=%s\n' % taskName)
 
     
