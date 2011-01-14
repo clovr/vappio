@@ -97,6 +97,8 @@ def runProcess(cmdArgs,
     This returns a deferred which will be fired on program exit
     """
 
+    cmdArgs = [str(c) for c in cmdArgs]
+    
     if newEnv is None:
         newEnv = dict(os.environ)
 
@@ -121,7 +123,7 @@ def runProcess(cmdArgs,
         kwargs['gid'] = gid
 
     if log:
-        logger.log('Running command: ' + ' '.join(cmdArgs))
+        logger.msg('Running command: ' + ' '.join(cmdArgs))
         
     reactor.spawnProcess(pp,
                          executable=cmdArgs[0],
@@ -130,3 +132,12 @@ def runProcess(cmdArgs,
                          **kwargs)
 
     return pp.deferred
+
+def shell(cmd):
+    """
+    Takes a command that is a string and turns it into an sh call so it doesn't
+    have to be parsedin order to call runProcess.
+
+    ex. shell('echo testing') -> ['/bin/sh', '-c', 'echo testing']
+    """
+    return ['/bin/sh', '-c', cmd]

@@ -129,9 +129,9 @@ class _ConnectedState:
     def msgReceived(self, msg):
         h = self.factory._findSubscription(msg.headers['destination'])
         if h:
-            h(msg)
+            h(self.factory, msg)
         else:
-            raise Exception('Received message on unknown subscription')
+            raise Exception('Received message on unknown subscription: ' + msg.headers['destination'])
 
     def receiptReceived(self, msg):
         raise Exception('Need to implement receipt')

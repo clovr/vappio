@@ -8,6 +8,8 @@ from twisted.web import resource
 from twisted.web import server
 from twisted.python import log
 
+from igs.utils import functional as func
+
 from igs_tx.utils import http
 
 from vappio_tx.mq import client
@@ -15,7 +17,7 @@ from vappio_tx.legacy import cgi as vappio_cgi
 from vappio_tx.utils import queue
 from vappio_tx import clusters
 
-TIMEOUT = 30
+TIMEOUT = 60
 
 def TimeoutRequestError():
     return json.dumps({'success': False,
@@ -47,69 +49,43 @@ class QueueRequest(resource.Resource):
         resource.Resource.__init__(self)
     
     def render_GET(self, request):
-        if 'request' not in request.args:
+        if 'request' not in request.args or not request.args['request']:
             return MissingRequestError()
 
         req = json.loads(request.args['request'][0])
-        if 'cluster' not in req or req['cluster'] == 'local':
-            retQueue = queue.randomQueueName('www-data')
-            newReq = {'payload': req,
-                      'return_queue': retQueue,
-                      'user_name': 'guest'}
+        retQueue = queue.randomQueueName('www-data')
+        newReq = func.updateDict(req, dict(return_queue=retQueue,
+                                           user_name='guest'))
 
-            d = defer.Deferred()
 
-            def _timeout():
-                self.mq.unsubscribe(retQueue)
-                d.errback(Exception('Waiting for request failed'))
-            
-            delayed = reactor.callLater(TIMEOUT, _timeout)
+        d = defer.Deferred()
         
-            def _handleMsg(m):
-                delayed.cancel()
-                self.mq.unsubscribe(retQueue)
-                d.callback(m.body)
-
-
+        def _timeout():
+            self.mq.unsubscribe(retQueue)
+            d.errback(Exception('Waiting for request failed'))
             
-            self.mq.subscribe(_handleMsg, retQueue)
-            self.mq.send('/queue/' + self.name, json.dumps(newReq))
-            
-
-            d.addCallback(request.write)
-
-            def _error(_):
-                request.write(TimeoutRequestError())
-
-            d.addErrback(_error)
+        delayed = reactor.callLater(TIMEOUT, _timeout)
         
-            def _finish(_):
-                request.finish()
+        def _handleMsg(mq, m):
+            delayed.cancel()
+            mq.unsubscribe(retQueue)
+            d.callback(m.body)
 
-            d.addCallback(_finish)
-        else:
-            d = clusters.loadCluster('localhost', req['cluster'], partial=True)
-
-            def _performQuery(cl):
-                req['cluster'] = 'local'
-                req['name'] = 'local'
-                return http.performQueryNoParse(cl.master.publicDNS,
-                                                '/vappio/' + self.name,
-                                                req)
-
-            d.addCallback(_performQuery)
-
-            def _error(f):
-                log.err(f)
-                return UnknownError()
+        self.mq.subscribe(_handleMsg, retQueue)
+        self.mq.send('/queue/' + self.name, json.dumps(newReq))
             
-            d.addErrback(_error)
-            d.addCallback(request.write)
-            
-            def _finish(_):
-                request.finish()
 
-            d.addCallback(_finish)
+        d.addCallback(request.write)
+
+        def _error(_):
+            request.write(TimeoutRequestError())
+
+        d.addErrback(_error)
+        
+        def _finish(_):
+            request.finish()
+
+        d.addCallback(_finish)
         
         return server.NOT_DONE_YET
 

@@ -5,16 +5,19 @@ import os
 import StringIO
 import json
 
-from twisted.python import log
+from vappio.tasks import task
+
+from igs.utils import core
 
 from igs_tx.utils import commands
 from igs_tx.utils import errors
 
+from vappio_tx.utils import core as vappio_tx_core
+from vappio_tx.utils import queue
+
 from vappio_tx.mq import client
 
 from vappio_tx.tasks import tasks
-from vappio_tx.tasks import utils as task_utils
-from vappio.tasks import task
 
 class InvalidMetricNameError(Exception):
     pass
@@ -92,28 +95,30 @@ def runMetricsWithTask(taskName, initialText, metrics):
     return d
     
     
-def handleMsg(mq, msg):
-    request = json.loads(msg.body)
-    payload = request['payload']
-    initialConf = payload['conf']
+def handleMsg(mq, body):
+    request = body
+    initialConf = request['conf']
     initialText = ('\n'.join(['kv'] + [k + '=' + v for k, v in initialConf.iteritems()]) + '\n').encode('utf_8')
-    metrics = splitAndSanitizeMetrics(payload['metrics'].encode('utf_8'))
-    runMetricsWithTask(request['task_name'], initialText, metrics).addCallback(lambda _ : mq.ack(msg.headers['message-id']))
+    metrics = splitAndSanitizeMetrics(request['metrics'].encode('utf_8'))
+    runMetricsWithTask(request['task_name'], initialText, metrics)
     
-def verifyRequest(r):
-    return 'conf' in r['payload'] and 'metrics' in r['payload']
-    
+
 def makeService(conf):
     mqService = client.makeService(conf)
-    mqService.mqFactory.subscribe(task_utils.createTaskAndForward(mqService.mqFactory,
-                                                                  conf('tasklets.internal_queue'),
-                                                                  'runMetric',
-                                                                  1,
-                                                                  verifyRequest),
-                                  conf('tasklets.queue'))
-                                  
-    mqService.mqFactory.subscribe(lambda m : handleMsg(mqService.mqFactory, m),
-                                  conf('tasklets.internal_queue'),
-                                  {'prefetch': int(conf('tasklets.concurrent_tasklets'))})
+    mqFactory = mqService.mqFactory
+
+
+    queue.ensureRequestAndSubscribeForwardTask(mqFactory,
+                                               vappio_tx_core.QueueSubscription(ensureF=core.keysInDictCurry(['conf', 'metrics']),
+                                                                                successF=handleMsg,
+                                                                                failureF=None),
+                                               'runTasklets',
+                                               conf('www.url_prefix') + '/' + os.path.basename(conf('tasklets.tasklets_www')),
+                                               conf('tasklets.tasklets_www'),
+                                               conf('tasklets.tasklets_queue'),
+                                               conf('tasklets.concurrent_tasklets'))
+        
+
+    
     return mqService
     

@@ -14,7 +14,9 @@ class Credential(func.Record):
     """
     Represents a credentail that can actually be used (as opposed to copied outside of the machine)
     """
-    pass
+
+    def getCType(self):
+        return reflect.fullyQualifiedName(self.ctype).split('.')[-1]
 
 
 def createCredential(name, desc, ctype, cert, pkey, active, metadata):
@@ -52,7 +54,7 @@ def credentialToDict(cred):
     """
     return dict(name=cred.name,
                 desc=cred.desc,
-                ctype=reflect.fullyQualifiedName(cred.ctype).split('.')[-1],
+                ctype=cred.getCType(),
                 cert=cred.cert,
                 pkey=cred.pkey,
                 active=cred.active,
@@ -86,7 +88,7 @@ def loadCredential(credentialName):
     return d
 
 def saveCredential(credential):
-    d = threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.save(func.updateDict(dict(_id=credential['name']),
+    d = threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.save(func.updateDict(dict(_id=credential.name),
                                                                                                    credentialToDict(credential))))
     return d
 

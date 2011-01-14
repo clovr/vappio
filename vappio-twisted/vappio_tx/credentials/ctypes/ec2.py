@@ -79,34 +79,34 @@ class Instance(functional.Record):
 
 
 def instanceToDict(instance):
-    return dict(instanceId=instance.instanceId,
-                amiId=instance.amiId,
-                publicDNS=instance.publicDNS,
-                privateDNS=instance.privateDNS,
+    return dict(instance_id=instance.instanceId,
+                ami_id=instance.amiId,
+                public_dns=instance.publicDNS,
+                private_dns=instance.privateDNS,
                 state=instance.state,
                 key=instance.key,
                 index=instance.index,
-                instanceType=instance.instanceType,
+                instance_type=instance.instanceType,
                 launch=instance.launch,
-                availabilityZone=instance.availabilityZone,
+                availability_zone=instance.availabilityZone,
                 monitor=instance.monitor,
-                spotRequestId=instance.spotRequestId,
-                bidPrice=instance.bidPrice)
+                spot_request_id=instance.spotRequestId,
+                bid_price=instance.bidPrice)
 
 def instanceFromDict(d):
-    return Instance(d['instanceId'],
-                    d['amiId'],
-                    d['publicDNS'],
-                    d['privateDNS'],
+    return Instance(d['instance_id'],
+                    d['ami_id'],
+                    d['public_dns'],
+                    d['private_dns'],
                     d['state'],
                     d['key'],
                     d['index'],
-                    d['instanceType'],
+                    d['instance_type'],
                     d['launch'],
-                    d['availabilityZone'],
+                    d['availability_zone'],
                     d['monitor'],
-                    d['spotRequestId'],
-                    d['bidPrice'])
+                    d['spot_request_id'],
+                    d['bid_price'])
 
     
 
@@ -194,6 +194,11 @@ def parseInstanceLine(line):
 
 
 
+def fixTypesOfSelectConfig(conf):
+    return config.configFromMap({'cluster.master_groups': [g for g in conf('cluster.master_groups').split(',') if g],
+                                 'cluster.exec_groups': [g for g in conf('cluster.exec_groups').split(',') if g]},
+                                base=conf)
+    
 def instantiateCredential(conf, cred):
     """
     Takes a credential and instanitates it.  It returns a Record that has all of the
@@ -201,6 +206,7 @@ def instantiateCredential(conf, cred):
     """
     conf = config.configFromConfig(conf, base=config.configFromStream(open(conf('conf_file', default=DEFAULT_CONFIG_FILE)),
                                                                       base=config.configFromEnv()))
+    conf = fixTypesOfSelectConfig(conf)
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
     if not os.path.exists(certFile) or open(certFile).read() != cred.cert:
@@ -242,27 +248,39 @@ def runInstances(cred,
     # make base command
     cmd = ['ec2-run-instances',
            amiId,
-           '-k ' + key,
-           '-t ' + instanceType]
+           '-k', key,
+           '-t', instanceType]
 
     if availabilityZone:
-        cmd.append('-z %s' % availabilityZone)
+        cmd.extend(['-z', availabilityZone])
 
     ##
     # add groups
     for g in groups:
-        cmd.append('-g ' +  g)
+        cmd.extend(['-g', g])
 
     if number:
-        cmd.append('-n %d ' % number)
+        cmd.extend(['-n',  str(number)])
 
     if userData:
-        cmd.append('-d ' + userData)
+        cmd.extend(['-d', userData])
 
     if userDataFile:
-        cmd.append('-f ' + userDataFile)
+        cmd.extend(['-f', userDataFile])
 
+    d = run(cred, cmd, log=log)
 
+    def _parseInstances(lines):
+        instances = []
+        for line in lines:
+            instance = parseInstanceLine(line)
+            if instance:
+                instances.append(instance)
+
+        return instances
+
+    d.addCallback(_parseInstances)
+    return d
 
 def runSpotInstances(cred,
                      bidPrice,
@@ -290,27 +308,27 @@ def runSpotInstances(cred,
     # make base command
     cmd = ['ec2-request-spot-instances',
            amiId,
-           '--price ' + str(bidPrice),
-           '--type one-time',
-           '-k ' + key,
-           '--instance-type ' + instanceType]
+           '--price', str(bidPrice),
+           '--type', 'one-time',
+           '-k', key,
+           '--instance-type', instanceType]
 
     if availabilityZone:
-        cmd.append('-z %s' % availabilityZone)
+        cmd.extend(['-z', availabilityZone])
 
     ##
     # add groups
     for g in groups:
-        cmd.append('--group ' +  g)
+        cmd.extend(['--group',  g])
 
     if number:
-        cmd.append('--instance-count %d ' % number)
+        cmd.extend(['--instance-count', str(number)])
 
     if userData:
-        cmd.append('-d ' + userData)
+        cmd.extend('-d ' + userData)
 
     if userDataFile:
-        cmd.append('-f ' + userDataFile)
+        cmd.extend(['-f', userDataFile])
 
     d = run(cred, cmd, log=log)
 
@@ -456,22 +474,22 @@ def authorizeGroup(cred,
            ]
     
     if protocol == 'icmp':
-        cmd.append('-t %d:%d' % (portRange[0], portRange[1]))
+        cmd.extend(['-t', '%d:%d' % (portRange[0], portRange[1])])
     else:
         try:
             portRange = str(portRange[0]) + '-' + str(portRange[1])
         except:
             portRange = str(portRange)
-        cmd.append('-p ' + portRange)
+        cmd.extend(['-p', portRange])
 
     if sourceGroup:
-        cmd.append('-o ' + sourceGroup)
+        cmd.extend(['-o', sourceGroup])
 
     if sourceGroupUser:
-        cmd.append('-u ' + sourceGroupUser)
+        cmd.extend(['-u', sourceGroupUser])
 
     if sourceSubnet:
-        cmd.append('-s ' + sourceSubnet)
+        cmd.extend(['-s',  sourceSubnet])
 
     return run(cred, cmd, log=log)
 

@@ -6,11 +6,13 @@ from igs.utils import functional as func
 
 from vappio_tx.utils import queue
 
+from vappio_tx.www_client import credentials
+
 def performQuery(mq, queryQueue, request):
     retQueue = queue.randomQueueName('credentials')
     d = defer.Deferred()
     
-    def _handleMsg(m):
+    def _handleMsg(mq, m):
         mq.unsubscribe(retQueue)
         ret = json.loads(m.body)
         if ret['success']:
@@ -153,5 +155,13 @@ class CredentialClient:
     
     
 
-
+def saveCredential(credName, description, ctype, cert, pkey, metadata):
+    return credentials.saveCredential('localhost',
+                                      'local',
+                                      credName,
+                                      description,
+                                      ctype,
+                                      cert,
+                                      pkey,
+                                      metadata)
 
