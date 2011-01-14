@@ -26,7 +26,7 @@ class Task(CGIPage):
             # Forward the request onto the appropriate machine
             cluster = loadCluster('localhost', request['name'])
             request['name'] = 'local'
-            return performQuery(cluster.master.publicDNS, URL, request)        
+            return performQuery(cluster['master']['public_dns'], URL, request)        
             
         
 generatePage(Task())

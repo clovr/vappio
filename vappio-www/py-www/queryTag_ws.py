@@ -23,19 +23,19 @@ class QueryTag(CGIPage):
         if request['name'] == 'local':
             cluster = loadCluster('localhost', 'local')
             if 'tag_name' in request:
-                return [func.updateDict(configToDict(loadTagFile(os.path.join(cluster.config('dirs.tag_dir'),
+                return [func.updateDict(configToDict(loadTagFile(os.path.join(cluster['config']['dirs.tag_dir'],
                                                                               tagName))),
                                         dict(name=tagName))
                         for tagName in request['tag_name']]
             else:
                 return [func.updateDict(configToDict(v), dict(name=k))
                         for k, v in
-                        loadAllTagFiles(cluster.config('dirs.tag_dir')).iteritems()]
+                        loadAllTagFiles(cluster['config']['dirs.tag_dir']).iteritems()]
         else:
             ##
             # Forward the request onto the appropriate machine
             cluster = loadCluster('localhost', request['name'])
             request['name'] = 'local'
-            return performQuery(cluster.master.publicDNS, URL, request)
+            return performQuery(cluster['master']['public_dns'], URL, request)
 
 generatePage(QueryTag())
