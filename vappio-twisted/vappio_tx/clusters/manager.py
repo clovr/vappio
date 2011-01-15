@@ -159,9 +159,10 @@ def handleTaskTerminateCluster(state, mq, request):
     if request['cluster'] != 'local':
         # If we are terminated a remote cluster
         def _terminate(cl):
-            terminateDefer = clusters_client_www.terminateCluster(cl.master['public_dns'],
-                                                                  'local',
-                                                                  None)
+            terminateDefer = defer.succeed(True)
+            terminateDefer.addCallback(lambda _ : clusters_client_www.terminateCluster(cl.master['public_dns'],
+                                                                                       'local',
+                                                                                       None))
 
             def _removeCluster(cl):
                 #
@@ -818,7 +819,8 @@ def makeService(conf):
     # Now add web frontend queues
     successF = lambda f : lambda mq, body : f(state, mq, body)
     failTaskF = lambda mq, body, f : 'task_name' in body and tasks_tx.updateTask(body['task_name'],
-                                                                                 lambda t : t.setState(task.TASK_FAILED))
+                                                                                 lambda t : t.setState(task.TASK_FAILED
+                                                                                                       ).addFailure(f))
     returnQueueF = lambda mq, body, f : queue.returnQueueFailure(mq, body['return_queue'], f)
     
     #
