@@ -3,8 +3,6 @@
 
 from igs.cgi.request import performQuery
 
-from vappio.cluster.control import clusterFromDict
-
 
 STARTCLUSTER_URL = '/vappio/startCluster_ws.py'
 CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
