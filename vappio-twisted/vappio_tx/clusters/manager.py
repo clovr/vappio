@@ -218,6 +218,7 @@ def handleTaskAddInstances(state, mq, request):
                                                  mq,
                                                  request['task_name'],
                                                  request['num_exec'],
+                                                 cl))
 
     def _completeTask(cl):
         updateTaskDefer = tasks_tx.updateTask(request['task_name'],
@@ -226,7 +227,6 @@ def handleTaskAddInstances(state, mq, request):
         return updateTaskDefer
 
     d.addCallback(_completeTask)
-                                                 cl))
     return d
 
 

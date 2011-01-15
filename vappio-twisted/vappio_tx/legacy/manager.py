@@ -15,7 +15,6 @@ from igs_tx.utils import http
 from vappio_tx.mq import client
 from vappio_tx.legacy import cgi as vappio_cgi
 from vappio_tx.utils import queue
-from vappio_tx import clusters
 
 TIMEOUT = 60
 
