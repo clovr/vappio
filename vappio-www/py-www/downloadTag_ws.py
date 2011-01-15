@@ -43,7 +43,7 @@ class DownloadTag(CGIPage):
             # Forward request on
             cluster = loadCluster('localhost', request['dst_cluster'])
             request['dst_cluster'] = 'local'
-            taskName = performQuery(cluster.master.publicDNS, URL, request)
+            taskName = performQuery(cluster['master']['public_dns'], URL, request)
 
         return taskName
                

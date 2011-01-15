@@ -5,7 +5,7 @@ from igs.cgi.handler import CGIPage, generatePage
 from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
 
-from vappio.cluster.control import loadCluster
+from vappio.webservice.cluster import loadCluster
 
 from vappio.tasks.utils import createTaskAndSave
 
@@ -30,9 +30,9 @@ class RealizePhantom(CGIPage):
         else:
             ##
             # Forward request on
-            cluster = loadCluster(request['name'])
+            cluster = loadCluster('localhost', request['name'])
             request['name'] = 'local'
-            taskName = performQuery(cluster.master.publicDNS, URL, request)
+            taskName = performQuery(cluster['master']['public_dns'], URL, request)
 
         return taskName
                

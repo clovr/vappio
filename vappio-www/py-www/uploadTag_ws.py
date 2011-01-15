@@ -6,7 +6,7 @@ from igs.cgi.request import readQuery, performQuery
 from igs.utils.commands import runSystemEx
 from igs.utils import core
 
-from vappio.cluster.control import loadCluster
+from vappio.webservice.cluster import loadCluster
 
 from vappio.tasks.utils import createTaskAndSave
 
@@ -43,9 +43,9 @@ class UploadTag(CGIPage):
         else:
             ##
             # Forward request on
-            cluster = loadCluster(request['src_cluster'])
+            cluster = loadCluster('localhost', request['src_cluster'])
             request['src_cluster'] = 'local'
-            taskName = performQuery(cluster.master.publicDNS, URL, request)
+            taskName = performQuery(cluster['master']['public_dns'], URL, request)
 
         return taskName
                

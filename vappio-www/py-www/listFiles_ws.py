@@ -50,7 +50,7 @@ class ListFiles(handler.CGIPage):
             # Forward the request onto the appropriate machine
             cluster = cluster_ws.loadCluster('localhost', request['name'])
             request['name'] = 'local'
-            return cgi_request.performQuery(cluster.master.publicDNS, URL, request)
+            return cgi_request.performQuery(cluster['master']['public_dns'], URL, request)
                               
 handler.generatePage(ListFiles())
 
