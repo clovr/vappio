@@ -273,14 +273,14 @@ def loadTagFile(fname):
     # otherwise, throw an exception about missing the tagfile
     if os.path.exists(fname):
         if os.path.exists(fname + '.metadata'):
-            metadata = configFromMap({'metadata': json.loads(open(fname + '.metadata').read())}, phantom)
+            metadata = configFromMap({'metadata': json.loads(open(fname + '.metadata').read())}, phantom, lazy=True)
         else:
             metadata = configFromMap({}, phantom)
 
-        return configFromMap({'files': [f.strip() for f in open(fname) if f.strip()]}, metadata)
+        return configFromMap({'files': [f.strip() for f in open(fname) if f.strip()]}, metadata, lazy=True)
     elif not os.path.exists(fname) and os.path.exists(fname + '.phantom'):
 	if os.path.exists(fname + '.metadata'):
-		metadata = configFromMap({'metadata': json.loads(open(fname + '.metadata').read())}, phantom)
+		metadata = configFromMap({'metadata': json.loads(open(fname + '.metadata').read())}, phantom, lazy=True)
 		return metadata
 	else :
 		return phantom

@@ -17,8 +17,16 @@ OPTIONS = [
 URL = '/vappio/clusterInfo_ws.py'
 
 def instanceToList(i):
-    return [i['instance_id'] or i['spot_request_id'] or 'Undefined', i['public_dns'] or 'Undefined', i['state'] or 'Undefined']
+    if i:
+        return [i['instance_id'] or i['spot_request_id'] or 'Undefined', i['public_dns'] or 'Undefined', i['state'] or 'Undefined']
+    else:
+        return ['None']
 
+def returnEmptyDictIfNone(d, k):
+    if d[k] is None:
+        return {}
+    else:
+        return d[k]
 
 def main(options, _args):
     if not options('general.list'):
@@ -32,9 +40,9 @@ def main(options, _args):
         for e in cluster['data_nodes']:
             print '\t'.join(['DATA'] + instanceToList(e))
 
-        print '\t'.join(['GANGLIA', 'http://%s/ganglia' % cluster['master']['public_dns']])
-        print '\t'.join(['ERGATIS', 'http://%s/ergatis' % cluster['master']['public_dns']])
-        print '\t'.join(['SSH', 'ssh %s %s@%s' % (cluster['config']['ssh.options'], cluster['config']['ssh.user'], cluster['master']['public_dns'])])
+        print '\t'.join(['GANGLIA', 'http://%s/ganglia' % returnEmptyDictIfNone(cluster, 'master').get('public_dns', '')])
+        print '\t'.join(['ERGATIS', 'http://%s/ergatis' % returnEmptyDictIfNone(cluster, 'master').get('public_dns', '')])
+        print '\t'.join(['SSH', 'ssh %s %s@%s' % (cluster['config']['ssh.options'], cluster['config']['ssh.user'], returnEmptyDictIfNone(cluster, 'master').get('public_dns', ''))])
 
     else:
         for c in listClusters(options('general.host')):

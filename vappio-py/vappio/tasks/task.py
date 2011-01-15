@@ -8,6 +8,7 @@ from igs.utils.functional import Record, updateDict
 
 from vappio.tasks.persist import load, loadAll, dump, TaskDoesNotExistError
 
+from igs_tx.utils import errors
 
 TASK_IDLE = 'idle'
 TASK_RUNNING = 'running'
@@ -38,6 +39,16 @@ class Task(Record):
                                                           stacktrace=stacktrace,
                                                           timestamp=t)])
 
+    def addFailure(self, failure):
+        t = time.time()
+        return self.update(timestamp=t,
+                           messages=self.messages + [dict(mtype=MSG_ERROR,
+                                                          text=failure.getErrorMessage(),
+                                                          name='',
+                                                          stacktrace=errors.stackTraceToString(failure),
+                                                          timestamp=t)])
+        
+        
     def addNotification(self, msg):
         return self.addMessage(MSG_NOTIFICATION, msg)
 
