@@ -354,7 +354,8 @@ def loadLocalCluster():
             cl = persist.Cluster('local',
                                  None,
                                  'local',
-                                 config.configFromStream(open('/tmp/machine.conf'), base=config.configFromEnv()))
+                                 config.configFromMap({'config_loaded': True},
+                                                      base=config.configFromStream(open('/tmp/machine.conf'), base=config.configFromEnv())))
             cl = cl.setMaster(dict(instance_id='local',
                                    ami_id=None,
                                    public_dns=cl.config('MASTER_IP'),
