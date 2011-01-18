@@ -4,7 +4,10 @@ from twisted.python import reflect
 from igs.utils import cli
 from igs.utils import functional as func
 
+from vappio.webservice import credential
+
 from vappio.credentials import manager
+
 
 OPTIONS = [
     ('cred_name', '', '--cred-name', 'Name of the credential', cli.notNone),
@@ -24,13 +27,14 @@ def main(options, _args):
 
     # Setup the cert if the user gave the options
     if options('general.cert') and options('general.pkey'):
-        manager.saveCredential(manager.createCredential(options('general.cred_name'),
-                                                        options('general.cred_desc'),
-                                                        reflect.namedAny('vappio.' + options('general.ctype') + '.control'),
-                                                        options('general.cert') and open(options('general.cert')).read(),
-                                                        options('general.pkey') and open(options('general.pkey')).read(),
-                                                        True,
-                                                        dict([s.split('=', 1) for s in options('general.metadata')])))
+        credential.saveCredential('localhost',
+                                  'local',
+                                  options('general.cred_name'),
+                                  options('general.cred_desc'),
+                                  options('general.ctype'),
+                                  options('general.cert') and open(options('general.cert')).read(),
+                                  options('general.pkey') and open(options('general.pkey')).read(),
+                                  dict([s.split('=', 1) for s in options('general.metadata')]))
         
 
 if __name__ == '__main__':

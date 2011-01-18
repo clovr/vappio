@@ -15,6 +15,7 @@ RELEASE_CUT = 'RELEASE_CUT'
 def createDataFile(conf, mode, outFile='/tmp/machine.conf'):
     ##
     # We want everything from the clovr config in here for now
+    conf = config.configFromMap({'config_loaded': True}, base=conf, lazy=conf.lazy)
     fout = open(outFile, 'w')
     fout.write('[]\n')
     fout.writelines(['%s=%s\n' % (k, str(conf(k))) for k in conf.keys()])
