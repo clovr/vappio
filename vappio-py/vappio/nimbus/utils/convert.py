@@ -36,8 +36,9 @@ def convertKey(inname, outname):
 def addJavaCert(outputdir, host, port):
     """This installs a java cert.  It is assumed that install-cert.sh is in the PATH"""
 
-    runSystemEx("""echo 1 | install-cert.sh %s:%d""" % (host, port))
-    runSystem("""mv jssecacerts %s""" % (outputdir,))
+    runSystemEx("""cd /tmp/ && echo 1 | install-cert.sh %s:%d""" % (host, port))
+    if outputdir not in ['/tmp', '/tmp/']:
+        runSystem("""mv /tmp/jssecacerts %s""" % (outputdir,))
 
 
 
