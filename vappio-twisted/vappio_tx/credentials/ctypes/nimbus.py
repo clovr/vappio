@@ -18,8 +18,11 @@ DESC = """Control module for Nimbus-based users"""
 
 
 def instantiateCredential(conf, cred):
-    conf = config.configFromConfig(conf, base=config.configFromStream(open(conf('conf_file')),
-                                                                      base=config.configFromEnv()))
+    if not conf('config_loaded', default=False):
+        conf = config.configFromConfig(conf,
+                                       base=config.configFromStream(open(conf('general.conf_file', default=DEFAULT_CONFIG_FILE)),
+                                                                    base=conf))
+
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
 
