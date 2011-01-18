@@ -530,7 +530,7 @@ def startExecNodes(state, mq, taskName, numExec, cl):
                                           cl.config('cluster.availability_zone', default=None),
                                           cl.config('cluster.exec_bid_price', default=None),
                                           numExec,
-                                          dataFile)
+                                          open(dataFile).read())
 
 
         def _addExecNodesAndUpdateTask(l):
