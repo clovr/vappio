@@ -520,7 +520,7 @@ def startExecNodes(state, mq, taskName, numExec, cl):
                             lambda t : t.addMessage(task.MSG_SILENT,
                                                     'Adding %d instances to %s ' % (numExec, cl.clusterName)))
 
-    def _createDataFilesAndStartExec(cl):
+    def _createDataFilesAndStartExec(_):
         dataFile = vappio_config.createExecDataFile(cl.config, cl.master, '/tmp/machine.conf')
         execDefer = runInstancesWithRetry(credClient,
                                           cl.config('cluster.ami'),
