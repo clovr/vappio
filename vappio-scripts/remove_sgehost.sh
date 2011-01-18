@@ -39,8 +39,8 @@ then
 #Reschedule any running jobs on this machine
 #This does not work for single hosts, rescheds all $SGE_ROOT/bin/$ARCH/qmod -f -rq $execq@$deadhostname
 #$SGE_ROOT/bin/$ARCH/qmod -f -rq $stagingsubq@$myhostname
-    $SGE_ROOT/bin/$ARCH/qstat -q $execq@$deadhostname -u '*' -xml | xpath -e "//JB_job_number/text()" | perl -ne 'print "qmod -f -rj $_"' | sh
-    $SGE_ROOT/bin/$ARCH/qstat -q $stagingq@$deadhostname -u '*' -xml | xpath -e "//JB_job_number/text()" | perl -ne 'print "qmod -f -rj $_"' | sh
+    $SGE_ROOT/bin/$ARCH/qstat -q $execq@$deadhostname -u '*' -xml | xpath -e "//JB_job_number/text()" | perl -ne 'chomp;print "qmod -f -rj $_\n" if($_ =~ /^\d+/);' | sh
+    $SGE_ROOT/bin/$ARCH/qstat -q $stagingq@$deadhostname -u '*' -xml | xpath -e "//JB_job_number/text()" | perl -ne 'chomp;print "qmod -f -rj $_\n" if($_ =~ /^\d+/);' | sh
 #Remove any other jobs on this host?
 else
     $SGE_ROOT/bin/$ARCH/qmod -d "*@$deadhostname"
