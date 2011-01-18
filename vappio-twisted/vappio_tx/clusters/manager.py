@@ -204,7 +204,8 @@ def handleTaskTerminateCluster(state, mq, request):
                 
     def _completeTask(anyThing):
         updateTaskDefer = tasks_tx.updateTask(request['task_name'],
-                                              lambda t : t.setState(task.TASK_COMPLETED))
+                                              lambda t : t.setState(task.TASK_COMPLETED
+                                                                    ).progress())
         updateTaskDefer.addCallback(lambda _ : anyThing)
         return updateTaskDefer
 
