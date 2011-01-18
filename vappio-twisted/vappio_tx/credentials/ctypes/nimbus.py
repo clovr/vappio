@@ -63,6 +63,7 @@ def instantiateCredential(conf, cred):
         def _unlink(v):
             os.unlink(tmpCertFile)
             os.unlink(tmpKeyFile)
+            return v
 
         d.addCallback(_unlink)
         d.addErrback(_unlink)
