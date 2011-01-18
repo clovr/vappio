@@ -4,8 +4,8 @@ use warnings;
 
 my ($id) = @ARGV;
 
-my $task_file = '/tmp/task_id.txt';
-my $temp_file = '/tmp/task_id.temp';
+my $task_file = '/tmp/task_id'.$id.'.txt';
+my $temp_file = '/tmp/task_id'.$id.'.temp';
 
 `vp-run-metrics -t \"JSON_pipeline_summary.pl -x /mnt/projects/clovr/workflow/runtime/pipeline/$id/pipeline.xml\" > $temp_file`;
 
