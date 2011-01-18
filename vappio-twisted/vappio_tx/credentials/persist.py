@@ -4,7 +4,7 @@ from twisted.internet import threads
 from twisted.python import reflect
 
 from igs.utils import functional as func
-
+from igs.utils import config
 
 class CredentialDoesNotExistError(Exception):
     """A task does not exist in the db"""
@@ -19,7 +19,7 @@ class Credential(func.Record):
         return reflect.fullyQualifiedName(self.ctype).split('.')[-1]
 
 
-def createCredential(name, desc, ctype, cert, pkey, active, metadata):
+def createCredential(name, desc, ctype, cert, pkey, active, metadata, conf):
     """
     name - a string naming the cred
     desc - a free form string describing the cred
@@ -44,7 +44,8 @@ def createCredential(name, desc, ctype, cert, pkey, active, metadata):
                       cert=cert,
                       pkey=pkey,
                       active=active,
-                      metadata=metadata)
+                      metadata=metadata,
+                      conf=conf)
 
 
 def credentialToDict(cred):
@@ -58,7 +59,8 @@ def credentialToDict(cred):
                 cert=cred.cert,
                 pkey=cred.pkey,
                 active=cred.active,
-                metadata=cred.metadata)
+                metadata=cred.metadata,
+                conf=config.configToDict(cred.conf))
 
 def credentialFromDict(d):
     """
@@ -71,7 +73,8 @@ def credentialFromDict(d):
                             d['cert'],
                             d['pkey'],
                             d['active'],
-                            d['metadata'])
+                            d['metadata'],
+                            config.configFromMap(d['conf']))
 
 
 def loadCredential(credentialName):

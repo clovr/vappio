@@ -2,7 +2,7 @@ from igs_tx.utils import http
 
 SAVECREDENTIAL_URL = '/vappio/credential_ws.py'
 
-def saveCredential(host, clusterName, credName, description, ctype, cert, pkey, metadata):
+def saveCredential(host, clusterName, credName, description, ctype, cert, pkey, metadata, conf):
     return http.performQuery(host,
                              SAVECREDENTIAL_URL,
                              dict(cluster=clusterName,
@@ -11,7 +11,8 @@ def saveCredential(host, clusterName, credName, description, ctype, cert, pkey, 
                                   ctype=ctype,
                                   cert=cert,
                                   pkey=pkey,
-                                  metadata=metadata))
+                                  metadata=metadata,
+                                  conf=conf))
 
 def listCredentials(host, clusterName):
     return http.performQuery(host,

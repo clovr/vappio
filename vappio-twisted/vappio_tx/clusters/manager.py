@@ -341,14 +341,16 @@ def loadLocalCluster():
                                                    ctype,
                                                    open(cert).read(),
                                                    open(pkey).read(),
-                                                   metadata and dict([v.split('=', 1) for v in metadata.split(',')]) or {})
+                                                   metadata and dict([v.split('=', 1) for v in metadata.split(',')]) or {},
+                                                   config.configFromStream(open('/tmp/machine.conf'), lazy=True))
         else:
             saveDefer = cred_client.saveCredential('local',
                                                    'Local credential',
                                                    'local',
                                                    None,
                                                    None,
-                                                   {})
+                                                   {},
+                                                   config.configFromMap({}))
 
         def _addCluster(_):
             cl = persist.Cluster('local',
@@ -519,7 +521,7 @@ def startExecNodes(state, mq, taskName, numExec, cl):
                                                     'Adding %d instances to %s ' % (numExec, cl.clusterName)))
 
     def _createDataFilesAndStartExec(cl):
-        dataFile = vappio_config.createExecDataFile(cl.config, cl.master, '/tmp/machine.' + global_state.make_ref() + '.conf')
+        dataFile = vappio_config.createExecDataFile(cl.config, cl.master, '/tmp/machine.conf')
         execDefer = runInstancesWithRetry(credClient,
                                           cl.config('cluster.ami'),
                                           cl.config('cluster.key'),

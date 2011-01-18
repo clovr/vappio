@@ -96,7 +96,7 @@ def loadAndCacheCredential(state, credName):
         d = persist.loadCredential(credName)
 
         def _instantiate(cred):
-            instantiateDefer = cred.ctype.instantiateCredential(config.configFromEnv(), cred)
+            instantiateDefer = cred.ctype.instantiateCredential(cred.conf, cred)
             instantiateDefer.addCallback(lambda cr : CredentialInstance(cred, cr))
             return instantiateDefer
 
@@ -318,7 +318,9 @@ def handleWWWListAddCredentials(state, mq, request):
                                         cert=request['cert'],
                                         pkey=request['pkey'],
                                         active=True,
-                                        metadata=request['metadata'])
+                                        metadata=request['metadata'],
+                                        conf=config.configFromMap(request.get('conf', {}),
+                                                                  base=config.configFromEnv()))
         d = persist.saveCredential(cred)
         d.addCallback(lambda _ : loadAndCacheCredential(state, request['credential_name']))
         d.addCallback(lambda _ : queue.returnQueueSuccess(mq,

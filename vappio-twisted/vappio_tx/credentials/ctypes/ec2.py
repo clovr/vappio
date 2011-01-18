@@ -368,9 +368,9 @@ def terminateInstances(cred, instances, log=False):
     cmd = ['ec2-terminate-instances']
     cmd.extend([i.instanceId for i in instances])
     d = run(cred, cmd, log=log)
-    unfilledSpotInstances = [i.spotRequestId for i in instances if not i.instanceId and i.spotRequestId]
-    if unfilledSpotInstances:
-        d.addCallback(lambda _ : run(cred, ['ec2-cancel-spot-instance-requests'] + unfilledSpotInstances, log=log))
+    spotInstances = [i.spotRequestId for i in instances if i.spotRequestId]
+    if spotInstances:
+        d.addCallback(lambda _ : run(cred, ['ec2-cancel-spot-instance-requests'] + spotInstances, log=log))
 
     return d
 

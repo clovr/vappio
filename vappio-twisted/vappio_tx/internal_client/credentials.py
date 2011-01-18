@@ -3,6 +3,7 @@ import json
 from twisted.internet import defer
 
 from igs.utils import functional as func
+from igs.utils import config
 
 from vappio_tx.utils import queue
 
@@ -155,7 +156,7 @@ class CredentialClient:
     
     
 
-def saveCredential(credName, description, ctype, cert, pkey, metadata):
+def saveCredential(credName, description, ctype, cert, pkey, metadata, conf):
     return credentials.saveCredential('localhost',
                                       'local',
                                       credName,
@@ -163,5 +164,6 @@ def saveCredential(credName, description, ctype, cert, pkey, metadata):
                                       ctype,
                                       cert,
                                       pkey,
-                                      metadata)
+                                      metadata,
+                                      config.configToDict(conf))
 
