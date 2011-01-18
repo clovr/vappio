@@ -96,9 +96,9 @@ def createExecDataFile(conf, master, masterMachineConf):
                        log=True)
 
     if conf('general.ctype') == 'ec2':
-        template = template.replace('<TMPL_VAR NAME=MASTER_DNS>', master.privateDNS)
+        template = template.replace('<TMPL_VAR NAME=MASTER_DNS>', master['private_dns'])
     else:
-        template = template.replace('<TMPL_VAR NAME=MASTER_DNS>', master.publicDNS)
+        template = template.replace('<TMPL_VAR NAME=MASTER_DNS>', master['public_dns'])
     
     clusterPublicKey = ''.join(outf)
 
