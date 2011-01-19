@@ -42,8 +42,8 @@ def main(options, _args):
                 print '#', d['display']
             if 'desc' in d and d['desc']:
                 print '#', d['desc']
-            if 'choices' in d:
-                print '# Possible values:', ' '.join([str(f) for f in d['choices']])
+            if 'type_params' in d and 'choices' in d['type_params']:
+                print '# Possible values:', ' '.join([str(f) for f in d['type_params']['choices']])
 
             if k in kv:
                 v = kv[k]
