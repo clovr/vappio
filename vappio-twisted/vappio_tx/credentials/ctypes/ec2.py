@@ -206,7 +206,7 @@ def instantiateCredential(conf, cred):
     """
     if not conf('config_loaded', default=False):
         conf = config.configFromConfig(conf,
-                                       base=config.configFromStream(open(conf('general.conf_file', default=DEFAULT_CONFIG_FILE)),
+                                       base=config.configFromStream(open(conf('conf_file', default=DEFAULT_CONFIG_FILE)),
                                                                     base=conf))    
 
     conf = fixTypesOfSelectConfig(conf)
