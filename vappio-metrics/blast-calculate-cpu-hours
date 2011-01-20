@@ -47,7 +47,7 @@ if sys.stdin.readline().strip() != 'kv':
 sys.stdout.write('kv\n')
 
 kv = {'cluster.CLUSTER_NAME': None,
-      'misc.PROGRAM': None,
+      'params.PROGRAM': None,
       'params.MAX_QUERY_SEQ_LEN': None,
       'params.MIN_QUERY_SEQ_LEN': None,
       'params.AVG_QUERY_SEQ_LEN': None,
@@ -65,8 +65,8 @@ for line in sys.stdin:
 if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
 
-if kv['misc.PROGRAM'] not in WORK_FACTOR:
-    raise Exception('Unknown blast program ' + kv['misc.PROGRAM'])
+if kv['params.PROGRAM'] not in WORK_FACTOR:
+    raise Exception('Unknown blast program ' + kv['params.PROGRAM'])
 
 for i in ['params.MAX_QUERY_SEQ_LEN',
           'params.MIN_QUERY_SEQ_LEN',
@@ -82,7 +82,7 @@ for i in ['params.SCALE_FACTOR',
 
 #
 # Insert magic calculuations here
-totalHours = calculateCPUHours(kv['misc.PROGRAM'],
+totalHours = calculateCPUHours(kv['params.PROGRAM'],
                                kv['params.NUM_QUERY_SEQ'],
                                kv['params.AVG_QUERY_SEQ_LEN'],
                                kv['params.SCALE_FACTOR'])

@@ -56,7 +56,7 @@ DBS  = {'clovr-refseqdb': 1,
 def cunninghamIt(f):
     estimate = 0
     ret = []
-    commands.runSingleProgramEx('/opt/cunningham/cunningham -S -Q ' + f + ' -D '+ kv['misc.REP_DB'] + ' -P ' +  kv['misc.PROGRAM'], stdoutf=ret.append, stderrf=None)
+    commands.runSingleProgramEx('/opt/cunningham/cunningham -S -Q ' + f + ' -D '+ kv['misc.REP_DB'] + ' -P ' +  kv['params.PROGRAM'], stdoutf=ret.append, stderrf=None)
      
     for r in ret:  
         if 'Runtime' not in r: continue
@@ -103,7 +103,7 @@ def bail():
         kv[i] = float(kv[i])
     #
     # Insert magic calculuations here
-    totalHours = calculateCPUHours(kv['misc.PROGRAM'],
+    totalHours = calculateCPUHours(kv['params.PROGRAM'],
                                    kv['params.NUM_QUERY_SEQ'],
                                    kv['params.AVG_QUERY_SEQ_LEN'],
                                    kv['params.SCALE_FACTOR'])
@@ -124,7 +124,7 @@ if sys.stdin.readline().strip() != 'kv':
 sys.stdout.write('kv\n')
 
 # Expected key value pairs
-kv = {'misc.PROGRAM': None,
+kv = {'params.PROGRAM': None,
       'misc.REP_DB': None,
       'params.AVG_QUERY_SEQ_LEN': 1,
       'params.NUM_QUERY_SEQ': 1,
@@ -144,10 +144,10 @@ for line in sys.stdin:
 if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
 
-if kv['misc.PROGRAM'] not in WORK_FACTOR:
-    raise Exception('Undefined blast program ' + kv['misc.PROGRAM'] + ' try a different program.')
+if kv['params.PROGRAM'] not in WORK_FACTOR:
+    raise Exception('Undefined blast program ' + kv['params.PROGRAM'] + ' try a different program.')
 
-if kv['misc.PROGRAM'] not in PROGS:
+if kv['params.PROGRAM'] not in PROGS:
     bail()
 
 if kv['misc.REP_DB'] not in DBS:
