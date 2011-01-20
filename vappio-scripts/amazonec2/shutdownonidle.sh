@@ -70,6 +70,11 @@ if [ -s $vappio_runtime/sge.running ]
 	exit 0
  else
     $vappio_scripts/remove_sgehost.sh `hostname -f`
+    #Cancel spot instance requests for this host
+    master=`cat /var/lib/gridengine/default/common/act_qmaster`
+    myinstanceid=`curl http://169.254.169.254/latest/meta-data/instance-id`
+    $ssh_client -i $ssh_key $ssh_options root@$master "export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/;export EC2_HOME=/opt/ec2-api-tools-1.3;/opt/ec2-api-tools-1.3/bin/ec2-describe-spot-instance-requests -K /tmp/local_key.pem -C /tmp/local_cert.pem | grep $myinstanceid | cut -f 2 | xargs /opt/ec2-api-tools-1.3/bin/ec2-cancel-spot-instance-requests -K /tmp/local_key.pem -C /tmp/local_cert.pem"
+
     verror "Scheduling shutdown in $delayshutdown minutes of $myhostname"
     /sbin/shutdown -h +$delayshutdown "Cron enabled shutdown scheduled. Override by running 'shutdown -c'" 
 fi
