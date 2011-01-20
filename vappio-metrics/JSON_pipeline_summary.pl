@@ -424,7 +424,7 @@ sub set_time_and_state_info {
 		$start_time = UnixDate(ParseDate( $command -> first_child('startTime') -> text ), "%s");
 	}
 
-    	my $state = $command->first_child('state')->text;
+    	my $state = $command -> first_child( 'state' ) ? $command->first_child('state')->text : "incomplete";
     	
     	## end time may not exist (if running, for example)
     	if (! $command->first_child('endTime') ) {
