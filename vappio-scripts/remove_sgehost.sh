@@ -90,7 +90,14 @@ $SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $deadhostname $stagingsubq
 $SGE_ROOT/bin/$ARCH/qconf -dattr queue hostlist $deadhostname $execq
 $SGE_ROOT/bin/$ARCH/qconf -de $deadhostname
 $SGE_ROOT/bin/$ARCH/qconf -ds $deadhostname
-$SGE_ROOT/bin/$ARCH/qconf -kej $deadhostname
+
+#-kej can cause rescheduling of grid jobs besides those on $deadhostname in some instances
+#isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+#if [ "$isreachable" != "" ]
+#then
+#    $SGE_ROOT/bin/$ARCH/qconf -kej $deadhostname
+#fi
+
 $SGE_ROOT/bin/$ARCH/qconf -dh $deadhostname
 $SGE_ROOT/bin/$ARCH/qconf -dconf $deadhostname
 
