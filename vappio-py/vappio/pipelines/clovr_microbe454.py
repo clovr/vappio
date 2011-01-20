@@ -18,7 +18,7 @@ OPTIONS = [
     ('params.INSERT_SIZE', '', '--INSERT_SIZE', 'Only needed if --LINKER option is specified. Mates are on average i +- d bp apart (i.e. --INSERT_SIZE "8000 1000").', defaultIfNone('')),
     ('params.SPEC_FILE', '', '--SPEC_FILE', 'Spec file for celera assembler run', defaultIfNone('/dev/null')),
     ('params.ORGANISM', '', '--ORGANISM', 'Organism name', defaultIfNone('/dev/null')),
-    ('params.GROUP_COUNT', '', '--GROUP_COUNT', 'Corresponds to number of groups to split data into (Ergatis)', defaultIfNone('50')),
+    ('pipeline.GROUP_COUNT', '', '--GROUP_COUNT', 'Corresponds to number of groups to split data into (Ergatis)', defaultIfNone('50')),
     ('input.DATABASE_PATH', '', '--DATABASE_PATH', 'The tag for the uploaded reference database set', compose(lambda x : '${dirs.upload_dir}/' + x, defaultIfNone('${input.REFERENCE_DB_TAG}'))),
     ('params.SKIP_BANK', '', '--SKIP_BANK', 'Skip conversion of celera assembler output to AMOS bank format.', compose(lambda x : x and "toAmos,bank-transact,cleanup afg file" or "null", defaultIfNone(False)))
     ]
