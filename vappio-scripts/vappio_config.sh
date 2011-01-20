@@ -16,13 +16,16 @@ fi
 vlogmirror() {
  npipe=/tmp/$$.tmp
  npipe2=/tmp/$$e.tmp
- trap "rm -f $npipe $npipe2" EXIT
- mknod $npipe p
- mknod $npipe2 p
- tee <$npipe >(/usr/bin/logger -p local0.info -t VP.$0 --) &
- tee <$npipe2 >(/usr/bin/logger -p local0.warning -t VP.$0 --) 1>&2 &
- exec 1>$npipe
- exec 2>$npipe2
+ if [ ! -e "$npipe" ] && [ ! -e "$npipe2" ]
+ then
+     trap "rm -f $npipe $npipe2" EXIT
+     mknod $npipe p
+     mknod $npipe2 p
+     tee <$npipe >(/usr/bin/logger -p local0.info -t VP.$0 --) &
+     tee <$npipe2 >(/usr/bin/logger -p local0.warning -t VP.$0 --) 1>&2 &
+     exec 1>$npipe
+     exec 2>$npipe2
+ fi
 }
 
 if [ "$mirrorlogs" = 1 ] && [ -z "$PS1" ]
@@ -151,7 +154,7 @@ rolloverstart=10
 ##Time in minutes to poll activity before automatic shutdown
 idleshutdown=3
 ##Time in minutes to delay before shutdown
-delayshutdown=5
+delayshutdown=1
 #Number of 10-second intervals to wait for master node to boot
 waitformastertimeout=50
 #Delay boot until configuration is complete
