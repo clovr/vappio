@@ -33,7 +33,7 @@ sub trim {
 sub getTagList {
 	my $refHash = {};
 	while(my $line = <>) {
-		if($line =~ /input\.(PIPELINE_NAME)\s*=\s*(.+)\s*$/) {
+		if($line =~ /pipeline\.(PIPELINE_NAME)\s*=\s*(.+)\s*$/) {
 			$$refHash{$1} = $2;
 		}
 		elsif($line =~ /.+\.(TAGS_TO_DOWNLOAD)\s*=\s*(.+)\s*$/) {
