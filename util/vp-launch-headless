@@ -40,12 +40,10 @@ else
 	echo "VM $buildvm is already running" >&2
 	exit 1
     else
-	xhost + 
-	xhost +LOCAL:
+	xhost + > /dev/null 2>/dev/null
+	xhost +LOCAL: > /dev/null 2>/dev/null
 	export DISPLAY=:0.0
-	echo "Starting VM" >&2
-	vmplayer $1/start_clovr.vmx &
-	echo "invoked vmplayer" >&2
+	vmplayer $1/start_clovr.vmx > /dev/null 2>/dev/null &
     fi
 fi
 echo "Waiting for VM to start" >&2
