@@ -65,7 +65,9 @@ echo 'sleep 2' >> /tmp/$$.profile
 echo 'if [ "$SKIPX" != "yes" ]' >> /tmp/$$.profile
 echo 'then' >> /tmp/$$.profile
 #Start on tty8
-echo '. startx -- :1 >/tmp/startx.log 2>&1 &' >> /tmp/$$.profile
+echo 'rm -f ~/.Xauthority ~/.xauth*' >> /tmp/$$.profile
+echo 'xauth -b quit >/dev/null 2>/dev/null' >> /tmp/$$.profile
+echo '. startx -- :1 >/tmp/startx.$$.log 2>&1 &' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
 echo 'trap SIGINT' >> /tmp/$$.profile
