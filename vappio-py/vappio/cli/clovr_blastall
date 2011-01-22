@@ -322,16 +322,16 @@ def main(_options, args):
         conf = config.configFromMap({'cluster.CLUSTER_NAME': clusterName,
                                      'cluster.CLUSTER_CREDENTIAL': credName,
                                      'cluster.EXEC_NODES': str(0),
-                                     'input.PIPELINE_NAME': pipelineName,
+                                     'pipeline.PIPELINE_NAME': pipelineName,
                                      'input.INPUT_TAG': inputTagName,
                                      'input.REF_DB_TAG': databaseTagName,
-                                     'misc.EXPECT': expectValue,
-                                     'misc.OTHER_OPTS': blastArgs,
-                                     'misc.PROGRAM': blastProgram,
+                                     'params.EXPECT': expectValue,
+                                     'params.OTHER_OPTS': blastArgs,
+                                     'params.PROGRAM': blastProgram,
                                      'output.OUTPUT_DIR': outputDir},
                                     config.configFromStream(sio, config.configFromEnv()))
         if seqsPerFile is not False:
-            conf = config.configFromMap({'misc.SEQS_PER_FILE': str(seqsPerFile)}, conf)
+            conf = config.configFromMap({'params.SEQS_PER_FILE': str(seqsPerFile)}, conf)
 
 
         runPipelineConfig('localhost', 'local', 'clovr_wrapper', pipelineWrapperName, conf, None)
