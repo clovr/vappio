@@ -150,7 +150,7 @@ def tagExists(cluster, tagName):
 
 
 def clusterExists(clusterName):
-    return clusterName in cluster_ws.listClusters('localhost')
+    return clusterName in [c['cluster_name'] for c in cluster_ws.listClusters('localhost')]
 
 
 def tagInputIfNeeded(inputFile):
