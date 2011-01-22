@@ -17,7 +17,7 @@ DIAG_EC2_URL = 'https://diagcloud.igs.umaryland.edu:8443/wsrf/services/ElasticNi
 def instantiateCredential(conf, cred):
     if 'ec2_url' not in cred.metadata:
         cred.metadata['ec2_url'] = DIAG_EC2_URL
-    if 'conf_file' not in conf.keys() or not conf('conf_file'):
+    if 'conf_file' not in conf or not conf('conf_file'):
         conf = config.configFromMap({'conf_file': DEFAULT_CONFIG_FILE}, base=conf)
     return nimbus.instantiateCredential(conf, cred)
 

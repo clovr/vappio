@@ -7,10 +7,10 @@ from igs.utils import config
 
 from vappio_tx.mq import client
 
-conf = config.configFromMap({'username': '',
-                             'password': '',
-                             'host': 'localhost',
-                             'port': 61613})
+conf = config.configFromMap({'mq.username': '',
+                             'mq.password': '',
+                             'mq.host': 'localhost',
+                             'mq.port': 61613})
 
 
 

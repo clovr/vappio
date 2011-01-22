@@ -13,10 +13,10 @@ def printIt(mq, m):
     print m.body
     mq.ack(m.headers['message-id'], headers={})
 
-conf = config.configFromMap({'username': '',
-                             'password': '',
-                             'host': 'localhost',
-                             'port': 61613})
+conf = config.configFromMap({'mq.username': '',
+                             'mq.password': '',
+                             'mq.host': 'localhost',
+                             'mq.port': 61613})
 
 
 
