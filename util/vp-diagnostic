@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#Capture output to diagnostic file
 exec 3>&1 4>&2 >/tmp/vp-diagnostic.$$.out 2>&1
 
 cat /etc/vappio/*.info 
@@ -68,3 +69,6 @@ cat /tmp/startUpNode.log
 echo "##ergatisObserver"
 
 cat /tmp/ergatisObserver.log
+
+#Email diagnostic file
+mail angiuoli@gmail.com < /tmp/vp-diagnostic.$$.out
