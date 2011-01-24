@@ -72,3 +72,6 @@ cat /tmp/ergatisObserver.log
 
 #Email diagnostic file
 mail angiuoli@gmail.com < /tmp/vp-diagnostic.$$.out
+
+exec 1>&3 2>&4
+echo "Diagnostics completed and sent to CloVR team"
