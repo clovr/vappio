@@ -1,10 +1,17 @@
 #!/bin/bash
 
+2>&1
+
 cat /etc/vappio/*.info
 
 echo "##hostname"
 
 hostname -f
+
+echo "##folders"
+
+df
+mount
 
 echo "##networking"
 
