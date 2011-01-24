@@ -1,0 +1,63 @@
+#!/bin/bash
+
+cat /etc/vappio/*.info
+
+echo "##hostname"
+
+hostname -f
+
+echo "##networking"
+
+ifconfig
+
+echo "##qstat"
+
+qstat -u '*'
+
+echo "##qhost -q -j"
+
+qhost -q -j
+
+echo "##vp-describe-credentials"
+
+vp-describe-credentials
+
+echo "##vp-describe-pipelines"
+
+vp-describe-pipeline
+
+echo "##vp-describe-task"
+
+vp-describe-task
+
+echo "##vp-describe-dataset"
+
+vp-describe-dataset
+
+echo "##machine conf"
+
+cat /tmp/machine.conf
+
+echo "##vappio start log"
+
+cat /tmp/vappio.log
+
+echo "##vappio log"
+
+cat /var/log/vappio.log*
+
+echo "##webservices log"
+
+cat /tmp/webservices.log
+
+echo "##vmstatus log"
+
+cat /tmp/vmStatus.log
+
+echo "##startup log"
+
+cat /tmp/startUpNode.log
+
+echo "##ergatisObserver"
+
+cat /tmp/ergatisObserver.log
