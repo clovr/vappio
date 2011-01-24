@@ -1,8 +1,8 @@
 #!/bin/bash
 
-2>&1
+exec 3>&1 4>&2 >/tmp/vp-diagnostic.$$.out 2>&1
 
-cat /etc/vappio/*.info
+cat /etc/vappio/*.info 
 
 echo "##hostname"
 
