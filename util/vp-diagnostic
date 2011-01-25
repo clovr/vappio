@@ -100,8 +100,9 @@ then
 fi
 
 echo "##Submit"
-
-curl -F "token=yuQ9UWZWLspxPkV1w4BT" -F "name=$name" -F "data=</tmp/vp-diagnostic.$$.out" http://clovr.org/diagnostics/index.php
+cmd="curl -F \"token=yuQ9UWZWLspxPkV1w4BT\" -F \"name=$name\" -F \"data=</tmp/vp-diagnostic.$$.out\" http://clovr.org/diagnostics/index.php"
+echo $cmd
+$cmd
 
 exec 1>&3 2>&4
 echo "Diagnostics completed and submitted"
