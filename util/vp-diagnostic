@@ -71,7 +71,11 @@ echo "##ergatisObserver"
 cat /tmp/ergatisObserver.log
 
 #Email diagnostic file
-mail diagnostics@clovr.org < /tmp/vp-diagnostic.$$.out
+
+
+#We must post this to a form on clovr.org. Mail is blocked from some domains such as Comcast
+curl -d "token=yuQ9UWZWLspxPkV1w4BT&data="
+curl -F "token=yuQ9UWZWLspxPkV1w4BT" -F "data=</tmp/vp-diagnostic.$$.out" http://clovr.org/diagnostics/index.php
 
 exec 1>&3 2>&4
-echo "Diagnostics completed and sent to CloVR team"
+echo "Diagnostics completed and submitted"
