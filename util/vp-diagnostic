@@ -3,6 +3,8 @@
 #Capture output to diagnostic file
 exec 3>&1 4>&2 >/tmp/vp-diagnostic.$$.out 2>&1
 
+echo "##report $$"
+
 cat /etc/vappio/*.info 
 
 echo "##node_type"
@@ -94,9 +96,11 @@ lsmod
 #Email diagnostic file
 
 #We must post this to a form on clovr.org. Mail is blocked from some domains such as Comcast
-if [ "$1" = "" ]
+if [ "$1" == "" ]
 then
-	name="unknown"
+    name="unknown"
+else	
+    name="$1"
 fi
 
 echo "##Submit"
@@ -105,4 +109,4 @@ echo $cmd
 $cmd
 
 exec 1>&3 2>&4
-echo "Diagnostics completed and submitted"
+echo "Diagnostic report $$ completed and submitted."
