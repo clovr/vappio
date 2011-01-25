@@ -9,11 +9,11 @@ cat /etc/vappio/*.info
 
 echo "##node_type"
 
-cat /var/vappio/run_time/cloud_type
-cat /var/vappio/run_time/node_type
+cat /var/vappio/runtime/cloud_type
+cat /var/vappio/runtime/node_type
 
 echo "##dns"
-ls /var/vappio/run_time/no_dns
+ls /var/vappio/runtime/no_dns
 
 echo "##hostname"
 
