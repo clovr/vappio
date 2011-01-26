@@ -110,6 +110,7 @@ def loadAndCacheCredential(state, credName):
                 state.credInstanceCache[credName] = CacheEntry(cred)
                 return cred
 
+            listInstancesDefer.addCallback(_cacheInstances)
             listInstancesDefer.addCallback(lambda _ : cred)
             
             return listInstancesDefer
