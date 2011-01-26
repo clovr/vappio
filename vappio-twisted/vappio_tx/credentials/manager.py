@@ -331,7 +331,7 @@ def handleWWWListAddCredentials(state, mq, request):
                                         conf=config.configFromMap(request.get('conf', {}),
                                                                   base=config.configFromEnv()))
         d = persist.saveCredential(cred)
-        d.addCallback(lambda _ : loadAndCacheCredential(state, request['credential_name']))
+        #d.addCallback(lambda _ : loadAndCacheCredential(state, request['credential_name']))
         d.addCallback(lambda _ : queue.returnQueueSuccess(mq,
                                                           request['return_queue'],
                                                           True))
