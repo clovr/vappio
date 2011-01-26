@@ -407,10 +407,12 @@ def loadLocalCluster(mq, state):
                                  config.configFromMap({'config_loaded': True},
                                                       base=config.configFromStream(open('/tmp/machine.conf'), base=config.configFromEnv())))
 
-            master = func.find(lambda i : i['public_dns'] == cl.config('MASTER_IP'),
+            masterIdx = func.find(lambda i : i['public_dns'] == cl.config('MASTER_IP'),
                                instances)
 
-            if master is None:
+            if master is not None:
+                master = instances[masterIdx]
+            else:
                 master = dict(instance_id='local',
                               ami_id=None,
                               public_dns=cl.config('MASTER_IP'),
