@@ -103,12 +103,11 @@ def loadAndCacheCredential(state, credName):
         d.addCallback(_instantiate)
         
         def _cacheCredential(cred):
-            state.credInstanceCache[credName] = CacheEntry(cred)
-
             listInstancesDefer = cred.listInstances()
 
             def _cacheInstances(instances):
                 state.instanceCache[cred.name] = CacheEntry(instances)
+                state.credInstanceCache[credName] = CacheEntry(cred)
                 return cred
 
             listInstancesDefer.addCallback(lambda _ : cred)
