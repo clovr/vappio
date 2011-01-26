@@ -21,6 +21,7 @@ class Cluster(func.Record):
     RUNNING = 'running'
     UNRESPONSIVE = 'unresponsive'
     TERMINATED = 'terminated'
+    FAILED = 'failed'
     
     def __init__(self, clusterName, userName, credName, config):
         func.Record.__init__(self,

@@ -36,7 +36,6 @@ def returnQueueSuccess(mq, queue, data):
     return data
 
 def returnQueueFailure(mq, queue, failure):
-    print failure
     mq.send(queue, json.dumps({'success': False,
                                'data': {'stacktrace': errors.stackTraceToString(failure),
                                         'name': '',

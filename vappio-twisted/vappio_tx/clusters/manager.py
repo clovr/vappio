@@ -125,6 +125,31 @@ def handleTaskStartCluster(state, mq, request):
 
     d.addCallback(_completeTask)
 
+    def _removeClusterOnFailure(f):
+        """
+        When a failure occurs, set the cluster to failed then set it up a timer to
+        remove it
+        """
+        def _removeCluster():
+            innerLoadClusterDefer = persist.loadCluster(cl.clusterName, cl.userName)
+            
+            def _reallyRemoveCluster(cl):
+                if cl.state == cl.FAILED:
+                    return persist.removeCluster(cl)
+
+            innerLoadClusterDefer.addCallback(_reallyRemoveCluster)
+            innerLoadClusterDefer.addErrback(log.err)
+
+        loadClusterDefer = persist.loadCluster(cl.clusterName, cl.userName)
+        loadClusterDefer.addCallback(lambda cl : saveCluster(cl.setState(cl.FAILED), state))
+        loadClusterDefer.addCallback(lambda cl : reactor.callLater(REMOVE_TERMINATED_CLUSTER_TIMEOUT,
+                                                                   _removeCluster))
+        loadClusterDefer.addCallback(lambda _ : f)
+
+        return loadClusterDefer
+
+    d.addErrback(_removeClusterOnFailure)
+    
     return d
         
     
@@ -144,7 +169,13 @@ def handleTaskTerminateCluster(state, mq, request):
 
         #
         # Now terminate the master
-        terminateDefer.addCallback(lambda _ : credClient.terminateInstances([cl.master]))
+        def _terminateMasterIfPresent(_):
+            if cl.master:
+                return credClient.terminateInstances([cl.master])
+            else:
+                return defer.succeed(None)
+            
+        terminateDefer.addCallback(_terminateMasterIfPresent)
 
         def _logErr(f):
             log.err(f)
@@ -231,6 +262,17 @@ def handleTaskAddInstances(state, mq, request):
     d.addCallback(_completeTask)
     return d
 
+
+def removeDeadClusters():
+    d = persist.loadClustersAdmin()
+
+    def _removeDead(cls):
+        return deferredMap(persist.removeCluster,
+                           [c for c in cls if c.state in [cl.FAILED, cl.TERMINATED]])
+
+    d.addCallback(_removeDead)
+
+    return d
 
 def refreshClusters(mq, state):
     d = persist.loadClustersAdmin()
@@ -816,6 +858,7 @@ def makeService(conf):
 
     # Startup list
     startUpDefer = loadLocalCluster()
+    startUpDefer.addCallback(lambda _ : removeDeadClusters())
     startUpDefer.addCallback(lambda _ : refreshClusters(mqFactory, state))
     
 
