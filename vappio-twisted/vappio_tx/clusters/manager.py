@@ -268,7 +268,7 @@ def removeDeadClusters():
 
     def _removeDead(cls):
         return deferredMap(persist.removeCluster,
-                           [c for c in cls if c.state in [cl.FAILED, cl.TERMINATED]])
+                           [c for c in cls if c.state in [c.FAILED, c.TERMINATED]])
 
     d.addCallback(_removeDead)
 
