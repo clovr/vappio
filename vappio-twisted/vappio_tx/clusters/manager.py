@@ -410,7 +410,7 @@ def loadLocalCluster(mq, state):
             masterIdx = func.find(lambda i : i['public_dns'] == cl.config('MASTER_IP'),
                                instances)
 
-            if master is not None:
+            if masterIdx is not None:
                 master = instances[masterIdx]
             else:
                 master = dict(instance_id='local',
