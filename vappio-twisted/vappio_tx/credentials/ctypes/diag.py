@@ -1,7 +1,5 @@
-import os
-import urlparse
-
-from twisted.python import log
+from twisted.internet import defer
+from twisted.internet import reactor
 
 from igs.utils import config
 
@@ -26,10 +24,15 @@ def instantiateCredential(conf, cred):
 
 def terminateInstances(cred, instances):
     """DIAG errors out so often here we want to consume them, instances still terminate"""
+    d = defer.Deferred()
     def loop(tries):
-        d = nimbus.terminateInstances(cred, instances)
+        terminateDefer = nimbus.terminateInstances(cred, instances)
+        terminateDefer.addCallback(lambda _ : d.callback(True))
         if tries > 0:
-            d.addErrback(lambda _ : loop(tries - 1))
+            terminateDefer.addErrback(lambda _ : reactor.callLater(30, loop, tries - 1))
+        else:
+            terminateDefer.addErrback(d.errback)
+    loop(10)
     return d
 
 # Set all of these to what nimbus does
