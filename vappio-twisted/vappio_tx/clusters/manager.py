@@ -369,7 +369,7 @@ def handleWWWConfigCluster(state, mq, request):
     return d
     
 
-def loadLocalCluster():
+def loadLocalCluster(mq, state):
     """If local cluster is not present, load it"""
 
     d = persist.loadCluster('local', None)
@@ -386,6 +386,10 @@ def loadLocalCluster():
                                                    open(pkey).read(),
                                                    metadata and dict([v.split('=', 1) for v in metadata.split(',')]) or {},
                                                    config.configFromStream(open('/tmp/machine.conf'), lazy=True))
+            credClient = cred_client.CredentialClient('local',
+                                                      mq,
+                                                      state.conf)
+            saveDefer.addCallback(lambda _ : credClient.listInstances())
         else:
             saveDefer = cred_client.saveCredential('local',
                                                    'Local credential',
@@ -394,26 +398,34 @@ def loadLocalCluster():
                                                    None,
                                                    {},
                                                    config.configFromMap({}))
+            saveDefer.addCallback(lambda _ : [])
 
-        def _addCluster(_):
+        def _addCluster(instances):
             cl = persist.Cluster('local',
                                  None,
                                  'local',
                                  config.configFromMap({'config_loaded': True},
                                                       base=config.configFromStream(open('/tmp/machine.conf'), base=config.configFromEnv())))
-            cl = cl.setMaster(dict(instance_id='local',
-                                   ami_id=None,
-                                   public_dns=cl.config('MASTER_IP'),
-                                   private_dns=cl.config('MASTER_IP'),
-                                   state='running',
-                                   key=None,
-                                   index=None,
-                                   instance_type=None,
-                                   launch=None,
-                                   availability_zone=None,
-                                   monitor=None,
-                                   spot_request_id=None,
-                                   bid_price=None))
+
+            master = func.find(lambda i : i.master['public_dns'] == cl.config('MASTER_IP'),
+                               instances)
+
+            if master is None:
+                master = dict(instance_id='local',
+                              ami_id=None,
+                              public_dns=cl.config('MASTER_IP'),
+                              private_dns=cl.config('MASTER_IP'),
+                              state='running',
+                              key=None,
+                              index=None,
+                              instance_type=None,
+                              launch=None,
+                              availability_zone=None,
+                              monitor=None,
+                              spot_request_id=None,
+                              bid_price=None)
+            
+            cl = cl.setMaster(master)
             cl = cl.setState(cl.RUNNING)
             clusterSaveDefer = persist.saveCluster(cl)
             clusterSaveDefer.addCallback(lambda _ : cl)
@@ -857,7 +869,7 @@ def makeService(conf):
     state = State(conf)
 
     # Startup list
-    startUpDefer = loadLocalCluster()
+    startUpDefer = loadLocalCluster(mqFactory, state)
     startUpDefer.addCallback(lambda _ : removeDeadClusters())
     startUpDefer.addCallback(lambda _ : refreshClusters(mqFactory, state))
     

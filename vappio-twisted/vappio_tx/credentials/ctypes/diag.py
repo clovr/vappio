@@ -1,6 +1,8 @@
 import os
 import urlparse
 
+from twisted.python import log
+
 from igs.utils import config
 
 from vappio_tx.credentials.ctypes import nimbus
@@ -24,8 +26,10 @@ def instantiateCredential(conf, cred):
 
 def terminateInstances(cred, instances):
     """DIAG errors out so often here we want to consume them, instances still terminate"""
-    d = nimbus.terminateInstances(cred, instances)
-    d.addErrback(lambda _ : None)
+    def loop(tries):
+        d = nimbus.terminateInstances(cred, instances)
+        if tries > 0:
+            d.addErrback(lambda _ : loop(tries - 1))
     return d
 
 # Set all of these to what nimbus does
