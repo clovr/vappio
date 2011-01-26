@@ -110,12 +110,18 @@ def saveCluster(cl, state=None):
 def handleTaskStartCluster(state, mq, request):
     d = tasks_tx.updateTask(request['task_name'],
                             lambda t : t.setState(task.TASK_RUNNING))
-    
-    cl = persist.Cluster(request['cluster'],
-                         request['user_name'],
-                         request['cred_name'],
-                         config.configFromMap({}))
-    d.addCallback(lambda _ : startMaster(state, mq, request['task_name'], cl))
+
+    d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
+
+    def _createCluster(f):
+        f.trap(persist.ClusterNotFound)
+        cl = persist.Cluster(request['cluster'],
+                             request['user_name'],
+                             request['cred_name'],
+                             config.configFromMap({}))
+        return startMaster(state, mq, request['task_name'], cl)
+
+    d.addErrback(_createCluster)
 
     def _completeTask(cl):
         updateTaskDefer = tasks_tx.updateTask(request['task_name'],
@@ -130,7 +136,7 @@ def handleTaskStartCluster(state, mq, request):
         When a failure occurs, set the cluster to failed then set it up a timer to
         remove it
         """
-        def _removeCluster():
+        def _removeCluster(cl):
             innerLoadClusterDefer = persist.loadCluster(cl.clusterName, cl.userName)
             
             def _reallyRemoveCluster(cl):
@@ -140,10 +146,11 @@ def handleTaskStartCluster(state, mq, request):
             innerLoadClusterDefer.addCallback(_reallyRemoveCluster)
             innerLoadClusterDefer.addErrback(log.err)
 
-        loadClusterDefer = persist.loadCluster(cl.clusterName, cl.userName)
+        loadClusterDefer = persist.loadCluster(request['cluster'], request['user_name'])
         loadClusterDefer.addCallback(lambda cl : saveCluster(cl.setState(cl.FAILED), state))
         loadClusterDefer.addCallback(lambda cl : reactor.callLater(REMOVE_TERMINATED_CLUSTER_TIMEOUT,
-                                                                   _removeCluster))
+                                                                   _removeCluster,
+                                                                   cl))
         loadClusterDefer.addCallback(lambda _ : f)
 
         return loadClusterDefer
