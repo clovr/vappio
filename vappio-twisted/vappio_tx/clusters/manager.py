@@ -114,7 +114,7 @@ def handleTaskStartCluster(state, mq, request):
     d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
 
     def _createCluster(f):
-        f.trap(persist.ClusterNotFound)
+        f.trap(persist.ClusterNotFoundError)
         cl = persist.Cluster(request['cluster'],
                              request['user_name'],
                              request['cred_name'],
