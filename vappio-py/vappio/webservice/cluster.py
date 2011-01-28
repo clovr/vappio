@@ -19,7 +19,7 @@ def startCluster(host, name, conf, num, cred, updateDirs):
                                                      num_data=0,
                                                      cred_name=cred))
 
-def loadCluster(host, name, partial=False):
+def loadCluster(host, name):
     """
     Loads cluster information
 
@@ -28,8 +28,7 @@ def loadCluster(host, name, partial=False):
     that it is ok if loadCluster returns only what it can load.  Otherwise
     it will fail out completely
     """
-    return performQuery(host, CLUSTERINFO_URL, dict(cluster=name,
-                                                    partial=partial))
+    return performQuery(host, CLUSTERINFO_URL, dict(cluster=name))
 
 
 

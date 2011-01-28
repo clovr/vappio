@@ -10,7 +10,6 @@ from vappio.webservice.cluster import loadCluster, listClusters
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
     ('name', '', '--name', 'Name of cluster', cli.defaultIfNone('local')),
-    ('partial', '-p', '--partial', 'Load partial data if a cluster is bad', identity, cli.BINARY),
     ('list', '-l', '--list', 'List all clusters', cli.defaultIfNone(False), cli.BINARY)
     ]
 
@@ -30,7 +29,7 @@ def returnEmptyDictIfNone(d, k):
 
 def main(options, _args):
     if not options('general.list'):
-        cluster = loadCluster(options('general.host'), options('general.name'), options('general.partial'))
+        cluster = loadCluster(options('general.host'), options('general.name'))
 
 
         print '\t'.join(['STATE'] + [cluster['state']])
