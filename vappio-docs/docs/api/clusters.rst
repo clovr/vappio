@@ -43,6 +43,7 @@ cred_name  Yes       String  The name of the credential to use to start the clus
 
 webservice response
 ^^^^^^^^^^^^^^^^^^^
+
 The result is a string for the task name associated with starting this cluster
 
 
@@ -57,6 +58,7 @@ Terminate a running cluster and all of its exec and data nodes.
 
 command line
 ^^^^^^^^^^^^
+
 .. program-output:: vp-terminate-cluster --help
 
 
@@ -85,13 +87,12 @@ webservice parameters
 Parameter  Required  Type     Meaning
 =========  ========  =======  =============================================================================================
 cluster    Yes       String   The name of the cluster.
-force      No        Boolean  If the cluster is in an invalid state, such as not responding to requests, force a shut down.
 =========  ========  =======  =============================================================================================
 
 webservice response
 ^^^^^^^^^^^^^^^^^^^
 
-``None``
+The task name associated with the terminate of the cluster.
 
 
 vp-describe-cluster - Describe clusters
@@ -154,7 +155,6 @@ Describing a specific cluster (``/vappio/clusterInfo_ws.py``) takes the followin
 Parameter  Required  Type     Meaning
 =========  ========  =======  =======================================================================================
 cluster    Yes       String   Name of the cluster.
-partial    No        Boolean  If a cluster is unresponsive do not error out but return a partial list of information.
 =========  ========  =======  =======================================================================================
 
 webservice response
@@ -165,34 +165,34 @@ The response to listing clusters (``/vappio/listClusters_ws.py``) is a string of
 The response to describing a cluster (``/vappio/clusterInfo_ws.py``) is a dictionary with the following
 attributes:
 
-=========  =============  =========================================================
-Parameter  Type           Meaning
-=========  =============  =========================================================
-name       String         Name of the cluster.
-cred       String         Name of the credential.
-execNodes  Instance list  List of exec instances.
-dataNodes  Instance list  List of data instances.
-master     Instance       Instance description for the master.
-config     Dictionary     Key value pairs of configuration options for the cluster.
-=========  =============  =========================================================
+==========  =============  ============================================================================================
+Parameter   Type           Meaning
+==========  =============  ============================================================================================
+name        String         Name of the cluster.
+state       String         State of the cluster, ``pending``, ``running``, ``terminated``, ``unresponsive``, ``failed``
+cred        String         Name of the credential.
+exec_nodes  Instance list  List of exec instances.
+data_nodes  Instance list  List of data instances.
+master      Instance       Instance description for the master.
+config      Dictionary     Key value pairs of configuration options for the cluster.
+==========  =============  ============================================================================================
 
 Instances are defined as the following, other attributes may be present but these
 are the bare minimum:
 
-=============  ==============  =======================================================================================================
-Parameter      Type            Meaning
-=============  ==============  =======================================================================================================
-amiId          String          The name of the image the instance is running.
-instanceId     String          The unique id for the instances.
-spotRequestId  String or null  If the instance is the result of a spot request this will be the spot request id string, otherwise null.
-bidPrice       String or null  If the instance is a spot request this will be the price that was bid, otherwise null.
-state          String          A string representing the state, valid states are pending, running and terminated.
-instanceType   String          The type of the instance created.
-key            String          The key the instance was created with.
-instanceType   String          The instance type (m1.small for example).
-publicDNS      String          The public domain name of the instance.
-privateDNS     String          The private domain name of the string.
-=============  ==============  =======================================================================================================
+===============  ==============  ========================================================================================================
+Parameter        Type            Meaning
+===============  ==============  ========================================================================================================
+ami_id           String          The name of the image the instance is running.
+instance_id      String          The unique id for the instances.
+spot_request_id  String or null  If the instance is the result of a spot request this will be the spot request id string, otherwise null.
+bid_price        String or null  If the instance is a spot request this will be the price that was bid, otherwise null.
+state            String          A string representing the state, valid states are pending, running and terminated.
+instance_type    String          The type of the instance created.
+key              String          The key the instance was created with.
+public_dns       String          The public domain name of the instance.
+private_dns      String          The private domain name of the string.
+===============  ==============  ========================================================================================================
 
 vp-add-instances - Add instances to a cluster
 ---------------------------------------------
@@ -213,7 +213,7 @@ command line examples
 ^^^^^^^^^^^^^^^^^^^^^
 
 **Example 1**
-    Add 200 instances to the cluster named ``my_ec2-cluster``:
+    Add 200 instances to the cluster named ``my_ec2_cluster``:
     
     ``vp-add-instances --name=my_ec2_cluster --num=200``
 
@@ -230,7 +230,8 @@ webservice parameters
 Parameter  Required  Type    Meaning
 =========  ========  ======  ====================================
 cluster    Yes       String  Name of cluster to add instances to.
-num        Yes       Int     Number of exec instances to add.
+num_exec   Yes       Int     Number of exec instances to add.
+num_data   Yes       Int     Number of data instances to add.
 =========  ========  ======  ====================================
 
 webservice response
