@@ -10,6 +10,8 @@ from twisted.application import internet
 from twisted.internet import protocol
 from twisted.python import log
 
+from igs_tx.utils import global_state
+
 from vappio_tx import stomper
 
 
@@ -103,6 +105,8 @@ def transition(factory, newState):
 class _ConnectedState:
     def __init__(self, factory):
         self.factory = factory
+        self.receipts = {}
+        
         for handler, dst, headers in self.factory._subscriptions:
             self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers=headers))
 
@@ -114,11 +118,9 @@ class _ConnectedState:
         self.factory.mqClient.sendMessage(stomper.subscribe(destination, ack='client', headers=headers))
         
     def unsubscribe(self, destination):
-        #
-        # Optimize later
-        self.factory._removeSubscription(destination)
-
-        self.factory.mqClient.sendMessage(stomper.unsubscribe(destination))
+        receipt = 'unsubscribe-' + global_state.make_ref()
+        self.receipts[receipt] = lambda : self.factory._removeSubscription(destination)
+        self.factory.mqClient.sendMessage(stomper.unsubscribe(destination, receipt=receipt))
 
     def send(self, destination, body, headers):
         self.factory.mqClient.sendMessage(stomper.send(destination, body, headers))
@@ -134,7 +136,12 @@ class _ConnectedState:
             raise Exception('Received message on unknown subscription: ' + msg.headers['destination'])
 
     def receiptReceived(self, msg):
-        raise Exception('Need to implement receipt')
+        receiptId = msg.headers['receipt-id']
+        if receiptId not in self.receipts:
+            raise Exception('Unknown receipt: ' + receiptId)
+        else:
+            self.receipts[receiptId]()
+            del self.receipts[receiptId]
 
     def errorReceived(self, msg):
         raise Exception('Need to implement error')

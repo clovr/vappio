@@ -15,6 +15,7 @@ from igs.utils import config
 from igs.utils import core
 from igs.utils import functional as func
 
+from igs_tx.utils import defer_utils
 from igs_tx.utils import global_state
 from igs_tx.utils import ssh
 
@@ -715,6 +716,12 @@ def runInstancesWithRetry(credClient,
     d = defer.Deferred()
     
     def _runInstances(num):
+        def _sleepOnError(f):
+            log.err(f)
+            d = defer.Deferred()
+            reactor.callLater(30, d.errback, f)
+            return d        
+            
         if bidPrice:
             return credClient.runSpotInstances(bidPrice=bidPrice,
                                                ami=ami,
@@ -723,7 +730,7 @@ def runInstancesWithRetry(credClient,
                                                groups=groups,
                                                availabilityZone=availZone,
                                                numInstances=num,
-                                               userData=userData)
+                                               userData=userData).addErrback(_sleepOnError)
         else:
             return credClient.runInstances(ami=ami,
                                            key=key,
@@ -731,7 +738,7 @@ def runInstancesWithRetry(credClient,
                                            groups=groups,
                                            availabilityZone=availZone,
                                            numInstances=num,
-                                           userData=userData)
+                                           userData=userData).addErrback(_sleepOnError)
 
         
 
@@ -739,12 +746,13 @@ def runInstancesWithRetry(credClient,
     def _runAndRetry(retries):
         if retries > 0:
             num = numInstances - len(instances)
-            runDefer = _runInstances(num)
+            runDefer = defer_utils.tryUntil(10, lambda : _runInstances(num))
             runDefer.addCallback(lambda i : instances.extend(i))
             runDefer.addErrback(d.errback)
 
             def _retry(_):
                 if numInstances != len(instances):
+                    log.msg('Requested number of instances not created, retrying.  Want %d Got %d' % (numInstances, len(instances)))
                     r = retries - 1
                     _runAndRetry(r)
                 else:

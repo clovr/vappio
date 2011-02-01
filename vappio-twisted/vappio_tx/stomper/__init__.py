@@ -352,7 +352,7 @@ def subscribe(dest, ack='auto', headers=None):
                  headers=functional.updateDict(noneOrEmptyDict(headers), {'ack': ack,
                                                                           'destination': dest})).pack()
 
-def unsubscribe(dest):
+def unsubscribe(dest, receipt=None):
     """STOMP unsubscribe command.
     
     dest:
@@ -362,8 +362,13 @@ def unsubscribe(dest):
     further messages for the given subscription.
     
     """
+    if receipt:
+        headers = {'receipt': receipt,
+                   'destination': dest}
+    else:
+        headers = {'destination': dest}
     return Frame(cmd='UNSUBSCRIBE',
-                 headers={'destination': dest}).pack()
+                 headers=headers).pack()
 
 class Engine(object):
     """This is a simple state machine to return a response to received 

@@ -27,7 +27,7 @@ class RemoteError(Exception):
 
 
 def randomQueueName(baseName):
-    return '/queue/' + baseName + '-' + global_state.make_ref()
+    return '/topic/' + baseName + '-' + global_state.make_ref()
 
 
 def returnQueueSuccess(mq, queue, data):

@@ -1,9 +1,13 @@
 import os
 import urlparse
 
+from twisted.internet import reactor
 from twisted.internet import defer
 
+from twisted.python import log
+
 from igs_tx.utils import commands
+from igs_tx.utils import defer_utils
 
 from igs.utils import functional as func
 from igs.utils import config
@@ -78,7 +82,17 @@ def instantiateCredential(conf, cred):
                                    EC2_URL=cred.metadata['ec2_url']))
     if os.path.exists(conf('cluster.cluster_private_key') + '.pub'):
         pubKey = open(conf('cluster.cluster_private_key') + '.pub').read().rstrip()
-        mainDeferred.addCallback(lambda _ : ec2.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"'))
+        def _addKeypair():
+            keyPairDefer = ec2.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"')
+            def _sleepOnError(f):
+                log.msg('Adding keypaired failed, retrying')
+                log.err(f)
+                d = defer.Deferred()
+                reactor.callLater(30, d.errback, f)
+                return d
+            keyPairDefer.addErrback(_sleepOnError)
+            return keyPairDefer
+        mainDeferred.addCallback(lambda _ : defer_utils.tryUntil(10, _addKeypair))
         
     mainDeferred.addCallback(lambda _ : newCred)
     return mainDeferred
