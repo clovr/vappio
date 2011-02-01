@@ -23,6 +23,7 @@ def instantiateCredential(conf, cred):
                                        base=config.configFromStream(open(conf('conf_file')),
                                                                     base=conf))
 
+    conf = ec2.fixTypesOfSelectConfig(conf)
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
 
