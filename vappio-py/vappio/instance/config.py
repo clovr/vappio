@@ -6,6 +6,7 @@ import time
 from igs.utils import config, logging
 from igs.utils.commands import runSingleProgramEx
 
+from igs_tx.utils import global_state
 
 DEV_NODE = 'DEV'
 MASTER_NODE = 'MASTER'
@@ -62,7 +63,7 @@ def createMasterDataFile(cluster, machineConf):
     # Need to escape the ${ for bash
     template = template.replace('<TMPL_VAR NAME=MACHINE_CONF>', open(machineConf).read().replace('${', '\\${'))
 
-    outf = os.path.join(cluster.config('general.secure_tmp'), 'master_user_data.sh')
+    outf = os.path.join(cluster.config('general.secure_tmp'), 'master_user_data.%s.sh' % global_state.make_ref())
     open(outf, 'w').write(template)
 
     return outf
