@@ -39,6 +39,7 @@ webservice parameters
 ===============  ========  ==========  ====================================================
 Paramater        Required  Type        Meaning
 ===============  ========  ==========  ====================================================
+cluster          Yes       String      Name of cluster.
 credential_name  Yes       String      The credential name.
 description      Yes       String      A description of the credential.
 ctype            Yes       String      The credential type (diag, nimbus, ec2, local, etc).
@@ -94,6 +95,7 @@ webservice parameters
 ================  ========  ===============  ====================================================================
 Parameter         Required  Type             Meaning
 ================  ========  ===============  ====================================================================
+cluster           Yes       String           Name of cluster.
 credential_names  No        List of Strings  This list limits the returned credentials to just those in the list.
 ================  ========  ===============  ====================================================================
 
