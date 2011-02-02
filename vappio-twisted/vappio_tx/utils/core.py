@@ -1,6 +1,8 @@
 import json
 
 from twisted.python import log
+from twisted.python import failure
+
 from twisted.internet import defer
 
 from igs.utils import functional as func
@@ -50,6 +52,13 @@ class QueueSubscription(func.Record):
 
                 d.addErrback(_logAndReturn)
             else:
+                try:
+                    if self.failureF:
+                        f = failure.Failure(Exception('Request did not pass verification'))
+                        self.failureF(mq, body, f)
+                except Exception, err:
+                    log.err('failureF call failed')
+                    log.err(failure.Failure(err))
                 # If it's bad data, ack it and get rid of it and log it
                 mq.ack(msg.headers['message-id'])
                 log.err('Incoming request failed verification: ' + msg.body)
