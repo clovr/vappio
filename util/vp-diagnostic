@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "Running diagnostics. This may take a few minutes"
 #Capture output to diagnostic file
 exec 3>&1 4>&2 >/tmp/vp-diagnostic.$$.out 2>&1
 
@@ -114,6 +115,7 @@ then
 else
     gzip /tmp/vp-diagnostic.$$.out
     cp /tmp/vp-diagnostic.$$.out.gz /mnt/
-    echo "There was a problem submitting the diagnostic report. The report should be in shared folders on your desktop named vp-diagnostic.$$.out.gz"
-    echo "Please attempt to send this file by email attachment to diagnostics@clovr.org"
+    echo "There was a problem submitting the diagnostic report."
+    echo "Please copy the file /mnt/vp-diagnostic.$$.out.gz and send by email attachment to "
+    echo "diagnostics@clovr.org"
 fi
