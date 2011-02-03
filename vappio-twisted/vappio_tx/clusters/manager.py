@@ -114,6 +114,12 @@ def handleTaskStartCluster(state, mq, request):
 
     d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
 
+    def _continueIfTerminated(cl):
+        if cl.state == cl.TERMINATED:
+            raise persist.ClusterNotFound(cl.clusterName)
+
+    d.addCallback(_continueIfTerminated)
+    
     def _createCluster(f):
         f.trap(persist.ClusterNotFoundError)
         cl = persist.Cluster(request['cluster'],
@@ -198,10 +204,9 @@ def handleTaskTerminateCluster(state, mq, request):
     if request['cluster'] != 'local':
         # If we are terminated a remote cluster
         def _terminate(cl):
-            terminateDefer = defer.succeed(True)
-            terminateDefer.addCallback(lambda _ : clusters_client_www.terminateCluster(cl.master['public_dns'],
-                                                                                       'local',
-                                                                                       None))
+            terminateDefer = clusters_client_www.terminateCluster(cl.master['public_dns'],
+                                                                  'local',
+                                                                  None)
 
             def _removeCluster(cl):
                 #
@@ -251,6 +256,63 @@ def handleTaskTerminateCluster(state, mq, request):
     d.addCallback(_completeTask)
     return d
 
+def handleTaskTerminateInstances(state, mq, request):
+    def _terminateInstancesByCriteria(cl, byCriteria, criteriaValues):
+        credClient = cred_client.CredentialClient(cl.credName,
+                                                  mq,
+                                                  state.conf)
+        
+        instances = [i for i in cl.execNodes + cl.dataNodes if i[byCriteria] in criteriaValues]
+        terminateDefer = defer_utils.mapSerial(credClient.terminateInstances,
+                                               func.chunk(5, instances))
+
+        def _logErr(f):
+            log.err(f)
+            return f
+
+        terminateDefer.addErrback(_logErr)
+        
+        return terminateDefer
+    
+    # Start task running
+    d = tasks_tx.updateTask(request['task_name'],
+                            lambda t : t.setState(task.TASK_RUNNING))
+
+    
+    if request['cluster'] != 'local':
+        d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
+                
+        def _terminateInstances(cl):
+            terminateDefer = clusters_client_www.terminateInstances(cl.master['public_dns'],
+                                                                    'local',
+                                                                    request['user_name'],
+                                                                    request['by_criteria'],
+                                                                    request['criteria_values'])
+
+            def _terminateFailed(f):
+                log.err('Termination failed')
+                return _terminateInstancesByCriteria(cl, request['by_criteria'], request['criteria_values'])
+
+            terminateDefer.addErrback(_terminateFailed)
+            return terminateDefer
+
+        d.addCallback(_terminateInstances)
+    else:
+        d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
+        d.addCallback(lambda cl : _terminateInstancesByCriteria(cl,
+                                                                request['by_criteria'],
+                                                                request['criteria_value']))
+
+    def _completeTask(anyThing):
+        updateTaskDefer = tasks_tx.updateTask(request['task_name'],
+                                              lambda t : t.setState(task.TASK_COMPLETED
+                                                                    ).progress())
+        updateTaskDefer.addCallback(lambda _ : anyThing)
+        return updateTaskDefer
+
+    d.addCallback(_completeTask)
+    return d
+        
 def handleTaskAddInstances(state, mq, request):
     d = persist.loadCluster('local', None)
 
@@ -923,6 +985,16 @@ def makeService(conf):
                                         conf('clusters.concurrent_terminatecluster'))
 
 
+    queue.ensureRequestAndSubscribeTask(mqFactory,
+                                        queueSubscription(ensureF=core.keysInDictCurry(['cluster']),
+                                                          successF=successF(handleTaskTerminateInstances),
+                                                          failureF=failTaskF),
+                                        'terminateInstances',
+                                        conf('clusters.terminateinstances_www'),
+                                        conf('clusters.terminateinstances_queue'),
+                                        conf('clusters.concurrent_terminateinstances'))
+
+    
     queue.ensureRequestAndSubscribeForwardTask(mqFactory,
                                                queueSubscription(ensureF=core.keysInDictCurry(['cluster',
                                                                                                'num_exec',
