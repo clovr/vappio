@@ -8,7 +8,9 @@ STARTCLUSTER_URL = '/vappio/startCluster_ws.py'
 CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
 ADDINSTANCES_URL = '/vappio/addInstances_ws.py'
 TERMINATECLUSTER_URL = '/vappio/terminateCluster_ws.py'
+TERMINATEINSTANCES_URL = '/vappio/terminateInstances_ws.py'
 LISTCLUSTERS_URL = '/vappio/listClusters_ws.py'
+
 
 def startCluster(host, name, conf, num, cred, updateDirs):
     """
@@ -42,9 +44,14 @@ def addInstances(host, name, numExec, numData):
                                                      num_exec=numExec,
                                                      num_data=numData))
 
-def terminateCluster(host, name):
-    return performQuery(host, TERMINATECLUSTER_URL, dict(cluster=name))
+def terminateCluster(host, cluster):
+    return performQuery(host, TERMINATECLUSTER_URL, dict(cluster=cluster))
     
+def terminateInstances(host, cluster, byCriteria, criteriaValues):
+    return performQuery(host, TERMINATEINSTANCES_URL, dict(cluster=cluster,
+                                                           by_criteria=byCriteria,
+                                                           criteria_Values=criteriaValues))
+
 
 def listClusters(host):
     """
