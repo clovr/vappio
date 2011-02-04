@@ -126,7 +126,15 @@ def handleTaskStartCluster(state, mq, request):
                              request['user_name'],
                              request['cred_name'],
                              config.configFromMap({}))
-        return startMaster(state, mq, request['task_name'], cl)
+        startMasterDefer = startMaster(state, mq, request['task_name'], cl)
+        if request['num_exec'] > 0:
+            startMaster.addCallback(lambda cl : startExecNodes(state,
+                                                               mq,
+                                                               request['task_name'],
+                                                               request['num_exec'],
+                                                               cl))
+
+        return startMasterDefer
 
     d.addErrback(_createCluster)
 
@@ -459,7 +467,25 @@ def loadLocalCluster(mq, state):
             credClient = cred_client.CredentialClient('local',
                                                       mq,
                                                       state.conf)
-            saveDefer.addCallback(lambda _ : credClient.listInstances())
+
+            # Because it takes some amount of time to load the credential, we want
+            # to keep on calling listInstances until a non-empty list is returned
+            # so we can get the id of ourself.
+            def _listInstances():
+                liDefer = credClient.listInstances()
+
+                def _failIfEmpty(instances):
+                    if not instances:
+                        failDefer = defer.Deferred()
+                        reactor.callLater(10, failDefer.errback, Exception('Instance list empty'))
+                        return failDefer
+                    else:
+                        return instances
+
+                liDefer.addCallback(_failIfEmpty)
+                return liDefer
+            
+            saveDefer.addCallback(lambda _ : defer_utils.tryUntil(10, _listInstances))
         else:
             saveDefer = cred_client.saveCredential('local',
                                                    'Local credential',
@@ -478,7 +504,7 @@ def loadLocalCluster(mq, state):
                                                       base=config.configFromStream(open('/tmp/machine.conf'), base=config.configFromEnv())))
 
             masterIdx = func.find(lambda i : i['public_dns'] == cl.config('MASTER_IP'),
-                               instances)
+                                  instances)
 
             if masterIdx is not None:
                 master = instances[masterIdx]

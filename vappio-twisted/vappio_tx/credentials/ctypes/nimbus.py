@@ -98,7 +98,6 @@ def instantiateCredential(conf, cred):
     return mainDeferred
         
 
-
 # Set all of these to what ec2 does
 Instance = ec2.Instance
 addGroup = ec2.addGroup
