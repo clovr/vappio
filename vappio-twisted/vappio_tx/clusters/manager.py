@@ -303,7 +303,7 @@ def handleTaskTerminateInstances(state, mq, request):
         d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
         d.addCallback(lambda cl : _terminateInstancesByCriteria(cl,
                                                                 request['by_criteria'],
-                                                                request['criteria_value']))
+                                                                request['criteria_values']))
 
     def _completeTask(anyThing):
         updateTaskDefer = tasks_tx.updateTask(request['task_name'],
@@ -1006,7 +1006,9 @@ def makeService(conf):
 
 
     queue.ensureRequestAndSubscribeTask(mqFactory,
-                                        queueSubscription(ensureF=core.keysInDictCurry(['cluster']),
+                                        queueSubscription(ensureF=core.keysInDictCurry(['cluster',
+                                                                                        'by_criteria',
+                                                                                        'criteria_values']),
                                                           successF=successF(handleTaskTerminateInstances),
                                                           failureF=failTaskF),
                                         'terminateInstances',
