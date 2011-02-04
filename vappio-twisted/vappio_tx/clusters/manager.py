@@ -116,7 +116,7 @@ def handleTaskStartCluster(state, mq, request):
 
     def _continueIfTerminated(cl):
         if cl.state == cl.TERMINATED:
-            raise persist.ClusterNotFound(cl.clusterName)
+            raise persist.ClusterNotFoundError(cl.clusterName)
 
     d.addCallback(_continueIfTerminated)
     
