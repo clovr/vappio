@@ -3,9 +3,11 @@ from igs.utils import cli
 
 from vappio.webservice import cluster
 
+from vappio.tasks.utils import runTaskStatus
+
 OPTIONS = [
-    ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
-    ('cluster', '', '--cluster', 'Name of cluster', notNone),
+    ('host', '', '--host', 'Host of webservice to contact', cli.defaultIfNone('localhost')),
+    ('cluster', '', '--cluster', 'Name of cluster', cli.notNone),
     ('by_criteria',
      '',
      '--by',

@@ -50,7 +50,7 @@ def terminateCluster(host, cluster):
 def terminateInstances(host, cluster, byCriteria, criteriaValues):
     return performQuery(host, TERMINATEINSTANCES_URL, dict(cluster=cluster,
                                                            by_criteria=byCriteria,
-                                                           criteria_Values=criteriaValues))
+                                                           criteria_values=criteriaValues))
 
 
 def listClusters(host):
