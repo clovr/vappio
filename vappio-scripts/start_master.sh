@@ -80,7 +80,15 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue slots $execslots $execq
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq
 #This will prevent more than 1 job from running across any queue
 #$SGE_ROOT/bin/$ARCH/qconf -mattr exechost complex_values slots=1 $myhostname
-$SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $masterslots $execq@$myhostname
+cloud_type=`cat /var/vappio/runtimes/cloud_type`
+#Set local vm to numcpus for local VMs
+numcpus=`cat /proc/cpuinfo | grep -c CPU`
+if [ "$cloud_type" == "vbox" ] || [ "$cloud_type" == "vmware" ]
+then
+    $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $numcpus $execq@$myhostname
+else
+    $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $masterslots $execq@$myhostname
+fi
 
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelinewrapperq
