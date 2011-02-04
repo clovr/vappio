@@ -127,12 +127,6 @@ def handleTaskStartCluster(state, mq, request):
                              request['cred_name'],
                              config.configFromMap({}))
         startMasterDefer = startMaster(state, mq, request['task_name'], cl)
-        if request['num_exec'] > 0:
-            startMaster.addCallback(lambda cl : startExecNodes(state,
-                                                               mq,
-                                                               request['task_name'],
-                                                               request['num_exec'],
-                                                               cl))
 
         return startMasterDefer
 
