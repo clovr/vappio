@@ -7,18 +7,16 @@ from vappio.tasks.utils import runTaskStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', notNone),
+    ('cluster', '', '--cluster', 'Name of cluster', notNone),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', defaultIfNone(False), True),    
     ]
 
 
-URL = '/vappio/clusterInfo_ws.py'
-
 def main(options, _args):
-    if options('general.name') == 'local':
+    if options('general.cluster') == 'local':
         raise Exception('Cannot terminate local cluster')
     
-    taskName = terminateCluster(options('general.host'), options('general.name'))
+    taskName = terminateCluster(options('general.host'), options('general.cluster'))
 
     if options('general.print_task_name'):
         print taskName
