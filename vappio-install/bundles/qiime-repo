@@ -1,0 +1,167 @@
+#!/bin/bash -e
+
+export DEBIAN_FRONTEND=noninteractive
+
+VAPPIO_HOME=/opt
+VAPPIO_RECIPES=$VAPPIO_HOME/vappio-install/recipes
+
+apt-get -y update
+$VAPPIO_HOME/vappio-install/vp-bootstrap-install
+
+#Setup virgin image
+bash -e $VAPPIO_RECIPES/setup.sh
+#Basic system config
+bash -e $VAPPIO_RECIPES/sysconfigs.sh
+#We can't completely remove the above two recipes so
+#temporarily need to remove some things added by other recipes
+#TODO, break apart recipes to avoid this in the future
+rm -f /etc/profile.d/vp-screenlogin
+rm -rf /opt/vappio-py /etc/vappio-checkout
+#TODO set custom /etc/environment 
+
+# Avoiding upgrade because it failes in grub: 
+# apt-get --force-yes -y upgrade
+
+# Installing GUI
+apt-get --force-yes -y install ubuntu-desktop
+# Installing basic requirements for pycogent QIIME
+apt-get --force-yes -y install openjdk-6-jdk libxml2 libxslt1.1 libmysqlclient16-dev
+apt-get --force-yes -y install libxslt1-dev ant subversion build-essential 
+apt-get --force-yes -y install zlib1g-dev libpng12-dev libfreetype6-dev mpich2
+apt-get --force-yes -y install libreadline-dev libgsl0-dev gfortran
+# Accepting java license
+echo sun-java6-plugin shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
+apt-get --force-yes -y install sun-java6-plugin
+
+# Installing basic requirements for EC2
+# Not need it in this step, done in the deploy in EC2
+# apt-get --force-yes -y install nfs-kernel-server  
+
+# Installing basic requirements for inVUE 
+apt-get --force-yes -y install libqt4-dev r-base libqt3-mt-dev libqt3-headers
+
+# Cleaning up installation
+apt-get --force-yes -y autoremove
+apt-get --force-yes -y clean
+
+# Creating qiime user & setting up environment
+addgroup qiime
+useradd -g qiime -m qiime -s /bin/bash
+passwd -d qiime
+touch /home/qiime/.bashrc
+chown qiime:qiime /home/qiime/.bashrc
+
+echo "qiime ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+chmod 777 /tmp
+userdel -r ubuntu
+mkdir /media/
+
+# Installing qiime-deploy
+mkdir /software/
+chown qiime:qiime /software/
+mkdir /software/qiime-deploy/
+svn co svn://svn.microbio.me/QiimeUtils/qiime_installer/vb-upgrade/qiime-deploy /software/qiime-deploy
+find /software -type f -exec chmod 666 {} \;
+find /software -type d -exec chmod 777 {} \;
+find /software -exec chown qiime:qiime {} \;
+pushd /software/qiime-deploy/
+python /software/qiime-deploy/qiime-deploy.py -c -p /software/ --userhome /home/qiime/
+# Installing final requirement for pycogent
+/software/python-2.6.4-release/bin/easy_install MySQL-python
+/software/python-2.6.4-release/bin/easy_install SQLAlchemy
+popd
+find /software -exec chown qiime:qiime {} \;	
+
+# Stop some services that are started during installations
+killall cupsd
+
+# Forcing some settings
+rm -f /etc/apt/apt.conf.d/01proxy
+
+# ==> Rename hostname
+echo "qiimevm" > /etc/hostname
+hostname -b -F /etc/hostname
+
+# ==> Adding swap scripts
+cd /etc/init.d/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/create_swap_file.sh
+update-rc.d create_swap_file.sh defaults
+
+# Setting up extra folders
+sudo -u qiime mkdir /home/qiime/Desktop
+sudo -u qiime mkdir /home/qiime/Desktop/Before_you_start/
+sudo -u qiime mkdir /home/qiime/Desktop/Shared_Folder
+
+# ==> Adding link to the Before_you_start files
+ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/0.QIIME_version.txt /home/qiime/Desktop/Before_you_start/0.QIIME_version.txt
+ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/1.Welcome.txt /home/qiime/Desktop/Before_you_start/1.Welcome.txt
+ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/2.Fixing_Internet_access_in_the_virtual_box.txt /home/qiime/Desktop/Before_you_start/2.Fixing_Internet_access_in_the_virtual_box.txt
+ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/3.Getting_started_with_QIIME.txt /home/qiime/Desktop/Before_you_start/3.Getting_started_with_QIIME.txt
+ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/4.Transferring_files_to_your_virtual_box.txt /home/qiime/Desktop/Before_you_start/4.Transferring_files_to_your_virtual_box.txt
+
+# Creating QIIME help
+cd /software/qiime-1.2.0-release/doc/
+source /home/qiime/.bashrc
+export PATH=$PATH:/software/python-2.6.4-release/bin/:
+make html
+
+#--non-interactive
+#--password  PASS
+
+
+### 
+### Adding extra configurations for the virtual machine
+### Section only for VirtualBox
+###
+
+# ==> Disable disk check after 20 reboots
+# ... done by CLoVR
+
+# ==> Remove autoupdate
+# ... done by CLoVR
+
+# ==> Adding Shared Folder
+mv /etc/rc.local /etc/rc.local.bak
+echo "mount.vboxsf -w -o uid=1001 Shared_Folder /home/qiime/Desktop/Shared_Folder" >> /etc/rc.local
+cat /etc/rc.local.bak >> /etc/rc.local
+chmod 755 /etc/rc.local
+
+# ==> Remove all sounds
+# ==> Make sym link to terminal in the top menu
+# ==> Changing background 
+
+# User configuration
+mkdir /usr/local/qiime_home/
+cd /usr/local/qiime_home/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/gconf.tgz
+tar zxvf gconf.tgz 
+rm gconf.tgz
+chown -R qiime:qiime /usr/local/qiime_home/
+cd /etc/init.d/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/qiime_user_conf.sh
+update-rc.d qiime_user_conf.sh defaults
+
+# Firefox configuration
+cd /home/qiime/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/mozilla.tgz
+tar zxvf mozilla.tgz
+rm mozilla.tgz
+
+# Poweroff/Restart configuration
+cd /usr/share/polkit-1/actions/
+svn export --force svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/org.freedesktop.consolekit.policy
+chmod 644 org.freedesktop.consolekit.policy
+
+# Autologin configuration
+cd /etc/gdm/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/custom.conf
+chmod 644 /etc/gdm/custom.conf
+
+# Desktop backgroud image
+mkdir /home/qiime/Pictures/
+cd /home/qiime/Pictures/
+svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/wordpressheader.png 
+chmod 644 /home/qiime/Pictures/wordpressheader.png
+
+chown -R qiime:qiime /home/qiime/
