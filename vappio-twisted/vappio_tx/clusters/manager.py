@@ -942,20 +942,28 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
             #
             # If all calls to f succeeded then simply return an updated list of instances
             # otherwise sleep for awhile and return failure and surrounding code will rerun or fail out
-            if all(b):
+            if all(res):
+                log.msg('Returning updated list of instances')
                 return credClient.updateInstances(instances)
             else:
+                log.msg('FAILURE')
                 raise Exception('Not all instances succeded')
 
         updateDefer.addCallback(_failIfNotAnyFailed)
+
+        def _logError(f):
+            log.err(f)
+            return f
+
+        updateDefer.addErrback(_logError)
 
         return updateDefer
         
     retryDefer = defer_utils.tryUntil(retries, tryF, onFailure=defer_utils.sleep(30))
 
-    def _terminateBad(f):
+    def _terminateBad(fail):
         log.err('Not all instances succeeded')
-        log.err(f)
+        log.err(fail)
         
         updateDefer = credClient.updateInstances(instances)
         updateDefer.addCallback(lambda instances : defer_utils.mapSerial(f, instances).addCallback(lambda r : zip(instances, r)))
@@ -968,7 +976,7 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
             terminateDefer.addCallback(lambda _ : goodInstances)
             return terminateDefer
 
-        upateDefer.addCallback(_partition)
+        updateDefer.addCallback(_partition)
         return updateDefer
 
     retryDefer.addCallback(_terminateBad)

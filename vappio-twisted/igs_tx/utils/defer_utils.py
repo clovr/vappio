@@ -24,7 +24,7 @@ def mapSerial(f, iterable):
         except StopIteration:
             d.callback(res)
         except:
-            d.errback(failuare.Failure())
+            d.errback(failure.Failure())
 
     _iterate()
     return d
