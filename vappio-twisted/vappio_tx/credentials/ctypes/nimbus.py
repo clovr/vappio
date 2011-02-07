@@ -20,6 +20,7 @@ from vappio_tx.credentials.ctypes import ec2
 NAME = 'Nimbus'
 DESC = """Control module for Nimbus-based users"""
 
+RETRY_ATTEMPTS = 10
 
 def instantiateCredential(conf, cred):
     if not conf('config_loaded', default=False):
@@ -94,25 +95,30 @@ def instantiateCredential(conf, cred):
         
     mainDeferred.addCallback(lambda _ : newCred)
     return mainDeferred
-        
 
-def terminateInstances(cred, instances):
-    """DIAG errors out so often here we want to consume them, instances still terminate"""
-    return defer_utils.tryUntil(10,
-                                lambda : ec2_terminateInstances(cred, instances),
-                                onFailure=defer_utils.sleep(30))
+
+def retry(n, f):
+    def _(*args, **kwargs):
+        return defer_utils.tryUntil(n,
+                                    lambda : f(*args, **kwargs),
+                                    onFailure=defer_utils.sleep(30))
+
+    return _
+
 
 
 # Set all of these to what ec2 does
 Instance = ec2.Instance
-addGroup = ec2.addGroup
-addKeypair = ec2.addKeypair
-authorizeGroup = ec2.authorizeGroup
 instanceFromDict = ec2.instanceFromDict
 instanceToDict = ec2.instanceToDict
-listGroups = ec2.listGroups
-listInstances = ec2.listInstances
-listKeypairs = ec2.listKeypairs
-runInstances = ec2.runInstances
-runSpotInstances = ec2.runSpotInstances
-updateInstances = ec2.updateInstances
+
+addGroup = retry(RETRY_ATTEMPTS, ec2.addGroup)
+addKeypair = retry(RETRY_ATTEMPTS, ec2.addKeypair)
+authorizeGroup = retry(RETRY_ATTEMPTS, ec2.authorizeGroup)
+listGroups = retry(RETRY_ATTEMPTS, ec2.listGroups)
+listInstances = retry(RETRY_ATTEMPTS, ec2.listInstances)
+listKeypairs = retry(RETRY_ATTEMPTS, ec2.listKeypairs)
+runInstances = retry(RETRY_ATTEMPTS, ec2.runInstances)
+runSpotInstances = retry(RETRY_ATTEMPTS, ec2.runSpotInstances)
+updateInstances = retry(RETRY_ATTEMPTS, ec2.updateInstances)
+terminateInstances = retry(RETRY_ATTEMPTS, ec2.terminateInstances)

@@ -129,6 +129,7 @@ def handleTaskStartCluster(state, mq, request):
         startMasterDefer = startMaster(state, mq, request['task_name'], cl)
         if request['num_exec'] > 0 or request['num_data'] > 0:
             def _addInstances(cl):
+                log.msg('Started master successfully, trying to start any exec nodes')
                 addInstancesDefer = clusters_client_www.addInstances('localhost',
                                                                      request['cluster_name'],
                                                                      request['num_exec'],
@@ -625,6 +626,7 @@ def startMaster(state, mq, taskName, cl):
     d.addCallback(_waitForState)
     
     def _waitForSSH(cl):
+        log.msg('Waiting for ssh')
         sshDefer = retryAndTerminateDeferred(credClient,
                                              WAIT_FOR_SSH_TRIES,
                                              [cl.master],
@@ -649,6 +651,7 @@ def startMaster(state, mq, taskName, cl):
     d.addCallback(_waitForSSH)
     
     def _waitForRemoteBoot(cl):
+        log.msg('Waiting for remote boot')
         bootDefer = retryAndTerminateDeferred(credClient,
                                               WAIT_FOR_BOOT_TRIES,
                                               [cl.master],
@@ -930,10 +933,12 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
     failed, all those instances which returned False are terminated.
     """
     def tryF():
+        log.msg('in tryF')
         updateDefer = credClient.updateInstances(instances)
         updateDefer.addCallback(lambda instances : defer_utils.mapSerial(f, instances))
 
         def _failIfNotAnyFailed(res):
+            log.msg('failed, trying again: ' + repr(res))
             #
             # If all calls to f succeeded then simply return an updated list of instances
             # otherwise sleep for awhile and return failure and surrounding code will rerun or fail out
