@@ -13,7 +13,7 @@ apt-get -y install gcc
 apt-get -y install libgd2-xpm-dev
 export PERL_MM_USE_DEFAULT=1
 export PERL_AUTOINSTALL=1
-wget -c -P /tmp http://clovr.svn.sourceforge.net/viewvc/clovr/trunk/packages/cpan.packages
+svn export --force http://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages/cpan.packages /tmp/cpan.packages
 
 cpan -i YAML
 
