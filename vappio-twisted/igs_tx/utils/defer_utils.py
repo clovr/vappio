@@ -1,4 +1,6 @@
 from twisted.internet import defer
+from twisted.internet import reactor
+
 from twisted.python import failure
 
 def mapSerial(f, iterable):
@@ -30,7 +32,7 @@ def mapSerial(f, iterable):
 
     
 
-def tryUntil(tries, f):
+def tryUntil(tries, f, onFailure=None):
     """
     Try to call f tries times at most.  If f succeeds, return value, if f fails try again, if the number
     of attempts has been reached return the last failure.
@@ -46,7 +48,12 @@ def tryUntil(tries, f):
             
             def _failed(f):
                 if tries > 0:
-                    _try(tries - 1)
+                    if onFailure:
+                        onFailureDefer = onFailure()
+                    else:
+                        onFailureDefer = defer.succeed(True)
+
+                    onFailureDefer.addCallback(lambda _ : _try(tries - 1))
                 else:
                     d.errback(f)
                     
@@ -59,4 +66,14 @@ def tryUntil(tries, f):
 
     _try(tries)
     return d
+
+
+
+def sleep(seconds):
+    """Returns a deferred that will be fired after 'seconds'"""
+    def _():
+        d = defer.Deferred()
+        reactor.callLater(seconds, d.callback, None)
+        return d
+    return _
 

@@ -84,19 +84,24 @@ def instantiateCredential(conf, cred):
         pubKey = open(conf('cluster.cluster_private_key') + '.pub').read().rstrip()
         def _addKeypair():
             keyPairDefer = ec2.addKeypair(newCred, '"' + conf('cluster.key') + '||' + pubKey + '"')
-            def _sleepOnError(f):
+            def _printError(f):
                 log.msg('Adding keypaired failed, retrying')
                 log.err(f)
-                d = defer.Deferred()
-                reactor.callLater(30, d.errback, f)
-                return d
-            keyPairDefer.addErrback(_sleepOnError)
+                return f
+            keyPairDefer.addErrback(_printError)
             return keyPairDefer
-        mainDeferred.addCallback(lambda _ : defer_utils.tryUntil(10, _addKeypair))
+        mainDeferred.addCallback(lambda _ : defer_utils.tryUntil(10, _addKeypair, onFailure=defer_utils.sleep(30)))
         
     mainDeferred.addCallback(lambda _ : newCred)
     return mainDeferred
         
+
+def terminateInstances(cred, instances):
+    """DIAG errors out so often here we want to consume them, instances still terminate"""
+    return defer_utils.tryUntil(10,
+                                lambda : ec2_terminateInstances(cred, instances),
+                                onFailure=defer_utils.sleep(30))
+
 
 # Set all of these to what ec2 does
 Instance = ec2.Instance
@@ -110,5 +115,4 @@ listInstances = ec2.listInstances
 listKeypairs = ec2.listKeypairs
 runInstances = ec2.runInstances
 runSpotInstances = ec2.runSpotInstances
-terminateInstances = ec2.terminateInstances
 updateInstances = ec2.updateInstances

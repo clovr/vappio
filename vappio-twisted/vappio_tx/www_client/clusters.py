@@ -12,6 +12,16 @@ def loadCluster(host, clusterName, userName, timeout=30, tries=4):
                              timeout=timeout,
                              tries=tries)
 
+def addInstances(host, clusterName, userName, numExec, numData, timeout=30, tries=4):
+    return http.performQuery(host,
+                             ADDINSTANCES_URL,
+                             dict(cluster=clusterName,
+                                  user_name=userName,
+                                  num_exec=numExec,
+                                  num_data=numData),
+                             timeout=timeout,
+                             tries=tries)
+
 def terminateCluster(host, clusterName, userName, timeout=30, tries=4):
     return http.performQuery(host,
                              TERMINATECLUSTER_URL,

@@ -115,7 +115,7 @@ def handleTaskStartCluster(state, mq, request):
     d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
 
     def _continueIfTerminated(cl):
-        if cl.state == cl.TERMINATED:
+        if cl.state in [cl.TERMINATED, cl.FAILED]:
             raise persist.ClusterNotFoundError(cl.clusterName)
 
     d.addCallback(_continueIfTerminated)
@@ -127,7 +127,21 @@ def handleTaskStartCluster(state, mq, request):
                              request['cred_name'],
                              config.configFromMap({}))
         startMasterDefer = startMaster(state, mq, request['task_name'], cl)
+        if request['num_exec'] > 0 or request['num_data'] > 0:
+            def _addInstances(cl):
+                addInstancesDefer = clusters_client_www.addInstances('localhost',
+                                                                     request['cluster_name'],
+                                                                     request['num_exec'],
+                                                                     request['num_data'])
+                addInstancesDefer.addCallback(lambda taskName : tasks.blockOnTaskAndForward('localhost',
+                                                                                            request['cluster_name'],
+                                                                                            taskName,
+                                                                                            request['task_name']))
+                                                                                      
+                addInstancesDefer.addCallback(lambda _ : cl)
+                return addInstancesDefer
 
+            startMasterDefer.addCallback(_addInstances)
         return startMasterDefer
 
     d.addErrback(_createCluster)
@@ -316,7 +330,10 @@ def handleTaskTerminateInstances(state, mq, request):
     return d
         
 def handleTaskAddInstances(state, mq, request):
-    d = persist.loadCluster('local', None)
+    d = tasks_tx.updateTask(request['task_name'],
+                            lambda t : t.setState(task.TASK_RUNNING))
+    
+    d.addCallback(lambda _ : persist.loadCluster('local', None))
 
     if request['num_exec'] > 0:
         d.addCallback(lambda cl : startExecNodes(state,
@@ -470,16 +487,14 @@ def loadLocalCluster(mq, state):
 
                 def _failIfEmpty(instances):
                     if not instances:
-                        failDefer = defer.Deferred()
-                        reactor.callLater(10, failDefer.errback, Exception('Instance list empty'))
-                        return failDefer
+                        raise Exception('Instance list empty')
                     else:
                         return instances
 
                 liDefer.addCallback(_failIfEmpty)
                 return liDefer
             
-            saveDefer.addCallback(lambda _ : defer_utils.tryUntil(10, _listInstances))
+            saveDefer.addCallback(lambda _ : defer_utils.tryUntil(10, _listInstances, onFailure=defer_utils.sleep(10)))
         else:
             saveDefer = cred_client.saveCredential('local',
                                                    'Local credential',
@@ -798,12 +813,6 @@ def runInstancesWithRetry(credClient,
     d = defer.Deferred()
     
     def _runInstances(num):
-        def _sleepOnError(f):
-            log.err(f)
-            d = defer.Deferred()
-            reactor.callLater(30, d.errback, f)
-            return d        
-            
         if bidPrice:
             return credClient.runSpotInstances(bidPrice=bidPrice,
                                                ami=ami,
@@ -812,7 +821,7 @@ def runInstancesWithRetry(credClient,
                                                groups=groups,
                                                availabilityZone=availZone,
                                                numInstances=num,
-                                               userData=userData).addErrback(_sleepOnError)
+                                               userData=userData)
         else:
             return credClient.runInstances(ami=ami,
                                            key=key,
@@ -820,7 +829,7 @@ def runInstancesWithRetry(credClient,
                                            groups=groups,
                                            availabilityZone=availZone,
                                            numInstances=num,
-                                           userData=userData).addErrback(_sleepOnError)
+                                           userData=userData)
 
         
 
@@ -828,7 +837,7 @@ def runInstancesWithRetry(credClient,
     def _runAndRetry(retries):
         if retries > 0:
             num = numInstances - len(instances)
-            runDefer = defer_utils.tryUntil(10, lambda : _runInstances(num))
+            runDefer = defer_utils.tryUntil(10, lambda : _runInstances(num), onFailure=defer_utils.sleep(30))
             runDefer.addCallback(lambda i : instances.extend(i))
             runDefer.addErrback(d.errback)
 
@@ -920,38 +929,46 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
     seconds have passed and repeated.  If 'retries' attempts have been done and
     failed, all those instances which returned False are terminated.
     """
+    def tryF():
+        updateDefer = credClient.updateInstances(instances)
+        updateDefer.addCallback(lambda instances : defer_utils.mapSerial(f, instances))
 
-    d = defer.Deferred()
+        def _failIfNotAnyFailed(res):
+            #
+            # If all calls to f succeeded then simply return an updated list of instances
+            # otherwise sleep for awhile and return failure and surrounding code will rerun or fail out
+            if all(b):
+                return credClient.updateInstances(instances)
+            else:
+                raise Exception('Not all instances succeded')
 
-    
-    def _retry(retries):
-        if retries > 0:
-            updateDefer = credClient.updateInstances(instances)
+        updateDefer.addCallback(_failIfNotAnyFailed)
 
-            def _retryIfNecessary(instances):
-                checkInstancesDefer = deferredMap(f, instances)
+        return updateDefer
+        
+    retryDefer = defer_utils.tryUntil(retries, tryF, onFailure=defer_utils.sleep(30))
 
-                def _checkRes(res):
-                    if all((b for b in res)):
-                        d.callback(instances)
-                    else:
-                        reactor.callLater(INSTANCE_REFRESH_RATE, _retry, retries - 1)
-
-                checkInstancesDefer.addCallback(_checkRes)
-                return checkInstancesDefer
-
-            updateDefer.addCallback(_retryIfNecessary)
-            updateDefer.addErrback(d.errback)
-        else:
-            badInstances = [i for i in instances if not f(i)]
-            goodInstances = [i for i in instances if f(i)]
-
+    def _terminateBad(f):
+        log.err('Not all instances succeeded')
+        log.err(f)
+        
+        updateDefer = credClient.updateInstances(instances)
+        updateDefer.addCallback(lambda instances : defer_utils.mapSerial(f, instances).addCallback(lambda r : zip(instances, r)))
+        
+        def _partition(resInstances):
+            badInstances = [i for i, r in instances if not r]
+            goodInstances = [i for i, r in instances if r]
+            
             terminateDefer = credClient.terminateInstances(badInstances)
-            terminateDefer.addCallback(lambda _ : d.callback(goodInstances))
-            terminateDefer.addErrback(d.errback)
+            terminateDefer.addCallback(lambda _ : goodInstances)
+            return terminateDefer
 
-    reactor.callLater(0, _retry, retries)
-    return d
+        upateDefer.addCallback(_partition)
+        return updateDefer
+
+    retryDefer.addCallback(_terminateBad)
+    
+    return retryDefer
 
 
 #

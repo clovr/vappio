@@ -22,18 +22,6 @@ def instantiateCredential(conf, cred):
     return nimbus.instantiateCredential(conf, cred)
 
 
-def terminateInstances(cred, instances):
-    """DIAG errors out so often here we want to consume them, instances still terminate"""
-    d = defer.Deferred()
-    def loop(tries):
-        terminateDefer = nimbus.terminateInstances(cred, instances)
-        terminateDefer.addCallback(lambda _ : d.callback(True))
-        if tries > 0:
-            terminateDefer.addErrback(lambda _ : reactor.callLater(30, loop, tries - 1))
-        else:
-            terminateDefer.addErrback(d.errback)
-    loop(10)
-    return d
 
 # Set all of these to what nimbus does
 Instance = nimbus.Instance
@@ -48,3 +36,4 @@ listKeypairs = nimbus.listKeypairs
 runInstances = nimbus.runInstances
 runSpotInstances = nimbus.runSpotInstances
 updateInstances = nimbus.updateInstances
+terminateInstances = nimbus.terminateInstances
