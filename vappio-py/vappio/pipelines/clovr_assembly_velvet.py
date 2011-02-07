@@ -4,7 +4,7 @@ import os
 import re
 
 from igs.utils.functional import identity, compose
-from igs.utils.cli import notNone, defaultIfNone, restrictValues
+from igs.utils.cli import notNone, defaultIfNone, restrictValues, composeCLI
 
 ##
 # Need to know where the template lives
