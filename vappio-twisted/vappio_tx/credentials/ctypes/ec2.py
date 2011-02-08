@@ -194,11 +194,6 @@ def parseInstanceLine(line):
 
 
 
-def fixTypesOfSelectConfig(conf):
-    return config.configFromMap({'cluster.master_groups': [g for g in conf('cluster.master_groups').split(',') if g],
-                                 'cluster.exec_groups': [g for g in conf('cluster.exec_groups').split(',') if g]},
-                                base=conf)
-    
 def instantiateCredential(conf, cred):
     """
     Takes a credential and instanitates it.  It returns a Record that has all of the
@@ -209,7 +204,6 @@ def instantiateCredential(conf, cred):
                                        base=config.configFromStream(open(conf('conf_file', default=DEFAULT_CONFIG_FILE)),
                                                                     base=conf))    
 
-    conf = fixTypesOfSelectConfig(conf)
     certFile = os.path.join(conf('general.secure_tmp'), cred.name + '_cert.pem')
     keyFile = os.path.join(conf('general.secure_tmp'), cred.name + '_key.pem')
     if not os.path.exists(certFile) or open(certFile).read() != cred.cert:

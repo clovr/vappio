@@ -818,6 +818,7 @@ def runInstancesWithRetry(credClient,
 
 
     d = defer.Deferred()
+    groups = [g.strip() for g in groups.split(',')]
     
     def _runInstances(num):
         if bidPrice:
