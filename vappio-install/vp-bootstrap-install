@@ -4,7 +4,7 @@ sudo apt-get -y install subversion
 #Get sourceforge SVN certs because SVN sucks and refuses to let you do this with a command line option
 echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.subversion /root/.subversion
 
-echo -p | sudo svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/ /opt/vappio-install
+echo -p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/ /opt/vappio-install
 
 #Update utilities directory if already installed
 if [ -d "/opt/vappio-util" ]
