@@ -57,12 +57,12 @@ def performQueryNoParse(host, url, var, headers=None, timeout=30, tries=4, debug
         headers = {}
     
     d = defer_utils.tryUntil(tries,
-                             getPage(('http://' + host + url).encode('utf_8'),
-                                     method='POST',
-                                     postdata=urllib.urlencode({'request': json.dumps(var)}),
-                                     headers=func.updateDict(headers, {'Content-Type': 'application/x-www-form-urlencoded'}),
-                                     connectionTimeout=timeout,
-                                     timeout=timeout),
+                             lambda : getPage(('http://' + host + url).encode('utf_8'),
+                                              method='POST',
+                                              postdata=urllib.urlencode({'request': json.dumps(var)}),
+                                              headers=func.updateDict(headers, {'Content-Type': 'application/x-www-form-urlencoded'}),
+                                              connectionTimeout=timeout,
+                                              timeout=timeout),
                              onFailure=defer_utils.sleep(10))
 
     def _error(f):
