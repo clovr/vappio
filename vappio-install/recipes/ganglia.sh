@@ -10,8 +10,8 @@ apt-get --force-yes -y install ganglia-webfrontend
 update-rc.d -f ganglia-monitor remove
 update-rc.d -f gmetad remove
 
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/ganglia/gmetad.conf /etc/ganglia/gmetad.conf 
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/ganglia/gmond.conf /etc/ganglia/gmond.conf 
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/ganglia/gmetad.conf /etc/ganglia/gmetad.conf 
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/ganglia/gmond.conf /etc/ganglia/gmond.conf 
 
 ln -f -s /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-available/ganglia
 ln -f -s /etc/apache2/sites-available/ganglia /etc/apache2/sites-enabled/ganglia

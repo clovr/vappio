@@ -41,7 +41,7 @@ wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21
 wget -c -P /mnt http://cb2.igs.umaryland.edu/VBoxLinuxAdditions-amd64.run
 
 #mkdir -p /opt/opt-packages
-svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
+echo p | svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
 
 apt-get install -y ruby
 apt-get install -y libruby1.8-extras
@@ -50,7 +50,7 @@ wget http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.zip
 unzip -o ec2-ami-tools.zip
 popd
 
-svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
+echo p | svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
 
 sudo apt-get -y install apt-cacher apache2 
 svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher

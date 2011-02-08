@@ -1,6 +1,6 @@
 #!/bin/bash
 
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/perl /etc/perl
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/perl /etc/perl
 
 #svn export
 #cpan
@@ -13,7 +13,7 @@ apt-get -y install gcc
 apt-get -y install libgd2-xpm-dev
 export PERL_MM_USE_DEFAULT=1
 export PERL_AUTOINSTALL=1
-svn export --force http://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages/cpan.packages /tmp/cpan.packages
+echo p | svn export --force http://clovr.svn.sourceforge.net/svnroot/clovr/trunk/packages/cpan.packages /tmp/cpan.packages
 
 cpan -i YAML
 

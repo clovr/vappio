@@ -18,7 +18,7 @@ perl -pi -e 's/sakura - /         /' /usr/bin/sakura
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir -p $tmpdir/root/.config
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.config $tmpdir/root/.config
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.config $tmpdir/root/.config
 pushd $tmpdir
 echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .
@@ -32,7 +32,7 @@ popd
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir -p $tmpdir/etc/xdg
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/xdg $tmpdir/etc/xdg
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/xdg $tmpdir/etc/xdg
 pushd $tmpdir
 echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .
@@ -45,7 +45,7 @@ popd
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir -p $tmpdir/etc/conky
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/conky $tmpdir/etc/conky
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/conky $tmpdir/etc/conky
 pushd $tmpdir
 echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .
@@ -71,7 +71,7 @@ echo '. startx -- :1 >/tmp/startx.$$.log 2>&1 &' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
 echo 'fi' >> /tmp/$$.profile
 echo 'trap SIGINT' >> /tmp/$$.profile
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/profile /etc/profile
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/profile /etc/profile
 cat /etc/profile >> /tmp/$$.profile
 mv /tmp/$$.profile /etc/profile
 

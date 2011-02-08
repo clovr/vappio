@@ -32,7 +32,7 @@ make install
 popd
 rm -rf /tmp/$$
 
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/var/www/.grid_request.conf /var/www/.grid_request.conf
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/var/www/.grid_request.conf /var/www/.grid_request.conf
 
 #Update grid request
 wget -P /tmp http://cb2.igs.umaryland.edu/gridrequest.tgz

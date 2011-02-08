@@ -6,7 +6,7 @@ tar -C / -xvzf /tmp/vboxtools-install.tgz
 
 #Need to fake out uname so we compile for any kernel we want to run in vbox
 mv /bin/uname /bin/uname.orig
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/fakeuname.sh /tmp/fakeuname.sh
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/fakeuname.sh /tmp/fakeuname.sh
 cp /tmp/fakeuname.sh /bin/uname
 #For installing the kernel modules
 apt-get -y install build-essential

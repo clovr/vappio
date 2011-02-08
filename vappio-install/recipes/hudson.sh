@@ -42,7 +42,7 @@ source /opt/vappio-scripts/clovrEnv.sh
 #adduser --quiet --disabled-password --disabled-login hudson --gecos ""
 updateAllDirs.py --hudson
 
-svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml /var/lib/hudson/config.xml
+echo p | svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml /var/lib/hudson/config.xml
 
 #hudson-ci.org connection is too unreliable
 #wget --no-dns-cache --tries 20 --retry-connrefused -c -O /var/lib/hudson/plugins/build-timeout.hpi http://hudson-ci.org/latest/build-timeout.hpi

@@ -50,10 +50,10 @@ cpan -i SVN::Agent
 
 #Install software.config
 rm -f /tmp/software.config
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/software.config /tmp/software.config
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/software.config /tmp/software.config
 
 #Get sourceforge SVN certs because SVN sucks and refuses to let you do this with a command line option
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.subversion /root/.subversion
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/root/.subversion /root/.subversion
 #Install Ergatis
 apt-get -y install g++
 printenv
@@ -75,9 +75,9 @@ ln -f -s /opt/clovr_pipelines/workflow/project_saved_templates /opt/ergatis/glob
 
 #Configure website
 #Pull ergatis.ini, Config.pm
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/ergatis.ini /var/www/ergatis/cgi/ergatis.ini
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/ergatis.ini /var/www/ergatis/cgi/ergatis.ini
 chmod a+r /var/www/ergatis/cgi/ergatis.ini
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/Config.pm /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/Config.pm /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
 chmod a+r /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
 svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/kill_wf.cgi /var/www/ergatis/cgi/kill_wf.cgi
 chmod a+rx /var/www/ergatis/cgi/kill_wf.cgi
