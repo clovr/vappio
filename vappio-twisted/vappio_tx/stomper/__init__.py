@@ -57,10 +57,6 @@ VALID_COMMANDS = [
 ]
 
 
-def get_log():
-    return logging.getLogger("stomper")
-    
-
 def noneOrEmptyDict(d):
     if d is None:
         return {}

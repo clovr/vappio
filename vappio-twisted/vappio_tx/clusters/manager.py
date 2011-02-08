@@ -131,14 +131,20 @@ def handleTaskStartCluster(state, mq, request):
             def _addInstances(cl):
                 log.msg('Started master successfully, trying to start any exec nodes')
                 addInstancesDefer = clusters_client_www.addInstances('localhost',
-                                                                     request['cluster_name'],
+                                                                     request['cluster'],
+                                                                     request['user_name'],
                                                                      request['num_exec'],
                                                                      request['num_data'])
-                addInstancesDefer.addCallback(lambda taskName : tasks.blockOnTaskAndForward('localhost',
-                                                                                            request['cluster_name'],
-                                                                                            taskName,
-                                                                                            request['task_name']))
-                                                                                      
+
+                def _loadLocalTask(taskName):
+                    loadTaskDefer = tasks_tx.loadTask(request['task_name'])
+                    loadTaskDefer.addCallback(lambda t : tasks_tx.blockOnTaskAndForward('localhost',
+                                                                                        request['cluster'],
+                                                                                        taskName,
+                                                                                        t))
+                    return loadTaskDefer
+                
+                addInstancesDefer.addCallback(_loadLocalTask)
                 addInstancesDefer.addCallback(lambda _ : cl)
                 return addInstancesDefer
 
@@ -626,7 +632,6 @@ def startMaster(state, mq, taskName, cl):
     d.addCallback(_waitForState)
     
     def _waitForSSH(cl):
-        log.msg('Waiting for ssh')
         sshDefer = retryAndTerminateDeferred(credClient,
                                              WAIT_FOR_SSH_TRIES,
                                              [cl.master],
@@ -651,7 +656,6 @@ def startMaster(state, mq, taskName, cl):
     d.addCallback(_waitForSSH)
     
     def _waitForRemoteBoot(cl):
-        log.msg('Waiting for remote boot')
         bootDefer = retryAndTerminateDeferred(credClient,
                                               WAIT_FOR_BOOT_TRIES,
                                               [cl.master],
@@ -933,20 +937,16 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
     failed, all those instances which returned False are terminated.
     """
     def tryF():
-        log.msg('in tryF')
         updateDefer = credClient.updateInstances(instances)
         updateDefer.addCallback(lambda instances : defer_utils.mapSerial(f, instances))
 
         def _failIfNotAnyFailed(res):
-            log.msg('failed, trying again: ' + repr(res))
             #
             # If all calls to f succeeded then simply return an updated list of instances
             # otherwise sleep for awhile and return failure and surrounding code will rerun or fail out
             if all(res):
-                log.msg('Returning updated list of instances')
                 return credClient.updateInstances(instances)
             else:
-                log.msg('FAILURE')
                 raise Exception('Not all instances succeded')
 
         updateDefer.addCallback(_failIfNotAnyFailed)
@@ -962,13 +962,13 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
     retryDefer = defer_utils.tryUntil(retries, tryF, onFailure=defer_utils.sleep(30))
 
     def _terminateBad(fail):
-        log.err('Not all instances succeeded')
         log.err(fail)
         
         updateDefer = credClient.updateInstances(instances)
         updateDefer.addCallback(lambda instances : defer_utils.mapSerial(f, instances).addCallback(lambda r : zip(instances, r)))
         
         def _partition(resInstances):
+            log.msg(resInstances)
             badInstances = [i for i, r in instances if not r]
             goodInstances = [i for i, r in instances if r]
             
@@ -979,7 +979,7 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
         updateDefer.addCallback(_partition)
         return updateDefer
 
-    retryDefer.addCallback(_terminateBad)
+    retryDefer.addErrback(_terminateBad)
     
     return retryDefer
 

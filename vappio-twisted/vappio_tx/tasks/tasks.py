@@ -17,6 +17,8 @@ def updateTask(taskName, f):
     d.addCallback(lambda t : threads.deferToThread(task.updateTask, t))
     return d
 
+def loadTask(taskName):
+    return threads.deferToThread(task.loadTask, taskName)
 
 def blockOnTask(host, cluster, taskName, notifyF=logging.logPrint, errorF=logging.errorPrint):
     d = threads.deferToThread(task_utils.blockOnTask, host, cluster, taskName, notifyF, errorF)

@@ -1,6 +1,7 @@
 from igs_tx.utils import http
 
 CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
+ADDINSTANCES_URL = '/vappio/addInstances_ws.py'
 TERMINATECLUSTER_URL = '/vappio/terminateCluster_ws.py'
 TERMINATEINSTANCES_URL = '/vappio/terminateInstances_ws.py'
 
