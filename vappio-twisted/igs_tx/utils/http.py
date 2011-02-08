@@ -8,6 +8,8 @@ from twisted.web import client
 from igs.utils import functional as func
 from igs.utils import errors
 
+from igs_tx.utils import defer_utils
+
 class Timeout(Exception):
     pass
 
@@ -54,16 +56,19 @@ def performQueryNoParse(host, url, var, headers=None, timeout=30, tries=4, debug
     if headers is None:
         headers = {}
     
-    d = getPage(('http://' + host + url).encode('utf_8'),
-                method='POST',
-                postdata=urllib.urlencode({'request': json.dumps(var)}),
-                headers=func.updateDict(headers, {'Content-Type': 'application/x-www-form-urlencoded'}),
-                connectionTimeout=timeout,
-                timeout=timeout)
+    d = defer_utils.tryUntil(tries,
+                             getPage(('http://' + host + url).encode('utf_8'),
+                                     method='POST',
+                                     postdata=urllib.urlencode({'request': json.dumps(var)}),
+                                     headers=func.updateDict(headers, {'Content-Type': 'application/x-www-form-urlencoded'}),
+                                     connectionTimeout=timeout,
+                                     timeout=timeout),
+                             onFailure=defer_utils.sleep(10))
 
     def _error(f):
         log.err(f)
-        return performQueryNoParse(host, url, var, headers, timeout, tries - 1, debug)
+        return f
+    
     d.addErrback(_error)
     return d
 
