@@ -258,8 +258,8 @@ def runPipelineWithConfig(taskName, name, pipeline, conf, queue):
 
     foutName = os.path.join('/tmp', str(time.time()))
     fout = open(foutName, 'w')
-    for line in open(templateConfig):
-        fout.write(config.replaceStr(line, conf))
+    for line in handleIncludes(open(templateConfig)):
+        fout.write(config.replaceStr(line, conf) + '\n')
         
     fout.close()
 
@@ -284,7 +284,34 @@ def runPipelineWithConfig(taskName, name, pipeline, conf, queue):
     ##
     # This should be the pipeline ID
     return createPipeline(taskName, name, res[0].strip(), pipeline, conf)
-        
+    
+def handleIncludes(sin):
+    lines = [l.strip() for l in sin]
+    sections = set([s[1:-1] for s in lines if s and s[0] == '[' and s[-1] == ']'])
+ 
+    for line in lines:
+        if line.startswith('-include'):
+            includeLines = list(handleIncludes(open(line.split('=')[1])))
+            includeSections = set([s[1:-1] for s in includeLines if s and s[0] == '[' and s[-1] == ']'])
+            overlappingSections = sections.intersection(includeSections)
+            ignoreSection = False
+    
+            for l in includeLines:
+                if l and l[0] == '[' and l[-1] == ']' and l[1:-1] in overlappingSections:
+                    ignoreSection = True
+                elif l and l[0] == '[' and l[-1] == ']':
+                    ignoreSection = False
+ 
+                if not ignoreSection:
+                    yield l
+ 
+            # Once we have looped through all our lines we want to regenerate our sections 
+            # list containing all unique sections
+            sections.update(includeSections)
+    
+        else:
+            yield line
+    
 def resumePipeline(pipeline, queue=None):
     cmd = ['resume_pipeline.pl',
            '--pipeline_id=' + pipeline.pid,
