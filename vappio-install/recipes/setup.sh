@@ -6,7 +6,7 @@ export DEBIAN_FRONTEND=noninteractive
 rm -f /etc/hostname
 
 #Get clean apt.sources
-svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt $tmpdir/etc/apt
+echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt $tmpdir/etc/apt
 #Make non-EC apt the default
 cp /etc/apt/sources.list.orig /etc/apt/sources.list
 
@@ -17,26 +17,26 @@ echo -n > /etc/hostname
 apt-get -y install subversion
 
 #Set some defaults
-svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/rcS /etc/default/rcS
+echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/rcS /etc/default/rcS
 
 #Update permissions on /tmp and /mnt
 chmod 777 /tmp
 chmod 777 /mnt
 
 # Checkout the environment and load it
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/environment /etc/environment
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/environment /etc/environment
 source /etc/environment
 
 
 #Checkout utils
 #TODO, consider moving these elsewhere
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py /opt/vappio-py
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio-checkout /etc/vappio-checkout
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py /opt/vappio-py
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio-checkout /etc/vappio-checkout
 # Keeping this old style until we are more stable
 #checkoutObject.py vappio img-conf/etc/apt/apt.conf.d /etc/apt/apt.conf.d
 
 #Force keeping our custom config files versus overwrite on updates
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/05dpkg_forceconfnew /etc/apt/apt.conf.d/05dpkg_forceconfnew
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/05dpkg_forceconfnew /etc/apt/apt.conf.d/05dpkg_forceconfnew
 
 #Default dash shell breaks many shell scripts
 ln -sf /bin/bash /bin/sh
@@ -100,12 +100,12 @@ then
 fi
 
 #Copy virgin fstab so we can boot
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/fstab /etc/fstab.orig
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/fstab /etc/fstab.orig
 
 #Set up ntp cron job to update time
 apt-get -y install ntpdate
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/ntpdate.sh /etc/init.d/ntpdate.sh
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cron.hourly/ntpdate /etc/cron.hourly/ntpdate
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/ntpdate.sh /etc/init.d/ntpdate.sh
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cron.hourly/ntpdate /etc/cron.hourly/ntpdate
 
 #Install default boot loader, can be overwritten later
-svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /boot
+echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /boot
