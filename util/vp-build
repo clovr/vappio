@@ -199,7 +199,7 @@ else
     curl http://localhost:3142 > /dev/null
     if [ $? = 0 ]
     then
-	svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy $builddir.live/etc/apt/apt.conf.d/01proxy
+	echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy $builddir.live/etc/apt/apt.conf.d/01proxy
     fi
     set -e 
     
