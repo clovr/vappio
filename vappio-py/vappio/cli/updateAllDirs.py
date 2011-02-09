@@ -32,7 +32,7 @@ class CheckoutModifiedError(Exception):
     pass
 
 def grabFromSVN(options, srcUrl, branch, d, dstDir):
-    cmd = ['svn']
+    cmd = ['echo p | svn']
     if options('general.co'):
         cmd += ['co']
     else:
