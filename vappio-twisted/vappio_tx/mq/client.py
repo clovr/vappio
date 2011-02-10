@@ -88,11 +88,12 @@ class MQClientProtocol(protocol.Protocol):
 
     def dataReceived(self, data):
         self.data += data
-
+        
         (msg, remainingData) = stomper.unpack_frame(self.data)
-        if msg is not None:
-            self.ACTIONS[msg.cmd](self, msg)
+        while msg is not None:
             self.data = remainingData
+            self.ACTIONS[msg.cmd](self, msg)
+            (msg, remainingData) = stomper.unpack_frame(self.data)
 
 
     def sendMessage(self, msg):
@@ -113,9 +114,9 @@ class _ConnectedState:
         for d, b, h in self.factory._sends:
             self.send(d, b, h)
 
-    def subscribe(self, handler, destination, headers):
+    def subscribe(self, handler, destination, headers, ack='client'):
         self.factory._subscriptions.append((handler, destination, headers))
-        self.factory.mqClient.sendMessage(stomper.subscribe(destination, ack='client', headers=headers))
+        self.factory.mqClient.sendMessage(stomper.subscribe(destination, ack=ack, headers=headers))
         
     def unsubscribe(self, destination):
         receipt = 'unsubscribe-' + global_state.make_ref()
@@ -156,7 +157,7 @@ class _AuthenticatingState:
 
         transition(self.factory, _ConnectedState)
 
-    def subscribe(self, handler, destination, headers):
+    def subscribe(self, handler, destination, headers, ack='client'):
         self.factory._subscriptions.append((handler, destination, headers))
 
     def send(self, destination, body, headers):
@@ -171,7 +172,7 @@ class _ConnectingState:
                                                           self.factory.password))
         transition(self.factory, _AuthenticatingState)
 
-    def subscribe(self, handler, destination, headers):
+    def subscribe(self, handler, destination, headers, ack='client'):
         self.factory._subscriptions.append((handler, destination, headers))
                                                         
     def send(self, destination, body, headers):
@@ -208,9 +209,9 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
         transition(self, _ConnectingState)
         connector.connect()
         
-    def subscribe(self, handler, destination, headers=None):
+    def subscribe(self, handler, destination, headers=None, ack='client'):
         if headers is None: headers = {}
-        return self.state.subscribe(handler, destination, headers)
+        return self.state.subscribe(handler, destination, headers, ack)
 
     def unsubscribe(self, destination):
         return self.state.unsubscribe(destination)

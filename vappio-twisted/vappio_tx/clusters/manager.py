@@ -199,8 +199,8 @@ def handleTaskTerminateCluster(state, mq, request):
 
         #
         # Terminate 5 at a time
-        terminateDefer = deferredMap(lambda instances : credClient.terminateInstances(instances),
-                                     list(func.chunk(5, cl.execNodes + cl.dataNodes)))
+        terminateDefer = defer_utils.mapSerial(lambda instances : credClient.terminateInstances(instances),
+                                               func.chunk(5, cl.execNodes + cl.dataNodes))
 
 
 
@@ -363,8 +363,8 @@ def removeDeadClusters():
     d = persist.loadClustersAdmin()
 
     def _removeDead(cls):
-        return deferredMap(persist.removeCluster,
-                           [c for c in cls if c.state in [c.FAILED, c.TERMINATED]])
+        return defer_utils.mapSerial(persist.removeCluster,
+                                     [c for c in cls if c.state in [c.FAILED, c.TERMINATED]])
 
     d.addCallback(_removeDead)
 
@@ -382,7 +382,7 @@ def refreshClusters(mq, state):
         if not state.clustersCache:
             state.clustersCache = dict([((c.clusterName, c.userName), c)
                                         for c in cls])
-        return deferredMap(lambda c : loadRemoteClusterData(c, mq, state), cls)
+        return defer_utils.mapSerial(lambda c : loadRemoteClusterData(c, mq, state), cls)
     
     def _addClustersToCache(cls):
         state.clustersCache = dict([((c.clusterName, c.userName), c)
@@ -864,70 +864,6 @@ def runInstancesWithRetry(credClient,
     return d
 
 
-def retryAndTerminate(credClient, retries, instances, f):
-    """
-    f does not return a deferred in this case
-    
-    f is called on every instance in instances.  If any calls
-    return False, the instance list is updated after INSTANCE_REFRESH_RATE
-    seconds have passed and repeated.  If 'retries' attempts have been done and
-    failed, all those instances which returned False are terminated.
-    """
-
-    d = defer.Deferred()
-
-    #
-    # If they already pass, return them
-    if all((f(i) for i in instances)):
-        d.callback(instances)
-        return d
-
-    
-    def _retry(retries):
-        if retries > 0:
-            updateDefer = credClient.updateInstances(instances)
-
-            def _retryIfNecessary(instances):
-                if all((f(i) for i in instances)):
-                    d.callback(instances)
-                else:
-                    reactor.callLater(INSTANCE_REFRESH_RATE, _retry, retries - 1)
-
-            updateDefer.addCallback(_retryIfNecessary)
-            updateDefer.addErrback(d.errback)
-        else:
-            badInstances = [i for i in instances if not f(i)]
-            goodInstances = [i for i in instances if f(i)]
-
-            terminateDefer = credClient.terminateInstances(badInstances)
-            terminateDefer.addCallback(lambda _ : d.callback(goodInstances))
-            terminateDefer.addErrback(d.errback)
-
-    reactor.callLater(INSTANCE_REFRESH_RATE, _retry, retries)
-    return d
-
-def deferredMap(f, l):
-    d = defer.Deferred()
-
-    res = []
-    
-    def _deferredMap(idx):
-        if idx < len(l):
-            fDefer = f(l[idx])
-            
-            def _success(r):
-                res.append(r)
-                _deferredMap(idx + 1)
-
-            fDefer.addCallback(_success)
-            fDefer.addErrback(d.errback)
-        else:
-            d.callback(res)
-
-    _deferredMap(0)
-    return d
-
-
 def retryAndTerminateDeferred(credClient, retries, instances, f):
     """
     f does return a deferred.
@@ -951,12 +887,6 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
                 raise Exception('Not all instances succeded')
 
         updateDefer.addCallback(_failIfNotAnyFailed)
-
-        def _logError(f):
-            log.err(f)
-            return f
-
-        updateDefer.addErrback(_logError)
 
         return updateDefer
         
@@ -984,25 +914,15 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
     
     return retryDefer
 
+def retryAndTerminate(credClient, retries, instances, f):
+    return retryAndTerminateDeferred(credClient, retries, instances, lambda i : defer.succeed(f(i)))
 
 #
 # Just a shorthand definition
 queueSubscription = vappio_tx_core.QueueSubscription
 
-def makeService(conf):
-    mqService = client.makeService(conf)
 
-    mqFactory = mqService.mqFactory
-
-    # State is currently not used, but kept around for future purposes
-    state = State(conf)
-
-    # Startup list
-    startUpDefer = loadLocalCluster(mqFactory, state)
-    startUpDefer.addCallback(lambda _ : removeDeadClusters())
-    startUpDefer.addCallback(lambda _ : refreshClusters(mqFactory, state))
-    
-
+def subscribeToQueues(conf, mqFactory, state):
     #
     # Now add web frontend queues
     successF = lambda f : lambda mq, body : f(state, mq, body)
@@ -1086,4 +1006,19 @@ def makeService(conf):
                                     conf('clusters.concurrent_configcluster'))
     
         
+
+def makeService(conf):
+    mqService = client.makeService(conf)
+
+    mqFactory = mqService.mqFactory
+
+    # State is currently not used, but kept around for future purposes
+    state = State(conf)
+
+    # Startup list
+    startUpDefer = loadLocalCluster(mqFactory, state)
+    startUpDefer.addCallback(lambda _ : removeDeadClusters())
+    startUpDefer.addCallback(lambda _ : refreshClusters(mqFactory, state))
+    startUpDefer.addCallback(lambda _ : subscribeToQueues(conf, mqFactory, state))
+
     return mqService

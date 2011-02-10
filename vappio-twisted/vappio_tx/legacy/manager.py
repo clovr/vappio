@@ -1,6 +1,7 @@
 import json
 
 from twisted.internet import reactor
+from twisted.internet import error as twisted_error
 from twisted.internet import defer
 from twisted.application import internet
 from twisted.application import service
@@ -54,7 +55,7 @@ class QueueRequest(resource.Resource):
         req = json.loads(request.args['request'][0])
         retQueue = queue.randomQueueName('www-data')
         newReq = func.updateDict(req, dict(return_queue=retQueue,
-                                           user_name='guest'))
+                                           user_name=req.get('user_name', 'guest')))
 
 
         d = defer.Deferred()
@@ -67,7 +68,7 @@ class QueueRequest(resource.Resource):
         
         def _handleMsg(mq, m):
             delayed.cancel()
-            mq.unsubscribe(retQueue)
+            mq.unsubscribe(retQueue)            
             d.callback(m.body)
 
         self.mq.subscribe(_handleMsg, retQueue)
