@@ -27,6 +27,7 @@ nodetype=`cat $vappio_runtime/node_type`
 
 #Don't shutdown master unless force
 if [ $nodetype != "master" ] || [ -f "$vappio_runtime/forceautoshutdown" ]
+then
     #Check for jobs running on this host
     $SGE_ROOT/bin/$ARCH/qstat -u '*' -l hostname=$myhostname > $vappio_runtime/sge.running 
     #Check for staging,harvesting jobs or other jobs submitted by this host
@@ -69,7 +70,7 @@ if [ $nodetype != "master" ] || [ -f "$vappio_runtime/forceautoshutdown" ]
 	cat $vappio_runtime/sge.running	
 	exit 0
     fi
-then
+else
     echo "Detected node_type:$nodetype. Aborting shutdown"
     exit 0
 fi
