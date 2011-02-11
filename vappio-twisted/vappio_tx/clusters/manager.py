@@ -900,8 +900,8 @@ def retryAndTerminateDeferred(credClient, retries, instances, f):
         
         def _partition(resInstances):
             log.msg(resInstances)
-            badInstances = [i for i, r in instances if not r]
-            goodInstances = [i for i, r in instances if r]
+            badInstances = [i for i, r in resInstances if not r]
+            goodInstances = [i for i, r in resInstances if r]
             
             terminateDefer = credClient.terminateInstances(badInstances)
             terminateDefer.addCallback(lambda _ : goodInstances)
