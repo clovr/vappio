@@ -4,10 +4,10 @@ from twisted.application import internet
 from twisted.application import service
 from twisted.internet import reactor
 
-from vappio_tx.legacy import manager as www_manager
-from vappio_tx.tasklets import manager as tasklets_manager
-from vappio_tx.credentials import manager as credentials_manager
-from vappio_tx.clusters import manager as clusters_manager
+from vappio_tx import www_manager
+from vappio_tx import tasklets_manager
+from vappio_tx import credentials_manager
+from vappio_tx import clusters_manager
 
 from igs.utils import config
 
