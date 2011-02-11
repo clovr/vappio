@@ -96,6 +96,9 @@ bash -e $VAPPIO_RECIPES/clovrcomparative.sh
 #Skip errors for now
 bash $VAPPIO_RECIPES/gbrowse2.sh
 
+#ExtJS
+bash $VAPPIO_RECIPES/extjs.sh
+
 #TODO
 #updating clovr SVN filesystem packages/packages.list cpan.packages
 #making svn tags
