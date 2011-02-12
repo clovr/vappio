@@ -230,7 +230,14 @@ def handleTaskTerminateCluster(state, mq, request):
             terminateDefer = clusters_client_www.terminateCluster(cl.master['public_dns'],
                                                                   'local',
                                                                   None)
-
+            terminateDefer.addCallback(lambda taskName :
+                                       tasks_tx.loadTask(request['task_name']
+                                                         ).addCallback(lambda t :
+                                                                       tasks_tx.blockOnTaskAndForward('localhost',
+                                                                                                      request['cluster_name'],
+                                                                                                      taskName,
+                                                                                                      t)))
+            
             def _removeCluster(cl):
                 #
                 # Load the cluster again to make sure it is still in terminated
@@ -816,10 +823,6 @@ def runInstancesWithRetry(credClient,
                           numInstances,
                           userData):
 
-
-    d = defer.Deferred()
-    groups = [g.strip() for g in groups.split(',')]
-    
     def _runInstances(num):
         if bidPrice:
             return credClient.runSpotInstances(bidPrice=bidPrice,
@@ -841,28 +844,49 @@ def runInstancesWithRetry(credClient,
 
         
 
-    instances = []
-    def _runAndRetry(retries):
-        if retries > 0:
-            num = numInstances - len(instances)
-            runDefer = defer_utils.tryUntil(10, lambda : _runInstances(num), onFailure=defer_utils.sleep(30))
-            runDefer.addCallback(lambda i : instances.extend(i))
-            runDefer.addErrback(d.errback)
+    groups = [g.strip() for g in groups.split(',')]
 
-            def _retry(_):
-                if numInstances != len(instances):
-                    log.msg('Requested number of instances not created, retrying.  Want %d Got %d' % (numInstances, len(instances)))
-                    r = retries - 1
-                    _runAndRetry(r)
-                else:
-                    d.callback(instances)
-            runDefer.addCallback(_retry)
+    # Since defer_utils.tryUntil is stateless, we want to encode
+    # some state for our function to use
+    retryState = dict(desired_instances=numInstances,
+                      instances=[])
+
+
+    def _startInstance(retryState):
+        runDefer = _runInstances(retryState['desired_instances'])
+
+        def _onFailure(f):
+            retryState['desired_instances'] -= 1
+            return f
+
+        runDefer.addErrback(_onFailure)
+        runDefer.addCallback(lambda i : retryState['instances'].extend(i))
+
+        def _ensureAllInstances(_):
+            if len(retryState['instances']) < numInstances:
+                retryState['desired_instances'] = numInstances - len(retryState['instances'])
+                raise Exception('Not all instances started')
+
+        runDefer.addCallback(_ensureAllInstances)
+        
+        runDefer.addCallback(lambda _ : retryState['instances'])
+
+
+        return runDefer
+    
+    runAndRetry = defer_utils.tryUntil(RUN_INSTANCE_TRIES,
+                                       lambda : _startInstances(retryState),
+                                       onFailure=defer_utils.sleep(30))
+
+
+    def _failIfNoneStarted(f):
+        if not len(retryState['instances']):
+            return f
         else:
-            d.callback(instances)
-                
-    _runAndRetry(RUN_INSTANCE_TRIES)
-    return d
+            return retryState['instances']
 
+    runAndRetry.addErrback(_failIfNoneStarted)
+    return runAndRetry
 
 def retryAndTerminateDeferred(credClient, retries, instances, f):
     """
