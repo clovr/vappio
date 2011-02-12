@@ -852,7 +852,7 @@ def runInstancesWithRetry(credClient,
                       instances=[])
 
 
-    def _startInstance(retryState):
+    def _startInstances(retryState):
         runDefer = _runInstances(retryState['desired_instances'])
 
         def _onFailure(f):
