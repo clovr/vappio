@@ -863,8 +863,8 @@ def runInstancesWithRetry(credClient,
         runDefer.addCallback(lambda i : retryState['instances'].extend(i))
 
         def _ensureAllInstances(_):
-            if len(retryState['instances']) < numInstances:
-                retryState['desired_instances'] = numInstances - len(retryState['instances'])
+            if len(retryState['instances']) < retryState['desired_instances']:
+                retryState['desired_instances'] = retryState['desired_instances'] - len(retryState['instances'])
                 raise Exception('Not all instances started')
 
         runDefer.addCallback(_ensureAllInstances)
