@@ -319,6 +319,14 @@ def handleTaskTerminateInstances(state, mq, request):
                                                                     request['by_criteria'],
                                                                     request['criteria_values'])
 
+            terminateDefer.addCallback(lambda taskName :
+                                       tasks_tx.loadTask(request['task_name']
+                                                         ).addCallback(lambda t :
+                                                                       tasks_tx.blockOnTaskAndForward('localhost',
+                                                                                                      request['cluster_name'],
+                                                                                                      taskName,
+                                                                                                      t)))
+            
             def _terminateFailed(f):
                 log.err('Termination failed')
                 return _terminateInstancesByCriteria(cl, request['by_criteria'], request['criteria_values'])
