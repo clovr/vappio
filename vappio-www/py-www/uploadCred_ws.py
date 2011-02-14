@@ -16,6 +16,7 @@ class UploadCred(handler.CGIPage):
         md5 = hashlib.md5()
         
         data = fin.read(1024)
+        fdata = ''
         while data:
             fdata += data
             md5.update(data)
