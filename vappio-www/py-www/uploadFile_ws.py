@@ -12,14 +12,14 @@ class UploadFile(handler.CGIPage):
 
         fname = form['file'].filename
         fin = form['file'].file
-
-        fout = open(os.path.join('/mnt', 'user_data', fname), 'w')
+        foutname = os.path.join('/mnt', 'user_data', fname)
+        fout = open(foutname, 'w')
         data = fin.read(1024)
         while data:
             fout.write(data)
             data = fin.read(1024)
 
-        return True
+        return foutname
         
                               
 handler.generatePage(UploadFile())
