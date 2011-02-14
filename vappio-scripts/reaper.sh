@@ -19,7 +19,7 @@ deadhosts1=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[
 for deadhostname in $deadhosts1
 do
     $vappio_scripts/remove_sgehost.sh $deadhostname
-    vp-terminate-instances --by=$deadhostname
+    vp-terminate-instances -t --by=private_dns $deadhostname
 done
 
 #Clear all error states, task #315
