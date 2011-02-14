@@ -314,18 +314,30 @@ def handleAuthorizeGroup(cred, state, mq, request):
     return d
 
 def handleWWWListAddCredentials(state, mq, request):
+
+    
     if 'credential_name' in request and core.keysInDict(['credential_name',
                                                          'description',
                                                          'ctype',
-                                                         'cert',
-                                                         'pkey',
                                                          'metadata'],
                                                         request):
+        # Users can provide a file name or the actual contents of the
+        # certifcate.
+        if 'cert_file' in request:
+            cert = open(request['cert_file']).read()
+        else:
+            cert = request['cert']
+
+        if 'pkey_file' in request:
+            pkey = open(request['pkey_file']).read()
+        else:
+            pkey = request['pkey']
+            
         cred = persist.createCredential(name=request['credential_name'],
                                         desc=request['description'],
                                         ctype=request['ctype'],
-                                        cert=request['cert'],
-                                        pkey=request['pkey'],
+                                        cert=cert,
+                                        pkey=pkey,
                                         active=True,
                                         metadata=request['metadata'],
                                         conf=config.configFromMap(request.get('conf', {}),
