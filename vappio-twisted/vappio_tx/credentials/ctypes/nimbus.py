@@ -100,7 +100,7 @@ def retryIfTTLError(fail):
     try:
         fail.raiseException()
     except commands.ProgramRunError, err:
-        return defer.succeed('General security' in err.stderr)
+        return defer.succeed('General security' in err.stderr or 'Read timeout' in err.stderr)
     except Exception:
         return fail
 
