@@ -20,7 +20,7 @@ from vappio_tx.credentials.ctypes import ec2
 NAME = 'Nimbus'
 DESC = """Control module for Nimbus-based users"""
 
-RETRY_ATTEMPTS = 10
+RETRY_ATTEMPTS = 30
 
 def instantiateCredential(conf, cred):
     if not conf('config_loaded', default=False):
