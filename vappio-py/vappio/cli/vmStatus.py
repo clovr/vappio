@@ -59,6 +59,8 @@ def listClustersSafe(host):
             return '(%s)' % name
         elif state == 'failed':
             return '!%s!' % name
+        elif state == 'pending':
+            return '^%s^' % name
         else:
             return name
     try:
