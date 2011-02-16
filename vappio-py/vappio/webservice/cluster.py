@@ -12,14 +12,15 @@ TERMINATEINSTANCES_URL = '/vappio/terminateInstances_ws.py'
 LISTCLUSTERS_URL = '/vappio/listClusters_ws.py'
 
 
-def startCluster(host, name, conf, num, cred, updateDirs):
+def startCluster(host, cluster, num_exec, num_data, cred, conf):
     """
     Start a cluster
     """
-    return performQuery(host, STARTCLUSTER_URL, dict(cluster=name,
-                                                     num_exec=num,
-                                                     num_data=0,
-                                                     cred_name=cred))
+    return performQuery(host, STARTCLUSTER_URL, dict(cluster=cluster,
+                                                     num_exec=num_exec,
+                                                     num_data=num_data,
+                                                     cred_name=cred,
+                                                     conf=conf))
 
 def loadCluster(host, name):
     """

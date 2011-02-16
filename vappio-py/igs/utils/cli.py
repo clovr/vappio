@@ -16,6 +16,9 @@ LIST = 'list'
 COUNT = 'count'
 
 
+class DeprecatedOptionError(Exception):
+    pass
+
 class MissingOptionError(Exception):
     pass
 
@@ -188,6 +191,15 @@ def notFalse(v):
 
 # This is just a more descriptive name for strings than notFalse
 notBlank = notFalse
+
+def deprecated(msg):
+    def _(x):
+        if x is not None:
+            raise DeprecatedOptionError(msg)
+        else:
+            return x
+
+    return _
 
 def composeCLI(*funcs):
     """
