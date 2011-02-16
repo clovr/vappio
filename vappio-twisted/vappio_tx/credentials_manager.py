@@ -222,15 +222,15 @@ def handleRunSpotInstances(cred, state, mq, request):
         fout.write(userData + '\n')
         fout.close()    
         
-    d = cred.runInstances(bidPice=request['bid_price'],
-                          amiId=request['ami'],
-                          key=request['key'],
-                          instanceType=request['instance_type'],
-                          groups=request['groups'],
-                          availabilityZone=request.get('availability_zone', None),
-                          number=request.get('num_instances', 1),
-                          userDataFile=userDataFile,
-                          log=True)
+    d = cred.runSpotInstances(bidPrice=request['bid_price'],
+                              amiId=request['ami'],
+                              key=request['key'],
+                              instanceType=request['instance_type'],
+                              groups=request['groups'],
+                              availabilityZone=request.get('availability_zone', None),
+                              number=request.get('num_instances', 1),
+                              userDataFile=userDataFile,
+                              log=True)
 
     def _removeUserDataFile(instances):
         if userDataFile:
