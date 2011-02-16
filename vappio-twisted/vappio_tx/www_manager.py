@@ -17,7 +17,7 @@ from vappio_tx.mq import client
 from vappio_tx.legacy import cgi as vappio_cgi
 from vappio_tx.utils import queue
 
-TIMEOUT = 60
+TIMEOUT = 120
 
 def TimeoutRequestError():
     return json.dumps({'success': False,
@@ -61,19 +61,23 @@ class QueueRequest(resource.Resource):
         d = defer.Deferred()
         
         def _timeout():
-            self.mq.unsubscribe(retQueue)
             d.errback(Exception('Waiting for request failed'))
             
         delayed = reactor.callLater(TIMEOUT, _timeout)
         
         def _handleMsg(mq, m):
-            delayed.cancel()
-            mq.unsubscribe(retQueue)            
             d.callback(m.body)
 
         self.mq.subscribe(_handleMsg, retQueue)
         self.mq.send('/queue/' + self.name, json.dumps(newReq))
-            
+
+        # If the client side closes the connection, cancel our
+        # timeout and unsubscribe
+        def _requestFinished(_):
+            delayed.cancel()
+            self.mq.unsubscribe(retQueue)
+
+        request.notifyFinish().addCallback(_requestFinished)
 
         d.addCallback(request.write)
 

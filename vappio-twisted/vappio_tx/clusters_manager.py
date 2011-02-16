@@ -125,11 +125,10 @@ def handleTaskStartCluster(state, mq, request):
         cl = persist.Cluster(request['cluster'],
                              request['user_name'],
                              request['cred_name'],
-                             config.configFromMap({}))
+                             config.configFromMap(request['conf']))
         startMasterDefer = startMaster(state, mq, request['task_name'], cl)
         if request['num_exec'] > 0 or request['num_data'] > 0:
             def _addInstances(cl):
-                log.msg('Started master successfully, trying to start any exec nodes')
                 addInstancesDefer = clusters_client_www.addInstances('localhost',
                                                                      request['cluster'],
                                                                      request['user_name'],
@@ -227,16 +226,19 @@ def handleTaskTerminateCluster(state, mq, request):
     if request['cluster'] != 'local':
         # If we are terminated a remote cluster
         def _terminate(cl):
-            terminateDefer = clusters_client_www.terminateCluster(cl.master['public_dns'],
+            if cl.master:
+                terminateDefer = clusters_client_www.terminateCluster(cl.master['public_dns'],
                                                                   'local',
                                                                   None)
-            terminateDefer.addCallback(lambda taskName :
-                                       tasks_tx.loadTask(request['task_name']
-                                                         ).addCallback(lambda t :
-                                                                       tasks_tx.blockOnTaskAndForward('localhost',
-                                                                                                      request['cluster_name'],
-                                                                                                      taskName,
-                                                                                                      t)))
+                terminateDefer.addCallback(lambda taskName :
+                                           tasks_tx.loadTask(request['task_name']
+                                                             ).addCallback(lambda t :
+                                                                           tasks_tx.blockOnTaskAndForward('localhost',
+                                                                                                          request['cluster'],
+                                                                                                          taskName,
+                                                                                                          t)))
+            else:
+                terminateDefer.succeed(True)
             
             def _removeCluster(cl):
                 #
@@ -323,7 +325,7 @@ def handleTaskTerminateInstances(state, mq, request):
                                        tasks_tx.loadTask(request['task_name']
                                                          ).addCallback(lambda t :
                                                                        tasks_tx.blockOnTaskAndForward('localhost',
-                                                                                                      request['cluster_name'],
+                                                                                                      request['cluster'],
                                                                                                       taskName,
                                                                                                       t)))
             
@@ -580,7 +582,8 @@ def startMaster(state, mq, taskName, cl):
 
     def _loadConfig(cl):
         loadConfig = credClient.credentialConfig()
-        loadConfig.addCallback(lambda c : cl.update(config=config.configFromMap(c)))
+        loadConfig.addCallback(lambda c : cl.update(config=config.configFromConfig(cl.config,
+                                                                                   base=config.configFromMap(c))))
         return loadConfig
 
     d.addCallback(_loadConfig)
@@ -743,7 +746,6 @@ def startExecNodes(state, mq, taskName, numExec, cl):
 
         def _updateTaskIfAnyFailed(l):
             cluster = cl.update(execNodes=l)
-            
             if len(l) != len(cl.execNodes):
                 return tasks_tx.updateTask(taskName,
                                            lambda t : t.addMessage(task.MSG_ERROR,

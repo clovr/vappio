@@ -354,7 +354,8 @@ def handleWWWListAddCredentials(state, mq, request):
                                                            request['return_queue'],
                                                            [{'name': c.name,
                                                              'description': c.desc,
-                                                             'num_instances': len(state.instanceCache.get(c.name, CacheEntry([])).value)}
+                                                             'num_instances': len(state.instanceCache.get(c.name, CacheEntry([])).value),
+                                                             'ctype': c.getCType()}
                                                             for c in cs
                                                             if ('credential_names' in request and c.name in request['credential_names']) or
                                                             'credential_names' not in request]))

@@ -23,6 +23,28 @@ DESC = """Control module for EC2"""
 
 DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr_ec2.conf'
 
+INSTANCE_TYPE_MAPPING = {'default': 'c1.xlarge',
+                         'small': 'c1.xlarge',
+                         'medium': 'm2.xlarge',
+                         'large': 'm2.4xlarge',
+                         'm1.small': 'm1.small',
+                         }
+
+class InstanceTypeError(Exception):
+    def __init__(self, instanceType):
+        self.instanceType = instanceType
+
+    def __str__(self):
+        return 'Unknown instance type: ' + str(self.instanceType)
+
+def mapInstanceType(mapping, t):
+    if t in mapping:
+        return mapping[t]
+    elif t in mapping.values():
+        return t
+    else:
+        raise InstanceTypeError(t)
+
 class Instance(functional.Record):
     """Represents running image"""
 
@@ -246,7 +268,7 @@ def runInstances(cred,
     cmd = ['ec2-run-instances',
            amiId,
            '-k', key,
-           '-t', instanceType]
+           '-t', mapInstanceType(INSTANCE_TYPE_MAPPING, instanceType)]
 
     if availabilityZone:
         cmd.extend(['-z', availabilityZone])
@@ -308,7 +330,7 @@ def runSpotInstances(cred,
            '--price', str(bidPrice),
            '--type', 'one-time',
            '-k', key,
-           '--instance-type', instanceType]
+           '--instance-type', mapInstanceType(INSTANCE_TYPE_MAPPING, instanceType)]
 
     if availabilityZone:
         cmd.extend(['-z', availabilityZone])
