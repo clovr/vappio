@@ -96,11 +96,21 @@ def instantiateCredential(conf, cred):
     return mainDeferred
 
 
+def retryIfTTLError(fail):
+    try:
+        fail.raiseException()
+    except commands.ProgramRunError, err:
+        return defer.succeed('General security' in err.stderr)
+    except Exception:
+        return fail
+
+
 def retry(n, f):
     def _(*args, **kwargs):
         return defer_utils.tryUntil(n,
                                     lambda : f(*args, **kwargs),
-                                    onFailure=defer_utils.sleep(30))
+                                    onFailure=defer_utils.sleep(30),
+                                    retry=retryIfTTLError)
 
     return _
 

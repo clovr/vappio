@@ -32,11 +32,17 @@ def mapSerial(f, iterable):
 
     
 
-def tryUntil(tries, f, onFailure=None):
+def tryUntil(tries, f, onFailure=None, retry=None):
     """
     Try to call f tries times at most.  If f succeeds, return value, if f fails try again, if the number
     of attempts has been reached return the last failure.
 
+    onFailure is a function that takes no parameters and is returns a deferred, this is run between attempts.
+
+    retry is a function that takes the failure as input and returns True if we should retry and False if not.
+
+    if onFailure or giveUp fail, the entire tryUntil fails without iterating.
+    
     Returns a Deferred
     """
     d = defer.Deferred()
@@ -48,12 +54,22 @@ def tryUntil(tries, f, onFailure=None):
             
             def _failed(f):
                 if tries > 0:
-                    if onFailure:
-                        onFailureDefer = onFailure()
+                    if retry:
+                        retryDefer = retry(f)
                     else:
-                        onFailureDefer = defer.succeed(True)
+                        retryDefer = defer.succeed(True)
 
-                    onFailureDefer.addCallback(lambda _ : _try(tries - 1))
+
+                    def retryOrGiveUp(r):
+                        if r and onFailure:
+                            return onFailure().addCallback(lambda _ : reactor.callLater(0, _try, tries - 1))
+                        elif r:
+                            return defer.succeed(True).addCallback(lambda _ : reactor.callLater(0, _try, tries - 1))
+                        else:
+                            d.errback(f)
+
+                    retryDefer.addCallback(retryOrGiveUp)
+                    retryDefer.addErrback(d.errback)
                 else:
                     d.errback(f)
                     

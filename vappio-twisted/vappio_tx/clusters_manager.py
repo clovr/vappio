@@ -238,7 +238,7 @@ def handleTaskTerminateCluster(state, mq, request):
                                                                                                           taskName,
                                                                                                           t)))
             else:
-                terminateDefer.succeed(True)
+                terminateDefer = defer.succeed(True)
             
             def _removeCluster(cl):
                 #
