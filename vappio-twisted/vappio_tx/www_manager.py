@@ -74,8 +74,13 @@ class QueueRequest(resource.Resource):
         # If the client side closes the connection, cancel our
         # timeout and unsubscribe
         def _requestFinished(_):
-            delayed.cancel()
             self.mq.unsubscribe(retQueue)
+            
+            try:
+                delayed.cancel()
+            except twisted_error.AlreadyCalled:
+                pass
+
 
         request.notifyFinish().addCallback(_requestFinished)
 
