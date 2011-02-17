@@ -7,7 +7,7 @@ from vappio.tasks.utils import runTaskStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', cli.defaultIfNone('localhost')),
-    ('cluster', '', '--cluster', 'Name of cluster', cli.notNone),
+    ('cluster', '', '--cluster', 'Name of cluster', cli.defaultIfNone('local')),
     ('by_criteria',
      '',
      '--by',
