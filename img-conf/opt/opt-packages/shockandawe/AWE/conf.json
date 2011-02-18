@@ -1,0 +1,15 @@
+{   "_about"  : "AWE - node json configuration file",
+	"verbose" : true,
+	"port"    : 8888,
+	"version" : "prod",
+	"dev"	  : {
+				"jobsdir"   : "/tmp/awe/jobs",
+				"dbconnect" : "pg://clovr@localhost/awe",
+				"pgconnect" : "host='localhost' dbname='awe' user='clovr'"
+				 },
+	"prod"    : {
+				"jobsdir"   : "/mnt/awe/jobs",
+				"dbconnect" : "pg://clovr@localhost/awe",
+				"pgconnect" : "host='localhost' dbname='awe' user='clovr'"
+				}
+}

@@ -1,0 +1,13 @@
+{   "_about"  : "Shock - node json configuration file",
+	"verbose" : false,
+	"port"    : 8888,
+	"version" : "dev",
+	"dev"	  : {
+				"data_root" : "/mnt/shock/shock_data",
+				"dbconnect" : "pg://clovr@localhost/shock"
+				 },
+	"prod"    : {
+				"data_root"   : "/mnt/shock/shock_data",
+				"dbconnect" : "pg://clovr@localhost/shock"
+				}			
+}
