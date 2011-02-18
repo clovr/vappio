@@ -83,8 +83,8 @@ while(my $arg = <>) {
 			}
 		}
 		close COMMAND;
-		add_seq_type_to_tag_metadata( $tag_name, $first_seq_type );
 		die "Error in executing the command $command; Error code: $?\n" if( $? );
+		add_seq_type_to_tag_metadata( $tag_name, $first_seq_type );
 		if($options{'db_type'}) {
 			check_compatibility($first_seq_type, $options{'db_type'});
 		}
