@@ -27,7 +27,8 @@ kill `ps h -C sge_execd -o pid`
 
 ##
 # Tell vappio apps to terminate us
-(source $vappio_scripts/clovrEnv.sh && vp-terminate-instances -t --cluster=local --host=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster` --by=private_dns `hostname -f`)
+source $vappio_scripts/clovrEnv.sh
+vp-terminate-instances -t --cluster=local --host=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster` --by=private_dns `hostname -f`
 
 ##
 #Zero out sgemaster preventing further use of SGE on this node
