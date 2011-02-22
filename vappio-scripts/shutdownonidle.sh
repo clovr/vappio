@@ -84,15 +84,19 @@ then
 fi
 
 #Cancel spot instance requests for this host
-master=`cat /var/lib/gridengine/default/common/act_qmaster`
-myinstanceid=`curl http://169.254.169.254/latest/meta-data/instance-id`
-$ssh_client -i $ssh_key $ssh_options root@$master "export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/;export EC2_HOME=/opt/ec2-api-tools-1.3;/opt/ec2-api-tools-1.3/bin/ec2-describe-spot-instance-requests -K /tmp/local_key.pem -C /tmp/local_cert.pem | grep $myinstanceid | cut -f 2 | xargs /opt/ec2-api-tools-1.3/bin/ec2-cancel-spot-instance-requests -K /tmp/local_key.pem -C /tmp/local_cert.pem"
+#master=`cat /var/lib/gridengine/default/common/act_qmaster`
+#myinstanceid=`curl http://169.254.169.254/latest/meta-data/instance-id`
+#$ssh_client -i $ssh_key $ssh_options root@$master "export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/;export EC2_HOME=/opt/ec2-api-tools-1.3;/opt/ec2-api-tools-1.3/bin/ec2-describe-spot-instance-requests -K /tmp/local_key.pem -C /tmp/local_cert.pem | grep $myinstanceid | cut -f 2 | xargs /opt/ec2-api-tools-1.3/bin/ec2-cancel-spot-instance-requests -K /tmp/local_key.pem -C /tmp/local_cert.pem"
 
 if [ "$nodetype" = "master" ]
 then
     vp-terminate-cluster --name=local
 else
-    vp-terminate-instances --by=$myhostname
+    source $vappio_scripts/clovrEnv.sh 
+    verror "Sceduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
+    echo "Sceduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
+    sleep `expr $delayshutdown \* 60`
+    vp-terminate-instances -t --cluster=local --host=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster` --by=private_dns `hostname -f`
 fi
 
 verror "Scheduling shutdown in $delayshutdown minutes of $myhostname"
