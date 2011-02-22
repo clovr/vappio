@@ -9,7 +9,7 @@ case "$1" in
     stop)
 	kill `cat /opt/vappio-apps/www_data.pid`
 	;;
-    relstart)
+    restart)
 	$0 stop
 	sleep 1
 	$0 start
