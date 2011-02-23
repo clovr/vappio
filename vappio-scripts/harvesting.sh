@@ -48,6 +48,8 @@ else
 	#output directory missing, fail silently allowing resched of workflow job
 	if [ -d "$parentdir" ] && [ "$isreachable" != "" ] && [ "$direxists" != "$dir" ]
 	then
+	    #TODO, if workflow is complete then must mark incomplete before resume
+	    vlog "No output directory on remote host $exechost: $direxists != $dir " 
 	    exit 0
 	else
 	    #job error
