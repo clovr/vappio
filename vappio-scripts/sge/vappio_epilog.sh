@@ -91,7 +91,7 @@ if [ -f "${request_cwd}/event.log" ]
 then
     #Harvest wf xml
     vlog "Submitting harvesting of workflow xml on $exechost:$wfdir to $wfq" 
-    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $harvestingwf_script $exechost \"$wfdir\" ${request_cwd}"
+    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $harvestingwf_script $exechost \"$wfdir\" ${request_cwd} > /mnt/scratch/harvestqsub.$$.stdout 2> /mnt/scratch/harvestqsub.$$.stderr"
     vlog "CMD: $cmd" 
     $cmd 
     ret2=$?
@@ -99,7 +99,11 @@ then
     if [ $ret2 -ne 0 ]
     then
 	verror "EPILOG Error during harvesting event.log qsub return code: $ret2"
+	vlog `cat /mnt/scratch/harvestqsub.$$.stdout /mnt/scratch/harvestqsub.$$.stderr`
+	master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
+	ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$master "echo \"F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1\" >> ${request_cwd}/event.log"
 	#Job error, logging and continuing to avoid "hung jobs" in Eqw state
+
     fi
 fi
 
