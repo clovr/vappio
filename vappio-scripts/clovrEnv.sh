@@ -30,6 +30,9 @@ export QIIME_CONFIG_FP=$BIOINF_HOME/qiime/.qiime_config
 ## Qiime needs the BLASTMAT env set
 export BLASTMAT=/usr/share/ncbi/data/
 
+## Cunningham 
+export PATH=$PATH:/opt/cunningham
+
 ## Crossbow environmental variables
 export CROSSBOW_HOME=/opt/crossbow
 
