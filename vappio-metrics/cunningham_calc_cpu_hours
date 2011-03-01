@@ -32,7 +32,9 @@
 # Importing ************************************************************************
 import sys
 import os
+
 from igs.utils import commands
+
 from vappio.webservice import tag
 # **********************************************************************************
 
@@ -44,13 +46,13 @@ PROGS = {'blastn': 1,
          'blastx': 1,
         }
 # only some databases are supported by cunningham:
-DBS  = {'clovr-refseqdb': 1,
-       'clovr-cogdb': 1,
-       'clovr-eggnogdb': 1,
-       'clovr-keggdb': 1,
-       'ncbi-nr': 1,
-       'clovr-rrnadb': 1  
-       }
+DBS  = set('clovr-refseqdb',
+           'clovr-cogdb',
+           'clovr-eggnogdb',
+           'clovr-keggdb',
+           'ncbi-nr',
+           'clovr-rrnadb',
+           )
 
 
 def cunninghamIt(f):

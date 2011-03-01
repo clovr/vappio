@@ -81,7 +81,7 @@ def performQuery(host, url, var, headers=None, timeout=30, tries=4, debug=False)
         data = result['data']
         if not result['success']:
             log.err(repr(data))
-            raise errors.TryError('Query failed: ' + data['msg'])
+            raise errors.TryError('Query failed: ' + data['msg'], data)
 
         return data
 
