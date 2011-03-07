@@ -1,3 +1,4 @@
 {
+ "description": "NCBI Non-redundant Nucleotide DB",
  "format_type": "nuc_blastdb"
 }

@@ -1,3 +1,4 @@
 {
+ "description": "NCBI Non-Redundant Protein DB",
  "format_type": "aa_blastdb"
 }
