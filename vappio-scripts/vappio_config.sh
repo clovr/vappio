@@ -19,8 +19,8 @@ vlogmirror() {
  if [ ! -e "$npipe" ] && [ ! -e "$npipe2" ]
  then
      trap "rm -f $npipe $npipe2" EXIT
-     mknod $npipe p
-     mknod $npipe2 p
+     mknod $npipe p || true
+     mknod $npipe2 p || true
      tee <$npipe >(/usr/bin/logger -p local0.info -t VP.$0 --) &
      tee <$npipe2 >(/usr/bin/logger -p local0.warning -t VP.$0 --) 1>&2 &
      exec 1>$npipe
