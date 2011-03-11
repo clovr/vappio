@@ -174,10 +174,10 @@ def replaceUserDataVariables(cred, userData):
 
 
 def handleCredentialConfig(cred, state, mq, request):
-    conf = {}
-    for k in cred.credInstance.conf.keys():
-        conf[k] = cred.credInstance.conf(k)
-        
+    conf = config.configToDict(cred.credInstance.conf)
+    conf = func.updateDict(conf,
+                           {'general.ctype': cred.credential.getCType()})
+    
     queue.returnQueueSuccess(mq, request['return_queue'], conf)
 
 def handleRunInstances(cred, state, mq, request):
