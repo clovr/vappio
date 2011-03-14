@@ -487,6 +487,35 @@ def loadLocalCluster(mq, state):
 
     d = persist.loadCluster('local', None)
 
+    def _clusterExists(cl):
+        conf = config.configFromMap({'config_loaded': True},
+                                    base=config.configFromStream(open('/tmp/machine.conf'),
+                                                                 base=config.configFromEnv()))
+
+        # Likely our IP has changed, let's update the master
+        if cl.credName == 'local' and conf('MASTER_IP') not in [cl.master['public_dns'], cl.master['private_dns']]:
+            master = dict(instance_id='local',
+                          ami_id=None,
+                          public_dns=conf('MASTER_IP'),
+                          private_dns=conf('MASTER_IP'),
+                          state='running',
+                          key=None,
+                          index=None,
+                          instance_type=None,
+                          launch=None,
+                          availability_zone=None,
+                          monitor=None,
+                          spot_request_id=None,
+                          bid_price=None)
+
+            cl = cl.setMaster(master).update(config=conf)
+            clusterSaveDefer = persist.saveCluster(cl)
+            clusterSaveDefer.addCallback(lambda _ : cl)
+            return clusterSaveDefer
+        else:
+            return cl
+            
+        
     def _clusterDoesnotExist(f):
         f.trap(persist.ClusterNotFoundError)
 
@@ -564,7 +593,8 @@ def loadLocalCluster(mq, state):
 
         saveDefer.addCallback(_addCluster)
         return saveDefer
-    
+
+    d.addCallback(_clusterExists)
     d.addErrback(_clusterDoesnotExist)
     return d
 
