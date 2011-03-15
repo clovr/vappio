@@ -229,7 +229,9 @@ def realizePhantom(ctype, baseDir, tagfile):
     # Get what to download, first try the url then get the command if it is not there.
     # We define a url as anything that starts with <protocol_we_understand>://
     # so if it doesn't match that, it's a command and we run that
-    download = newTag('phantom.cluster.%s.url' % ctype, default=newTag('phantom.cluster.%s.command' % ctype))
+    download = newTag('phantom.cluster.%s.url' % ctype,
+                      default=newTag('phantom.cluster.%s.command' % ctype,
+                                     default=newTag('phantom.cluster.ALL.command')))
 
     if download.startswith('http://'):
         #downloadHttp(ctype, baseDir, download, tagfile)
