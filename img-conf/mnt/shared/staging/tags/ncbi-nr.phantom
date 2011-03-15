@@ -2,6 +2,6 @@
 command=md5Helper.py ftp://ftp.ncbi.nih.gov/blast/db/nr.*.tar.gz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
 tag_options=-e
 
-[cluster.UNKNOWN]
+[cluster.ALL]
 command=md5Helper.py ftp://ftp.ncbi.nih.gov/blast/db/nr.*.tar.gz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
 tag_options=-e

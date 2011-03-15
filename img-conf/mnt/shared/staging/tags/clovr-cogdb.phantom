@@ -5,7 +5,7 @@ depends_on=/mnt/staging/tags_extra/clovr-cogdb.dlist
 command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} < ${phantom.depends_on}
 tag_options=-e
 
-[cluster.UNKNOWN]
+[cluster.ALL]
 command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} < ${phantom.depends_on}
 tag_options=-e
 

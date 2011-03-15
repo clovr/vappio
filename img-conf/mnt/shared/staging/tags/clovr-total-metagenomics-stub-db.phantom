@@ -5,6 +5,6 @@ depends_on=/mnt/staging/tags_extra/clovr-total-metagenomics-stub-db.dlist
 command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-total-metagenomics-stub-db.tgz --join-md5=ba5ec2861381ef07d8dfe51e0a6b0836 < ${phantom.depends_on}
 tag_options=-e
 
-[cluster.UNKNOWN]
+[cluster.ALL]
 command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-total-metagenomics-stub-db.tgz --join-md5=ba5ec2861381ef07d8dfe51e0a6b0836 < ${phantom.depends_on}
 tag_options=-e
