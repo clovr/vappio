@@ -1,8 +1,3 @@
-[cluster.ec2]
-command=echo b68c5e0702b1a8613b1cc83f3e37831c http://clovr-16s-db.s3.amazonaws.com/clovr-16s-metagenomics-db.tgz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
-tag_options=-e
-
-
 [cluster.ALL]
 command=echo b68c5e0702b1a8613b1cc83f3e37831c http://clovr-16s-db.s3.amazonaws.com/clovr-16s-metagenomics-db.tgz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
 tag_options=-e

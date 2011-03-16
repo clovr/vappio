@@ -1,7 +1,3 @@
-[cluster.ec2]
-command=md5Helper.py http://clovr-prok-db.s3.amazonaws.com/clovr-prok-db-0.2 | reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-prok-db.tar.gz --join-md5=82666328565055e2a69655ee3995f4ef
-tag_options=-e
-
 [cluster.ALL]
 command=md5Helper.py http://clovr-prok-db.s3.amazonaws.com/clovr-prok-db-0.2 | reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-prok-db.tar.gz --join-md5=82666328565055e2a69655ee3995f4ef
 tag_options=-e
