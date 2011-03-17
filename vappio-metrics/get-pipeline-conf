@@ -27,7 +27,7 @@ for line in sys.stdin:
 pipelineValues['pipeline.PIPELINE_ID'] = pl.pid
     
 for k, v in pipelineValues.iteritems():
-    sys.stdout.write(str(k) + '=' + str(v) + '\n')
+    sys.stdout.write(str(k) + '=' + str(v.strip()) + '\n')
 
 
 
