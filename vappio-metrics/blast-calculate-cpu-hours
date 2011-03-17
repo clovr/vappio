@@ -4,7 +4,6 @@
 # pipeline.WANT_EXEC_INSTANCES which can be fed into resize-cluster metric
 #
 # The input data currently needed is:
-# cluster.CLUSTER_NAME
 # misc.PROGRAM (which blast program)
 # params.MAX_QUERY_SEQ_LEN
 # params.MIN_QUERY_SEQ_LEN
@@ -12,7 +11,6 @@
 # params.NUM_QUERY_SEQ
 # params.SCALE_FACTOR - How much to scale the total number of queries, can be a float
 #                      defaults to 1 if not specified
-# input.REF_DB_TOTAL_SEQ_LEN -- currently not used
 import sys
 
 #
@@ -46,14 +44,12 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-kv = {'cluster.CLUSTER_NAME': None,
-      'params.PROGRAM': None,
+kv = {'params.PROGRAM': None,
       'params.MAX_QUERY_SEQ_LEN': None,
       'params.MIN_QUERY_SEQ_LEN': None,
       'params.AVG_QUERY_SEQ_LEN': None,
       'params.NUM_QUERY_SEQ': None,
       'params.SCALE_FACTOR': 1,
-      #'params.REF_DB_TOTAL_SEQ_LEN': None,
       }
 
 for line in sys.stdin:
@@ -71,7 +67,6 @@ if kv['params.PROGRAM'] not in WORK_FACTOR:
 for i in ['params.MAX_QUERY_SEQ_LEN',
           'params.MIN_QUERY_SEQ_LEN',
           'params.NUM_QUERY_SEQ',]:
-          #'params.REF_DB_TOTAL_SEQ_LEN']:
     kv[i] = int(kv[i])
 
 for i in ['params.SCALE_FACTOR',
