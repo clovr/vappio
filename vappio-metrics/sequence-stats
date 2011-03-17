@@ -69,8 +69,8 @@ for t in tags:
         numSeq, totRes, avgLen, minLen, maxLen = seqstat(f)
         stats['avg_len'] = (stats['num_seq'] * stats['avg_len'] + totRes)/(numSeq + stats['num_seq'])
         stats['num_seq'] += numSeq
-        stats['max_len'] = stats['max_len'] > maxLen and stats['max_len'] or maxLen
-        stats['min_len'] = stats['min_len'] > minLen and stats['min_len'] or minLen
+        stats['max_len'] = maxLen if maxLen > stats['max_len'] else stats['max_len']
+        stats['min_len'] = minLen if minLen < stats['min_len'] else stats['min_len']
 
 sys.stdout.write('\n'.join([k + '=' + str(v) for k, v in [('params.MAX_QUERY_SEQ_LEN', stats['max_len']),
                                                           ('params.MIN_QUERY_SEQ_LEN', stats['min_len']),
