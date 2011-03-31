@@ -34,7 +34,7 @@ isreachable=`printf "kv\nhostname=$1\n" | /opt/vappio-metrics/host-is-reachable 
 if [ "$isreachable" = "" ]
 then
     echo -e "Can't connect to master node $1"
-    echo -e "Ensure that you have obtained copy of the master node key and saved as /mnt/keys/devel1.pem"
+    echo -e "Ensure that you have obtained copy of the master node public key and save as /mnt/keys/devel1.pem.pub"
     exit 1;
 fi
 bootStrapKeys.py
