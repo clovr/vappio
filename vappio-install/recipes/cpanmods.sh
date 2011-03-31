@@ -9,6 +9,7 @@ echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/tr
 #q
 #.
 
+apt-get -y install perl-doc
 apt-get -y install gcc
 apt-get -y install libgd2-xpm-dev
 export PERL_MM_USE_DEFAULT=1
