@@ -61,7 +61,7 @@ mkdir /media/
 mkdir /software/
 chown qiime:qiime /software/
 mkdir /software/qiime-deploy/
-svn co svn://svn.microbio.me/QiimeUtils/qiime_installer/vb-upgrade/qiime-deploy /software/qiime-deploy
+svn co svn://svn.microbio.me/qiime_installer/vb-upgrade/qiime-deploy /software/qiime-deploy
 find /software -type f -exec chmod 666 {} \;
 find /software -type d -exec chmod 777 {} \;
 find /software -exec chown qiime:qiime {} \;
@@ -85,7 +85,7 @@ hostname -b -F /etc/hostname
 
 # ==> Adding swap scripts
 cd /etc/init.d/
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/create_swap_file.sh
+svn export svn://svn.microbio.me/qiime_installer/clovr/create_swap_file.sh
 update-rc.d create_swap_file.sh defaults
 
 # Setting up extra folders
@@ -94,14 +94,14 @@ sudo -u qiime mkdir /home/qiime/Desktop/Before_you_start/
 sudo -u qiime mkdir /home/qiime/Desktop/Shared_Folder
 
 # ==> Adding link to the Before_you_start files
-ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/0.QIIME_version.txt /home/qiime/Desktop/Before_you_start/0.QIIME_version.txt
-ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/1.Welcome.txt /home/qiime/Desktop/Before_you_start/1.Welcome.txt
-ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/2.Fixing_Internet_access_in_the_virtual_box.txt /home/qiime/Desktop/Before_you_start/2.Fixing_Internet_access_in_the_virtual_box.txt
-ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/3.Getting_started_with_QIIME.txt /home/qiime/Desktop/Before_you_start/3.Getting_started_with_QIIME.txt
-ln -s /software/qiime-1.2.0-release/doc/vb_files/Before_you_start/4.Transferring_files_to_your_virtual_box.txt /home/qiime/Desktop/Before_you_start/4.Transferring_files_to_your_virtual_box.txt
+ln -s /software/qiime-1.2.1-release/doc/vb_files/Before_you_start/0.QIIME_version.txt /home/qiime/Desktop/Before_you_start/0.QIIME_version.txt
+ln -s /software/qiime-1.2.1-release/doc/vb_files/Before_you_start/1.Welcome.txt /home/qiime/Desktop/Before_you_start/1.Welcome.txt
+ln -s /software/qiime-1.2.1-release/doc/vb_files/Before_you_start/2.Fixing_Internet_access_in_the_virtual_box.txt /home/qiime/Desktop/Before_you_start/2.Fixing_Internet_access_in_the_virtual_box.txt
+ln -s /software/qiime-1.2.1-release/doc/vb_files/Before_you_start/3.Getting_started_with_QIIME.txt /home/qiime/Desktop/Before_you_start/3.Getting_started_with_QIIME.txt
+ln -s /software/qiime-1.2.1-release/doc/vb_files/Before_you_start/4.Transferring_files_to_your_virtual_box.txt /home/qiime/Desktop/Before_you_start/4.Transferring_files_to_your_virtual_box.txt
 
 # Creating QIIME help
-cd /software/qiime-1.2.0-release/doc/
+cd /software/qiime-1.2.1-release/doc/
 source /home/qiime/.bashrc
 export PATH=$PATH:/software/python-2.6.4-release/bin/:
 make html
@@ -134,34 +134,34 @@ chmod 755 /etc/rc.local
 # User configuration
 mkdir /usr/local/qiime_home/
 cd /usr/local/qiime_home/
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/gconf.tgz
+svn export svn://svn.microbio.me/qiime_installer/clovr/gconf.tgz
 tar zxvf gconf.tgz 
 rm gconf.tgz
 chown -R qiime:qiime /usr/local/qiime_home/
 cd /etc/init.d/
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/qiime_user_conf.sh
+svn export svn://svn.microbio.me/qiime_installer/clovr/qiime_user_conf.sh
 update-rc.d qiime_user_conf.sh defaults
 
 # Firefox configuration
 cd /home/qiime/
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/mozilla.tgz
+svn export svn://svn.microbio.me/qiime_installer/clovr/mozilla.tgz
 tar zxvf mozilla.tgz
 rm mozilla.tgz
 
 # Poweroff/Restart configuration
 cd /usr/share/polkit-1/actions/
-svn export --force svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/org.freedesktop.consolekit.policy
+svn export --force svn://svn.microbio.me/qiime_installer/clovr/org.freedesktop.consolekit.policy
 chmod 644 org.freedesktop.consolekit.policy
 
 # Autologin configuration
 cd /etc/gdm/
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/custom.conf
+svn export svn://svn.microbio.me/qiime_installer/clovr/custom.conf
 chmod 644 /etc/gdm/custom.conf
 
 # Desktop backgroud image
 mkdir /home/qiime/Pictures/
 cd /home/qiime/Pictures/
-svn export svn://svn.microbio.me/QiimeUtils/qiime_installer/clovr/wordpressheader.png 
+svn export svn://svn.microbio.me/qiime_installer/clovr/wordpressheader.png 
 chmod 644 /home/qiime/Pictures/wordpressheader.png
 
 chown -R qiime:qiime /home/qiime/
