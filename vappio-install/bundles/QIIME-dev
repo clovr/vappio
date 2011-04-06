@@ -101,7 +101,7 @@ ln -s /software/qiime-1.2.1-release/doc/vb_files/Before_you_start/3.Getting_star
 ln -s /software/qiime-1.2.1-release/doc/vb_files/Before_you_start/4.Transferring_files_to_your_virtual_box.txt /home/qiime/Desktop/Before_you_start/4.Transferring_files_to_your_virtual_box.txt
 
 # Creating QIIME help
-cd /software/qiime-1.2.1-release/doc/
+cd /software/qiime-1.2.1-repo/doc/
 source /home/qiime/.bashrc
 export PATH=$PATH:/software/python-2.6.4-release/bin/:
 make html
