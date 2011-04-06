@@ -3,12 +3,16 @@ import time
 import json
 
 from twisted.python import reflect
+from twisted.python import failure
+
+from twisted.internet import defer
 
 from igs.utils import functional as func
 
 from igs_tx.utils import errors
 from igs_tx.utils import global_state
 from igs_tx.utils import http
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import core as vappio_tx_core
 
@@ -26,6 +30,47 @@ class RemoteError(Exception):
         return 'RemoteError(%r)' % ((self.name, self.msg, self.stacktrace),)
 
 
+class QueueSubscription(func.Record):
+    """
+    Represents a queue subscription which has a handler function and a failure
+    function.  The failure function is called if the handler funciton throws
+    an exception.
+
+    Calling a QueueSubscription results in a deferred that eventually results in the
+    returned value from the handler function.
+
+    This is replacing vappio_tx.utils.core.QueueSubscription
+    """
+
+    def __init__(self, handlerF, failureF):
+        func.Record.__init__(self,
+                             handlerF=handlerF,
+                             failureF=failureF)
+
+    def setHandler(self, handlerF):
+        return self.update(handlerF=handlerF)
+
+    def setFailure(self, failureF):
+        return self.update(failureF=failureF)
+
+    def __call__(self, mq, msg):
+        d = defer.succeed(True)
+        d.addCallback(lambda _ : self.handlerF(mq, msg))
+
+        def _failure(f):
+            self.failureF(mq, msg, f)
+            return f
+
+        d.addErrback(_failure)
+
+        def _logAndReturn(f):
+            log.err(f)
+            return f
+
+        d.addErrback(_logAndReturn)
+
+        return d
+    
 def randomQueueName(baseName):
     return '/topic/' + baseName + '-' + global_state.make_ref()
 
@@ -108,6 +153,8 @@ def ensureRequestAndSubscribe(mqFactory, subscription, queue, concurrent):
                         {'prefetch': concurrent})
 
 
+subscribe = ensureRequestAndSubscribe
+    
 def ensureRequestAndSubscribeTask(mqFactory, subscription, taskType, srcQueue, dstQueue, concurrent):
     """
     Subscribes to srcQueue and forwards to dstQueue, creating a
@@ -169,3 +216,45 @@ def ensureRequestAndSubscribeForwardTask(mqFactory, subscription, taskType, url,
                               subscription,
                               dstQueue,
                               concurrent)
+
+
+def pipeQS(qss):
+    """
+    Takes a list of QueueSubscriptions and pipes them together.
+    The output of qs1 goes to the input of qs2.  The following are semantically equivalent:
+
+    pipeQS([qs1, pipeQS([qs2])]) == pipeQS([qs1, qs2])
+    """
+    def _pipe(mq, msg):
+        return defer_utils.fold(lambda msg, q : q(mq, msg),
+                                msg,
+                                qss)
+
+    return _pipe
+
+
+def composeQS(qss):
+    """
+    Composes QueueSubscriptions together.  The output of qs2 will become the
+    input to qs1 like function composition.
+    The following are semantically equivalent:
+
+    composeQS([qs2, qs1]) == pipeQS([qs1, qs2])
+    """
+    rqss = list(qss)
+    rqss.reverse()
+    def _compose(mq, msg):
+        return defer_utils.fold(lambda msg, q : q(mq, msg),
+                                msg,
+                                rqss)
+
+    return _compose
+    
+def jsonQueueSubscription(mq, msg):
+    """
+    A predefined queue subscription that decodes the message from json
+    """
+    try:
+        return defer.succeed(json.loads(msg))
+    except:
+        return defer.errback(failure.Failure())

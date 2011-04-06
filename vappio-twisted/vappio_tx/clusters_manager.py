@@ -1039,7 +1039,7 @@ def subscribeToQueues(conf, mqFactory, state):
                                                                  successF=successF(handleTaskAddInstances),
                                                                  failureF=failTaskF),
                                                'addInstances',
-                                               conf('www.url_prefix') + '/' + os.path.basename(conf('clusters.addinstances_www')),                                               
+                                               conf('www.url_prefix') + '/' + os.path.basename(conf('clusters.addinstances_www')),
                                                conf('clusters.addinstances_www'),
                                                conf('clusters.addinstances_queue'),
                                                conf('clusters.concurrent_addinstances'))

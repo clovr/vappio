@@ -30,7 +30,31 @@ def mapSerial(f, iterable):
     return d
     
 
-    
+
+def fold(f, init, iterable):
+    """
+    Folds over an iterable where f returns a deferred.
+    """
+    d = defer.Deferred()
+
+    i = iter(iterable)
+
+    def _iterate(accum):
+        try:
+            item = i.next()
+            fDefer = f(accum, item)
+            fDefer.addCallback(lambda r : _iterate(r))
+            fDefer.addErrback(d.errback)
+        except StopIteration:
+            d.callback(accum)
+        except:
+            d.errback(failure.Failure())
+
+    _iterate(init)
+
+    return d
+
+
 
 def tryUntil(tries, f, onFailure=None, retry=None):
     """
