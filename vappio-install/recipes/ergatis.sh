@@ -28,7 +28,8 @@ cpan -i Class::Struct
 #There is a bug in 2.63,2.64 that misparses our config files
 #http://search.cpan.org/diff?from=Config-IniFiles-2.63&to=Config-IniFiles-2.62
 #This commit http://config-inifiles.svn.sourceforge.net/viewvc/config-inifiles/trunk/config-inifiles/lib/Config/IniFiles.pm?r1=198&r2=200
-cpan -i "SHLOMIF/Config-IniFiles-2.62.tar.gz"
+#cpan -i "SHLOMIF/Config-IniFiles-2.62.tar.gz"
+cpan -i Config::IniFiles
 cpan -i Data::Dumper
 cpan -i Date::Manip
 cpan -i ExtUtils::MakeMaker
