@@ -3,6 +3,8 @@ import os
 import sys
 import time
 
+import pymongo
+
 from twisted.python import reflect
 
 ##
@@ -18,8 +20,14 @@ def startup():
         run('rm -f %s' % LOCK_FILE)
         run('mongod --dbpath=%s --logpath=/var/log/mongodb.log --repair > /dev/null 2>&1' % MONGO_DIR)
     run('mongod --dbpath=%s --logpath=/var/log/mongodb.log --fork > /dev/null 2>&1' % MONGO_DIR)
-    # Sleeping a bit to let mongo come up
-    time.sleep(5)
+    # Wait for mongo to come up
+    while True:
+        try:
+            pymongo.Connection().clovr
+            break
+        except pymongo.errors.AutoReconnect:
+            time.sleep(1)
+    
     
 def shutdown():
     run('killall mongod')
