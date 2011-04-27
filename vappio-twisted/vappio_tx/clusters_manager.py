@@ -525,10 +525,10 @@ def loadLocalCluster(mq, state):
                           spot_request_id=None,
                           bid_price=None)
             
-            cluster = cluster.setMaster(master)
-            cluster = cluster.setState(cluster.RUNNING)
-            yield persist.saveCluster(cluster)
-            defer.returnValue(cluster)
+        cluster = cluster.setMaster(master)
+        cluster = cluster.setState(cluster.RUNNING)
+        yield persist.saveCluster(cluster)
+        defer.returnValue(cluster)
 
 def sendTaskname(request):
     queue.returnQueueSuccess(request.mq, request.body['return_queue'], request.body['task_name'])
