@@ -67,7 +67,9 @@ def clusterFromDict(d):
                  userName=d['user_name'],
                  credName=d['cred_name'],
                  config=config.configFromMap(d['config']))
-    return cl.setMaster(d['master']).setState(d['state']).addExecNodes(d['exec_nodes']).addDataNodes(d['data_nodes'])
+    cl = cl.setMaster(d['master']).setState(d['state']).addExecNodes(d['exec_nodes']).addDataNodes(d['data_nodes'])
+    cl = cl.update(startTask=d['start_task'])
+    return cl
 
 def loadCluster(clusterName, userName):
     def _loadCluster():
@@ -124,7 +126,7 @@ def saveCluster(cluster):
         userName = str(cluster.userName)
     dc = func.updateDict(clusterToDict(cluster), dict(_id=cluster.clusterName + '-' + userName))
     dc['config'] = json.dumps(dc['config'])
-    d = threads.deferToThread(lambda : pymongo.Connection().clovr.clusters.save(dc))
+    d = threads.deferToThread(lambda : pymongo.Connection().clovr.clusters.save(dc, safe=True))
 
     return d
 

@@ -16,6 +16,9 @@ def runPipe(m, initialValue):
     except ReturnValue, retv:
         return retv.ret
 
+def runPipeCurry(m):
+    return lambda initialValue : runPipe(m, initialValue)
+    
 def pipe(fs):
     """
     Functional piping:
@@ -39,5 +42,44 @@ def compose(fs):
     fs.reverse()
     return pipe(fs)
 
-def returnValue(v):
+def emit(v):
     raise ReturnValue(v)
+
+def ret(v):
+    return v
+
+def const(c):
+    """
+    Shorthand for lambda c : lambda _ : ret(c)
+    """
+    return lambda _ : ret(c)
+
+def hookError(f, onError):
+    """
+    Returns a function that will call f, and if f throws an exception calls onError and reraises the exception.
+    Example:
+    
+    f = lambda s : s + ' world'
+    onError = lambda e : sys.stdout.write(str(e) + '\n')
+    print hookError(f, onError)('hello')
+
+    This will print 'hello world'.  If we change f to:
+
+    f = lambda _ : raise Exception()
+
+    hookError will raise an exception after printing the string represenation of the
+    exception to stdout.
+
+    If an error happens in onError, that is what will be raised
+    """
+    def _(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except ReturnValue:
+            # Don't hook the error in this case
+            raise
+        except Exception, err:
+            onError(err, *args, **kwargs)
+            raise
+
+    return _

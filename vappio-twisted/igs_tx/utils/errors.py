@@ -12,3 +12,4 @@ def getStacktrace():
     stream = StringIO.StringIO()
     traceback.print_exc(file=stream)
     return stream.getvalue()
+

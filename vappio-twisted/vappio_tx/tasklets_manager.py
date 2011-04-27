@@ -3,16 +3,15 @@
 # fires off the tasklet work in the background and waits for the result
 import os
 import StringIO
-import json
+
+from twisted.internet import defer
 
 from vappio.tasks import task
 
-from igs.utils import core
-
 from igs_tx.utils import commands
 from igs_tx.utils import errors
+from igs_tx.utils import defer_pipe
 
-from vappio_tx.utils import core as vappio_tx_core
 from vappio_tx.utils import queue
 
 from vappio_tx.mq import client
@@ -95,30 +94,51 @@ def runMetricsWithTask(taskName, initialText, metrics):
     return d
     
     
-def handleMsg(mq, body):
-    request = body
-    initialConf = request['conf']
+def handleMsg(request):
+    initialConf = request.body['conf']
     initialText = ('\n'.join(['kv'] + [k + '=' + v for k, v in initialConf.iteritems()]) + '\n').encode('utf_8')
-    metrics = splitAndSanitizeMetrics(request['metrics'].encode('utf_8'))
-    runMetricsWithTask(request['task_name'], initialText, metrics)
+    metrics = splitAndSanitizeMetrics(request.body['metrics'].encode('utf_8'))
+    return runMetricsWithTask(request.body['task_name'], initialText, metrics).addCallback(lambda _ : request)
     
+
+def sendTaskname(request):
+    queue.returnQueueSuccess(request.mq, request.body['return_queue'], request.body['task_name'])
+    return defer_pipe.ret(request)
+
+def forwardOrCreate(url, dstQueue, tType, numTasks):
+    return defer_pipe.runPipeCurry(defer_pipe.pipe([queue.forwardRequestToCluster(url),
+                                                    queue.createTaskAndForward(dstQueue,
+                                                                               tType,
+                                                                               numTasks)]))
 
 def makeService(conf):
     mqService = client.makeService(conf)
     mqFactory = mqService.mqFactory
 
 
-    queue.ensureRequestAndSubscribeForwardTask(mqFactory,
-                                               vappio_tx_core.QueueSubscription(ensureF=core.keysInDictCurry(['conf', 'metrics']),
-                                                                                successF=handleMsg,
-                                                                                failureF=None),
-                                               'runTasklets',
-                                               conf('www.url_prefix') + '/' + os.path.basename(conf('tasklets.tasklets_www')),
-                                               conf('tasklets.tasklets_www'),
-                                               conf('tasklets.tasklets_queue'),
-                                               conf('tasklets.concurrent_tasklets'))
-        
+    processRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster', 'metrics', 'conf']),
+                                                           forwardOrCreate(
+                                                               conf('www.url_prefix') + '/' +
+                                                               os.path.basename(conf('tasklets.tasklets_www')),
+                                                               conf('tasklets.tasklets_queue'),
+                                                               'runTasklets',
+                                                               1),
+                                                           sendTaskname]),
+                                          queue.failureMsg)
 
+
+    queue.subscribe(mqFactory,
+                    conf('tasklets.tasklets_www'),
+                    conf('tasklets.concurrent_tasklets'),
+                    queue.wrapRequestHandler(None, processRequest))
+
+    
+    
+    queue.subscribe(mqFactory,
+                    conf('tasklets.tasklets_queue'),
+                    conf('tasklets.concurrent_tasklets'),
+                    queue.wrapRequestHandlerTask(None, handleMsg))
+    
     
     return mqService
     

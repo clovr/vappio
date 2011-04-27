@@ -27,3 +27,9 @@ def blockOnTask(host, cluster, taskName, notifyF=logging.logPrint, errorF=loggin
 def blockOnTaskAndForward(host, cluster, taskName, dstTask):
     d = threads.deferToThread(task_utils.blockOnTaskAndForward, host, cluster, taskName, dstTask)
     return d
+
+def setRequestComplete(request):
+    d =  updateTask(request.body['task_name'],
+                    lambda t : t.setState(task.TASK_COMPLETED))
+    d.addCallback(lambda _ : request)
+    return d

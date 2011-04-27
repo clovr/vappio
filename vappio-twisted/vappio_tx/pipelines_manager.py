@@ -1,5 +1,3 @@
-
-
 import os
 import json
 
@@ -27,11 +25,15 @@ from vappio_tx.clusters import persist
 from vappio_tx.tasks import tasks as tasks_tx
 
 
+def handleWWWPipelineStatus(request):
+    pass
+
+
 class State:
     def __init__(self, conf):
         self.conf = conf
 
-def subscribeToQueues(conf, mq, state):
+def subscribeToQueues(mq, state):
     pass
 
 def makeService(conf):
@@ -42,6 +44,6 @@ def makeService(conf):
     # State is currently not used, but kept around for future purposes
     state = State(conf)
 
-    subscribeToQueues(conf, mqFactory, state)
+    subscribeToQueues(mqFactory, state)
     
     return mqService

@@ -12,19 +12,15 @@ from twisted.internet import reactor
 from twisted.python import log
 
 from igs.utils import config
-from igs.utils import core
 from igs.utils import functional as func
 
 from igs_tx.utils import defer_utils
-from igs_tx.utils import global_state
-from igs_tx.utils import ssh
+from igs_tx.utils import defer_pipe
+from igs_tx.utils import errors
 
 from vappio.tasks import task
 
-from vappio.instance import config as vappio_config
-
 from vappio_tx.utils import queue
-from vappio_tx.utils import core as vappio_tx_core
 
 from vappio_tx.mq import client
 
@@ -36,17 +32,13 @@ from vappio_tx.internal_client import credentials as cred_client
 
 from vappio_tx.www_client import clusters as clusters_client_www
 
-RUN_INSTANCE_TRIES = 4
+from vappio_tx.clusters import start
 
 WAIT_FOR_STATE_TRIES = 50
 
-WAIT_FOR_SSH_TRIES = WAIT_FOR_STATE_TRIES
-
-WAIT_FOR_BOOT_TRIES = WAIT_FOR_STATE_TRIES
-
 INSTANCE_REFRESH_RATE = 30
 
-REMOVE_TERMINATED_CLUSTER_TIMEOUT = 120
+REMOVE_CLUSTER_TIMEOUT = 120
 
 CLUSTER_REFRESH_FREQUENCY = 60
 
@@ -106,286 +98,251 @@ def saveCluster(cl, state=None):
     saved.addCallback(lambda _ : cl)
     return saved
 
+
+@defer.inlineCallbacks
+def deleteCluster(credClient, clusterName, userName):
+    """
+    Removes the cluster from the database.  If any of the instances are still up then
+    they are deleted as well.
+    """
+    try:
+        cluster = yield persist.loadCluster(clusterName, userName)
+
+        # Delete any instances that still exist
+        instances = cluster.execNodes + cluster.dataNodes
+        if cluster.master:
+            instances.append(cluster.master)
+
+        instances = yield credClient.updateInstances(instances)
+        yield credClient.terminateInstances(instances)
+        
+        if cluster.state in [cluster.TERMINATED, cluster.FAILED]:
+            yield persist.removeCluster(cluster)
+        defer.returnValue(cluster)
+    except persist.ClusterNotFoundError:
+        # Somebody beat us to deleting it, that's ok
+        pass
+
+@defer.inlineCallbacks
+def terminateCluster(credClient, clusterName, userName):
+    """
+    Terminates every instance owned by this cluster and sets the
+    cluster to TERMINATED, this does not save it back to the
+    databse though.
+    """
+    cluster = yield persist.loadCluster(clusterName, userName)
+
+    # Terminate 5 at a time
+    yield defer_utils.mapSerial(lambda instances : credClient.terminateInstances(instances),
+                                func.chunk(5, cluster.execNodes + cluster.dataNodes))
+        
+    if cluster.master:
+        yield credClient.terminateInstances([cluster.master])
+
+    defer.returnValue(cluster.setState(cluster.TERMINATED))
+
+@defer.inlineCallbacks
+def terminateInstancesByCriteria(credClient, clusterName, userName, byCriteria, criteriaValues):
+    """
+    Terminates instances by the provided criteria, a cluster is returned with these instances
+    removed from it
+    """
+    cluster = yield persist.loadCluster(clusterName, userName)
+
+    # Terminate 5 at a time
+    instances = [i
+                 for i in cluster.execNodes + cluster.dataNodes
+                 if i[byCriteria] in criteriaValues]
+    yield defer_utils.mapSerial(credClient.terminateInstances,
+                                func.chunk(5, instances))
+
+    execNodes = [i
+                 for i in cluster.execNodes
+                 if i[byCriteria] not in criteriaValues]
+    dataNodes = [i
+                 for i in cluster.dataNodes
+                 if i[byCriteria] not in criteriaValues]        
+    defer.returnValue(cluster.update(execNodes=execNodes, dataNodes=dataNodes))
+
 #
 # These callbacks handle things associated with tasks
-def handleTaskStartCluster(state, mq, request):
-    d = tasks_tx.updateTask(request['task_name'],
-                            lambda t : t.setState(task.TASK_RUNNING))
+@defer.inlineCallbacks
+def handleTaskStartCluster(request):
+    yield tasks_tx.updateTask(request.body['task_name'],
+                              lambda t : t.setState(task.TASK_RUNNING))
 
-    d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
+    cluster = persist.Cluster(request.body['cluster'],
+                              request.body['user_name'],
+                              request.body['cred_name'],
+                              config.configFromMap(request.body['conf']))
 
-    def _continueIfTerminated(cl):
-        if cl.state in [cl.TERMINATED, cl.FAILED]:
-            raise persist.ClusterNotFoundError(cl.clusterName)
+    cluster = cluster.update(startTask=request.body['task_name'])
 
-    d.addCallback(_continueIfTerminated)
-    
-    def _createCluster(f):
-        f.trap(persist.ClusterNotFoundError)
-        cl = persist.Cluster(request['cluster'],
-                             request['user_name'],
-                             request['cred_name'],
-                             config.configFromMap(request['conf']))
-        startMasterDefer = startMaster(state, mq, request['task_name'], cl)
-        if request['num_exec'] > 0 or request['num_data'] > 0:
-            def _addInstances(cl):
-                addInstancesDefer = clusters_client_www.addInstances('localhost',
-                                                                     request['cluster'],
-                                                                     request['user_name'],
-                                                                     request['num_exec'],
-                                                                     request['num_data'])
+    credClient = cred_client.CredentialClient(cluster.credName,
+                                              request.mq,
+                                              request.state.conf)
 
-                def _loadLocalTask(taskName):
-                    loadTaskDefer = tasks_tx.loadTask(request['task_name'])
-                    loadTaskDefer.addCallback(lambda t : tasks_tx.blockOnTaskAndForward('localhost',
-                                                                                        request['cluster'],
-                                                                                        taskName,
-                                                                                        t))
-                    return loadTaskDefer
-                
-                addInstancesDefer.addCallback(_loadLocalTask)
-                addInstancesDefer.addCallback(lambda _ : cl)
-                return addInstancesDefer
+    try:
+        cluster = yield start.startMaster(request.state, credClient, request.body['task_name'], cluster)
+    except Exception, err:
+        stackTrace = errors.getStacktrace()
+        yield tasks_tx.updateTask(request.body['task_name'],
+                                  lambda t : t.addException(str(err), err, stackTrace).setState(task.TASK_FAILED))
+        reactor.callLater(REMOVE_CLUSTER_TIMEOUT,
+                          deleteCluster,
+                          credClient,
+                          request.body['cluster'],
+                          request.body['user_name'])
+        raise
 
-            startMasterDefer.addCallback(_addInstances)
-        return startMasterDefer
-
-    d.addErrback(_createCluster)
-
-    def _completeTask(cl):
-        updateTaskDefer = tasks_tx.updateTask(request['task_name'],
-                                              lambda t : t.setState(task.TASK_COMPLETED).progress())
-        updateTaskDefer.addCallback(lambda _ : cl)
-        return updateTaskDefer
-
-    d.addCallback(_completeTask)
-
-    def _removeClusterOnFailure(f):
-        """
-        When a failure occurs, set the cluster to failed then set it up a timer to
-        remove it
-        """
-        def _removeCluster(cl):
-            innerLoadClusterDefer = persist.loadCluster(cl.clusterName, cl.userName)
-            
-            def _reallyRemoveCluster(cl):
-                if cl.state == cl.FAILED:
-                    return persist.removeCluster(cl)
-
-            innerLoadClusterDefer.addCallback(_reallyRemoveCluster)
-            innerLoadClusterDefer.addErrback(log.err)
-
-        loadClusterDefer = persist.loadCluster(request['cluster'], request['user_name'])
-        loadClusterDefer.addCallback(lambda cl : saveCluster(cl.setState(cl.FAILED), state))
-        loadClusterDefer.addCallback(lambda cl : reactor.callLater(REMOVE_TERMINATED_CLUSTER_TIMEOUT,
-                                                                   _removeCluster,
-                                                                   cl))
-        loadClusterDefer.addCallback(lambda _ : f)
-
-        return loadClusterDefer
-
-    d.addErrback(_removeClusterOnFailure)
-    
-    return d
         
-    
-    
-def handleTaskTerminateCluster(state, mq, request):
-    def _terminateCluster(cl):
-        credClient = cred_client.CredentialClient(cl.credName,
-                                                  mq,
-                                                  state.conf)
+    if request.body['num_exec'] > 0 or request.body['num_data'] > 0:
+        addInstancesTaskName = yield clusters_client_www.addInstances('localhost',
+                                                                      request.body['cluster'],
+                                                                      request.body['user_name'],
+                                                                      request.body['num_exec'],
+                                                                      request.body['num_data'])
 
-        #
-        # Terminate 5 at a time
-        terminateDefer = defer_utils.mapSerial(lambda instances : credClient.terminateInstances(instances),
-                                               func.chunk(5, cl.execNodes + cl.dataNodes))
+        localTask = yield tasks_tx.loadTask(request.body['task_name'])
+        addInstanceState, addInstanceTask = yield tasks_tx.blockOnTaskAndForward('localhost',
+                                                                                 request.body['cluster'],
+                                                                                 addInstancesTaskName,
+                                                                                 localTask)
+
+        
+    yield tasks_tx.updateTask(request.body['task_name'],
+                              lambda t : t.setState(task.TASK_COMPLETED).progress())
+
+    defer.returnValue(request)
 
 
-
-        #
-        # Now terminate the master
-        def _terminateMasterIfPresent(_):
-            if cl.master:
-                return credClient.terminateInstances([cl.master])
-            else:
-                return defer.succeed(None)
-            
-        terminateDefer.addCallback(_terminateMasterIfPresent)
-
-        def _logErr(f):
-            log.err(f)
-            return f
-
-        terminateDefer.addErrback(_logErr)
-        return terminateDefer
-
+@defer.inlineCallbacks
+def handleTaskTerminateCluster(request):
     # Start task running
-    d = tasks_tx.updateTask(request['task_name'],
-                            lambda t : t.setState(task.TASK_RUNNING))
-    if request['cluster'] != 'local':
-        # If we are terminated a remote cluster
-        def _terminate(cl):
-            if cl.master:
-                terminateDefer = clusters_client_www.terminateCluster(cl.master['public_dns'],
-                                                                  'local',
-                                                                  None)
-                terminateDefer.addCallback(lambda taskName :
-                                           tasks_tx.loadTask(request['task_name']
-                                                             ).addCallback(lambda t :
-                                                                           tasks_tx.blockOnTaskAndForward('localhost',
-                                                                                                          request['cluster'],
-                                                                                                          taskName,
-                                                                                                          t)))
-            else:
-                terminateDefer = defer.succeed(True)
-            
-            def _removeCluster(cl):
-                #
-                # Load the cluster again to make sure it is still in terminated
-                loadClusterDefer = persist.loadCluster(cl.clusterName, cl.userName)
-                def _removeForReal(cl):
-                    if cl.state == cl.TERMINATED:
-                        return persist.removeCluster(cl)
+    yield tasks_tx.updateTask(request.body['task_name'],
+                              lambda t : t.setState(task.TASK_RUNNING))
 
-                loadClusterDefer.addCallback(_removeForReal)
-                return loadClusterDefer
-
-            def _terminateFailed(_f):
-                return _terminateCluster(cl)
-            
-            def _setTerminated(_):
-                cluster = cl.setState(cl.TERMINATED)
-                #
-                # Remove the cluster in a few minutes
-                reactor.callLater(REMOVE_TERMINATED_CLUSTER_TIMEOUT, _removeCluster, cluster)
-                return cluster
-
-
-            # If our webservice call failed, forcibly terminate
-            terminateDefer.addErrback(_terminateFailed)
-            terminateDefer.addCallback(_setTerminated)
-            terminateDefer.addCallback(saveCluster, state)
-            return terminateDefer
-
-        d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
-        d.addCallback(loadRemoteClusterData, mq, state)
-        d.addCallback(_terminate)
-    else:
-        # Now terminating ourselves
-        d.addCallback(lambda _ : persist.loadCluster('local', None))
-        d.addCallback(lambda cl : cl.setState(cl.TERMINATED))
-        d.addCallback(saveCluster, state)
-        d.addCallback(_terminateCluster)
+    if request.body['cluster'] != 'local':
+        # If we are terminating a remote cluster
+        cluster = yield persist.loadCluster(request.body['cluster'], request.body['user_name'])        
+        credClient = cred_client.CredentialClient(cluster.credName,
+                                                  request.mq,
+                                                  request.state.conf)
+        
+        try:
+            if cluster.master:
+                taskName = yield clusters_client_www.terminateCluster(cluster.master['public_dns'],
+                                                                      'local',
+                                                                      None)
+                yield tasks_tx.loadTask(request.body['task_name']
+                                        ).addCallback(lambda t :
+                                                      tasks_tx.blockOnTaskAndForward('localhost',
+                                                                                     request.body['cluster'],
+                                                                                     taskName,
+                                                                                     t))
+                cluster = cluster.setState(cluster.TERMINATED)
+        except:
+            cluster = yield terminateCluster(credClient, request.body['cluster'], request.body['user_name'])
                 
-    def _completeTask(anyThing):
-        updateTaskDefer = tasks_tx.updateTask(request['task_name'],
-                                              lambda t : t.setState(task.TASK_COMPLETED
-                                                                    ).progress())
-        updateTaskDefer.addCallback(lambda _ : anyThing)
-        return updateTaskDefer
+        yield saveCluster(cluster, request.state)
+        reactor.callLater(REMOVE_CLUSTER_TIMEOUT,
+                          deleteCluster,
+                          credClient,
+                          cluster.clusterName,
+                          cluster.userName)
+    else:
+        credClient = cred_client.CredentialClient('local',
+                                                  request.mq,
+                                                  request.state.conf)
+        cluster = yield terminateCluster(credClient, 'local', request.body['user_name'])
 
-    d.addCallback(_completeTask)
-    return d
 
-def handleTaskTerminateInstances(state, mq, request):
-    def _terminateInstancesByCriteria(cl, byCriteria, criteriaValues):
-        credClient = cred_client.CredentialClient(cl.credName,
-                                                  mq,
-                                                  state.conf)
-        
-        instances = [i for i in cl.execNodes + cl.dataNodes if i[byCriteria] in criteriaValues]
-        terminateDefer = defer_utils.mapSerial(credClient.terminateInstances,
-                                               func.chunk(5, instances))
 
-        def _logErr(f):
-            log.err(f)
-            return f
+    yield tasks_tx.updateTask(request.body['task_name'],
+                              lambda t : t.progress())
 
-        terminateDefer.addErrback(_logErr)
-        
-        return terminateDefer
-    
+    defer.returnValue(request)
+
+@defer.inlineCallbacks
+def handleTaskTerminateInstances(request):
     # Start task running
-    d = tasks_tx.updateTask(request['task_name'],
-                            lambda t : t.setState(task.TASK_RUNNING))
+    yield tasks_tx.updateTask(request.body['task_name'],
+                              lambda t : t.setState(task.TASK_RUNNING))
 
     
-    if request['cluster'] != 'local':
-        d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
+    if request.body['cluster'] != 'local':
+        cluster = yield persist.loadCluster(request.body['cluster'], request.body['user_name'])
+        credClient = cred_client.CredentialClient(cluster.credName,
+                                                  request.mq,
+                                                  request.state.conf)
+        try:
+            yield clusters_client_www.terminateInstances(cluster.master['public_dns'],
+                                                         'local',
+                                                         request.body['user_name'],
+                                                         request.body['by_criteria'],
+                                                         request.body['criteria_values'])
                 
-        def _terminateInstances(cl):
-            terminateDefer = clusters_client_www.terminateInstances(cl.master['public_dns'],
-                                                                    'local',
-                                                                    request['user_name'],
-                                                                    request['by_criteria'],
-                                                                    request['criteria_values'])
+            taskName = yield tasks_tx.loadTask(request.body['task_name'])
+            yield tasks_tx.loadTask(request.body['task_name']
+                                    ).addCallback(lambda t :
+                                                  tasks_tx.blockOnTaskAndForward('localhost',
+                                                                                 request.body['cluster'],
+                                                                                 taskName,
+                                                                                 t))
 
-            terminateDefer.addCallback(lambda taskName :
-                                       tasks_tx.loadTask(request['task_name']
-                                                         ).addCallback(lambda t :
-                                                                       tasks_tx.blockOnTaskAndForward('localhost',
-                                                                                                      request['cluster'],
-                                                                                                      taskName,
-                                                                                                      t)))
+        except:
+            yield terminateInstancesByCriteria(credClient,
+                                               request.body['cluster'],
+                                               request.body['user_name'],
+                                               request.body['by_criteria'],
+                                               request.body['criteria_values'])
             
-            def _terminateFailed(f):
-                log.err('Termination failed')
-                return _terminateInstancesByCriteria(cl, request['by_criteria'], request['criteria_values'])
-
-            terminateDefer.addErrback(_terminateFailed)
-            return terminateDefer
-
-        d.addCallback(_terminateInstances)
     else:
-        d.addCallback(lambda _ : persist.loadCluster(request['cluster'], request['user_name']))
-        d.addCallback(lambda cl : _terminateInstancesByCriteria(cl,
-                                                                request['by_criteria'],
-                                                                request['criteria_values']))
+        cluster = yield persist.loadCluster('local', None)
+        credClient = cred_client.CredentialClient(cluster.credName,
+                                                  request.mq,
+                                                  request.state.conf)        
+        yield terminateInstancesByCriteria(credClient,
+                                           'local',
+                                           None,
+                                           request.body['by_criteria'],
+                                           request.body['criteria_values'])
 
-    def _completeTask(anyThing):
-        updateTaskDefer = tasks_tx.updateTask(request['task_name'],
-                                              lambda t : t.setState(task.TASK_COMPLETED
-                                                                    ).progress())
-        updateTaskDefer.addCallback(lambda _ : anyThing)
-        return updateTaskDefer
+    defer.returnValue(request)
 
-    d.addCallback(_completeTask)
-    return d
-        
-def handleTaskAddInstances(state, mq, request):
-    d = tasks_tx.updateTask(request['task_name'],
-                            lambda t : t.setState(task.TASK_RUNNING))
+@defer.inlineCallbacks
+def handleTaskAddInstances(request):
+    yield tasks_tx.updateTask(request.body['task_name'],
+                              lambda t : t.setState(task.TASK_RUNNING))
+
+
+    cluster = yield persist.loadCluster('local', None)
+
+    credClient = cred_client.CredentialClient(cluster.credName,
+                                              request.mq,
+                                              request.state.conf)
     
-    d.addCallback(lambda _ : persist.loadCluster('local', None))
+    if request.body['num_exec'] > 0:
+        yield start.startExecNodes(request.state,
+                                   credClient,
+                                   request.body['task_name'],
+                                   request.body['num_exec'],
+                                   cluster)
 
-    if request['num_exec'] > 0:
-        d.addCallback(lambda cl : startExecNodes(state,
-                                                 mq,
-                                                 request['task_name'],
-                                                 request['num_exec'],
-                                                 cl))
+    defer.returnValue(request)
 
-    def _completeTask(cl):
-        updateTaskDefer = tasks_tx.updateTask(request['task_name'],
-                                              lambda t : t.setState(task.TASK_COMPLETED).progress())
-        updateTaskDefer.addCallback(lambda _ : cl)
-        return updateTaskDefer
+@defer.inlineCallbacks
+def removeDeadClusters(mq, conf):
+    clusters = yield persist.loadClustersAdmin()
+    clusters = [c for c in clusters if c.state in [c.FAILED, c.TERMINATED]]
 
-    d.addCallback(_completeTask)
-    return d
+    for c in clusters:
+        credClient = cred_client.CredentialClient(c.credName,
+                                                  mq,
+                                                  conf)
+        yield deleteCluster(credClient, c.clusterName, c.userName)
 
-
-def removeDeadClusters():
-    d = persist.loadClustersAdmin()
-
-    def _removeDead(cls):
-        return defer_utils.mapSerial(persist.removeCluster,
-                                     [c for c in cls if c.state in [c.FAILED, c.TERMINATED]])
-
-    d.addCallback(_removeDead)
-
-    return d
+    defer.returnValue(None)
 
 def refreshClusters(mq, state):
     d = persist.loadClustersAdmin()
@@ -418,82 +375,55 @@ def refreshClusters(mq, state):
 
 #
 # These callbacks must return immediatly
-def handleWWWClusterInfo(state, mq, request):
-    if request['cluster'] == 'local' and ('local', None) in state.clustersCache:
-        queue.returnQueueSuccess(mq,
-                                 request['return_queue'],
-                                 persist.clusterToDict(state.clustersCache[('local', None)]))
-    elif (request['cluster'], request['user_name']) in state.clustersCache:
-        queue.returnQueueSuccess(mq,
-                                 request['return_queue'],
-                                 persist.clusterToDict(state.clustersCache[(request['cluster'],
-                                                                            request['user_name'])]))
+def handleWWWClusterInfo(request):
+    if request.body['cluster'] == 'local' and ('local', None) in request.state.clustersCache:
+        queue.returnQueueSuccess(request.mq,
+                                 request.body['return_queue'],
+                                 persist.clusterToDict(request.state.clustersCache[('local', None)]))
+    elif (request.body['cluster'], request.body['user_name']) in request.state.clustersCache:
+        queue.returnQueueSuccess(request.mq,
+                                 request.body['return_queue'],
+                                 persist.clusterToDict(request.state.clustersCache[(request.body['cluster'],
+                                                                                    request.body['user_name'])]))
     else:
-        queue.returnQueueError(mq, request['return_queue'], 'Cluster not found')
+        queue.returnQueueError(request.mq, request.body['return_queue'], 'Cluster not found')
 
-    return defer.succeed(True)
+    return defer_pipe.ret(request)
 
-def handleWWWListClusters(state, mq, request):
-    d = persist.loadAllClusters(request['user_name'])
+@defer.inlineCallbacks
+def handleWWWListClusters(request):
+    clusters = yield persist.loadAllClusters(request.body['user_name'])
+    clusterDicts = [persist.clusterToDict(c) for c in clusters]
+    queue.returnQueueSuccess(request.mq,
+                             request.body['return_queue'],
+                             clusterDicts)
+    defer.returnValue(request)
 
-    def _convertToDict(cls):
-        return [persist.clusterToDict(c) for c in cls]
+@defer.inlineCallbacks
+def handleWWWConfigCluster(request):
+    try:
+        cluster = yield persist.loadCluster(request.body['cluster'], request.body['user_name'])
+        js = json.dumps(cluster.config)
+        queue.returnQueueSuccess(request.mq, request.body['return_queue'], js)
+    except:
+        queue.returnQueueException(request.mq, request.body['return_queue'])
+        raise
 
-    d.addCallback(_convertToDict)
-
-    def _sendSuccess(cls):
-        queue.returnQueueSuccess(mq, request['return_queue'], cls)
-
-    d.addCallback(_sendSuccess)
-
-    def _sendError(f):
-        queue.returnQueueFailure(mq, request['return_queue'], f)
-        return f
-
-    d.addErrback(_sendError)
-    
-    return d
-
-
-def handleWWWConfigCluster(state, mq, request):
-    d = persist.loadCluster(request['cluster'], request['user_name'])
-
-    def _extractConf(c):
-        return c.conf
-
-    d.addCallback(_extractConf)
-    
-    def _confToJson(conf):
-        return json.dumps(conf)
-
-    d.addCallback(_confToJson)
-
-    def _returnJson(js):
-        queue.returnQueueSuccess(mq, request['return_queue'], js)
-
-    d.addCallback(_returnJson)
-
-    def _sendError(f):
-        queue.returnQueueFailure(mq, request['return_queue'], f)
-        return f
-
-    d.addErrback(_sendError)
-
-    return d
+    defer.returnValue(request)
     
 
+@defer.inlineCallbacks
 def loadLocalCluster(mq, state):
     """If local cluster is not present, load it"""
 
-    d = persist.loadCluster('local', None)
-
-    def _clusterExists(cl):
+    @defer.inlineCallbacks
+    def _updateCluster(cluster):
         conf = config.configFromMap({'config_loaded': True},
                                     base=config.configFromStream(open('/tmp/machine.conf'),
                                                                  base=config.configFromEnv()))
 
-        # Likely our IP has changed, let's update the master
-        if cl.credName == 'local' and conf('MASTER_IP') not in [cl.master['public_dns'], cl.master['private_dns']]:
+        # Possible our IP has changed, let's update the master
+        if cluster.credName == 'local' and conf('MASTER_IP') not in [cluster.master['public_dns'], cluster.master['private_dns']]:
             master = dict(instance_id='local',
                           ami_id=None,
                           public_dns=conf('MASTER_IP'),
@@ -508,26 +438,23 @@ def loadLocalCluster(mq, state):
                           spot_request_id=None,
                           bid_price=None)
 
-            cl = cl.setMaster(master).update(config=conf)
-            clusterSaveDefer = persist.saveCluster(cl)
-            clusterSaveDefer.addCallback(lambda _ : cl)
-            return clusterSaveDefer
+            cluster = cluster.setMaster(master).update(config=conf)
+            yield persist.saveCluster(cluster)
+            defer.returnValue(cluster)
         else:
-            return cl
-            
-        
-    def _clusterDoesnotExist(f):
-        f.trap(persist.ClusterNotFoundError)
+            defer.returnValue(cluster)
 
+    @defer.inlineCallbacks
+    def _createCredentials():
         if os.path.exists('/tmp/cred-info'):
             cert, pkey, ctype, metadata = open('/tmp/cred-info').read().split('\t')
-            saveDefer = cred_client.saveCredential('local',
-                                                   'Local credential',
-                                                   ctype,
-                                                   open(cert).read(),
-                                                   open(pkey).read(),
-                                                   metadata and dict([v.split('=', 1) for v in metadata.split(',')]) or {},
-                                                   config.configFromStream(open('/tmp/machine.conf'), lazy=True))
+            yield cred_client.saveCredential('local',
+                                             'Local credential',
+                                             ctype,
+                                             open(cert).read(),
+                                             open(pkey).read(),
+                                             metadata and dict([v.split('=', 1) for v in metadata.split(',')]) or {},
+                                             config.configFromStream(open('/tmp/machine.conf'), lazy=True))
             credClient = cred_client.CredentialClient('local',
                                                       mq,
                                                       state.conf)
@@ -547,529 +474,233 @@ def loadLocalCluster(mq, state):
                 liDefer.addCallback(_failIfEmpty)
                 return liDefer
             
-            saveDefer.addCallback(lambda _ : defer_utils.tryUntil(10, _listInstances, onFailure=defer_utils.sleep(10)))
+            instances = yield defer_utils.tryUntil(10, _listInstances, onFailure=defer_utils.sleep(10))
+            defer.returnValue(instances)
         else:
-            saveDefer = cred_client.saveCredential('local',
-                                                   'Local credential',
-                                                   'local',
-                                                   None,
-                                                   None,
-                                                   {},
-                                                   config.configFromMap({}))
-            saveDefer.addCallback(lambda _ : [])
+            yield cred_client.saveCredential('local',
+                                             'Local credential',
+                                             'local',
+                                             None,
+                                             None,
+                                             {},
+                                             config.configFromMap({}))
+            defer.returnValue([])
+        
+    
+    try:
+        cluster = yield persist.loadCluster('local', None)
+        cluster = yield _updateCluster(cluster)
+        defer.returnValue(cluster)
+    except persist.ClusterNotFoundError:
+        instances = yield _createCredentials()
 
-        def _addCluster(instances):
-            cl = persist.Cluster('local',
-                                 None,
-                                 'local',
-                                 config.configFromMap({'config_loaded': True},
-                                                      base=config.configFromStream(open('/tmp/machine.conf'), base=config.configFromEnv())))
+        cluster = persist.Cluster('local',
+                                  None,
+                                  'local',
+                                  config.configFromMap({'config_loaded': True},
+                                                       base=config.configFromStream(open('/tmp/machine.conf'), base=config.configFromEnv())))
 
-            masterIdx = func.find(lambda i : cl.config('MASTER_IP') in [i['public_dns'], i['private_dns']],
-                                  instances)
+        startTaskName = yield tasks_tx.createTaskAndSave('startCluster', 1)
+        yield tasks_tx.updateTask(startTaskName,
+                                  lambda t : t.setState(task.TASK_COMPLETED).progress())
+        cluster = cluster.update(startTask=startTaskName)
+        
+        masterIdx = func.find(lambda i : cluster.config('MASTER_IP') in [i['public_dns'], i['private_dns']],
+                              instances)
 
-            if masterIdx is not None:
-                master = instances[masterIdx]
-            else:
-                master = dict(instance_id='local',
-                              ami_id=None,
-                              public_dns=cl.config('MASTER_IP'),
-                              private_dns=cl.config('MASTER_IP'),
-                              state='running',
-                              key=None,
-                              index=None,
-                              instance_type=None,
-                              launch=None,
-                              availability_zone=None,
-                              monitor=None,
-                              spot_request_id=None,
-                              bid_price=None)
+        if masterIdx is not None:
+            master = instances[masterIdx]
+        else:
+            master = dict(instance_id='local',
+                          ami_id=None,
+                          public_dns=cluster.config('MASTER_IP'),
+                          private_dns=cluster.config('MASTER_IP'),
+                          state='running',
+                          key=None,
+                          index=None,
+                          instance_type=None,
+                          launch=None,
+                          availability_zone=None,
+                          monitor=None,
+                          spot_request_id=None,
+                          bid_price=None)
             
-            cl = cl.setMaster(master)
-            cl = cl.setState(cl.RUNNING)
-            clusterSaveDefer = persist.saveCluster(cl)
-            clusterSaveDefer.addCallback(lambda _ : cl)
-            return clusterSaveDefer
+            cluster = cluster.setMaster(master)
+            cluster = cluster.setState(cluster.RUNNING)
+            yield persist.saveCluster(cluster)
+            defer.returnValue(cluster)
 
-        saveDefer.addCallback(_addCluster)
-        return saveDefer
+def sendTaskname(request):
+    queue.returnQueueSuccess(request.mq, request.body['return_queue'], request.body['task_name'])
+    return defer_pipe.ret(request)
 
-    d.addCallback(_clusterExists)
-    d.addErrback(_clusterDoesnotExist)
+def forwardOrCreate(url, dstQueue, tType, numTasks):
+    return defer_pipe.runPipeCurry(defer_pipe.pipe([queue.forwardRequestToCluster(url),
+                                                    queue.createTaskAndForward(dstQueue,
+                                                                               tType,
+                                                                               numTasks)]))
+
+
+def returnClusterStartTaskIfExists(request):
+    d = persist.loadCluster(request.body['cluster'], request.body['user_name'])
+
+    def _exists(cl):
+        if cl.state in [cl.TERMINATED, cl.FAILED]:
+            raise persist.ClusterNotFoundError(cl.clusterName)
+        else:
+            print cl.startTask
+            request.body['task_name'] = cl.startTask
+            return defer_pipe.emit(request)
+
+    def _doesNotExist(f):
+        f.trap(persist.ClusterNotFoundError)
+        return defer_pipe.ret(request)
+
+    d.addCallback(_exists)
+    d.addErrback(_doesNotExist)
+
     return d
 
 
-def startMaster(state, mq, taskName, cl):
-    credClient = cred_client.CredentialClient(cl.credName,
-                                              mq,
-                                              state.conf)
+def subscribeStartCluster(mq, state):
+    conf = state.conf
+
+    returnTaskName = defer_pipe.runPipeCurry(defer_pipe.pipe([returnClusterStartTaskIfExists,
+                                                              queue.createTaskAndForward(
+                                                                  conf('clusters.startcluster_queue'),
+                                                                  'startCluster',
+                                                                  1)]))
     
-    d = tasks_tx.updateTask(taskName,
-                            lambda t : t.addMessage(task.MSG_SILENT,
-                                                    'Starting master for ' + cl.clusterName))
-    d.addCallback(lambda _ : cl)
-    d.addCallback(saveCluster, state)
-
-    def _loadConfig(cl):
-        loadConfig = credClient.credentialConfig()
-        loadConfig.addCallback(lambda c : cl.update(config=config.configFromConfig(cl.config,
-                                                                                   base=config.configFromMap(c))))
-        return loadConfig
-
-    d.addCallback(_loadConfig)
+    processStartClusterRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+                                                                                         'num_exec',
+                                                                                         'num_data',
+                                                                                         'cred_name']),
+                                                                       returnTaskName,
+                                                                       sendTaskname]),
+                                                      queue.failureMsg)
     
-    def _createDataFilesAndStartMaster(cl):
-        mode = [vappio_config.MASTER_NODE]
-        masterConf = vappio_config.createDataFile(cl.config,
-                                                  mode,
-                                                  outFile='/tmp/machine.' + global_state.make_ref() + '.conf')
+    queue.subscribe(mq,
+                    conf('clusters.startcluster_www'),
+                    conf('clusters.concurrent_startcluster'),
+                    queue.wrapRequestHandler(state, processStartClusterRequest))
 
-        dataFile = vappio_config.createMasterDataFile(cl, masterConf)
-
-        masterDefer = runInstancesWithRetry(credClient,
-                                            cl.config('cluster.ami'),
-                                            cl.config('cluster.key'),
-                                            cl.config('cluster.master_type'),
-                                            cl.config('cluster.master_groups'),
-                                            cl.config('cluster.availability_zone', default=None),
-                                            cl.config('cluster.master_bid_price', default=None),
-                                            1,
-                                            open(dataFile).read())
-        masterDefer.addCallback(lambda l : cl.setMaster(l[0]))
-        masterDefer.addCallback(saveCluster, state)
-
-        def _removeFiles(cl):
-            os.remove(masterConf)
-            os.remove(dataFile)
-            return cl
-
-        masterDefer.addCallback(_removeFiles)
-        
-        return masterDefer
-        
-    
-    d.addCallback(_createDataFilesAndStartMaster)
-
-        
-    def _masterStartedUpdate(cl):
-        updateTask = tasks_tx.updateTask(taskName,
-                                         lambda t : t.addMessage(task.MSG_SILENT,
-                                                        'Master started'))
-        
-        updateTask.addCallback(lambda _ : cl)
-        return updateTask
-
-
-    d.addCallback(_masterStartedUpdate)
-
-    def _waitForState(cl):
-        stateDefer = retryAndTerminate(credClient,
-                                       WAIT_FOR_STATE_TRIES,
-                                       [cl.master],
-                                       lambda i : i['state'] == 'running')
-
-        def _masterDead(l):
-            if not l:
-                raise Exception('Master did not come to running state')
-            return cl.setMaster(l[0])
-
-        stateDefer.addCallback(_masterDead)
-        stateDefer.addCallback(saveCluster, state)
-        return stateDefer
-
-    d.addCallback(_waitForState)
-    
-    def _waitForSSH(cl):
-        sshDefer = retryAndTerminateDeferred(credClient,
-                                             WAIT_FOR_SSH_TRIES,
-                                             [cl.master],
-                                             lambda i : ssh.runProcessSSH(i['public_dns'],
-                                                                          'echo hello',
-                                                                          None,
-                                                                          None,
-                                                                          cl.config('ssh.user'),
-                                                                          cl.config('ssh.options')
-                                                                          ).addCallback(lambda _ : True).addErrback(lambda _ : False))
-
-        def _masterDead(l):
-            if not l:
-                raise Exception('Master did not respond to SSH')
-
-            return cl.setMaster(l[0])
-
-        sshDefer.addCallback(_masterDead)
-        sshDefer.addCallback(saveCluster, state)
-        return sshDefer
-
-    d.addCallback(_waitForSSH)
-    
-    def _waitForRemoteBoot(cl):
-        bootDefer = retryAndTerminateDeferred(credClient,
-                                              WAIT_FOR_BOOT_TRIES,
-                                              [cl.master],
-                                              lambda i : ssh.runProcessSSH(i['public_dns'],
-                                                                           'test -e /tmp/startup_complete',
-                                                                           None,
-                                                                           None,
-                                                                           cl.config('ssh.user'),
-                                                                           cl.config('ssh.options')
-                                                                           ).addCallback(lambda _ : True).addErrback(lambda _ : False))
-        def _masterDead(l):
-            if not l:
-                raise Exception('Master did not boot up')
-
-            return cl.setMaster(l[0]).setState(cl.RUNNING)
-
-        bootDefer.addCallback(_masterDead)
-        bootDefer.addCallback(saveCluster, state)
-        return bootDefer
-
-    d.addCallback(_waitForRemoteBoot)
-        
-    return d
-
-
-def startExecNodes(state, mq, taskName, numExec, cl):
-    credClient = cred_client.CredentialClient(cl.credName,
-                                              mq,
-                                              state.conf)
-    d = tasks_tx.updateTask(taskName,
-                            lambda t : t.addMessage(task.MSG_SILENT,
-                                                    'Adding %d instances to %s ' % (numExec, cl.clusterName)))
-
-    def _createDataFilesAndStartExec(_):
-        dataFile = vappio_config.createExecDataFile(cl.config, cl.master, '/tmp/machine.conf')
-        execDefer = runInstancesWithRetry(credClient,
-                                          cl.config('cluster.ami'),
-                                          cl.config('cluster.key'),
-                                          cl.config('cluster.exec_type'),
-                                          cl.config('cluster.exec_groups'),
-                                          cl.config('cluster.availability_zone', default=None),
-                                          cl.config('cluster.exec_bid_price', default=None),
-                                          numExec,
-                                          open(dataFile).read())
-
-
-        def _addExecNodesAndUpdateTask(l):
-            return tasks_tx.updateTask(taskName,
-                                       lambda t : t.addMessage(task.MSG_SILENT,
-                                                               'Started %d instances' % len(l))
-                                       ).addCallback(lambda _ : cl.addExecNodes(l))
-
-        execDefer.addCallback(_addExecNodesAndUpdateTask)
-        execDefer.addCallback(saveCluster, state)
-        
-        def _removeFiles(cl):
-            os.remove(dataFile)
-            return cl
-
-        execDefer.addCallback(_removeFiles)
-        return execDefer
-
-    d.addCallback(_createDataFilesAndStartExec)
-
-    def _waitForState(cl):
-        stateDefer = retryAndTerminate(credClient,
-                                       WAIT_FOR_STATE_TRIES,
-                                       cl.execNodes,
-                                       lambda i : i['state'] == 'running')
-
-        def _updateTaskIfAnyFailed(l):
-            cluster = cl.update(execNodes=l)
-            if len(l) != len(cl.execNodes):
-                return tasks_tx.updateTask(taskName,
-                                           lambda t : t.addMessage(task.MSG_ERROR,
-                                                                   'Not all exec nodes started')
-                                           ).addCallback(lambda _ : cluster)
-            else:
-                return defer.succeed(cluster)
-                
-        stateDefer.addCallback(_updateTaskIfAnyFailed)
-        stateDefer.addCallback(saveCluster, state)
-        return stateDefer
-
-    d.addCallback(_waitForState)
-
-    def _waitForSSH(cl):
-        sshDefer = retryAndTerminateDeferred(credClient,
-                                             WAIT_FOR_SSH_TRIES,
-                                             cl.execNodes,
-                                             lambda i : ssh.runProcessSSH(i['public_dns'],
-                                                                          'echo hello',
-                                                                          None,
-                                                                          None,
-                                                                          cl.config('ssh.user'),
-                                                                          cl.config('ssh.options')
-                                                                          ).addCallback(lambda _ : True).addErrback(lambda _ : False))
-
-
-        def _updateTaskIfAnyFailed(l):
-            cluster = cl.update(execNodes=l)
-            
-            if len(l) != len(cl.execNodes):
-                return tasks_tx.updateTask(taskName,
-                                           lambda t : t.addMessage(task.MSG_ERROR,
-                                                                   'Not all exec nodes responded to SSH')
-                                           ).addCallback(lambda _ : cluster)
-            else:
-                return defer.succeed(cluster)
-                
-        sshDefer.addCallback(_updateTaskIfAnyFailed)
-        sshDefer.addCallback(saveCluster, state)
-        return sshDefer
-
-    d.addCallback(_waitForSSH)
-    
-    def _waitForRemoteBoot(cl):
-        bootDefer = retryAndTerminateDeferred(credClient,
-                                              WAIT_FOR_BOOT_TRIES,
-                                              cl.execNodes,
-                                              lambda i : ssh.runProcessSSH(i['public_dns'],
-                                                                           'test -e /tmp/startup_complete',
-                                                                           None,
-                                                                           None,
-                                                                           cl.config('ssh.user'),
-                                                                           cl.config('ssh.options')
-                                                                           ).addCallback(lambda _ : True).addErrback(lambda _ : False))
-
-        def _updateTaskIfAnyFailed(l):
-            cluster = cl.update(execNodes=l)
-            
-            if len(l) != len(cl.execNodes):
-                return tasks_tx.updateTask(taskName,
-                                           lambda t : t.addMessage(task.MSG_ERROR,
-                                                                   'Not all machines booted')
-                                           ).addCallback(lambda _ : cluster)
-            else:
-                return defer.succeed(cluster)
-                
-        bootDefer.addCallback(_updateTaskIfAnyFailed)
-        bootDefer.addCallback(saveCluster, state)
-        return bootDefer
-
-    d.addCallback(_waitForRemoteBoot)
-        
-    return d
-
-
-    
-def runInstancesWithRetry(credClient,
-                          ami,
-                          key,
-                          iType,
-                          groups,
-                          availZone,
-                          bidPrice,
-                          numInstances,
-                          userData):
-
-    def _runInstances(num):
-        if bidPrice:
-            return credClient.runSpotInstances(bidPrice=bidPrice,
-                                               ami=ami,
-                                               key=key,
-                                               instanceType=iType,
-                                               groups=groups,
-                                               availabilityZone=availZone,
-                                               numInstances=num,
-                                               userData=userData)
-        else:
-            return credClient.runInstances(ami=ami,
-                                           key=key,
-                                           instanceType=iType,
-                                           groups=groups,
-                                           availabilityZone=availZone,
-                                           numInstances=num,
-                                           userData=userData)
-
-        
-
-    groups = [g.strip() for g in groups.split(',')]
-
-    # Since defer_utils.tryUntil is stateless, we want to encode
-    # some state for our function to use
-    retryState = dict(desired_instances=numInstances,
-                      instances=[])
-
-
-    def _startInstances(retryState):
-        runDefer = _runInstances(retryState['desired_instances'])
-
-        def _onFailure(f):
-            retryState['desired_instances'] -= 1
-            return f
-
-        runDefer.addErrback(_onFailure)
-        runDefer.addCallback(lambda i : retryState['instances'].extend(i))
-
-        def _ensureAllInstances(_):
-            if len(retryState['instances']) < retryState['desired_instances']:
-                retryState['desired_instances'] = retryState['desired_instances'] - len(retryState['instances'])
-                raise Exception('Not all instances started')
-
-        runDefer.addCallback(_ensureAllInstances)
-        
-        runDefer.addCallback(lambda _ : retryState['instances'])
-
-
-        return runDefer
-    
-    runAndRetry = defer_utils.tryUntil(RUN_INSTANCE_TRIES,
-                                       lambda : _startInstances(retryState),
-                                       onFailure=defer_utils.sleep(30))
-
-
-    def _failIfNoneStarted(f):
-        if not len(retryState['instances']):
-            return f
-        else:
-            return retryState['instances']
-
-    runAndRetry.addErrback(_failIfNoneStarted)
-    return runAndRetry
-
-def retryAndTerminateDeferred(credClient, retries, instances, f):
-    """
-    f does return a deferred.
-    
-    f is called on every instance in instances.  If any calls
-    return False, the instance list is updated after INSTANCE_REFRESH_RATE
-    seconds have passed and repeated.  If 'retries' attempts have been done and
-    failed, all those instances which returned False are terminated.
-    """
-    def tryF():
-        updateDefer = credClient.updateInstances(instances)
-        updateDefer.addCallback(lambda instances : defer_utils.mapSerial(f, instances))
-
-        def _failIfNotAnyFailed(res):
-            #
-            # If all calls to f succeeded then simply return an updated list of instances
-            # otherwise sleep for awhile and return failure and surrounding code will rerun or fail out
-            if all(res):
-                return credClient.updateInstances(instances)
-            else:
-                raise Exception('Not all instances succeded')
-
-        updateDefer.addCallback(_failIfNotAnyFailed)
-
-        return updateDefer
-        
-    retryDefer = defer_utils.tryUntil(retries, tryF, onFailure=defer_utils.sleep(30))
-
-    def _terminateBad(fail):
-        log.err(fail)
-        
-        updateDefer = credClient.updateInstances(instances)
-        updateDefer.addCallback(lambda instances : defer_utils.mapSerial(f, instances).addCallback(lambda r : zip(instances, r)))
-        
-        def _partition(resInstances):
-            log.msg(resInstances)
-            badInstances = [i for i, r in resInstances if not r]
-            goodInstances = [i for i, r in resInstances if r]
-            
-            terminateDefer = credClient.terminateInstances(badInstances)
-            terminateDefer.addCallback(lambda _ : goodInstances)
-            return terminateDefer
-
-        updateDefer.addCallback(_partition)
-        return updateDefer
-
-    retryDefer.addErrback(_terminateBad)
-    
-    return retryDefer
-
-def retryAndTerminate(credClient, retries, instances, f):
-    return retryAndTerminateDeferred(credClient, retries, instances, lambda i : defer.succeed(f(i)))
-
-#
-# Just a shorthand definition
-queueSubscription = vappio_tx_core.QueueSubscription
-
-
-def subscribeToQueues(conf, mqFactory, state):
-    #
-    # Now add web frontend queues
-    successF = lambda f : lambda mq, body : f(state, mq, body)
-    failTaskF = lambda mq, body, f : 'task_name' in body and tasks_tx.updateTask(body['task_name'],
-                                                                                 lambda t : t.setState(task.TASK_FAILED
-                                                                                                       ).addFailure(f))
-    returnQueueF = lambda mq, body, f : queue.returnQueueFailure(mq, body['return_queue'], f)
-    
-    #
-    # These require a task
-    queue.ensureRequestAndSubscribeTask(mqFactory,
-                                        queueSubscription(ensureF=core.keysInDictCurry(['cluster',
-                                                                                        'num_exec',
-                                                                                        'num_data',
-                                                                                        'cred_name']),
-                                                          successF=successF(handleTaskStartCluster),
-                                                          failureF=failTaskF),
-                                        'startCluster',
-                                        conf('clusters.startcluster_www'),
-                                        conf('clusters.startcluster_queue'),
-                                        conf('clusters.concurrent_startcluster'))
+    queue.subscribe(mq,
+                    conf('clusters.startcluster_queue'),
+                    conf('clusters.concurrent_startcluster'),
+                    queue.wrapRequestHandlerTask(state, handleTaskStartCluster))
     
 
-    queue.ensureRequestAndSubscribeTask(mqFactory,
-                                        queueSubscription(ensureF=core.keysInDictCurry(['cluster']),
-                                                          successF=successF(handleTaskTerminateCluster),
-                                                          failureF=failTaskF),
-                                        'terminateCluster',
-                                        conf('clusters.terminatecluster_www'),
-                                        conf('clusters.terminatecluster_queue'),
-                                        conf('clusters.concurrent_terminatecluster'))
+def subscribeTerminateCluster(mq, state):
+    conf = state.conf
+    
+    processTerminateClusterRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster']),
+                                                                           queue.createTaskAndForward(
+                                                                               conf('clusters.terminatecluster_queue'),
+                                                                               'terminateCluster',
+                                                                               1),
+                                                                           sendTaskname]),
+                                                      queue.failureMsg)
+
+    queue.subscribe(mq,
+                    conf('clusters.terminatecluster_www'),
+                    conf('clusters.concurrent_terminatecluster'),
+                    queue.wrapRequestHandler(state, processTerminateClusterRequest))
+
+    queue.subscribe(mq,
+                    conf('clusters.terminatecluster_queue'),
+                    conf('clusters.concurrent_terminatecluster'),
+                    queue.wrapRequestHandlerTask(state, handleTaskTerminateCluster))
 
 
-    queue.ensureRequestAndSubscribeTask(mqFactory,
-                                        queueSubscription(ensureF=core.keysInDictCurry(['cluster',
-                                                                                        'by_criteria',
-                                                                                        'criteria_values']),
-                                                          successF=successF(handleTaskTerminateInstances),
-                                                          failureF=failTaskF),
-                                        'terminateInstances',
-                                        conf('clusters.terminateinstances_www'),
-                                        conf('clusters.terminateinstances_queue'),
-                                        conf('clusters.concurrent_terminateinstances'))
+def subscribeTerminateInstances(mq, state):
+    conf = state.conf
+    
+    processTerminateInstancesRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+                                                                                               'by_criteria',
+                                                                                               'criteria_values']),
+                                                                             forwardOrCreate(
+                                                                                 conf('www.url_prefix') + '/' +
+                                                                                 os.path.basename(conf('clusters.terminateinstances_www')),
+                                                                                 conf('clusters.terminateinstances_queue'),
+                                                                                 'terminateInstances',
+                                                                                 1),
+                                                                             sendTaskname]),
+                                                                            queue.failureMsg)
+
+    queue.subscribe(mq,
+                    conf('clusters.terminateinstances_www'),
+                    conf('clusters.concurrent_terminateinstances'),
+                    queue.wrapRequestHandler(state, processTerminateInstancesRequest))
+
+    queue.subscribe(mq,
+                    conf('clusters.terminateinstances_queue'),
+                    conf('clusters.concurrent_terminateinstances'),
+                    queue.wrapRequestHandlerTask(state, handleTaskTerminateInstances))
+
+def subscribeAddInstances(mq, state):
+    conf = state.conf
+
+    processAddInstancesRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+                                                                                         'num_data',
+                                                                                         'num_exec']),
+                                                                       forwardOrCreate(
+                                                                           conf('www.url_prefix') + '/' +
+                                                                           os.path.basename(conf('clusters.addinstances_www')),
+                                                                           conf('clusters.addinstances_queue'),
+                                                                           'addInstances',
+                                                                           1),
+                                                                       sendTaskname]),
+                                                      queue.failureMsg)
+
+    queue.subscribe(mq,
+                    conf('clusters.addinstances_www'),
+                    conf('clusters.concurrent_addinstances'),
+                    queue.wrapRequestHandler(state, processAddInstancesRequest))
+
+    queue.subscribe(mq,
+                    conf('clusters.addinstances_queue'),
+                    conf('clusters.concurrent_addinstances'),
+                    queue.wrapRequestHandlerTask(state, handleTaskAddInstances))
 
     
-    queue.ensureRequestAndSubscribeForwardTask(mqFactory,
-                                               queueSubscription(ensureF=core.keysInDictCurry(['cluster',
-                                                                                               'num_exec',
-                                                                                               'num_data']),
-                                                                 successF=successF(handleTaskAddInstances),
-                                                                 failureF=failTaskF),
-                                               'addInstances',
-                                               conf('www.url_prefix') + '/' + os.path.basename(conf('clusters.addinstances_www')),
-                                               conf('clusters.addinstances_www'),
-                                               conf('clusters.addinstances_queue'),
-                                               conf('clusters.concurrent_addinstances'))
+def subscribeToQueues(mq, state):
+    subscribeStartCluster(mq, state)
+    subscribeTerminateCluster(mq, state)
+    subscribeTerminateInstances(mq, state)
+    subscribeAddInstances(mq, state)
     
-
     #
     # These return immediatly
-    queue.ensureRequestAndSubscribe(mqFactory,
-                                    queueSubscription(ensureF=core.keysInDictCurry(['cluster']),
-                                                      successF=successF(handleWWWClusterInfo),
-                                                      failureF=returnQueueF),
-                                    conf('clusters.clusterinfo_www'),
-                                    conf('clusters.concurrent_clusterinfo'))
+    processClusterInfo = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster']),
+                                                               handleWWWClusterInfo]),
+                                              queue.failureMsg)
+
+    queue.subscribe(mq,
+                    state.conf('clusters.clusterinfo_www'),
+                    state.conf('clusters.concurrent_clusterinfo'),
+                    queue.wrapRequestHandler(state, processClusterInfo))
+                    
+
+
+    processListClusters = defer_pipe.hookError(handleWWWListClusters,
+                                               queue.failureMsg)
+
+    queue.subscribe(mq,
+                    state.conf('clusters.listclusters_www'),
+                    state.conf('clusters.concurrent_listclusters'),
+                    queue.wrapRequestHandler(state, processListClusters))
+                    
 
     
-    queue.ensureRequestAndSubscribe(mqFactory,
-                                    queueSubscription(ensureF=None,
-                                                      successF=successF(handleWWWListClusters),
-                                                      failureF=returnQueueF),
-                                    conf('clusters.listclusters_www'),
-                                    conf('clusters.concurrent_listclusters'))
+    processConfigCluster = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster']),
+                                                                 handleWWWConfigCluster]),
+                                                queue.failureMsg)
 
-    queue.ensureRequestAndSubscribe(mqFactory,
-                                    queueSubscription(ensureF=core.keysInDictCurry(['cluster']),
-                                                      successF=successF(handleWWWConfigCluster),
-                                                      failureF=returnQueueF),
-                                    conf('clusters.configcluster_www'),
-                                    conf('clusters.concurrent_configcluster'))
-    
-        
+    queue.subscribe(mq,
+                    state.conf('clusters.listclusters_www'),
+                    state.conf('clusters.concurrent_listclusters'),
+                    queue.wrapRequestHandler(state, processConfigCluster))
+                    
 
 def makeService(conf):
     mqService = client.makeService(conf)
@@ -1081,8 +712,8 @@ def makeService(conf):
 
     # Startup list
     startUpDefer = loadLocalCluster(mqFactory, state)
-    startUpDefer.addCallback(lambda _ : removeDeadClusters())
+    startUpDefer.addCallback(lambda _ : removeDeadClusters(mqFactory, conf))
     startUpDefer.addCallback(lambda _ : refreshClusters(mqFactory, state))
-    startUpDefer.addCallback(lambda _ : subscribeToQueues(conf, mqFactory, state))
+    startUpDefer.addCallback(lambda _ : subscribeToQueues(mqFactory, state))
 
     return mqService
