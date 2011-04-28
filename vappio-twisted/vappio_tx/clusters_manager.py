@@ -108,16 +108,18 @@ def deleteCluster(credClient, clusterName, userName):
     try:
         cluster = yield persist.loadCluster(clusterName, userName)
 
-        # Delete any instances that still exist
-        instances = cluster.execNodes + cluster.dataNodes
-        if cluster.master:
-            instances.append(cluster.master)
 
-        instances = yield credClient.updateInstances(instances)
-        yield credClient.terminateInstances(instances)
-        
         if cluster.state in [cluster.TERMINATED, cluster.FAILED]:
             yield persist.removeCluster(cluster)
+
+            # Delete any instances that still exist
+            instances = cluster.execNodes + cluster.dataNodes
+            if cluster.master:
+                instances.append(cluster.master)
+
+            instances = yield credClient.updateInstances(instances)
+            yield credClient.terminateInstances(instances)
+                    
         defer.returnValue(cluster)
     except persist.ClusterNotFoundError:
         # Somebody beat us to deleting it, that's ok
@@ -243,7 +245,7 @@ def handleTaskTerminateCluster(request):
                 cluster = cluster.setState(cluster.TERMINATED)
         except:
             cluster = yield terminateCluster(credClient, request.body['cluster'], request.body['user_name'])
-                
+
         yield saveCluster(cluster, request.state)
         reactor.callLater(REMOVE_CLUSTER_TIMEOUT,
                           deleteCluster,
