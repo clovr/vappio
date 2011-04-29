@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+#
+
+# Author: James Robert White, james.dna.white@gmail.com
+
+# This takes input files from the CloVR16S pipeline and checks them for
+# correctness before running the pipeline. 
+
+# The input is any number of key-value pairs. Those keys starting with 'input.' are 
+# taken to correspond to input tags containg fasta files. 
+
+#
+# The input data currently needed is:
+# input.FASTA_TAG
+# input.MAPPING_TAG 
+
+
+# Importing ************************************************************************
+import sys
+import os
+
+from igs.utils import commands
+
+from vappio.webservice import tag
+# **********************************************************************************
+
+# **********************************************************************************************************
+# **********************************************************************************************************
+
+# BEGIN
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+# Write our header out
+sys.stdout.write('kv\n')
+
+# Expected key value pairs
+kv = {'input.FASTA_TAG': None,
+      'input.MAPPING_TAG': None,
+      'input.FASTA_FILE_LIST': None,
+      'input.MAPPING_FILE_LIST': None 
+     }
+
+# Tag recording
+fastaTag = ""
+mappingTag = ""
+fastafilelist = ""
+mappingfilelist = ""
+
+for line in sys.stdin:
+    sys.stdout.write(line.strip() + '\n')
+    k, v = line.strip().split('=', 1)
+    if k in kv:
+        kv[k] = v
+    if k.startswith('input.FASTA_TAG'):
+        fastaTag = v
+    if k.startswith('input.MAPPING_TAG'):
+        mappingTag = v
+    if k.startswith('input.FASTA_FILE_LIST'):
+        fastafilelist = v
+    if k.startswith('input.MAPPING_FILE_LIST'):
+        mappingfilelist = v
+
+
+if [v for v in kv.values() if not v]:
+    raise Exception('Not all expected values present in config')
+
+# Write our header out
+sys.stdout.write('json\n')
+
+# first test the map file alone
+cloVRMapFileCheckstdout = ""
+commands.runSingleProgramEx('/opt/ergatis/bin/cloVRMapFileCheck.pl `cat ' + mappingfilelist + '`', stdoutf=cloVRMapFileCheckstdout, stderrf=None)
+  
+if 'mapping file looks good' not in cloVRMapFileCheckstdout: 
+    sys.stdout.write('[{"message": "' + cloVRMapFileCheckstdout + '", "keys":[' + mappingTag + ']}]\n')
+    exit(1) 
+
+
+# next test the fasta files consistency with the mapping
+clovr_mapfasta_stdout = ""
+clovr_mapfasta_stderr = ""
+commands.runSingleProgramEx('opt/ergatis/bin/clovr_mapfasta_check.pl -f ' + fastafilelist + ' -m `cat ' + mappingfilelist + '`', stdoutf=clovr_mapfasta_stdout, stderrf=clovr_mapfasta_stderr)
+  
+if "" != clovr_mapfasta_stderr:
+    sys.stdout.write('[{"message": "' + clovr_mapfasta_stderr + '", "keys":[' + mappingTag + ',' + fastaTag + ']}]\n')
+    exit(1) 
+
