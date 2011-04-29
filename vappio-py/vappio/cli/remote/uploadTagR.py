@@ -96,7 +96,7 @@ def main(options, _args):
         metadataKeys = [k.split('.', 1)[1] for k in tagFile.keys() if k.startswith('metadata.')]
         metadata = dict([(k, tagFile('metadata.' + k)) for k in metadataKeys])
 
-        dstDir = os.path.join(dstCluster['config']['dirs.tag_dir'], options('general.tag_name'))
+        dstDir = os.path.join(dstCluster['config']['dirs.upload_dir'], options('general.tag_name'))
         if options('general.compress'):
             compress = os.path.split(dstDir)[0]
         else:

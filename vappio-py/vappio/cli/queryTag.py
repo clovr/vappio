@@ -17,8 +17,12 @@ def main(options, files):
         tagData = tag.queryTag(options('general.host'),
                                options('general.name'),
                                [options('general.tag_name')])
-        for f in tagData('files'):
-            print '\t'.join(['FILE', f])
+        if 'phantom_tag' in tagData:
+            print 'PHANTOM'
+
+        if 'files' in tagData:
+            for f in tagData('files'):
+                print '\t'.join(['FILE', f])
 
         metadataKeys = [k for k in tagData.keys() if k.startswith('metadata.')]
         for k in metadataKeys:
