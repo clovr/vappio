@@ -1,0 +1,74 @@
+#!/usr/bin/env perl
+
+# special key: molecule=[na|aa]
+
+# returns [
+# { "message": "message string",
+#   "params": [param1, param2]
+#},
+# { "message": "message string",
+#   "params": [param1, param2]
+#},    
+#]
+
+use strict;
+use warnings;
+use Data::Dumper;
+
+my $seqstat_exec = "/usr/bin/seqstat";
+
+chomp( my $header = <> );
+die("$0 expects key value pairs ['kv'], not $header") unless( $header eq 'kv' );
+
+# if the user specifies a molecule type
+my $molecule;
+
+# holds the key value pairs. All values are assumed files
+my %pairs;
+
+while( my $arg = <> ) {
+    chomp($arg);
+	my ($key, $value) = split(/\s*=\s*/, $arg);
+	
+    if( $key eq 'molecule' ) {
+        $molecule = $value;
+        undef $molecule unless( $molecule eq 'aa' || $molecule eq 'na' );
+        next;
+    }	
+    $pairs{$key} = $value;
+}
+
+print Dumper( \%pairs );
+
+my @json;
+foreach my $key ( %pairs ) {
+    print "Checking $key...";
+    my $message = &check_fasta( $pairs{$key}, $molecule );
+    push(@json, { "message" => $message,
+                  "keys" => [ $key ] }
+        );
+}
+
+print Dumper(@json);
+
+sub check_fasta {
+	my ($file, $mol) = @_;
+	my $msg;
+	
+	my $seqstat_cmd = "$seqstat_exec $file";
+	open(IN, "$seqstat_cmd |") or die("Can't run cmd $seqstat_cmd");
+	while( my $line = <IN> ) {
+	    if( $line =~ /Format:\s+(\S+)/ ) {
+	        $msg = "File: $file not fasta." unless( $1 eq 'FASTA' );
+	        last;
+	    }
+	    if( $line =~ /Type.*(\S+)$/ ) {
+	        my $type = ($1 eq 'DNA') ? 'na' : 'aa';
+	        $msg = "File: $file first sequence is $type, not $molecule" if( $type ne $molecule );
+	        last;
+	    }
+	}
+	close(IN);
+	
+	return $msg;
+}
