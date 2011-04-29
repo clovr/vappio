@@ -3,7 +3,7 @@
 
 # Author: James Robert White, james.dna.white@gmail.com
 
-# This takes input files from the CloVR Metagenomics noorfs pipeline and checks them for
+# This takes input files from the CloVR metagenomics no orfs pipeline and checks them for
 # correctness before running the pipeline. 
 
 # The input is any number of key-value pairs. Those keys starting with 'input.' are 
@@ -13,6 +13,8 @@
 # The input data currently needed is:
 # input.FASTA_TAG
 # input.MAPPING_TAG 
+# input.FASTA_FILE_LIST
+# input.MAPPING_FILE_LIST
 
 
 # Importing ************************************************************************
@@ -33,8 +35,6 @@ from vappio.webservice import tag
 if sys.stdin.readline().strip() != 'kv':
     raise Exception('Header needs to be kv')
 
-# Write our header out
-sys.stdout.write('kv\n')
 
 # Expected key value pairs
 kv = {'input.FASTA_TAG': None,
@@ -50,7 +50,7 @@ fastafilelist = ""
 mappingfilelist = ""
 
 for line in sys.stdin:
-    sys.stdout.write(line.strip() + '\n')
+    #sys.stdout.write(line.strip() + '\n')
     k, v = line.strip().split('=', 1)
     if k in kv:
         kv[k] = v
@@ -71,20 +71,20 @@ if [v for v in kv.values() if not v]:
 sys.stdout.write('json\n')
 
 # first test the map file alone
-cloVRMapFileCheckstdout = ""
-commands.runSingleProgramEx('/opt/ergatis/bin/cloVRMapFileCheck.pl `cat ' + mappingfilelist + '`', stdoutf=cloVRMapFileCheckstdout, stderrf=None)
+cloVRMapFileCheckstdout = []
+cloVRMapFileCheckstderr = []
+commands.runSingleProgram('/opt/ergatis/bin/cloVRMapFileCheck.pl `cat ' + mappingfilelist + '`', stdoutf=cloVRMapFileCheckstdout.append, stderrf=cloVRMapFileCheckstderr.append)
   
-if 'mapping file looks good' not in cloVRMapFileCheckstdout: 
-    sys.stdout.write('[{"message": "' + cloVRMapFileCheckstdout + '", "keys":[' + mappingTag + ']}]\n')
+if cloVRMapFileCheckstderr: 
+    sys.stdout.write('[{"message": "' + cloVRMapFileCheckstderr[0] + '", "keys":[' + mappingTag + ']}]\n')
     exit(1) 
 
-
 # next test the fasta files consistency with the mapping
-clovr_mapfasta_stdout = ""
-clovr_mapfasta_stderr = ""
-commands.runSingleProgramEx('opt/ergatis/bin/clovr_mapfasta_check.pl -f ' + fastafilelist + ' -m `cat ' + mappingfilelist + '`', stdoutf=clovr_mapfasta_stdout, stderrf=clovr_mapfasta_stderr)
+clovr_mapfasta_stdout = []
+clovr_mapfasta_stderr = []
+commands.runSingleProgram('/opt/ergatis/bin/clovr_mapfasta_check.pl -f ' + fastafilelist + ' -m `cat ' + mappingfilelist + '`', stdoutf=clovr_mapfasta_stdout.append, stderrf=clovr_mapfasta_stderr.append)
   
-if "" != clovr_mapfasta_stderr:
-    sys.stdout.write('[{"message": "' + clovr_mapfasta_stderr + '", "keys":[' + mappingTag + ',' + fastaTag + ']}]\n')
+if clovr_mapfasta_stderr:
+    sys.stdout.write('[{"message": "' + clovr_mapfasta_stderr[0] + '", "keys":[' + mappingTag + ',' + fastaTag + ']}]\n')
     exit(1) 
 
