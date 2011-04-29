@@ -242,7 +242,7 @@ def handleTaskTerminateCluster(request):
                                                                                      request.body['cluster'],
                                                                                      taskName,
                                                                                      t))
-                cluster = cluster.setState(cluster.TERMINATED)
+            cluster = cluster.setState(cluster.TERMINATED)
         except:
             cluster = yield terminateCluster(credClient, request.body['cluster'], request.body['user_name'])
 
