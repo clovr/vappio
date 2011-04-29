@@ -214,6 +214,7 @@ updatestatus=y
 harvestingq=harvesting.q
 harvestingslots=2
 harvesting_dir=/mnt/harvesting
+harvesttmp=0 #beta, harvest tmp dir to master on failures
 #Dedicated queue for syncing project repositories
 repositoryq=repository.q
 

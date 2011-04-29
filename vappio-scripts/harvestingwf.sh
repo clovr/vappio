@@ -39,8 +39,7 @@ then
 	    vlog "Attempting rescheduling of harvesting job"
 	    exit 99;
 	else
-	    vlog "Aborting harvesting job"
-	    exit 1;
+	    vlog "Unable to harvest workflow XML $wfdir"
 	fi
     fi
 fi
