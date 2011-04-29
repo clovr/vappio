@@ -88,3 +88,6 @@ if clovr_mapfasta_stderr:
     sys.stdout.write('[{"message": "' + clovr_mapfasta_stderr[0] + '", "keys":[' + mappingTag + ',' + fastaTag + ']}]\n')
     exit(1) 
 
+sys.stdout.write('[]\n')
+
+
