@@ -13,6 +13,7 @@ TEMPLATE_NAME = 'clovr_16S_nochimeracheck'
 
 OPTIONS = [
     ('input.FASTA_FILE_LIST', '', '--FASTA_TAG', 'The input file list of FASTA files', compose(lambda x : '${dirs.tag_dir}/' + x, defaultIfNone('${input.FASTA_TAG}'))),
+    ('input.QUAL_FILE_LIST', '', '--QUAL_TAG', 'The input file list of QUAL files', compose(lambda x : '${dirs.tag_dir}/' + x, defaultIfNone('${input.QUAL_TAG}'))),
     ('input.MAPPING_FILE_LIST', '', '--MAPPING_TAG', 'Mapping data file', compose(lambda x : '${dirs.tag_dir}/' + x, defaultIfNone('${input.MAPPING_TAG}'))),
     ('params.GROUP_COUNT', '', '--GROUP_COUNT', 'Ergatis group count', defaultIfNone("50"))
     ]
