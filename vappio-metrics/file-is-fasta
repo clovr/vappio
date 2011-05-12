@@ -7,14 +7,16 @@
 #   "keys": [key1, key2]
 #},
 #]
-
 use strict;
 use warnings;
 use JSON::PP;
 use Data::Dumper;
 
+# Set seqstat executable
 my $seqstat_exec = "/usr/bin/seqstat";
 
+# Grab the header and make sure that were getting kv
+# if not, die
 chomp( my $header = <> );
 die("$0 expects key value pairs ['kv'], not $header") unless( $header eq 'kv' );
 
@@ -24,23 +26,23 @@ my $molecule;
 # holds the key value pairs. All values are assumed files
 my %pairs;
 
-while( my $arg = <> ) {
-    chomp($arg);
-	my ($key, $value) = split(/\s*=\s*/, $arg);
-	
-    if( $key eq 'molecule' ) {
-        $molecule = $value;
-        undef $molecule unless( $molecule eq 'aa' || $molecule eq 'na' );
-        next;
-    }	
-    $pairs{$key} = $value;
-}
+# parse input key value pairs.
+# Special key is molecule, everything else expected to be a fasta file.
+map {
+  chomp;
+  my ($k,$v) = split(/\s*=\s*/);
+  if( $k eq 'molecule' ) {
+	$molecule = $1 if( $v =~ /(aa|na)/i );
+  } else {
+	$pairs{$k} = $v;
+  }
+} <>;
 
+# cycle through each key value pair and check to see if it's fasta
 my @json;
 foreach my $key ( keys %pairs ) {
     my $message = &check_fasta( $pairs{$key}, $molecule );
-	next unless $message;
-    push(@json, { "message" => $message,"keys" => [ $key ] });
+    push(@json, { "message" => $message,"keys" => [ $key ] }) if( $message );
 }
 
 #print Dumper(@json);
