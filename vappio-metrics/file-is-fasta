@@ -4,15 +4,13 @@
 
 # returns [
 # { "message": "message string",
-#   "params": [param1, param2]
+#   "keys": [key1, key2]
 #},
-# { "message": "message string",
-#   "params": [param1, param2]
-#},    
 #]
 
 use strict;
 use warnings;
+use JSON::PP;
 use Data::Dumper;
 
 my $seqstat_exec = "/usr/bin/seqstat";
@@ -38,16 +36,18 @@ while( my $arg = <> ) {
     $pairs{$key} = $value;
 }
 
-print Dumper( \%pairs );
-
 my @json;
-foreach my $key ( %pairs ) {
-    print "Checking $key...";
+foreach my $key ( keys %pairs ) {
     my $message = &check_fasta( $pairs{$key}, $molecule );
+	next unless $message;
     push(@json, { "message" => $message,"keys" => [ $key ] });
 }
 
-print Dumper(@json);
+#print Dumper(@json);
+if( @json > 0 ) {
+	print encode_json(\@json);
+	exit 1
+}
 
 sub check_fasta {
 	my ($file, $mol) = @_;
@@ -62,9 +62,9 @@ sub check_fasta {
     	        last;
             }
 	    }
-	    if( defined( $molecule ) && $line =~ /Type.*(\S+)$/ ) {
+	    if( defined( $mol ) && $line =~ /Type.*?(\S+)$/ ) {
 	        my $type = ($1 eq 'DNA') ? 'na' : 'aa';
-	        if( $type ne $molecule ) {
+	        if( $type ne $mol ) {
 	            $msg = "File: $file first sequence is $type, not $molecule" ;
 	            last;
             }
