@@ -1,0 +1,92 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use JSON::PP;
+use Data::Dumper;
+
+#('input.INPUT_FILE_LIST', '', '--INPUT_FILE_LIST', 'The input file list of sequences', compose(lambda x : '${dirs.tag_dir}/' + x, defaultIfNone('${input.INPUT_FSA_TAG}'))),
+#('params.OUTPUT_PREFIX', '', '--OUTPUT_PREFIX', 'Used in ID generation, Locus Tags, etc.', notNone),
+#('params.ORGANISM', '', '--ORGANISM', 'Organism name', defaultIfNone('/dev/null')),
+#('pipeline.GROUP_COUNT', '', '--GROUP_COUNT', 'Corresponds to number of groups to split data into (Ergatis)', defaultIfNone('50')),
+#('input.DATABASE_PATH'
+
+# Check for 
+chomp( my $header = <> );
+die("Header must be 'kv', got $header") unless( $header eq 'kv' );
+
+# holds messages and failure information
+my @json;
+
+# Parse input arguments
+my %args;
+while( my $arg = <> ) {
+    chomp( $arg );
+    
+    # Grab the key value pair
+    my ($key, $value) = split( /\s*=\s*/, $arg );
+    die("Could not parse key and value pair from $arg") unless( defined( $key ) && defined( $value ) );
+    $args{$key} = $value;
+}
+
+# Check input.INPUT_FILE_LIST
+&check_input_file_list( $args{'input.INPUT_FILE_LIST'} );
+
+close(IN);
+
+sub check_input_file_list {
+    my ($list) = @_;
+    
+    # make sure the list exists
+    &push_json( "list: $list doesn't exist", "input.INPUT_FILE_LIST", 1) unless( open(IN, "< $list") );
+    
+    # make sure there are more than one file in the list
+    chomp( my @files = <IN> );
+    &push_json( "list: $list doesn't contain any file paths", "input.INPUT_FILE_LIST", 1 ) unless( @files > 0 );
+    
+    # make sure each file in the list is a nucleotide fasta file
+    map { 
+        # does the file exist?
+        &push_json( "File: $_ does not exist", "input.INPUT_FILE_LIST" ) unless( -e );
+        
+        my $msg = &is_nucleotide_fasta( $_ );
+        &push_json( $msg, "input.INPUT_FILE_LIST" ) if( $msg );
+     } @files;
+
+    &json_exit();
+    
+    
+    close(IN);
+}
+
+sub is_nucleotide_fasta {
+    my ($file, $mol) = @_;
+    my $cmd = "echo \"kv\nfile=$file\nmolecule=na\" | /opt/vappio-metrics/file-is-fasta";
+    open(CMD, "$cmd |") or die("Could not run cmd: $cmd");
+    chomp( my @lines = <CMD> );
+    close(CMD); 
+    my $msg;
+    if( @lines > 0 ) {
+        my $ret = decode_json( $lines[0] );   
+        $msg = $ret->[0]->{'message'};
+    }
+    return $msg;
+}
+
+sub push_json {
+    my ($msg, $keys, $exit) = @_;
+    
+    # if a scalar is passed in, make it an arrayref
+    $keys = [$keys] if( ref( $keys) eq "" );
+    push(@json, {'message'=> $msg, 'keys' => $keys});
+    &json_exit if( $exit );
+}
+
+sub json_exit {
+	if ( @json > 0 ){
+	    print encode_json(\@json);
+	    exit 1;
+	} else {
+		exit 0;
+	}
+}
