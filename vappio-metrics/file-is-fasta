@@ -44,9 +44,7 @@ my @json;
 foreach my $key ( %pairs ) {
     print "Checking $key...";
     my $message = &check_fasta( $pairs{$key}, $molecule );
-    push(@json, { "message" => $message,
-                  "keys" => [ $key ] }
-        );
+    push(@json, { "message" => $message,"keys" => [ $key ] });
 }
 
 print Dumper(@json);
@@ -59,13 +57,17 @@ sub check_fasta {
 	open(IN, "$seqstat_cmd |") or die("Can't run cmd $seqstat_cmd");
 	while( my $line = <IN> ) {
 	    if( $line =~ /Format:\s+(\S+)/ ) {
-	        $msg = "File: $file not fasta." unless( $1 eq 'FASTA' );
-	        last;
+	        unless( $1 eq 'FASTA' ) {
+	            $msg = "File: $file not fasta." unless( $1 eq 'FASTA' );
+    	        last;
+            }
 	    }
-	    if( $line =~ /Type.*(\S+)$/ ) {
+	    if( defined( $molecule ) && $line =~ /Type.*(\S+)$/ ) {
 	        my $type = ($1 eq 'DNA') ? 'na' : 'aa';
-	        $msg = "File: $file first sequence is $type, not $molecule" if( $type ne $molecule );
-	        last;
+	        if( $type ne $molecule ) {
+	            $msg = "File: $file first sequence is $type, not $molecule" ;
+	            last;
+            }
 	    }
 	}
 	close(IN);
