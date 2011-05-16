@@ -11,6 +11,7 @@ from vappio.tasks import task
 from igs_tx.utils import commands
 from igs_tx.utils import errors
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
@@ -49,56 +50,54 @@ def splitAndSanitizeMetrics(metrics):
 def parseCmd(s):
     return s.split(' ')
 
-def runMetrics(taskName, initialText, metrics):
-    def _errback(metric, stderr):
-        raise MetricError(metric, stderr.getvalue())
+
+def runTasklet(taskName, initialText, tasklets):
+    def _raise(tasklet, err):
+        raise MetricError(tasklet, err)
     
-    def _run(initialText, ms):
-        try:
-            m = ms.next()
-            stdout = StringIO.StringIO()
-            stderr = StringIO.StringIO()
-            p = commands.runProcess(parseCmd(m),
-                                    initialText=initialText.getvalue(),
-                                    stdoutf=stdout.write,
-                                    stderrf=stderr.write)
-            tasks.updateTask(taskName,
-                             lambda t : t.progress()).addCallback(lambda _ : p)
-            p.addErrback(lambda _ : _errback(m, stderr))
-            p.addCallback(lambda _ : _run(stdout, ms))
-            return p
-        except StopIteration:
-            return initialText.getvalue()
+    def _run(text, tasklet):
+        stdout = StringIO.StringIO()
+        stderr = StringIO.StringIO()
 
-    metricsIter = iter(metrics)
-    return _run(StringIO.StringIO(initialText), metricsIter)
+        p = commands.runProcess(parseCmd(tasklet),
+                                initialText=text,
+                                stdoutf=stdout.write,
+                                stderrf=stderr.write)
+        p.addCallback(lambda _ : tasks.updateTask(taskName,
+                                                  lambda t : t.progress()))
+        p.addCallback(lambda _ : stdout.getvalue())
+        p.addErrback(lambda _ : _raise(tasklet, stderr.getvalue()))
+        return p
 
-def runMetricsWithTask(taskName, initialText, metrics):
-    d = tasks.updateTask(taskName,
-                         lambda t : t.setState(task.TASK_RUNNING
-                                               ).addMessage(task.MSG_SILENT,
-                                                            'Starting to run ' + ' | '.join(metrics)).update(numTasks=len(metrics)))
-    d.addCallback(lambda _ : runMetrics(taskName, initialText, metrics))
-    d.addCallback(lambda o : tasks.updateTask(taskName,
-                                              lambda t : t.setState(task.TASK_COMPLETED
-                                                                    ).addMessage(task.MSG_NOTIFICATION, 'Completed'
-                                                                                 ).addResult(o)))
-    
-    def _err(f):
-        tasks.updateTask(taskName,
-                         lambda t : t.setState(task.TASK_FAILED
-                                               ).addException(f.getErrorMessage(), f, errors.stackTraceToString(f)))
+    return defer_utils.fold(_run, initialText, tasklets)
 
-    d.addErrback(_err)
+@defer.inlineCallbacks
+def runTaskletWithTask(taskName, initialText, tasklets):
+    yield tasks.updateTask(taskName,
+                           lambda t : t.setState(task.TASK_RUNNING
+                                                 ).addMessage(task.MSG_SILENT,
+                                                              'Starting to run ' + ' | '.join(tasklets)).update(numTasks=len(tasklets)))
 
-    return d
+    try:
+        output = yield runTasklet(taskName, initialText, tasklets)
+        yield tasks.updateTask(taskName,
+                               lambda t : t.setState(task.TASK_COMPLETED
+                                                     ).addMessage(task.MSG_NOTIFICATION, 'Completed'
+                                                                  ).addResult(output))
+    except MetricError, err:
+        yield tasks.updateTask(taskName,
+                               lambda t : t.setState(task.TASK_FAILED
+                                                     ).addException(str(err), err, errors.getStacktrace()))
+        raise err
+
+
     
     
-def handleMsg(request):
+def handleRunTasklet(request):
     initialConf = request.body['conf']
     initialText = ('\n'.join(['kv'] + [k + '=' + v for k, v in initialConf.iteritems()]) + '\n').encode('utf_8')
-    metrics = splitAndSanitizeMetrics(request.body['metrics'].encode('utf_8'))
-    return runMetricsWithTask(request.body['task_name'], initialText, metrics).addCallback(lambda _ : request)
+    tasklets = splitAndSanitizeMetrics(request.body['tasklet'].encode('utf_8'))
+    return runTaskletWithTask(request.body['task_name'], initialText, tasklets).addCallback(lambda _ : request)
     
 
 def sendTaskname(request):
@@ -116,7 +115,9 @@ def makeService(conf):
     mqFactory = mqService.mqFactory
 
 
-    processRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster', 'metrics', 'conf']),
+    processRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+                                                                             'tasklet',
+                                                                             'conf']),
                                                            forwardOrCreate(
                                                                conf('www.url_prefix') + '/' +
                                                                os.path.basename(conf('tasklets.tasklets_www')),
@@ -132,12 +133,16 @@ def makeService(conf):
                     conf('tasklets.concurrent_tasklets'),
                     queue.wrapRequestHandler(None, processRequest))
 
-    
+
+    processRunTasklet = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['tasklet',
+                                                                                'conf']),
+                                                              handleRunTasklet]),
+                                             queue.failureMsg)
     
     queue.subscribe(mqFactory,
                     conf('tasklets.tasklets_queue'),
                     conf('tasklets.concurrent_tasklets'),
-                    queue.wrapRequestHandlerTask(None, handleMsg))
+                    queue.wrapRequestHandlerTask(None, processRunTasklet))
     
     
     return mqService

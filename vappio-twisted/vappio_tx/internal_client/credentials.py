@@ -39,6 +39,12 @@ class CredentialClient:
         return performQuery(self.mq,
                             self.conf('credentials.credentialconfig_queue'),
                             query)
+
+    def getCType(self):
+        query = dict(credential_name=self.credName)
+        return performQuery(self.mq,
+                            self.conf('credentials.getctype_queue'),
+                            query)
     
     def runInstances(self,
                      ami,

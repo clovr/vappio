@@ -175,6 +175,12 @@ def replaceUserDataVariables(cred, userData):
     return userData
 
 
+def handleGetCType(request):
+    queue.returnQueueSuccess(request.mq,
+                             request.body['return_queue'],
+                             request.credential.credential.getCType())
+    return defer_pipe.ret(request)
+
 def handleCredentialConfig(request):
     conf = config.configToDict(request.credential.credInstance.conf)
     conf = func.updateDict(conf,
@@ -413,85 +419,102 @@ def loadCredentialForRequest(request):
 
 def subscribeToQueues(mq, state):
     # Queue frontend
-    processCredentialConfig = defer_pipe.pipe([queue.keysInBody(['credential_name']),
-                                               loadCredentialForRequest,
-                                               handleCredentialConfig])
+    processGetCType = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name']),
+                                                            loadCredentialForRequest,
+                                                            handleGetCType]),
+                                           queue.failureMsg)
+    queue.subscribe(mq,
+                    state.conf('credentials.getctype_queue'),
+                    state.conf('credentials.concurrent_getctype'),
+                    queue.wrapRequestHandler(state, processGetCType))
+    
+    processCredentialConfig = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name']),
+                                                                    loadCredentialForRequest,
+                                                                    handleCredentialConfig]),
+                                                   queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.credentialconfig_queue'),
                     state.conf('credentials.concurrent_credentialconfig'),
                     queue.wrapRequestHandler(state, processCredentialConfig))
 
 
-    processRunInstances = defer_pipe.pipe([queue.keysInBody(['credential_name',
-                                                             'ami',
-                                                             'key',
-                                                             'instance_type',
-                                                             'groups',
-                                                             'num_instances']),
-                                           loadCredentialForRequest,
-                                           handleRunInstances])
+    processRunInstances = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name',
+                                                                                  'ami',
+                                                                                  'key',
+                                                                                  'instance_type',
+                                                                                  'groups',
+                                                                                  'num_instances']),
+                                                                loadCredentialForRequest,
+                                                                handleRunInstances]),
+                                               queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.runinstances_queue'),
                     state.conf('credentials.concurrent_runinstances'),
                     queue.wrapRequestHandler(state, processRunInstances))
     
 
-    processRunSpotInstances = defer_pipe.pipe([queue.keysInBody(['credential_name',
-                                                                 'bid_price',
-                                                                 'ami',
-                                                                 'key',
-                                                                 'instance_type',
-                                                                 'groups',
-                                                                 'num_instances']),
-                                               loadCredentialForRequest,
-                                               handleRunSpotInstances])
+    processRunSpotInstances = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name',
+                                                                                      'bid_price',
+                                                                                      'ami',
+                                                                                      'key',
+                                                                                      'instance_type',
+                                                                                      'groups',
+                                                                                      'num_instances']),
+                                                                    loadCredentialForRequest,
+                                                                    handleRunSpotInstances]),
+                                                   queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.runspotinstances_queue'),
                     state.conf('credentials.concurrent_runspotinstances'),
                     queue.wrapRequestHandler(state, processRunSpotInstances))
 
 
-    processListInstances = defer_pipe.pipe([queue.keysInBody(['credential_name']),
-                                            loadCredentialForRequest,
-                                            handleListInstances])
+    processListInstances = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name']),
+                                                                 loadCredentialForRequest,
+                                                                 handleListInstances]),
+                                                queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.listinstances_queue'),
                     state.conf('credentials.concurrent_listinstances'),
                     queue.wrapRequestHandler(state, processListInstances))
 
 
-    processTerminateInstances = defer_pipe.pipe([queue.keysInBody(['credential_name',
-                                                                   'instances']),
-                                                 loadCredentialForRequest,
-                                                 handleTerminateInstances])
+    processTerminateInstances = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name',
+                                                                                        'instances']),
+                                                                      loadCredentialForRequest,
+                                                                      handleTerminateInstances]),
+                                                     queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.terminateinstances_queue'),
                     state.conf('credentials.concurrent_terminateinstances'),
                     queue.wrapRequestHandler(state, processTerminateInstances))
     
 
-    processUpdateInstances = defer_pipe.pipe([queue.keysInBody(['credential_name',
-                                                                'instances']),
-                                              loadCredentialForRequest,
-                                              handleUpdateInstances])
+    processUpdateInstances = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name',
+                                                                                     'instances']),
+                                                                   loadCredentialForRequest,
+                                                                   handleUpdateInstances]),
+                                                  queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.updateinstances_queue'),
                     state.conf('credentials.concurrent_updateinstances'),
                     queue.wrapRequestHandler(state, processUpdateInstances))
 
-    processListKeypairs = defer_pipe.pipe([queue.keysInBody(['credential_name']),
-                                           loadCredentialForRequest,
-                                           handleListKeypairs])
+    processListKeypairs = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name']),
+                                                                loadCredentialForRequest,
+                                                                handleListKeypairs]),
+                                               queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.listkeypairs_queue'),
                     state.conf('credentials.concurrent_listkeypairs'),
                     queue.wrapRequestHandler(state, processListKeypairs))
     
 
-    processAddKeypair = defer_pipe.pipe([queue.keysInBody(['credential_name',
-                                                           'keypair_name']),
-                                         loadCredentialForRequest,
-                                         handleAddKeypair])
+    processAddKeypair = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name',
+                                                                                'keypair_name']),
+                                                              loadCredentialForRequest,
+                                                              handleAddKeypair]),
+                                             queue.failureMsg)
 
     queue.subscribe(mq,
                     state.conf('credentials.addkeypair_queue'),
@@ -499,9 +522,10 @@ def subscribeToQueues(mq, state):
                     queue.wrapRequestHandler(state, processAddKeypair))
     
 
-    processListGroups = defer_pipe.pipe([queue.keysInBody(['credential_name']),
-                                         loadCredentialForRequest,
-                                         handleListGroups])
+    processListGroups = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name']),
+                                                              loadCredentialForRequest,
+                                                              handleListGroups]),
+                                             queue.failureMsg)
 
     queue.subscribe(mq,
                     state.conf('credentials.listgroups_queue'),
@@ -509,22 +533,24 @@ def subscribeToQueues(mq, state):
                     queue.wrapRequestHandler(state, processListGroups))
 
 
-    processAddGroup = defer_pipe.pipe([queue.keysInBody(['credential_name',
-                                                         'group_name',
-                                                         'group_description']),
-                                       loadCredentialForRequest,
-                                       handleAddGroup])
+    processAddGroup = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name',
+                                                                              'group_name',
+                                                                              'group_description']),
+                                                            loadCredentialForRequest,
+                                                            handleAddGroup]),
+                                           queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.addgroup_queue'),
                     state.conf('credentials.concurrent_addgroup'),
                     queue.wrapRequestHandler(state, processAddGroup))
     
 
-    processAuthorizeGroup = defer_pipe.pipe([queue.keysInBody(['credential_name',
-                                                               'group_name',
-                                                               'port_range']),
-                                             loadCredentialForRequest,
-                                             handleAuthorizeGroup])
+    processAuthorizeGroup = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name',
+                                                                                    'group_name',
+                                                                                    'port_range']),
+                                                                  loadCredentialForRequest,
+                                                                  handleAuthorizeGroup]),
+                                                 queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.authorizegroup_queue'),
                     state.conf('credentials.concurrent_authorizegroup'),
@@ -533,11 +559,12 @@ def subscribeToQueues(mq, state):
 
     #
     # WWW Frontend
-    processWWWListAddCredentials = defer_pipe.pipe([queue.keysInBody(['cluster']),
-                                                    queue.forwardRequestToCluster(
-                                                        state.conf('www.url_prefix') + '/' +
-                                                        os.path.basename(state.conf('credentials.listaddcredentials_www'))),
-                                                    handleWWWListAddCredentials])
+    processWWWListAddCredentials = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster']),
+                                                                         queue.forwardRequestToCluster(
+                                                                             state.conf('www.url_prefix') + '/' +
+                                                                             os.path.basename(state.conf('credentials.listaddcredentials_www'))),
+                                                                         handleWWWListAddCredentials]),
+                                                        queue.failureMsg)
     queue.subscribe(mq,
                     state.conf('credentials.listaddcredentials_www'),
                     state.conf('credentials.concurrent_listaddcredentials'),

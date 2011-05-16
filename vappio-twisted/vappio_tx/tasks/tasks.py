@@ -10,7 +10,6 @@ from vappio.tasks import utils as task_utils
 def createTaskAndSave(tType, numTasks, initialMsg=None):
     return threads.deferToThread(task_utils.createTaskAndSave, tType, numTasks, initialMsg)
 
-
 def updateTask(taskName, f):
     d = threads.deferToThread(task.loadTask, taskName)
     d.addCallback(f)
