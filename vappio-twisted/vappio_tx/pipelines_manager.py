@@ -202,7 +202,6 @@ def handleWWWRunPipeline(request):
         else:
             raise Exception('More than one possible parent pipeline choice, not sure what to do here')
     else:
-        print 'did not find parent pipeline', request.body['parent_pipeline']
         parentPipeline = None
 
 
@@ -257,7 +256,6 @@ def handleWWWRunPipeline(request):
             d.addCallback(lambda p : _monitor(request, p))
 
             if parentPipeline:
-                print 'saving pipeline'
                 parentPipeline = parentPipeline.update(children=parentPipeline.children + [('local',
                                                                                             pipeline.pipelineName)])
                 yield persist.savePipeline(parentPipeline)
