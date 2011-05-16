@@ -25,6 +25,23 @@ MSG_SILENT = 'silent'
 
 
 class Task(Record):
+    def __init__(self,
+                 name,
+                 tType,
+                 state,
+                 completedTasks,
+                 numTasks,
+                 messages,
+                 timestamp):
+        Record.__init__(self,
+                        name=name,
+                        tType=tType,
+                        state=state,
+                        completedTasks=completedTasks,
+                        numTasks=numTasks,
+                        messages=messages,
+                        timestamp=timestamp)
+        
     def addMessage(self, mtype, msg):
         t = time.time()
         return self.update(timestamp=t,

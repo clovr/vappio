@@ -8,7 +8,6 @@ from vappio.tasks.utils import runTaskStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', cli.defaultIfNone('localhost')),
-    ('name', '', '--name', 'Deprecated', cli.deprecated('--name is deprecated, use --cluster')),
     ('cluster', '', '--cluster', 'Name of cluster', cli.notNone),
     ('num_exec', '', '--num-exec', 'Number of exec nodes to start', int),
     ('cred', '', '--cred', 'Credential to use', cli.notNone),
@@ -30,20 +29,18 @@ def main(options, _args):
                             'cluster.exec_bid_price': options('general.exec_bid_price')})
 
     
-    # Just do nothing if ctype is local or name is local
-    if options('general.cred') != 'local' or options('general.name') != 'local':
-        taskName = startCluster(options('general.host'),
-                                options('general.cluster'),
-                                options('general.num_exec'),
-                                0,
-                                options('general.cred'),
-                                conf)
+    taskName = startCluster(options('general.host'),
+                            options('general.cluster'),
+                            options('general.num_exec'),
+                            0,
+                            options('general.cred'),
+                            conf)
 
 
-        if options('general.print_task_name'):
-            print taskName
-        else:
-            runTaskStatus(taskName)
+    if options('general.print_task_name'):
+        print taskName
+    else:
+        runTaskStatus(taskName)
 
     
 if __name__ == '__main__':

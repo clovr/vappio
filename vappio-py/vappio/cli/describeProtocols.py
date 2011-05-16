@@ -6,7 +6,7 @@ from vappio.webservice import protocol
 
 OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact', cli.defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', cli.defaultIfNone('local')),
+    ('cluster', '', '--cluster', 'Name of cluster', cli.defaultIfNone('local')),
     ('config_from_protocol', '-p', '--config-from-protocol', 'Create a config file from a protocol and print it to stdout', func.identity),
     ('config_options', '-c', '--config',
      'Specify a value to replace when outputing a config file. Can specify multiple i.e. -c input.PIPELINE_NAME=foo -c cluster.CLUSTER_NAME=bar',
@@ -15,24 +15,21 @@ OPTIONS = [
 
 def main(options, _args):
     if options('general.config_options') and not options('general.config_from_protocol'):
-        raise cli.MissingOptionError('Must specify --config-from-protocol in ordr to use --config')
-
-    protocols = protocol.describeProtocols(options('general.host'), options('general.name'))
+        raise cli.MissingOptionError('Must specify --config-from-protocol in order to use --config')
 
     if not options('general.config_from_protocol'):
+        protocols = protocol.listProtocols(options('general.host'), options('general.cluster'))
         for p in protocols:
-            print '\t'.join(['PROTOCOL', p.name])
+            print '\t'.join(['PROTOCOL', p])
     else:
-        protoIdx = func.find(lambda p : p.name == options('general.config_from_protocol'), protocols)
-        if protoIdx is None:
-            raise Exception('Must provide a valid protocol name')
+        proto = protocol.protocolConfig(options('general.host'),
+                                        options('general.cluster'),
+                                        options('general.config_from_protocol'))
 
-        
-        proto = protocols[protoIdx]
         kv = dict([v.split('=', 1) for v in options('general.config_options')])
-        section = proto.config and proto.config[0][0].split('.', 1)[0] or ''
+        section = proto and proto[0][0].split('.', 1)[0] or ''
         print '[' + section + ']'
-        for k, d in proto.config:
+        for k, d in proto:
             if k.split('.', 1)[0] != section:
                 section = k.split('.', 1)[0]
                 print

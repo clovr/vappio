@@ -2,9 +2,14 @@ from igs.utils import functional as func
 
 from igs.cgi.request import performQuery
 
-DESCRIBEPROTOCOLS_URL = '/vappio/listProtocols_ws.py'
+LISTPROTOCOLS_URL = '/vappio/listProtocols_ws.py'
+PROTOCOLCONFIG_URL = '/vappio/protocolConfig_ws.py'
 
-def describeProtocols(host, name):
-    return [func.Record(name=p['name'], config=p['config']) for p in performQuery(host, DESCRIBEPROTOCOLS_URL, dict(name=name)) if p['config']]
+def listProtocols(host, cluster):
+    return performQuery(host, LISTPROTOCOLS_URL, dict(cluster=cluster))
+
+def protocolConfig(host, cluster, protocolName):
+    return performQuery(host, PROTOCOLCONFIG_URL, dict(cluster=cluster,
+                                                       protocol=protocolName))
 
 
