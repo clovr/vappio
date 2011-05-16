@@ -52,6 +52,7 @@ DBS  = set(['clovr-refseqdb',
             'clovr-keggdb',
             'ncbi-nr',
             'clovr-rrnadb',
+            'uniref100',
             ])
 
 
