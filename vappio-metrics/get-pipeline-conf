@@ -15,19 +15,19 @@ sys.stdout.write('kv\n')
 pipelineName = sys.argv[1]
 
 pipelineValues = {}
-pl = pipeline.pipelineStatus('localhost', 'local', lambda p : p.name == pipelineName)[0]
-for k in pl.config.keys():
-    pipelineValues[k] = str(pl.config(k))
+pl = pipeline.pipelineStatus('localhost', 'local', pipelineName)
+for k in pl['config'].keys():
+    pipelineValues[k] = str(pl['config'][k])
     
 for line in sys.stdin:
     k, v = line.strip().split('=', 1)
     pipelineValues[k] = v
 
 
-pipelineValues['pipeline.PIPELINE_ID'] = pl.pid
+pipelineValues['pipeline.PIPELINE_ID'] = pl['pipeline_id']
     
 for k, v in pipelineValues.iteritems():
-    sys.stdout.write(str(k) + '=' + str(v.strip()) + '\n')
+    sys.stdout.write(str(k) + '=' + str(v).strip().encode('string_escape') + '\n')
 
 
 

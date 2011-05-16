@@ -3,9 +3,7 @@
 # Sets pipeline config values.  This only works for pipelines running locally
 import sys
 
-from igs.utils import config
-
-from vappio.ergatis import pipeline
+from vappio.webservice import pipeline
 
 # Ensure we are dealing with kv pairs
 if sys.stdin.readline().strip() != 'kv':
@@ -14,16 +12,11 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-pl = pipeline.loadPipeline(sys.argv[1])
-
-kv = {}
+pl = pipeline.pipelineStatus('localhost', 'local', sys.argv[1])
 
 for line in sys.stdin:
     sys.stdout.write(line.strip() + '\n')
     k, v = line.strip().split('=', 1)
-    if k not in pl.config.keys() or str(pl.config(k)).encode('string_escape') != v:
-        kv[k] = v.decode('string_escape')
+    pl['config'][k] = v.decode('string_escape')
 
-pl.config = config.configFromMap(kv, pl.config)
-
-pipeline.savePipeline(pl)
+pipeline.updatePipelineConfig('localhost', 'local', sys.argv[1], pl['config'])
