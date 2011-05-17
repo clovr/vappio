@@ -97,7 +97,7 @@ def t_dataset(state, value, params):
                 # tagToRefDBPath basically does what prefix does
                 return defer.succeed(ptu.tagToRefDBPath(tagPath))
             elif params.get('transform_type') == 'directory':
-                commonPrefix = ptu.tagToReDBPath(tagPath)
+                commonPrefix = ptu.tagToRefDBPath(tagPath)
                 if os.path.isdir(commonPrefix):
                     return defer.succeed(commonPrefix)
                 else:
