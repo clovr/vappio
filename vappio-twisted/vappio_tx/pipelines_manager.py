@@ -186,6 +186,7 @@ def handleWWWRunPipeline(request):
 
         # Forward the request on to the remote cluster, set parent_pipeline to None
         ret = yield pipelines_www_client.runPipeline(cluster['master']['public_dns'],
+                                                     'local',
                                                      request.body['user_name'],
                                                      None,
                                                      request.body['bare_run'],
@@ -263,7 +264,7 @@ def handleWWWRunPipeline(request):
         childPipeline = [(request.body['cluster'],
                           pipelineLite['pipeline_name'])]
         
-        if parentPipeline and childPipeline not in parentPipeline.childPipeline:
+        if parentPipeline and childPipeline not in parentPipeline.children:
             parentPipeline = parentPipeline.update(children=parentPipeline.children + childPipeline)
             yield persist.savePipeline(parentPipeline)
 
@@ -409,8 +410,6 @@ def subscribeToQueues(mq, state):
                                                                                  'queue',
                                                                                  'config']),
                                                                _containsPipelineTemplate,
-                                                               forwardToCluster(state.conf,
-                                                                                state.conf('pipelines.runpipeline_www')),
                                                                handleWWWRunPipeline]))
     queue.subscribe(mq,
                     state.conf('pipelines.runpipeline_www'),
