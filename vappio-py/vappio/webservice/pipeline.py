@@ -31,8 +31,9 @@ def runPipeline(host, cluster, parentName, bareRun, conf, queue=None):
                                                     bare_run=bareRun))
 
 
-def validatePipelineConfig(host, cluster, conf):
+def validatePipelineConfig(host, cluster, bareRun, conf):
     return performQuery(host, VALIDATEPIPELINECONFIG_URL, dict(cluster=cluster,
+                                                               bare_run=bareRun,
                                                                config=config.configToDict(conf)))
 
 def downloadPipelineOutput(host, cluster, pipelineName, outputDir, overwrite):

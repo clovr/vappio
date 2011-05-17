@@ -34,6 +34,7 @@ def main(options, args):
 
     ret = pipeline.validatePipelineConfig(options('general.host'),
                                           options('general.cluster'),
+                                          options('general.bare_run'),
                                           conf)
     if ret['errors']:
         for e in ret['errors']:
