@@ -69,6 +69,11 @@ def _validatePipelineConfig(request):
                                 mq=request.mq)
     protocolConf = protocol_format.load(request.state.machineconf,
                                         request.body['config']['pipeline.PIPELINE_TEMPLATE'])
+
+    if not request.body['bare_run']:
+        protocolConf += protocol_format.load(request.state.machineconf,
+                                             'clovr_wrapper')
+        
     protocol_format.applyProtocol(protocolConf, request.body['config'])
     return pipeline_validate.validate(validateState, protocolConf, request.body['config'])    
 
@@ -333,7 +338,8 @@ def handleWWWValidatePipelineConfig(request):
     This is limited to simple type checks.
     
     Input:
-    { cluster: string,
+    { cluster: string
+      bare_run: boolean
       config: { key/value }
     }
     Output:
@@ -414,11 +420,15 @@ def handleWWWProtocolConfig(request):
         return [pc
                 for pc in protocolConfig
                 if pc[1].get('visibility') != 'always_hidden']
+
+    protocolConfig = (protocol_format.load(request.state.machineconf,
+                                          request.body['protocol']) +
+                      protocol_format.load(request.state.machineconf,
+                                           'clovr_wrapper'))
     
     queue.returnQueueSuccess(request.mq,
                              request.body['return_queue'],
-                             _removeAlwaysHidden(protocol_format.load(request.state.machineconf,
-                                                                      request.body['protocol'])))
+                             _removeAlwaysHidden(protocolConfig))
     return defer_pipe.ret(request)
 
 
@@ -472,6 +482,7 @@ def subscribeToQueues(mq, state):
 
     
     processValidatePipelineConfig = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+                                                                                            'bare_run',
                                                                                             'config']),
                                                                           _containsPipelineTemplate,
                                                                           forwardToCluster(state.conf,

@@ -86,14 +86,24 @@ def t_boolean(_state, value, params):
     # return the its value
     return defer.succeed(str(params.get(value.lower(), value)))
 
-def t_dataset(state, value, _params):
+def t_dataset(state, value, params):
     """
     Incomplete
     """
     if value:
         tagPath = os.path.join(state.machineconf('dirs.tag_dir'), value)
         if os.path.exists(tagPath) or os.path.exists(tagPath + '.phantom'):
-            return defer.succeed(tagPath)
+            if params.get('transform_type') == 'prefix':
+                # tagToRefDBPath basically does what prefix does
+                return defer.succeed(ptu.tagToRefDBPath(tagPath))
+            elif params.get('transform_type') == 'directory':
+                commonPrefix = ptu.tagToReDBPath(tagPath)
+                if os.path.isdir(commonPrefix):
+                    return defer.succeed(commonPrefix)
+                else:
+                    return defer.succeed(os.path.dirname(commonPrefix))
+            else:
+                return defer.succeed(tagPath)
         else:
             return defer.fail(InvalidPipelineValue('"%s" is not a valid tag' % str(value)))
     else:
