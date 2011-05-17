@@ -77,7 +77,7 @@ def createTaskAndForward(dstQueue, tType, numTasks):
         def _forward(taskName):
             request.body['task_name'] = taskName
             request.mq.send(dstQueue, json.dumps(request.body))
-            return defer_pipe.ret(request)
+            return defer_pipe.ret(request.update(response=taskName))
 
         d = tasks.createTaskAndSave(tType, numTasks)
         d.addCallback(_forward)
@@ -104,12 +104,11 @@ def forwardRequestToCluster(url):
                                          url,
                                          func.updateDict(request.body, {'cluster': 'local'}))
 
-            def _setTaskname(r):
-                request.body['task_name'] = r
-                return request
+            def _setResponse(r):
+                return request.update(response=r)
             
             clusterDefer.addCallback(_askRemoteServer)
-            clusterDefer.addCallback(_setTaskname)
+            clusterDefer.addCallback(_setResponse)
             return defer_pipe.emitDeferred(clusterDefer)
 
     return _
@@ -148,6 +147,18 @@ def ackMsg(request):
 def ackMsgFailure(f, request):
     request.mq.ack(request.msg.headers['message-id'])
     return defer_pipe.ret(request)
+
+def hookFailure(pipe):
+    return defer_pipe.hookError(pipe,
+                                failureMsg)
+
+def returnSuccess(request):
+    returnQueueSuccess(request.mq, request.body['return_queue'], request.response)
+    return defer_pipe.ret(request)
+
+def returnResponse(pipe):
+    return hookFailure(defer_pipe.pipe([defer_pipe.runPipeCurry(pipe),
+                                        returnSuccess]))
 
 def keysInBody(ks):
     def _(request):

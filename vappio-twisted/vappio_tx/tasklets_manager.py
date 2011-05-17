@@ -100,11 +100,9 @@ def handleRunTasklet(request):
     return runTaskletWithTask(request.body['task_name'], initialText, tasklets).addCallback(lambda _ : request)
     
 
-def sendTaskname(request):
-    queue.returnQueueSuccess(request.mq, request.body['return_queue'], request.body['task_name'])
-    return defer_pipe.ret(request)
-
 def forwardOrCreate(url, dstQueue, tType, numTasks):
+    # Might not need the runPipeCurry after switching to queue.returnResponse
+    # but keeping it for now beause I don't think it does any harm
     return defer_pipe.runPipeCurry(defer_pipe.pipe([queue.forwardRequestToCluster(url),
                                                     queue.createTaskAndForward(dstQueue,
                                                                                tType,
@@ -115,7 +113,7 @@ def makeService(conf):
     mqFactory = mqService.mqFactory
 
 
-    processRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processRequest = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                              'tasklet',
                                                                              'conf']),
                                                            forwardOrCreate(
@@ -123,9 +121,8 @@ def makeService(conf):
                                                                os.path.basename(conf('tasklets.tasklets_www')),
                                                                conf('tasklets.tasklets_queue'),
                                                                'runTasklets',
-                                                               1),
-                                                           sendTaskname]),
-                                          queue.failureMsg)
+                                                               1)]))
+
 
 
     queue.subscribe(mqFactory,

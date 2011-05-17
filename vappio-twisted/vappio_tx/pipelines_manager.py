@@ -228,24 +228,15 @@ def handleWWWRunPipeline(request):
                                                             request.body['user_name'])
             pipelineLite = yield _pipelineToDictLite(request.state.machineconf,
                                                      existingPipeline)
-            queue.returnQueueSuccess(request.mq,
-                                     request.body['return_queue'],
-                                     pipelineLite)
-            defer.returnValue(request)
+            defer.returnValue(request.update(response=pipelineLite))
         except persist.PipelineNotFoundError:
             pipeline = yield _createPipeline(request)
             yield persist.savePipeline(pipeline)
             pipelineLite = yield _pipelineToDictLite(request.state.machineconf,
                                                      pipeline)
-            queue.returnQueueSuccess(request.mq,
-                                     request.body['return_queue'],
-                                     pipelineLite)
-            # At this point we have sent back the pipeline to the www handler
-            # and it has sent that back to the user and closed the connection, but
-            # we still have a little bit more work to do, and we haven't actually
-            # started running the pipeline.  We want to do a deeper validation
-            # of the configuration and then run the pipeline.  Then we want to monitor it
-            # both through the ergatis observer and a timed update of any children it has.
+            # We want to do a deeper validation of the configuration and then run the pipeline.
+            # Then we want to monitor it both through the ergatis observer and a timed update
+            # of any children it has.
             #
             # We are going to do all this work in the background so we can exit the
             # handler.  Since incoming requests are rate-limited, we don't want to
@@ -265,12 +256,9 @@ def handleWWWRunPipeline(request):
                                                                                             pipeline.pipelineName)])
                 yield persist.savePipeline(parentPipeline)
 
-            defer.returnValue(request)
+            defer.returnValue(request.update(response=pipelineLite))
     else:
         pipelineLite = yield _startRemotePipeline(request)
-        queue.returnQueueSuccess(request.mq,
-                                 request.body['return_queue'],
-                                 pipelineLite)
 
         childPipeline = [(request.body['cluster'],
                           pipelineLite['pipeline_name'])]
@@ -279,7 +267,7 @@ def handleWWWRunPipeline(request):
             parentPipeline = parentPipeline.update(children=parentPipeline.children + childPipeline)
             yield persist.savePipeline(parentPipeline)
 
-        defer.returnValue(request)
+        defer.returnValue(request.update(response=pipelineLite))
                 
 def handleWWWObserver(request):
     """
@@ -300,10 +288,7 @@ def handleWWWObserver(request):
     """
     request.mq.send('/queue/pipelines/observer/' + request.body['props'],
                     json.dumps(request.body))
-    queue.returnQueueSuccess(request.mq,
-                             request.body['return_queue'],
-                             None)
-    return defer_pipe.ret(request)
+    return defer_pipe.ret(request.update(response=None))
 
 @defer.inlineCallbacks
 def handleWWWUpdatePipelineConfig(request):
@@ -324,13 +309,10 @@ def handleWWWUpdatePipelineConfig(request):
     if len(pipelines) == 1:
         p = pipelines[0].update(config=config.configFromMap(request.body['config']))
         yield persist.savePipeline(p)
-        queue.returnQueueSuccess(request.mq,
-                                 request.body['return_queue'],
-                                 None)
     else:
         raise Exception('More than one pipelines matches provided criteria: ' + repr(request.body['criteria']))
 
-    defer.returnValue(request)
+    defer.returnValue(request.update(response=None))
 
 @defer.inlineCallbacks
 def handleWWWValidatePipelineConfig(request):
@@ -347,10 +329,7 @@ def handleWWWValidatePipelineConfig(request):
     }
     """
     errors = yield _validatePipelineConfig(request)
-    queue.returnQueueSuccess(request.mq,
-                             request.body['return_queue'],
-                             {'errors': errors})
-    defer.returnValue(request)
+    defer.returnValue(request.update(response={'errors': errors}))
     
 
 @defer.inlineCallbacks
@@ -370,10 +349,7 @@ def handleWWWPipelineStatus(request):
                                              pipeline)
     pipelineLite = func.updateDict(pipelineLite,
                                    {'config': config.configToDict(pipeline.config)})
-    queue.returnQueueSuccess(request.mq,
-                             request.body['return_queue'],
-                             pipelineLite)
-    defer.returnValue(request)
+    defer.returnValue(request.update(response=pipelineLite))
 
 @defer.inlineCallbacks
 def handleWWWListPipelines(request):
@@ -390,10 +366,7 @@ def handleWWWListPipelines(request):
     pipelinesLite = yield defer_utils.mapSerial(lambda p : _pipelineToDictLite(request.state.machineconf,
                                                                                p),
                                                 pipelines)
-    queue.returnQueueSuccess(request.mq,
-                             request.body['return_queue'],
-                             pipelinesLite)
-    defer.returnValue(request)
+    defer.returnValue(request.update(response=pipelinesLite))
 
 def handleWWWListProtocols(request):
     """
@@ -402,10 +375,8 @@ def handleWWWListProtocols(request):
     Output:
     [string]
     """
-    queue.returnQueueSuccess(request.mq,
-                             request.body['return_queue'],
-                             protocol_format.protocols(request.state.machineconf))
-    return defer_pipe.ret(request)
+    protocols = protocol_format.protocols(request.state.machineconf)
+    return defer_pipe.ret(request.update(response=protocols))
 
 def handleWWWProtocolConfig(request):
     """
@@ -425,33 +396,29 @@ def handleWWWProtocolConfig(request):
                                           request.body['protocol']) +
                       protocol_format.load(request.state.machineconf,
                                            'clovr_wrapper'))
-    
-    queue.returnQueueSuccess(request.mq,
-                             request.body['return_queue'],
-                             _removeAlwaysHidden(protocolConfig))
-    return defer_pipe.ret(request)
+    return defer_pipe.ret(request.update(response=_removeAlwaysHidden(protocolConfig)))
 
 
 def forwardToCluster(conf, queueUrl):
     return queue.forwardRequestToCluster(conf('www.url_prefix') + '/' + os.path.basename(queueUrl))
 
+
 def subscribeToQueues(mq, state):
-    processRunPipeline = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processRunPipeline = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                  'bare_run',
                                                                                  'queue',
                                                                                  'config']),
                                                                _containsPipelineTemplate,
                                                                forwardToCluster(state.conf,
                                                                                 state.conf('pipelines.runpipeline_www')),
-                                                               handleWWWRunPipeline]),
-                                              queue.failureMsg)
+                                                               handleWWWRunPipeline]))
     queue.subscribe(mq,
                     state.conf('pipelines.runpipeline_www'),
                     state.conf('pipelines.concurrent_runpipeline'),
                     queue.wrapRequestHandler(state, processRunPipeline))
     
 
-    processObserver = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['id',
+    processObserver = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['id',
                                                                               'file',
                                                                               'event',
                                                                               'retval',
@@ -460,79 +427,72 @@ def subscribeToQueues(mq, state):
                                                                               'time',
                                                                               'name',
                                                                               'message']),
-                                                            handleWWWObserver]),
-                                           queue.failureMsg)
+                                                            handleWWWObserver]))
     queue.subscribe(mq,
                     state.conf('pipelines.observer_www'),
                     state.conf('pipelines.concurrent_observer'),
                     queue.wrapRequestHandler(state, processObserver))
 
-    processUpdatePipelineConfig = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processUpdatePipelineConfig = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                           'user_name',
                                                                                           'criteria',
                                                                                           'config']),
                                                                         forwardToCluster(state.conf,
                                                                                          state.conf('pipelines.updatepipelineconfig_www')),
-                                                                        handleWWWUpdatePipelineConfig]),
-                                                       queue.failureMsg)
+                                                                        handleWWWUpdatePipelineConfig]))
     queue.subscribe(mq,
                     state.conf('pipelines.updatepipelineconfig_www'),
                     state.conf('pipelines.concurrent_updatepipelineconfig'),
                     queue.wrapRequestHandler(state, processUpdatePipelineConfig))
 
     
-    processValidatePipelineConfig = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processValidatePipelineConfig = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                             'bare_run',
                                                                                             'config']),
                                                                           _containsPipelineTemplate,
                                                                           forwardToCluster(state.conf,
                                                                                            state.conf('pipelines.validatepipelineconfig_www')),
-                                                                          handleWWWValidatePipelineConfig]),
-                                                         queue.failureMsg)
+                                                                          handleWWWValidatePipelineConfig]))
     queue.subscribe(mq,
                     state.conf('pipelines.validatepipelineconfig_www'),
                     state.conf('pipelines.concurrent_validatepipelineconfig'),
                     queue.wrapRequestHandler(state, processValidatePipelineConfig))
 
 
-    processPipelineStatus = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processPipelineStatus = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                     'user_name',
                                                                                     'criteria']),
-                                                                 forwardToCluster(state.conf, state.conf('pipelines.pipelinestatus_www')),
-                                                                 handleWWWPipelineStatus]),
-                                                 queue.failureMsg)
+                                                                  forwardToCluster(state.conf, state.conf('pipelines.pipelinestatus_www')),
+                                                                  handleWWWPipelineStatus]))
     queue.subscribe(mq,
                     state.conf('pipelines.pipelinestatus_www'),
                     state.conf('pipelines.concurrent_pipelinestatus'),
                     queue.wrapRequestHandler(state, processPipelineStatus))
 
     
-    processListPipelines = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processListPipelines = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                    'user_name']),
                                                                  forwardToCluster(state.conf, state.conf('pipelines.protocolconfig_www')),
-                                                                 handleWWWListPipelines]),
-                                                queue.failureMsg)
+                                                                 handleWWWListPipelines]))
     queue.subscribe(mq,
                     state.conf('pipelines.listpipelines_www'),
                     state.conf('pipelines.concurrent_listpipelines'),
                     queue.wrapRequestHandler(state, processListPipelines))
 
     
-    processListProtocols = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processListProtocols = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                    'user_name']),
                                                                  forwardToCluster(state.conf, state.conf('pipelines.listprotocols_www')),
-                                                                 handleWWWListProtocols]),
-                                                queue.failureMsg)
+                                                                 handleWWWListProtocols]))
     queue.subscribe(mq,
                     state.conf('pipelines.listprotocols_www'),
                     state.conf('pipelines.concurrent_listprotocols'),
                     queue.wrapRequestHandler(state, processListProtocols))
 
-    processProtocolConfig = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processProtocolConfig = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                     'protocol']),
                                                                   forwardToCluster(state.conf, state.conf('pipelines.protocolconfig_www')),
-                                                                  handleWWWProtocolConfig]),
-                                                 queue.failureMsg)
+                                                                  handleWWWProtocolConfig]))
     queue.subscribe(mq,
                     state.conf('pipelines.protocolconfig_www'),
                     state.conf('pipelines.concurrent_protocolconfig'),

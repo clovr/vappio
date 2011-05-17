@@ -38,7 +38,10 @@ def handleIncludes(sin):
 
 @defer.inlineCallbacks
 def run(state, pipeline):
-    tmpConfigName = os.path.join('/tmp', str(time.time()) + '.config')
+    if not os.path.exists('/tmp/pipeline_configs'):
+        os.mkdir('/tmp/pipeline_configs')
+        
+    tmpConfigName = os.path.join('/tmp', 'pipeline_configs', str(time.time()) + '.config')
 
     pipeline.config = config.configFromMap({'CONFIG_FILE': tmpConfigName},
                                            base=pipeline.config)
@@ -64,7 +67,7 @@ def run(state, pipeline):
     templateConfig = os.path.join(templateDir, 'pipeline_tmpl.config')
     templateLayout = os.path.join(templateDir, 'pipeline.layout')
 
-    tmpPipelineConfig = os.path.join('/tmp', str(time.time()) + '.pipeline.config')
+    tmpPipelineConfig = os.path.join('/tmp', 'pipeline_configs', str(time.time()) + '.pipeline.config')
     fout = open(tmpPipelineConfig, 'w')
     for line in handleIncludes(open(templateConfig)):
         fout.write(config.replaceStr(line, pipeline.config) + '\n')
