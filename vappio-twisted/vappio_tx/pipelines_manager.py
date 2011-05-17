@@ -252,7 +252,7 @@ def handleWWWRunPipeline(request):
             d.addCallback(lambda p : persist.savePipeline(p).addCallback(lambda _ : p))
             d.addCallback(lambda p : _monitor(request, p))
             d.addErrback(lambda f : tasks_tx.updateTask(pipeline.taskName,
-                                                        lambda t : t.setState(tasks_tx.task.TASK_FAILED)))
+                                                        lambda t : t.setState(tasks_tx.task.TASK_FAILED).addFailure(f)))
 
             if parentPipeline:
                 parentPipeline = parentPipeline.update(children=parentPipeline.children + [('local',
