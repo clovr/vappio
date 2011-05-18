@@ -41,6 +41,9 @@ class MonitorState:
         self.taskLock = defer.DeferredLock()
         # Will store the children information for tasks here
         self.childrenTasks = {}
+        # We get a lot of repeated messages for some reason, so storing
+        # the last message as not to post it twice
+        self.lastMsg = None
 
 def _queueName(state):
     return '/queue/pipelines/observer/' + state.pipeline.taskName
@@ -169,9 +172,11 @@ def _running(state, event):
             state.completedSteps = completed
 
 
-        yield state.taskLock.run(tasks_tx.updateTask,
-                                 state.pipeline.taskName,
-                                 lambda t : t.addMessage(task.MSG_SILENT, 'Completed ' + event['name']))
+        if event['name'] != state.lastMsg:
+            yield state.taskLock.run(tasks_tx.updateTask,
+                                     state.pipeline.taskName,
+                                     lambda t : t.addMessage(task.MSG_SILENT, 'Completed ' + event['name']))
+            state.lastMsg = event['name']
 
         if event['name'] == 'start pipeline:':
             yield state.taskLock.run(tasks_tx.updateTask,
