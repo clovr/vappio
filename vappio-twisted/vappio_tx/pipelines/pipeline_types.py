@@ -102,12 +102,16 @@ def t_dataset(state, value, params):
                     return defer.succeed(commonPrefix)
                 else:
                     return defer.succeed(os.path.dirname(commonPrefix))
+            elif params.get('transform_type') == 'tag_base_dir':
+                # very cheap right now, move a long nothing to see here
+                tagMetadata = json.loads(open(tagPath + '.metadata').read())
+                return defer.succeed(tagMetadata['tag_base_dir'])
             else:
                 return defer.succeed(tagPath)
         else:
             return defer.fail(InvalidPipelineValue('"%s" is not a valid tag' % str(value)))
     else:
-        return ''
+        return defer.succeed('')
 
 def t_blastdb_dataset(state, value, _params):
     """
@@ -120,7 +124,7 @@ def t_blastdb_dataset(state, value, _params):
         else:
             return defer.fail(InvalidPipelineValue('"%s" is not a valid blastdb path' % str(value)))
     else:
-        return ''
+        return defer.succeed('')
 
 def t_organism(_state, value, params):
     """
