@@ -1,0 +1,60 @@
+#!/usr/bin/env perl
+
+# cunninghmm - cunningham for for hmm.
+#    Estimates (very roughly) runtimes for HMM search against PFAM and TIGRFam combined library
+#    for a set of input polypeptides. 
+
+# Author: Kevin Galens
+
+# Required Inputs:
+#    params.AVG_QUERY_SEQ_LEN
+#    params.NUM_QUERY_SEQ
+
+# Optional Inputs:
+#   params.SCALE_FACTOR
+
+# Output:
+#   pipeline.COMPUTED_HMM_CPU_HOURS
+#   * will also pass through all key value pairs.
+
+use strict;
+use warnings;
+
+# Check for 
+chomp( my $header = <> );
+die("Header must be 'kv', got $header") unless( $header eq 'kv' );
+
+# Parse input arguments
+my %args;
+while( my $arg = <> ) {
+    chomp( $arg );
+    
+    # Grab the key value pair
+    my ($key, $value) = split( /\s*=\s*/, $arg );
+    next unless( defined( $key ) && defined( $value ) );
+    $args{$key} = $value;
+}
+
+# Make sure we have the required inputs
+foreach my $req ( qw(params.AVG_QUERY_SEQ_LEN  params.NUM_QUERY_SEQ) ) {
+	&fail( "Expected kv: $req" ) unless( exists( $args{$req} ) );
+}
+
+# This equation was empirically determined by gathering actual runtimes of HMM on diag.
+# Should include some numbers when running on different platforms. Definitely a ROUGH
+# estimation. 
+my $est_cpu_hours = &cunninghmm($args{'params.AVG_QUERY_SEQ_LEN'}, $args{'params.NUM_QUERY_SEQ'});
+$est_cpu_hours *= $args{'params.SCALE_FACTOR'} if( $args{'params.SCALE_FACTOR'} );
+$est_cpu_hours = 1.01 if( $est_cpu_hours < 1 );
+$args{'pipeline.COMPUTED_HMM_CPU_HOURS'} = $est_cpu_hours;
+
+print "kv\n";
+map { print "$_=$args{$_}\n"; } keys %args;
+
+sub cunninghmm {(($_[0]*0.041 + 24) * $_[1])/3600;}
+
+sub fail {
+	my ($msg) = @_;
+	print STDERR $msg."\n";
+	exit(1);
+}
