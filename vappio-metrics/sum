@@ -1,0 +1,43 @@
+#!/usr/bin/env perl
+
+# sum - will add all input values which are numbers (integers or floats)
+
+# Required:
+#   At least two key value pairs with a number value
+
+# Output:
+#   pipeline.SUM
+
+use strict;
+use warnings;
+
+# Check for 
+chomp( my $header = <> );
+die("Header must be 'kv', got $header") unless( $header eq 'kv' );
+
+# Parse input arguments
+my %args;
+while( my $arg = <> ) {
+    chomp( $arg );
+    
+    # Grab the key value pair
+    my ($key, $value) = split( /\s*=\s*/, $arg );
+    die("Could not parse key and value pair from $arg") unless( defined( $key ) && defined( $value ) );
+	
+    # Only interested in numbers
+    $args{$key} = $value if( $value =~ /^-?[\d\.]+$/ );
+}
+
+# Make sure we have the required inputs
+&fail( "Expected at least two kv pairs with a number value. Found: ".scalar(keys %args) )
+	unless( scalar( keys %args ) > 1 );
+
+my $res = 0;
+map { $res += $_ } values %args;
+print "kv\npipeline.SUM=$res\n";
+
+sub fail {
+	my ($msg) = @_;
+	print STDERR $msg."\n";
+	exit(1);
+}
