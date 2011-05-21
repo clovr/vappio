@@ -94,6 +94,18 @@ def _updatePipelineChildren(state):
     state.childrenSteps = numSteps
     state.childrenCompletedSteps = completedSteps
 
+    try:
+        if state.pipeline.pipelineId is not None:
+            pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
+            completed, total = yield threads.deferToThread(_pipelineProgress, pipelineXml)
+        
+            yield state.taskLock.run(tasks_tx.updateTask,
+                                     state.pipeline.taskName,
+                                     lambda t : t.update(numTasks=numSteps + total,
+                                                         completedTasks=completedSteps + completed))
+    except Exception, err:
+        log.err(err)
+    
     plTask = yield tasks_tx.loadTask(state.pipeline.taskName)
     if plTask.state not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
         reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
