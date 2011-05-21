@@ -151,9 +151,15 @@ def startExecNodes(state, credClient, taskName, numExec, cl):
                          credClient=credClient,
                          taskName=taskName)
 
+    def _updateTask(t):
+        t = t.addMessage(task.MSG_SILENT,
+                         'Adding %d instances to %s' % (numExec, pState.cluster.clusterName))
+        t = t.progress()
+        t = t.update(numTasks=t.numTasks + 4)
+        return t
+    
     yield tasks_tx.updateTask(taskName,
-                              lambda t : t.addMessage(task.MSG_SILENT,
-                                                      'Adding %d instances to %s' % (numExec, pState.cluster.clusterName)).progress())
+                              _updateTask)
 
     
     pState = yield _createDataFilesAndStartExec(pState)
@@ -296,7 +302,8 @@ def runInstancesWithRetry(credClient,
         def _ensureAllInstances(_):
             if len(retryState['instances']) < retryState['desired_instances']:
                 retryState['desired_instances'] = retryState['desired_instances'] - len(retryState['instances'])
-                raise Exception('Not all instances started')
+                raise Exception('Wanted %d instances, started %d, retrying' % (retryState['desired_instances'],
+                                                                               len(retryState['instances'])))
 
         runDefer.addCallback(_ensureAllInstances)
         
