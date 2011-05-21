@@ -39,8 +39,6 @@ class MonitorState:
         self.childrenCompletedSteps = 0
         # We want to serialize access to the task
         self.taskLock = defer.DeferredLock()
-        # Will store the children information for tasks here
-        self.childrenTasks = {}
         # We get a lot of repeated messages for some reason, so storing
         # the last message as not to post it twice
         self.lastMsg = None
@@ -64,6 +62,12 @@ def _updatePipelineChildren(state):
     
     for cl, remotePipelineName in pl.children:
         try:
+            localTask = yield tasks_tx.loadTask(state.pipeline.taskName)
+            if localTask.messages:
+                lastChecked = localTask.messages[-1]['timestamp']
+            else:
+                lastChecked = None
+
             remotePipeline = yield pipelines_www.pipelineStatus('localhost',
                                                                 cl,
                                                                 pl.userName,
@@ -77,23 +81,19 @@ def _updatePipelineChildren(state):
             numSteps += remoteTask['numTasks']
             completedSteps += remoteTask['completedTasks']
             
-            childTaskInfo = state.childrenTasks.get((cl, remotePipelineName),
-                                                    func.Record(lastChecked=None))
             messages = [m for m in remoteTask['messages']
-                        if not childTaskInfo.lastChecked or childTaskInfo.lastChecked < m['timestamp']]
+                        if not lastChecked or lastChecked < m['timestamp']]
             
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
                                      lambda t : t.update(messages=t.messages + messages))
             
-            state.childrenTasks[(cl, remotePipelineName)] = func.Record(lastChecked=remoteTask['timestamp'])
-
         except Exception, err:
             log.err(err)
 
     state.childrenSteps = numSteps
     state.childrenCompletedSteps = completedSteps
-    
+
     plTask = yield tasks_tx.loadTask(state.pipeline.taskName)
     if plTask.state not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
         reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)

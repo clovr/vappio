@@ -84,23 +84,25 @@ def pipelineFromDict(d):
                     queue=d['queue'],
                     children=d['children'],
                     config=config_.configFromMap(d['config'], lazy=True))
-        
-def loadAllPipelinesBy(criteria, userName):
-    """
-    Loads all pipelines that match the the provided criteria and returns a list
-    of them.
-    """
+
+def loadAllPipelinesByAdmin(criteria):
     def _query():
-        criteriaN = func.updateDict(criteria, {'user_name': userName})
         conn = pymongo.Connection()
-        return conn.clovr.pipelines.find(criteriaN)
+        return conn.clovr.pipelines.find(criteria)
 
     def _convertToPipeline(r):
         return [_documentToPipeline(p) for p in r]
     
     d = threads.deferToThread(_query)
     d.addCallback(_convertToPipeline)
-    return d
+    return d    
+
+def loadAllPipelinesBy(criteria, userName):
+    """
+    Loads all pipelines that match the the provided criteria and returns a list
+    of them.
+    """
+    return loadAllPipelinesByAdmin(func.updateDict(criteria, {'user_name': userName}))
 
 def loadPipelineBy(criteria, userName):
     """

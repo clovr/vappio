@@ -90,7 +90,7 @@ def run(state, pipeline):
                               stdoutf=stdout.write,
                               stderrf=stderr.write)
 
-    pipelineId = stdout.getvalue()
+    pipelineId = stdout.getvalue().strip()
     if not pipelineId:
         raise commands.ProgramRunError(cmd, stderr.getvalue())
 

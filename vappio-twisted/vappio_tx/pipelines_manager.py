@@ -405,8 +405,29 @@ def handleWWWProtocolConfig(request):
 def forwardToCluster(conf, queueUrl):
     return queue.forwardRequestToCluster(conf('www.url_prefix') + '/' + os.path.basename(queueUrl))
 
+@defer.inlineCallbacks
+def _monitorAnyPipelines(mq, state):
+    @defer.inlineCallbacks
+    def _loadPipeline(p):
+        pl = yield _pipelineToDictLite(state.machineconf, p)
+        defer.returnValue((p, pl))
+    pipelines = yield persist.loadAllPipelinesByAdmin({})
 
-def subscribeToQueues(mq, state):
+    # Expand out so we have state information
+    pipelinesLite = yield defer_utils.mapSerial(_loadPipeline, pipelines)
+
+    pipelines = [p
+                 for p, pl in pipelinesLite
+                 if pl['state'] not in [tasks_tx.task.TASK_COMPLETED,
+                                        tasks_tx.task.TASK_FAILED]]
+    
+    for p in pipelines:
+        pipeline_monitor.monitor(pipeline_monitor.MonitorState(state.conf,
+                                                               state.machineconf,
+                                                               mq,
+                                                               p))
+
+def _subscribeToQueues(mq, state):
     processRunPipeline = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                  'bare_run',
                                                                                  'queue',
@@ -507,6 +528,7 @@ def makeService(conf):
     # State is currently not used, but kept around for future purposes
     state = State(conf)
 
-    subscribeToQueues(mqFactory, state)
+    d = _monitorAnyPipelines(mqFactory, state)
+    d.addCallback(lambda _ : _subscribeToQueues(mqFactory, state))
     
     return mqService
