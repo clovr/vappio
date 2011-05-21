@@ -473,7 +473,7 @@ def subscribeToQueues(mq, state):
     
     processListPipelines = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                    'user_name']),
-                                                                 forwardToCluster(state.conf, state.conf('pipelines.protocolconfig_www')),
+                                                                 forwardToCluster(state.conf, state.conf('pipelines.listpipelines_www')),
                                                                  handleWWWListPipelines]))
     queue.subscribe(mq,
                     state.conf('pipelines.listpipelines_www'),

@@ -35,8 +35,8 @@ class MonitorState:
         self.pipeline = pipeline
         self.f = None
         self.retries = 1
-        self.numSteps = 0
-        self.completedSteps = 0
+        self.childrenSteps = 0
+        self.childrenCompletedSteps = 0
         # We want to serialize access to the task
         self.taskLock = defer.DeferredLock()
         # Will store the children information for tasks here
@@ -58,6 +58,9 @@ def _updatePipelineChildren(state):
     # children inbetween
     pl = yield persist.loadPipelineBy({'task_name': state.pipeline.taskName},
                                       state.pipeline.userName)
+
+    numSteps = 0
+    completedSteps = 0
     
     for cl, remotePipelineName in pl.children:
         try:
@@ -70,38 +73,27 @@ def _updatePipelineChildren(state):
                                                   cl,
                                                   pl.userName,
                                                   remotePipeline['task_name'])
+
+            numSteps += remoteTask['numTasks']
+            completedSteps += remoteTask['completedTasks']
             
             childTaskInfo = state.childrenTasks.get((cl, remotePipelineName),
-                                                    func.Record(numSteps=0,
-                                                                completedSteps=0,
-                                                                lastChecked=None))
+                                                    func.Record(lastChecked=None))
             messages = [m for m in remoteTask['messages']
                         if not childTaskInfo.lastChecked or childTaskInfo.lastChecked < m['timestamp']]
             
-            if childTaskInfo.numSteps != remotePipeline['num_steps']:
-                stepsDiff = remotePipeline['num_steps'] - childTaskInfo.numSteps
-            else:
-                stepsDiff = 0
-
-            if childTaskInfo.completedSteps != remotePipeline['num_complete']:
-                completedStepsDiff = remotePipeline['num_complete'] - childTaskInfo.completedSteps
-            else:
-                completedStepsDiff = 0
-
-            if stepsDiff or completedStepsDiff:
-                yield state.taskLock.run(tasks_tx.updateTask,
-                                         state.pipeline.taskName,
-                                         lambda t : t.update(numTasks=t.numTasks + stepsDiff,
-                                                             completedTasks=t.completedTasks + completedStepsDiff,
-                                                             messages=t.messages + messages))
-                
-                state.childrenTasks[(cl, remotePipelineName)] = func.Record(numSteps=remotePipeline['num_steps'],
-                                                                            completedSteps=remotePipeline['num_complete'],
-                                                                            lastChecked=remoteTask['timestamp'])
+            yield state.taskLock.run(tasks_tx.updateTask,
+                                     state.pipeline.taskName,
+                                     lambda t : t.update(messages=t.messages + messages))
+            
+            state.childrenTasks[(cl, remotePipelineName)] = func.Record(lastChecked=remoteTask['timestamp'])
 
         except Exception, err:
             log.err(err)
 
+    state.childrenSteps = numSteps
+    state.childrenCompletedSteps = completedSteps
+    
     plTask = yield tasks_tx.loadTask(state.pipeline.taskName)
     if plTask.state not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
         reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
@@ -155,23 +147,11 @@ def _running(state, event):
         # Something has just finished successfully
         completed, total = yield threads.deferToThread(_pipelineProgress, event['file'])
 
-        # If the number of steps in the XML file is different than our last check
-        # then update the associated task with the difference
-        if total != state.numSteps:
-            totalDiff = total - state.numSteps
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.update(numTasks=t.numTasks + totalDiff))
-            state.numSteps = total
-
-        if completed != state.completedSteps:
-            completedDiff = completed - state.completedSteps
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.update(completedTasks=t.completedTasks + completedDiff))
-            state.completedSteps = completed
-
-
+        yield state.taskLock.run(tasks_tx.updateTask,
+                                 state.pipeline.taskName,
+                                 lambda t : t.update(numTasks=total + state.childrenSteps,
+                                                     completedTasks=completed + state.childrenCompletedSteps))
+        
         if event['name'] != state.lastMsg:
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,

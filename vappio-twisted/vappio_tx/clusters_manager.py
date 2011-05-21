@@ -536,7 +536,7 @@ def returnClusterStartTaskIfExists(request):
             raise persist.ClusterNotFoundError(cl.clusterName)
         else:
             request.body['task_name'] = cl.startTask
-            return defer_pipe.emit(request)
+            return defer_pipe.emit(request.update(response=cl.startTask))
 
     def _doesNotExist(f):
         f.trap(persist.ClusterNotFoundError)
