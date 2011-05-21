@@ -20,9 +20,12 @@ def main(options, _args):
                                                   options('general.cluster'),
                                                   options('general.pipeline_name'))
         print 'PIPELINE_NAME\t%s' % pipeline['pipeline_name']
+        print 'PIPELINE_ID\t%s' % pipeline['pipeline_id']
         print 'STATE\t%s' % pipeline['state']
         print 'CHILDREN\t%s' % ','.join([cl + ' ' + pName for cl, pName in pipeline['children']])
         print 'TASK\t%s' % pipeline['task_name']
+        print 'COMPLETED_STEPS\t%d' % pipeline['num_complete']
+        print 'NUM_STEPS\t%d' % pipeline['num_steps']
         print 'CHECKSUM\t%s' % pipeline['checksum']
         print 'PROTOCOL\t%s' % pipeline['protocol']
         for i in pipeline['input_tags']:

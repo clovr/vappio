@@ -36,8 +36,8 @@ def main(options, _args):
 
             runSystemEx('mkdir -p ' + outDir)
             tagfile.realizePhantom(ctype,
-                                       outDir,
-                                       tf)
+                                   outDir,
+                                   tf)
             tsk = tsk.progress()
 
             # Need to fix this so it makes use of tag_options
