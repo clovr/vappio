@@ -382,40 +382,26 @@ def refreshClusters(mq, state):
 # These callbacks must return immediatly
 def handleWWWClusterInfo(request):
     if request.body['cluster'] == 'local' and ('local', None) in request.state.clustersCache:
-        queue.returnQueueSuccess(request.mq,
-                                 request.body['return_queue'],
-                                 persist.clusterToDict(request.state.clustersCache[('local', None)]))
+        return defer_pipe.ret(request.update(response=persist.clusterToDict(request.state.clustersCache[('local', None)])))
     elif (request.body['cluster'], request.body['user_name']) in request.state.clustersCache:
-        queue.returnQueueSuccess(request.mq,
-                                 request.body['return_queue'],
-                                 persist.clusterToDict(request.state.clustersCache[(request.body['cluster'],
-                                                                                    request.body['user_name'])]))
+        response = persist.clusterToDict(request.state.clustersCache[(request.body['cluster'],
+                                                                                    request.body['user_name'])])
+        return defer_pipe.ret(request.update(response=response))
     else:
-        queue.returnQueueError(request.mq, request.body['return_queue'], 'Cluster not found')
-
-    return defer_pipe.ret(request)
+        raise Exception('Cluster not found')
 
 @defer.inlineCallbacks
 def handleWWWListClusters(request):
     clusters = yield persist.loadAllClusters(request.body['user_name'])
     clusterDicts = [persist.clusterToDict(c) for c in clusters]
-    queue.returnQueueSuccess(request.mq,
-                             request.body['return_queue'],
-                             clusterDicts)
-    defer.returnValue(request)
+    defer.returnValue(request.update(response=clusterDicts))
 
 @defer.inlineCallbacks
 def handleWWWConfigCluster(request):
-    try:
-        cluster = yield persist.loadCluster(request.body['cluster'], request.body['user_name'])
-        js = json.dumps(cluster.config)
-        queue.returnQueueSuccess(request.mq, request.body['return_queue'], js)
-    except:
-        queue.returnQueueException(request.mq, request.body['return_queue'])
-        raise
+    cluster = yield persist.loadCluster(request.body['cluster'], request.body['user_name'])
+    js = json.dumps(cluster.config)
+    defer.returnValue(request.update(response=js))
 
-    defer.returnValue(request)
-    
 
 @defer.inlineCallbacks
 def loadLocalCluster(mq, state):
@@ -535,10 +521,6 @@ def loadLocalCluster(mq, state):
         yield persist.saveCluster(cluster)
         defer.returnValue(cluster)
 
-def sendTaskname(request):
-    queue.returnQueueSuccess(request.mq, request.body['return_queue'], request.body['task_name'])
-    return defer_pipe.ret(request)
-
 def forwardOrCreate(url, dstQueue, tType, numTasks):
     return defer_pipe.runPipeCurry(defer_pipe.pipe([queue.forwardRequestToCluster(url),
                                                     queue.createTaskAndForward(dstQueue,
@@ -569,21 +551,17 @@ def returnClusterStartTaskIfExists(request):
 def subscribeStartCluster(mq, state):
     conf = state.conf
 
-    returnTaskName = defer_pipe.runPipeCurry(defer_pipe.pipe([returnClusterStartTaskIfExists,
-                                                              queue.createTaskAndForward(
-                                                                  conf('clusters.startcluster_queue'),
-                                                                  'startCluster',
-                                                                  1)]))
-    
-    processStartClusterRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processStartClusterRequest = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                          'user_name',
                                                                                          'num_exec',
                                                                                          'num_data',
                                                                                          'cred_name']),
-                                                                       returnTaskName,
-                                                                       sendTaskname]),
-                                                      queue.failureMsg)
-    
+                                                                       returnClusterStartTaskIfExists,
+                                                                       queue.createTaskAndForward(
+                                                                           conf('clusters.startcluster_queue'),
+                                                                           'startCluster',
+                                                                           1)]))
+                                                                       
     queue.subscribe(mq,
                     conf('clusters.startcluster_www'),
                     conf('clusters.concurrent_startcluster'),
@@ -597,15 +575,13 @@ def subscribeStartCluster(mq, state):
 
 def subscribeTerminateCluster(mq, state):
     conf = state.conf
-    
-    processTerminateClusterRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+
+    processTerminateClusterRequest = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                              'user_name']),
                                                                            queue.createTaskAndForward(
                                                                                conf('clusters.terminatecluster_queue'),
                                                                                'terminateCluster',
-                                                                               1),
-                                                                           sendTaskname]),
-                                                      queue.failureMsg)
+                                                                               1)]))
 
     queue.subscribe(mq,
                     conf('clusters.terminatecluster_www'),
@@ -620,17 +596,15 @@ def subscribeTerminateCluster(mq, state):
 
 def subscribeTerminateInstances(mq, state):
     conf = state.conf
-    
-    processTerminateInstancesRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+
+    processTerminateInstancesRequest = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                                'user_name',
                                                                                                'by_criteria',
                                                                                                'criteria_values']),
                                                                              queue.createTaskAndForward(
                                                                                  conf('clusters.terminateinstances_queue'),
                                                                                  'terminateInstances',
-                                                                                 1),
-                                                                             sendTaskname]),
-                                                            queue.failureMsg)
+                                                                                 1)]))
     
     queue.subscribe(mq,
                     conf('clusters.terminateinstances_www'),
@@ -645,7 +619,7 @@ def subscribeTerminateInstances(mq, state):
 def subscribeAddInstances(mq, state):
     conf = state.conf
 
-    processAddInstancesRequest = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processAddInstancesRequest = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                          'user_name',
                                                                                          'num_data',
                                                                                          'num_exec']),
@@ -654,9 +628,7 @@ def subscribeAddInstances(mq, state):
                                                                            os.path.basename(conf('clusters.addinstances_www')),
                                                                            conf('clusters.addinstances_queue'),
                                                                            'addInstances',
-                                                                           1),
-                                                                       sendTaskname]),
-                                                      queue.failureMsg)
+                                                                           1)]))
 
     queue.subscribe(mq,
                     conf('clusters.addinstances_www'),
@@ -677,10 +649,10 @@ def subscribeToQueues(mq, state):
     
     #
     # These return immediatly
-    processClusterInfo = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processClusterInfo = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                  'user_name']),
-                                                               handleWWWClusterInfo]),
-                                              queue.failureMsg)
+                                                               handleWWWClusterInfo]))
+                                             
 
     queue.subscribe(mq,
                     state.conf('clusters.clusterinfo_www'),
@@ -689,9 +661,8 @@ def subscribeToQueues(mq, state):
                     
 
 
-    processListClusters = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['user_name']),
-                                                                handleWWWListClusters]),
-                                               queue.failureMsg)
+    processListClusters = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['user_name']),
+                                                                handleWWWListClusters]))
 
     queue.subscribe(mq,
                     state.conf('clusters.listclusters_www'),
@@ -700,10 +671,9 @@ def subscribeToQueues(mq, state):
                     
 
     
-    processConfigCluster = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster',
+    processConfigCluster = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                    'user_name']),
-                                                                 handleWWWConfigCluster]),
-                                                queue.failureMsg)
+                                                                 handleWWWConfigCluster]))
 
     queue.subscribe(mq,
                     state.conf('clusters.listclusters_www'),
