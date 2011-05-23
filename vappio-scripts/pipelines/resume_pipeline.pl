@@ -26,7 +26,7 @@ die("Must specify a taskname") unless($taskName);
 
 $queue = 'pipelinewrapper.q' unless($queue);
 
-my $pipeline_id = &make_pipeline($repoRoot, $pipeline_id, $taskName, $queue);
+$pipeline_id = &make_pipeline($repoRoot, $pipeline_id, $taskName, $queue);
 
 ##
 # Pring the pipeline
