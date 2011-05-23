@@ -244,8 +244,12 @@ def monitor(state):
         yield state.taskLock.run(tasks_tx.updateTask,
                                  state.pipeline.taskName,
                                  lambda t : t.setState(pipelineState))
+        print pipelineState
         if pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
-            state.f = _idle
+            if pipelineState == tasks_tx.task.TASK_IDLE:
+                state.f = _idle
+            else:
+                state.f = _running
             processEvent = defer_pipe.pipe([queue.keysInBody(['id',
                                                               'file',
                                                               'event',
