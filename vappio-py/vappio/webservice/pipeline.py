@@ -5,6 +5,7 @@ from igs.utils import config
 PIPELINESTATUS_URL = '/vappio/pipelineStatus_ws.py'
 LISTPIPELINES_URL = '/vappio/listPipelines_ws.py'
 RUNPIPELINE_URL = '/vappio/runPipeline_ws.py'
+RESUMEPIPELINE_URL = '/vappio/resumePipeline_ws.py'
 UPDATEPIPELINECONFIG_URL = '/vappio/updatePipelineConfig_ws.py'
 DOWNLOADPIPELINEOUTPUT_URL = '/vappio/downloadPipelineOutput_ws.py'
 RUNTASKLETS_URL = '/vappio/runTasklets_ws.py'
@@ -29,6 +30,10 @@ def runPipeline(host, cluster, parentName, bareRun, conf, queue=None):
                                                     parent_pipeline=parentName,
                                                     queue=queue,
                                                     bare_run=bareRun))
+
+def resumePipeline(host, cluster, pipelineName):
+    return performQuery(host, RESUMEPIPELINE_URL, dict(cluster=cluster,
+                                                       pipeline_name=pipelineName))
 
 
 def validatePipelineConfig(host, cluster, bareRun, conf):

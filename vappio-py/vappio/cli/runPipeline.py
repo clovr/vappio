@@ -16,8 +16,8 @@ OPTIONS = [
     ('cluster', '', '--cluster', 'Name of cluster', cli.defaultIfNone('local')),
     ('bare_run', '', '--bare', 'Do not run with a wrapper', cli.defaultIfNone(False), cli.BINARY),
     ('pipeline_parent', '', '--pipeline-parent', 'Name of parent pipeline', func.identity),
-    ('pipeline_config', '', '--pipeline-config', 'Config file to use for the pipeline', cli.notNone),
-    #('pipeline_resume', '', '--resume', 'Name of pipeline to be resumed', func.identity),
+    ('pipeline_config', '', '--pipeline-config', 'Config file to use for the pipeline', func.identity),
+    ('pipeline_resume', '', '--resume', 'Name of pipeline to be resumed', func.identity),
     ('pipeline_queue', '-q', '--pipeline-queue', 'Queue to use, not required', func.identity),
     ('validate',
      '-v',
@@ -30,25 +30,33 @@ OPTIONS = [
 
 
 def main(options, args):
-    conf = config.configFromStream(open(options('general.pipeline_config')), lazy=True)
+    if not options('general.pipeline_resume'):
+        conf = config.configFromStream(open(options('general.pipeline_config')), lazy=True)
+        ret = pipeline.validatePipelineConfig(options('general.host'),
+                                              options('general.cluster'),
+                                              options('general.bare_run'),
+                                              conf)
+        if ret['errors']:
+            for e in ret['errors']:
+                print '\t'.join(['ERROR', ','.join(e['keys']), e['message']])
+            # Exit with an error
+            sys.exit(1)
 
-    ret = pipeline.validatePipelineConfig(options('general.host'),
-                                          options('general.cluster'),
-                                          options('general.bare_run'),
-                                          conf)
-    if ret['errors']:
-        for e in ret['errors']:
-            print '\t'.join(['ERROR', ','.join(e['keys']), e['message']])
-        # Exit with an error
-        sys.exit(1)
-
-    if not options('general.validate'):
-        p = pipeline.runPipeline(options('general.host'),
-                                 options('general.cluster'),
-                                 options('general.pipeline_parent'),
-                                 options('general.bare_run'),
-                                 conf,
-                                 options('general.pipeline_queue'))
+        if not options('general.validate'):
+            p = pipeline.runPipeline(options('general.host'),
+                                     options('general.cluster'),
+                                     options('general.pipeline_parent'),
+                                     options('general.bare_run'),
+                                     conf,
+                                     options('general.pipeline_queue'))
+            if options('general.print_task_name'):
+                print p['task_name']
+            else:
+                runTaskStatus(p['task_name'])
+    else:
+        p = pipeline.resumePipeline(options('general.host'),
+                                    options('general.cluster'),
+                                    options('general.pipeline_resume'))
         if options('general.print_task_name'):
             print p['task_name']
         else:
