@@ -280,7 +280,7 @@ def handleWWWResumePipeline(request):
     yield pipeline_run.resume(pipeline)
     #
     # Give it a few seconds for the pipeline to startup again
-    yield defer_utils.sleep(5)
+    yield defer_utils.sleep(5)()
     yield _monitor(request, pipeline)
 
     pipelineLite = yield _pipelineToDictLite(request.state.machineconf,
