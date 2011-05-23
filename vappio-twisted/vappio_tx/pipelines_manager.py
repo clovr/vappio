@@ -271,7 +271,22 @@ def handleWWWRunPipeline(request):
             yield persist.savePipeline(parentPipeline)
 
         defer.returnValue(request.update(response=pipelineLite))
-                
+
+
+@defer.inlineCallbacks
+def handleWWWResumePipeline(request):
+    pipeline = yield persist.loadPipelineBy({'pipeline_name': request.body['pipeline_name']},
+                                             request.body['user_name'])
+    yield pipeline_run.resume(pipeline)
+    #
+    # Give it a few seconds for the pipeline to startup again
+    yield defer_utils.sleep(5)
+    yield _monitor(request, pipeline)
+
+    pipelineLite = yield _pipelineToDictLite(request.state.machineconf,
+                                             pipeline)
+    defer.returnValue(request.update(response=pipelineLite))
+        
 def handleWWWObserver(request):
     """
     Input:
@@ -429,6 +444,7 @@ def _monitorAnyPipelines(mq, state):
 
 def _subscribeToQueues(mq, state):
     processRunPipeline = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
+                                                                                 'user_name',
                                                                                  'bare_run',
                                                                                  'queue',
                                                                                  'config']),
@@ -440,6 +456,16 @@ def _subscribeToQueues(mq, state):
                     queue.wrapRequestHandler(state, processRunPipeline))
     
 
+    processResumePipeline = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
+                                                                                    'user_name',
+                                                                                    'pipeline_name']),
+                                                                  handleWWWResumePipeline]))
+    queue.subscribe(mq,
+                    state.conf('pipelines.resumepipeline_www'),
+                    state.conf('pipelines.concurrent_resumepipeline'),
+                    queue.wrapRequestHandler(state, processResumePipeline))
+
+    
     processObserver = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['id',
                                                                               'file',
                                                                               'event',

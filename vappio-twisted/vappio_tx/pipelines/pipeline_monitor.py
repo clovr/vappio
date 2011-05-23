@@ -10,7 +10,7 @@ from twisted.internet import reactor
 
 from igs.xml import xmlquery
 
-from igs.utils import functional as func
+from igs.utils import core
 
 from vappio.tasks import task
 
@@ -26,6 +26,9 @@ from vappio_tx.www_client import tasks as tasks_www
 from vappio_tx.pipelines import persist
 
 PIPELINE_UPDATE_FREQUENCY = 30
+
+class Error(Exception):
+    pass
 
 class MonitorState:
     def __init__(self, conf, machineconf, mq, pipeline):
@@ -45,6 +48,49 @@ class MonitorState:
 
 def _queueName(state):
     return '/queue/pipelines/observer/' + state.pipeline.taskName
+
+def _try(f):
+    count = 10
+    while True:
+        try:
+            return f()
+        except:
+            if count > 0 :
+                count -= 1
+                time.sleep(1)
+            else:
+                raise
+
+def _pipelineProgress(workflowXML):
+    doc = _try(lambda : minidom.parse(workflowXML))
+    query = [xmlquery.name('commandSetRoot'),
+             [xmlquery.name('commandSet'),
+              [xmlquery.name('status')]]]
+    
+    res = xmlquery.execQuery(query, doc)
+
+    total = sum([int(r.childNodes[0].data) for r in res if r.localName == 'total'])
+    complete = sum([int(r.childNodes[0].data) for r in res if r.localName == 'complete'])
+
+    return (complete, total)
+
+def _pipelineState(workflowXML):
+    for _ in range(10):
+        for line in open(workflowXML):
+            if '<state>' in line:
+                state = core.getStrBetween(line, '<state>', '</state>')
+                if state in ['failed', 'error']:
+                    return tasks_tx.task.TASK_FAILED
+                elif state == 'running':
+                    return tasks_tx.task.TASK_RUNNING
+                elif state == 'complete':
+                    return tasks_tx.task.TASK_COMPLETED
+                else:
+                    return tasks_tx.task.TASK_IDLE
+        time.sleep(1)
+
+    raise Error('Could not find state')
+    
 
 @defer.inlineCallbacks
 def _updatePipelineChildren(state):
@@ -109,31 +155,6 @@ def _updatePipelineChildren(state):
     plTask = yield tasks_tx.loadTask(state.pipeline.taskName)
     if plTask.state not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
         reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
-
-def _try(f):
-    count = 10
-    while True:
-        try:
-            return f()
-        except:
-            if count > 0 :
-                count -= 1
-                time.sleep(1)
-            else:
-                raise
-
-def _pipelineProgress(workflowXML):
-    doc = _try(lambda : minidom.parse(workflowXML))
-    query = [xmlquery.name('commandSetRoot'),
-             [xmlquery.name('commandSet'),
-              [xmlquery.name('status')]]]
-    
-    res = xmlquery.execQuery(query, doc)
-
-    total = sum([int(r.childNodes[0].data) for r in res if r.localName == 'total'])
-    complete = sum([int(r.childNodes[0].data) for r in res if r.localName == 'complete'])
-
-    return (complete, total)
 
     
 # These are the different state functions
@@ -215,23 +236,32 @@ def _handleEventMsg(request):
     d.addCallback(lambda _ : request)
     return d
 
+@defer.inlineCallbacks
 def monitor(state):
-    state.f = _idle
-    processEvent = defer_pipe.pipe([queue.keysInBody(['id',
-                                                      'file',
-                                                      'event',
-                                                      'retval',
-                                                      'props',
-                                                      'host',
-                                                      'time',
-                                                      'name',
-                                                      'message']),
-                                    _handleEventMsg])
+    try:
+        pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
+        pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
+        yield state.taskLock.run(tasks_tx.updateTask,
+                                 state.pipeline.taskName,
+                                 lambda t : t.setState(pipelineState))
+        if pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
+            state.f = _idle
+            processEvent = defer_pipe.pipe([queue.keysInBody(['id',
+                                                              'file',
+                                                              'event',
+                                                              'retval',
+                                                              'props',
+                                                              'host',
+                                                              'time',
+                                                              'name',
+                                                              'message']),
+                                            _handleEventMsg])
+            
+            queue.subscribe(state.mq,
+                            _queueName(state),
+                            1,
+                            queue.wrapRequestHandler(state, processEvent))
+            reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
 
-    queue.subscribe(state.mq,
-                    _queueName(state),
-                    1,
-                    queue.wrapRequestHandler(state, processEvent))
-    reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
-    
-                                                         
+    except Error, err:
+        log.err(err)

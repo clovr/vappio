@@ -4,6 +4,8 @@ import StringIO
 
 from twisted.internet import defer
 
+from twisted.python import log
+
 from igs.utils import config
 
 from igs_tx.utils import commands
@@ -96,3 +98,16 @@ def run(state, pipeline):
 
     defer.returnValue(pipeline.update(pipelineId=pipelineId))
     
+
+def resume(pipeline):
+    cmd = ['resume_pipeline.pl',
+           '--pipeline_id=' + pipeline.pipelineId.replace('\n', ''),
+           '--taskname=' + pipeline.taskName]
+
+    if pipeline.queue:
+        cmd.append('--queue=' + pipeline.queue)
+
+    return commands.runProcess(cmd,
+                               stdoutf=None,
+                               stderrf=log.err).addCallback(lambda _ : pipeline)
+        
