@@ -1,7 +1,7 @@
 from igs_tx.utils import http
 
 PIPELINESTATUS_URL = '/vappio/pipelineStatus_ws.py'
-RUNPIPELINES_URL = '/vappio/runPipeline_ws.py'
+RUNPIPELINE_URL = '/vappio/runPipeline_ws.py'
 
 def pipelineStatusBy(host, clusterName, userName, criteria):
     return http.performQuery(host,
@@ -15,7 +15,7 @@ def pipelineStatus(host, clusterName, userName,  pipelineName):
 
 def runPipeline(host, clusterName, userName, parentPipeline, bareRun, queue, config, timeout=30, tries=4):
     return http.performQuery(host,
-                             RUNPIPELINES_URL,
+                             RUNPIPELINE_URL,
                              dict(cluster=clusterName,
                                   user_name=userName,
                                   parent_pipeline=parentPipeline,
@@ -24,3 +24,10 @@ def runPipeline(host, clusterName, userName, parentPipeline, bareRun, queue, con
                                   config=config),
                              timeout=timeout,
                              tries=tries)
+
+def resumePipeline(host, clusterName, userName, pipelineName):
+    return http.performQuery(host,
+                             RESUMEPIPELINE_URL,
+                             dict(cluster=clusterName,
+                                  user_name=userName,
+                                  pipeline_name=pipelineName))

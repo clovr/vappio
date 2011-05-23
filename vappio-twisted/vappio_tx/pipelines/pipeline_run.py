@@ -10,6 +10,10 @@ from igs.utils import config
 
 from igs_tx.utils import commands
 
+from vappio_tx.pipelines import persist
+
+from vappio_tx.www_client import pipelines as pipeline_www
+
 def handleIncludes(sin):
     lines = [l.strip() for l in sin]
     sections = set([s[1:-1] for s in lines if s and s[0] == '[' and s[-1] == ']'])
@@ -99,7 +103,19 @@ def run(state, pipeline):
     defer.returnValue(pipeline.update(pipelineId=pipelineId))
     
 
+@defer.inlineCallbacks
 def resume(pipeline):
+    # Restart childen first
+    for cl, child in pipeline.children:
+        if cl == 'local':
+            childPipeline = yield persist.loadPipelineBy({'pipeline_name': child},
+                                                         pipeline.userName)
+            yield resume(childPipeline)
+        else:
+            yield pipeline_www.resumePipeline('localhost',
+                                              cl,
+                                              pipeline.userName,
+                                              child)
     cmd = ['resume_pipeline.pl',
            '--pipeline_id=' + pipeline.pipelineId.replace('\n', ''),
            '--taskname=' + pipeline.taskName]

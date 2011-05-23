@@ -459,6 +459,8 @@ def _subscribeToQueues(mq, state):
     processResumePipeline = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                     'user_name',
                                                                                     'pipeline_name']),
+                                                                        forwardToCluster(state.conf,
+                                                                                         state.conf('pipelines.resumepipeline_www')),                                                                  
                                                                   handleWWWResumePipeline]))
     queue.subscribe(mq,
                     state.conf('pipelines.resumepipeline_www'),
