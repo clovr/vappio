@@ -123,7 +123,8 @@ def resume(pipeline):
     if pipeline.queue:
         cmd.append('--queue=' + pipeline.queue)
 
-    return commands.runProcess(cmd,
-                               stdoutf=None,
-                               stderrf=log.err).addCallback(lambda _ : pipeline)
+    yield commands.runProcess(cmd,
+                              stdoutf=None,
+                              stderrf=log.err)
+    defer.returnValue(pipeline)
         
