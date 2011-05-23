@@ -2,6 +2,7 @@ from igs_tx.utils import http
 
 PIPELINESTATUS_URL = '/vappio/pipelineStatus_ws.py'
 RUNPIPELINE_URL = '/vappio/runPipeline_ws.py'
+RESUMEPIPELINE_URL = '/vappio/resumePipeline_ws.py'
 
 def pipelineStatusBy(host, clusterName, userName, criteria):
     return http.performQuery(host,
