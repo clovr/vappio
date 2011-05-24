@@ -92,7 +92,10 @@ def _pipelineToDictLite(machineConf, p):
 
     inputTags = [p.config(k)
                  for k, v in protocolConf
-                 if v.get('type') in ['dataset', 'blast_db_dataset']]
+                 if v.get('type').split()[0] in ['dataset',
+                                                 'blast_db_dataset',
+                                                 'paired_dataset',
+                                                 'singleton_dataset'] and p.config(k)]
     outputTags = []
 
     pipelineTask = yield tasks_tx.loadTask(p.taskName)
