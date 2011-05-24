@@ -99,7 +99,8 @@ def _pipelineToDictLite(machineConf, p):
     
     defer.returnValue({'pipeline_id': p.pipelineId,
                        'pipeline_name': p.pipelineName,
-                       'protocol': p.protocol,
+                       'wrapper': p.protocol == 'clovr_wrapper',
+                       'protocol': p.config('pipeline.PIPELINE_TEMPLATE'),
                        'checksum': p.checksum,
                        'task_name': p.taskName,
                        'queue': p.queue,
@@ -108,7 +109,8 @@ def _pipelineToDictLite(machineConf, p):
                        'num_steps': pipelineTask.numTasks,
                        'num_complete': pipelineTask.completedTasks,
                        'input_tags': inputTags,
-                       'output_tags': outputTags
+                       'output_tags': outputTags,
+                       'pipeline_desc': p.config('pipeline.PIPELINE_DESC', default='')
                        })
 
 def _deepValidation(request, pipeline):
