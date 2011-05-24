@@ -174,7 +174,7 @@ def handleWWWRunPipeline(request):
                                            protocol=protocol,
                                            checksum=checksum,
                                            taskName=taskName,
-                                           queue=request.body.get('queue'),
+                                           queue=request.body.get('queue', 'pipelinewrapper.q'),
                                            children=[],
                                            config=request.body['config']))
 
@@ -190,7 +190,7 @@ def handleWWWRunPipeline(request):
                                                      request.body['user_name'],
                                                      None,
                                                      request.body['bare_run'],
-                                                     request.body.get('queue'),
+                                                     request.body.get('queue', 'pipelinewrapper.q'),
                                                      request.body['config'])
 
         defer.returnValue(ret)
@@ -468,7 +468,6 @@ def _subscribeToQueues(mq, state):
     processRunPipeline = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                  'user_name',
                                                                                  'bare_run',
-                                                                                 'queue',
                                                                                  'config']),
                                                                _containsPipelineTemplate,
                                                                handleWWWRunPipeline]))
