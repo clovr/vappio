@@ -116,6 +116,8 @@ def t_dataset(state, value, params):
     else:
         return defer.succeed('')
 
+t_paired_dataset = t_dataset
+    
 def t_blastdb_dataset(state, value, _params):
     """
     Incomplete
@@ -209,6 +211,7 @@ TYPES = {'string': t_string,
          'float': t_float,
          'boolean': t_boolean,
          'dataset': t_dataset,
+         'paired_dataset': t_paired_dataset,
          'blastdb_dataset': t_blastdb_dataset,
          'organism': t_organism,
          'insert_size': t_insert_size,
