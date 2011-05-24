@@ -21,6 +21,10 @@ def main(options, _args):
                                                   options('general.pipeline_name'))
         print 'PIPELINE_NAME\t%s' % pipeline['pipeline_name']
         print 'PIPELINE_ID\t%s' % pipeline['pipeline_id']
+        print 'PIPELINE_TYPE\t%s' % pipeline['protocol']
+        print 'PIPELINE_DESC\t%s' % pipeline['pipeline_desc']
+        if pipeline['wrapper']:
+            print 'WRAPPER'
         print 'STATE\t%s' % pipeline['state']
         print 'CHILDREN\t%s' % ','.join([cl + ' ' + pName for cl, pName in pipeline['children']])
         print 'TASK\t%s' % pipeline['task_name']
@@ -47,6 +51,7 @@ def main(options, _args):
                              p['pipeline_name'],
                              p['state'],
                              p['task_name'],
+                             'wrapper' if p['wrapper'] else '',
                              p['protocol']])
 
 if __name__ == '__main__':
