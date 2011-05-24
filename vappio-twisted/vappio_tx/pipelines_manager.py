@@ -389,12 +389,32 @@ def handleWWWListPipelines(request):
 def handleWWWListProtocols(request):
     """
     Input:
-    { cluster: string }
+    { cluster: string
+      ?verbose: boolean
+    }
     Output:
     [string]
+    If verbose
+    [[string, [[key, value]]]]
     """
+    def _removeAlwaysHidden(protocolConfig):
+        return [pc
+                for pc in protocolConfig
+                if pc[1].get('visibility') != 'always_hidden']
+
+    
     protocols = protocol_format.protocols(request.state.machineconf)
-    return defer_pipe.ret(request.update(response=protocols))
+    if not request.body.get('verbose'):
+        return defer_pipe.ret(request.update(response=protocols))
+    else:
+        ret = []
+        for p in protocols:
+            protocolConfig = (protocol_format.load(request.state.machineconf,
+                                                   request.body['protocol']) +
+                              protocol_format.load(request.state.machineconf,
+                                                   'clovr_wrapper'))
+            ret.append([p, _removeAlwaysHidden(protocolConfig)])
+        return defer_pipe.ret(request.update(response=ret))
 
 def handleWWWProtocolConfig(request):
     """
