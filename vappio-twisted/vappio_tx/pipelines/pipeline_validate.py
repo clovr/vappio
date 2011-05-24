@@ -6,6 +6,9 @@ from igs_tx.utils import defer_utils
 
 from vappio_tx.pipelines import pipeline_types
 
+class Error(Exception):
+    pass
+
 def _determineTypeCallback(typ):
     sTyp = typ.split()
     if len(sTyp) == 2:
@@ -26,6 +29,8 @@ def _determineTypeCallback(typ):
 
 @defer.inlineCallbacks
 def _validateType(state, pipelineConf, configParam):
+    if not configParam[1].get('type'):
+        raise Error('Unknown type: %r' % configParam[1].get('type'))
     typeCallback = _determineTypeCallback(configParam[1]['type'])
     try:
         newValue = yield typeCallback(state,
