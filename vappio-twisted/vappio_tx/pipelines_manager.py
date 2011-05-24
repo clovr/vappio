@@ -395,7 +395,7 @@ def handleWWWListProtocols(request):
     Output:
     [string]
     If verbose
-    [[string, [[key, value]]]]
+    {string: [[string, {key/value}]]}
     """
     def _removeAlwaysHidden(protocolConfig):
         return [pc
@@ -407,13 +407,13 @@ def handleWWWListProtocols(request):
     if not request.body.get('verbose'):
         return defer_pipe.ret(request.update(response=protocols))
     else:
-        ret = []
+        ret = {}
         for p in protocols:
             protocolConfig = (protocol_format.load(request.state.machineconf,
                                                    request.body['protocol']) +
                               protocol_format.load(request.state.machineconf,
                                                    'clovr_wrapper'))
-            ret.append([p, _removeAlwaysHidden(protocolConfig)])
+            ret[p] = _removeAlwaysHidden(protocolConfig)
         return defer_pipe.ret(request.update(response=ret))
 
 def handleWWWProtocolConfig(request):
