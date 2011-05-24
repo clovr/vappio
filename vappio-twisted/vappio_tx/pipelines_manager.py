@@ -410,7 +410,7 @@ def handleWWWListProtocols(request):
         ret = {}
         for p in protocols:
             protocolConfig = (protocol_format.load(request.state.machineconf,
-                                                   request.body['protocol']) +
+                                                   p) +
                               protocol_format.load(request.state.machineconf,
                                                    'clovr_wrapper'))
             ret[p] = [func.updateDict(c[1], {'name': c[0]})
