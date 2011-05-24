@@ -93,7 +93,7 @@ def t_dataset(state, value, params):
     """
     if value:
         tagPath = os.path.join(state.machineconf('dirs.tag_dir'), value)
-        if os.path.exists(tagPath) or os.path.exists(tagPath + '.phantom'):
+        if os.path.exists(tagPath):
             if params.get('transform_type') == 'prefix':
                 # tagToRefDBPath basically does what prefix does
                 return defer.succeed(ptu.tagToRefDBPath(tagPath))
@@ -109,6 +109,8 @@ def t_dataset(state, value, params):
                 return defer.succeed(tagMetadata['tag_base_dir'])
             else:
                 return defer.succeed(tagPath)
+        elif os.path.exists(tagPath + '.phantom'):
+            return defer.succeed('undefined')
         else:
             return defer.fail(InvalidPipelineValue('"%s" is not a valid tag' % str(value)))
     else:
@@ -120,8 +122,10 @@ def t_blastdb_dataset(state, value, _params):
     """
     if value:
         tagPath = os.path.join(state.machineconf('dirs.tag_dir'), value)
-        if os.path.exists(tagPath) or os.path.exists(tagPath + '.phantom'):
+        if os.path.exists(tagPath):
             return defer.succeed(ptu.tagToRefDBPath(tagPath))
+        elif os.path.exists(tagPath + '.phantom'):
+            return defer.succeed('undefined')
         else:
             return defer.fail(InvalidPipelineValue('"%s" is not a valid blastdb path' % str(value)))
     else:

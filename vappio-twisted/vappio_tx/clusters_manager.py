@@ -42,6 +42,9 @@ REMOVE_CLUSTER_TIMEOUT = 120
 
 CLUSTER_REFRESH_FREQUENCY = 60
 
+class Error(Exception):
+    pass
+
 class State:
     """
     Maintain state information.  This should always be in a state in which
@@ -388,7 +391,7 @@ def handleWWWClusterInfo(request):
                                                                                     request.body['user_name'])])
         return defer_pipe.ret(request.update(response=response))
     else:
-        raise Exception('Cluster not found')
+        raise Error('Cluster not found')
 
 @defer.inlineCallbacks
 def handleWWWListClusters(request):
@@ -458,7 +461,7 @@ def loadLocalCluster(mq, state):
 
                 def _failIfEmpty(instances):
                     if not instances:
-                        raise Exception('Instance list empty')
+                        raise Error('Instance list empty')
                     else:
                         return instances
 

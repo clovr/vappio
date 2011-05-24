@@ -239,12 +239,11 @@ def _handleEventMsg(request):
 @defer.inlineCallbacks
 def monitor(state):
     try:
-        pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
+        pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId)
         pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
         yield state.taskLock.run(tasks_tx.updateTask,
                                  state.pipeline.taskName,
                                  lambda t : t.setState(pipelineState))
-        print pipelineState
         if pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
             if pipelineState == tasks_tx.task.TASK_IDLE:
                 state.f = _idle

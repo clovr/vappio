@@ -117,7 +117,7 @@ def resume(pipeline):
                                               pipeline.userName,
                                               child)
     cmd = ['resume_pipeline.pl',
-           '--pipeline_id=' + pipeline.pipelineId.replace('\n', ''),
+           '--pipeline_id=' + pipeline.pipelineId,
            '--taskname=' + pipeline.taskName]
 
     if pipeline.queue:
