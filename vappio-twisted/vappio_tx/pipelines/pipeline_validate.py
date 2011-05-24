@@ -30,7 +30,7 @@ def _determineTypeCallback(typ):
 @defer.inlineCallbacks
 def _validateType(state, pipelineConf, configParam):
     if not configParam[1].get('type'):
-        raise Error('Unknown type for %s: %r' % (configParam[10], configParam[1].get('type')))
+        raise Error('Unknown type for %s: %r' % (configParam[0], configParam[1].get('type')))
     typeCallback = _determineTypeCallback(configParam[1]['type'])
     try:
         newValue = yield typeCallback(state,
