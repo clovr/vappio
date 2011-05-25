@@ -92,6 +92,9 @@ bash $VAPPIO_RECIPES/nimbus.sh
 # to /usr/local/bin/muscle
 bash -e $VAPPIO_RECIPES/clovrcomparative.sh
 
+# Pypi and any python modules
+bash $VAPPIO_RECIPES/pypi.sh
+
 #Gbrowse2
 #Skip errors for now
 bash $VAPPIO_RECIPES/gbrowse2.sh
