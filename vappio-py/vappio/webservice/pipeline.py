@@ -24,12 +24,13 @@ def updatePipelineConfig(host, cluster, pipelineName, conf):
                                                              criteria={'pipeline_name': pipelineName},
                                                              config=conf))
 
-def runPipeline(host, cluster, parentName, bareRun, conf, queue=None):
+def runPipeline(host, cluster, parentName, bareRun, conf, queue=None, overwrite=False):
     return performQuery(host, RUNPIPELINE_URL, dict(cluster=cluster,
                                                     config=config.configToDict(conf),
                                                     parent_pipeline=parentName,
                                                     queue=queue,
-                                                    bare_run=bareRun))
+                                                    bare_run=bareRun,
+                                                    overwrite=overwrite))
 
 def resumePipeline(host, cluster, pipelineName):
     return performQuery(host, RESUMEPIPELINE_URL, dict(cluster=cluster,

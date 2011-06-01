@@ -15,6 +15,7 @@ OPTIONS = [
     ('host', '', '--host', 'Host of webservice to contact, defaults to localhost', cli.defaultIfNone('localhost')),
     ('cluster', '', '--cluster', 'Name of cluster', cli.defaultIfNone('local')),
     ('bare_run', '', '--bare', 'Do not run with a wrapper', cli.defaultIfNone(False), cli.BINARY),
+    ('overwrite', '-o', '--overwrite', 'Overwrite the pipeline if it exists', cli.defaultIfNone(False), cli.BINARY),
     ('pipeline_parent', '', '--pipeline-parent', 'Name of parent pipeline', func.identity),
     ('pipeline_config', '', '--pipeline-config', 'Config file to use for the pipeline', func.identity),
     ('pipeline_resume', '', '--resume', 'Name of pipeline to be resumed', func.identity),
@@ -48,7 +49,8 @@ def main(options, args):
                                      options('general.pipeline_parent'),
                                      options('general.bare_run'),
                                      conf,
-                                     options('general.pipeline_queue'))
+                                     options('general.pipeline_queue'),
+                                     options('general.overwrite'))
             if options('general.print_task_name'):
                 print p['task_name']
             else:
