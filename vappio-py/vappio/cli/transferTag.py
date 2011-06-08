@@ -10,37 +10,31 @@ from vappio.tasks.utils import runTaskStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
+    ('cluster',
+     '',
+     '--cluster',
+     'Name of cluster to run this transfer on, --src-cluster and --dst-cluster must be in terms of this clusters perspective',
+     cli.defaultIfNone('local')),
     ('tag_name', '', '--tag-name', 'Name of tag to upload', cli.notNone),
     ('src_cluster', '', '--src-cluster', 'Name of source cluster, hardcoded to local for now', cli.defaultIfNone('local')),
     ('dst_cluster', '', '--dst-cluster', 'Name of dest cluster', cli.defaultIfNone('local')),
     ('transfer_type', '', '--transfer-type', 'Type of transfer to do (cluster, s3) default is cluster',
      func.compose(cli.restrictValues(['cluster', 's3']), cli.defaultIfNone('cluster'))),
     ('block', '-b', '--block', 'Block until cluster is up (no longer used)', func.identity, cli.BINARY),
-    ('expand', '', '--expand', 'Expand files', cli.defaultIfNone(False), cli.BINARY),
     ('compress', '', '--compress', 'Compress files', func.identity, cli.BINARY),
+    ('expand', '', '--expand', 'Expand files (always on regardless of this right now )', func.identity, cli.BINARY),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', cli.defaultIfNone(False), cli.BINARY),
     ]
 
 
 def transferBetweenClusters(options):
-    if options('general.dst_cluster') != 'local' and options('general.src_cluster') != 'local':
-        raise Exception('You can only provide a non local option for source or destination cluster, not both')
-
-    if options('general.dst_cluster') != 'local' or (options('general.dst_cluster') == 'local'
-                                                     and options('general.src_cluster') == 'local'):
-        return tag.uploadTag(options('general.host'),
-                             options('general.tag_name'),
-                             options('general.src_cluster'),
-                             options('general.dst_cluster'),
-                             options('general.expand'),
-                             options('general.compress'))
-    elif options('general.src_cluster') != 'local':
-        return tag.downloadTag(options('general.host'),
-                               options('general.tag_name'),
-                               options('general.src_cluster'),
-                               options('general.dst_cluster'),
-                               options('general.expand'),
-                               options('general.compress'))
+    return tag.transferTag(options('general.host'),
+                           options('general.cluster'),
+                           options('general.tag_name'),
+                           options('general.src_cluster'),
+                           options('general.dst_cluster'),
+                           options('general.compress'))
+                           
 
 def transferToS3(options):
     pass

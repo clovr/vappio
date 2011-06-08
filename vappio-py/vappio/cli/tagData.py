@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import os
 
 from igs.utils import cli
@@ -10,8 +11,9 @@ from vappio.tasks.utils import runTaskStatus
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster, defaults to local', cli.defaultIfNone('local')),
+    ('cluster', '', '--cluster', 'Name of cluster, defaults to local', cli.defaultIfNone('local')),
     ('tag_name', '', '--tag-name', 'Name of tag', cli.notNone),
+    ('stdin', '', '--stdin', 'Take list of files from stdin rather than arguments on command line', cli.defaultIfNone(False), cli.BINARY),
     ('tag_base_dir', '', '--tag-base-dir', 'Base directory of the tag', func.identity),
     ('recursive', '-r', '--recursive', 'Recursively include directories', cli.defaultIfNone(False), cli.BINARY),
     ('expand', '-e', '--expand', 'Expand archives', cli.defaultIfNone(False), cli.BINARY),
@@ -29,7 +31,7 @@ OPTIONS = [
     ]
 
 
-def makeAbsolute(fname):
+def _makeAbsolute(fname):
     """
     Makes a file name absolute by prepending the current working directory to it
     if it does not start with '/'
@@ -40,22 +42,38 @@ def makeAbsolute(fname):
         return fname
 
 def main(options, files):
-    taskName = tagData(options('general.host'),
-                       options('general.name'),
-                       options('general.tag_name'),
-                       options('general.tag_base_dir'),
-                       [makeAbsolute(f) for f in files],
-                       options('general.recursive'),
-                       options('general.expand'),
-                       options('general.compress') and makeAbsolute(options('general.compress')) or None,
-                       options('general.append'),
-                       options('general.overwrite'),
-                       dict([s.split('=', 1) for s in options('general.metadata')]))
+    metadata = dict([s.split('=', 1) for s in options('general.metadata')])
+    if options('general.tag_base_dir'):
+        metadata['tag_base_dir'] = options('general.tag_base_dir')
+
+    if options('general.append') and not options('general.overwrite'):
+        action = 'append'
+    elif not options('general.append') and options('general.overwrite'):
+        action = 'overwrite'
+    elif not options('general.append') and not options('general.overwrite'):
+        action = 'create'
+    else:
+        raise Exception('--append and --overwrite are mutually exclusive')
+
+
+    if options('general.stdin'):
+        files = [f.strip() for f in sys.stdin.readlines()]
+    
+    tag = tagData(options('general.host'),
+                  options('general.cluster'),
+                  action,
+                  options('general.tag_name'),
+                  [_makeAbsolute(f) for f in files],
+                  metadata,
+                  options('general.recursive'),
+                  options('general.expand'),
+                  options('general.compress') and _makeAbsolute(options('general.compress')) or None)
+
 
     if options('general.print_task_name'):
-        print taskName
+        print tag['task_name']
     else:
-        runTaskStatus(taskName)
+        runTaskStatus(tag['task_name'])
     
 
 if __name__ == '__main__':

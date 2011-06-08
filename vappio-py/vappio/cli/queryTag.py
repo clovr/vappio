@@ -8,29 +8,28 @@ from vappio.webservice import tag
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
-    ('name', '', '--name', 'Name of cluster', cli.defaultIfNone('local')),
+    ('cluster', '', '--cluster', 'Name of cluster', cli.defaultIfNone('local')),
     ('tag_name', '', '--tag-name', 'Name of tag', func.identity),
     ]
 
 def main(options, files):
     if options('general.tag_name'):
-        tagData = tag.queryTag(options('general.host'),
-                               options('general.name'),
-                               [options('general.tag_name')])
-        if 'phantom_tag' in tagData:
+        tagData = tag.listTags(options('general.host'),
+                               options('general.cluster'),
+                               {'tag_name': options('general.tag_name')},
+                               detail=True)[0]
+        if tagData['phantom']:
             print 'PHANTOM'
 
-        if 'files' in tagData:
-            for f in tagData('files'):
-                print '\t'.join(['FILE', f])
+        for f in tagData['files']:
+            print '\t'.join(['FILE', f])
 
-        metadataKeys = [k for k in tagData.keys() if k.startswith('metadata.')]
-        for k in metadataKeys:
-            print '\t'.join(['METADATA', '.'.join(k.split('.')[1:]), str(tagData(k))])
+        for k, v in tagData['metadata'].iteritems():
+            print '\t'.join(['METADATA', k, str(v)])
     else:
-        tags = tag.listAllTags(options('general.host'), options('general.name'))
+        tags = tag.listTags(options('general.host'), options('general.cluster'), None, False)
         for t in tags:
-            print '\t'.join(['TAG', t])
+            print '\t'.join(['TAG', t['tag_name'], str(t['file_count'])])
 
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS))

@@ -4,53 +4,42 @@
 from igs.utils.config import configFromMap
 from igs.cgi.request import performQuery
 
-TAGDATA_URL = '/vappio/tagData_ws.py'
-UPLOADTAG_URL = '/vappio/uploadTag_ws.py'
-DOWNLOADTAG_URL = '/vappio/downloadTag_ws.py'
-QUERYTAG_URL = '/vappio/queryTag_ws.py'
-REALIZEPHANTOM_URL = '/vappio/realizePhantom_ws.py'
+CREATEUPDATE_URL = '/vappio/tag_createupdate'
+TRANSFER_URL = '/vappio/tag_transfer'
+LIST_URL = '/vappio/tag_list'
 
-def tagData(host, name, tagName, tagBaseDir, files, recursive, expand, compress, append, overwrite, metadata):
-    return performQuery(host, TAGDATA_URL, dict(name=name,
-                                                tag_name=tagName,
-                                                tag_base_dir=tagBaseDir,
-                                                files=files,
-                                                recursive=recursive,
-                                                expand=expand,
-                                                compress=compress,
-                                                append=append,
-                                                overwrite=overwrite,
-                                                tag_metadata=metadata))
+def tagData(host,
+            cluster,
+            action,
+            tagName,
+            files,
+            metadata,
+            recursive,
+            expand,
+            compressDir):
+    return performQuery(host, CREATEUPDATE_URL, dict(cluster=cluster,
+                                                     action=action,
+                                                     tag_name=tagName,
+                                                     files=files,
+                                                     metadata=metadata,
+                                                     recursive=recursive,
+                                                     expand=expand,
+                                                     compress_dir=compressDir))
 
 
-def uploadTag(host, tagName, srcCluster, dstCluster, expand, compress):
-    return performQuery(host, UPLOADTAG_URL, dict(tag_name=tagName,
-                                                  src_cluster=srcCluster,
-                                                  dst_cluster=dstCluster,
-                                                  expand=expand,
-                                                  compress=compress))
+def transferTag(host, cluster, tagName, srcCluster, dstCluster, compress=False):
+    return performQuery(host, TRANSFER_URL, dict(cluster=cluster,
+                                                 tag_name=tagName,
+                                                 src_cluster=srcCluster,
+                                                 dst_cluster=dstCluster,
+                                                 compress=compress))
     
 
-def downloadTag(host, tagName, srcCluster, dstCluster, outputDir, expand, compress):
-    return performQuery(host, DOWNLOADTAG_URL, dict(tag_name=tagName,
-                                                    src_cluster=srcCluster,
-                                                    dst_cluster=dstCluster,
-                                                    output_dir=outputDir,
-                                                    expand=expand,
-                                                    compress=compress))
-    
-
-
-def listAllTags(host, name):
+def listTags(host, cluster, criteria, detail):
     """
     Returns a list of all tags on a machine
     """
-    return dict([(t['name'], configFromMap(t, lazy=True)) for t in performQuery(host, QUERYTAG_URL, dict(name=name))])
-    
-def queryTag(host, name, tagName):
-    ##
-    # A tag may contain some keys that shouldn't be evaluated
-    return configFromMap(performQuery(host, QUERYTAG_URL, dict(name=name, tag_name=tagName))[0], lazy=True)
+    return performQuery(host, LIST_URL, dict(cluster=cluster,
+                                             criteria=criteria,
+                                             detail=detail))
 
-def realizePhantom(host, name, tagName):
-    return performQuery(host, REALIZEPHANTOM_URL, dict(name=name, tag_name=tagName))

@@ -68,4 +68,9 @@ def uninstallAllStow():
 
 def uninstallAllOptPackages():
     for p in [d for d in os.listdir('/opt/opt-packages') if d[0] != '.']:
-        uninstallOptPkg(p)
+        print p
+        try:
+            uninstallOptPkg(p)
+        except:
+            pass
+                

@@ -16,9 +16,10 @@ OPTIONS = [
 
 def main(options, _args):
     if options('general.pipeline_name'):
-        pipeline = pipeline_client.pipelineStatus(options('general.host'),
-                                                  options('general.cluster'),
-                                                  options('general.pipeline_name'))
+        pipeline = pipeline_client.pipelineList(options('general.host'),
+                                                options('general.cluster'),
+                                                {'pipeline_name': options('general.pipeline_name')},
+                                                True)[0]
         print 'PIPELINE_NAME\t%s' % pipeline['pipeline_name']
         print 'PIPELINE_ID\t%s' % pipeline['pipeline_id']
         print 'PIPELINE_TYPE\t%s' % pipeline['protocol']
@@ -43,8 +44,9 @@ def main(options, _args):
         for k in keys:
             print 'CONFIG\t%s\t%s' % (k, pipeline['config'][k])
     else:
-        pipelines = pipeline_client.listPipelines(options('general.host'),
-                                                  options('general.cluster'))
+        pipelines = pipeline_client.pipelineList(options('general.host'),
+                                                 options('general.cluster'),
+                                                 {})
 
         for p in pipelines:
             print '\t'.join(['PIPELINE',
