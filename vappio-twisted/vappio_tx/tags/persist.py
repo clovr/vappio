@@ -57,7 +57,7 @@ def listTags(conf):
             return [f
                     for f in os.listdir(conf('tags.tags_directory'))
                     if not f.endswith('~') and ('.' not in f or '.' in f and f.split('.')[-1] not in ['metadata', 'phantom'])]
-        except IOError:
+        except OSError:
             return []
     return defer.maybeDeferred(_listTags)
 
