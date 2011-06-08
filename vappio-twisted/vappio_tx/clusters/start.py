@@ -91,7 +91,7 @@ def startMaster(state, credClient, taskName, cl):
                          taskName=taskName)
 
     yield tasks_tx.updateTask(taskName,
-                              lambda t : t.update(numTasks=t.numTasks + 5))
+                              lambda t : t.update(numTasks=t.numTasks + 6))
     
 
     try:

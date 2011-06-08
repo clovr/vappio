@@ -190,9 +190,6 @@ def handleTaskStartCluster(request):
     try:
         cluster = yield start.startMaster(request.state, credClient, request.body['task_name'], cluster)
     except Exception, err:
-        stackTrace = errors.getStacktrace()
-        yield tasks_tx.updateTask(request.body['task_name'],
-                                  lambda t : t.addException(str(err), err, stackTrace).setState(task.TASK_FAILED))
         reactor.callLater(REMOVE_CLUSTER_TIMEOUT,
                           deleteCluster,
                           credClient,
