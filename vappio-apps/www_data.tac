@@ -9,6 +9,7 @@ from vappio_tx import tasklets_manager
 from vappio_tx import credentials_manager
 from vappio_tx import clusters_manager
 from vappio_tx import pipelines_manager
+from vappio_tx import tags_manager
 
 from igs.utils import config
 
@@ -25,5 +26,6 @@ tasklets_manager.makeService(conf).setServiceParent(serviceCollection)
 credentials_manager.makeService(conf).setServiceParent(serviceCollection)
 clusters_manager.makeService(conf).setServiceParent(serviceCollection)
 pipelines_manager.makeService(conf).setServiceParent(serviceCollection)
+tags_manager.makeService(conf).setServiceParent(serviceCollection)
 
 www_manager.makeService(conf).setServiceParent(serviceCollection)
