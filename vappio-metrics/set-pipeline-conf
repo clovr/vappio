@@ -12,7 +12,7 @@ if sys.stdin.readline().strip() != 'kv':
 # Write our header out
 sys.stdout.write('kv\n')
 
-pl = pipeline.pipelineStatus('localhost', 'local', sys.argv[1])
+pl = pipeline.pipelineList('localhost', 'local', {'pipeline_name': sys.argv[1]}, True)[0]
 
 for line in sys.stdin:
     sys.stdout.write(line.strip() + '\n')

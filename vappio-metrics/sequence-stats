@@ -64,8 +64,8 @@ stats = {'num_seq': 0,
          }
 
 for t in tags:
-    tagFile = tag.queryTag('localhost', 'local', [t])
-    for f in tagFile('files'):
+    tagFile = tag.listTags('localhost', 'local', {'tag_name': t}, True)[0]
+    for f in tagFile['files']:
         numSeq, totRes, avgLen, minLen, maxLen = seqstat(f)
         stats['avg_len'] = (stats['num_seq'] * stats['avg_len'] + totRes)/(numSeq + stats['num_seq'])
         stats['num_seq'] += numSeq

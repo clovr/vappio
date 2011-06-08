@@ -15,7 +15,7 @@ sys.stdout.write('kv\n')
 pipelineName = sys.argv[1]
 
 pipelineValues = {}
-pl = pipeline.pipelineStatus('localhost', 'local', pipelineName)
+pl = pipeline.pipelineList('localhost', 'local', {'pipeline_name': pipelineName}, True)[0]
 for k in pl['config'].keys():
     pipelineValues[k] = str(pl['config'][k])
     
