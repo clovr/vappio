@@ -19,7 +19,7 @@ def mapSerial(f, iterable):
             item = i.next()
             fDefer = f(item)
             fDefer.addCallback(lambda r : res.append(r))
-            fDefer.addCallback(lambda _ : _iterate())
+            fDefer.addCallback(lambda _ : reactor.callLater(0, _iterate))
             fDefer.addErrback(d.errback)
         except StopIteration:
             d.callback(res)
@@ -43,7 +43,7 @@ def fold(f, init, iterable):
         try:
             item = i.next()
             fDefer = f(accum, item)
-            fDefer.addCallback(lambda r : _iterate(r))
+            fDefer.addCallback(lambda r : reactor.callLater(0, _iterate, r))
             fDefer.addErrback(d.errback)
         except StopIteration:
             d.callback(accum)

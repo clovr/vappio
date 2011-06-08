@@ -41,11 +41,19 @@ def handleIncludes(sin):
         else:
             yield line
 
+def _createErgatisConfig(state, protocol):
+    if not os.path.exists(os.path.join(state.conf('ergatis.ergatis_configs'), protocol)):
+        pass
 
 @defer.inlineCallbacks
 def run(state, pipeline):
-    if not os.path.exists('/tmp/pipeline_configs'):
-        os.mkdir('/tmp/pipeline_configs')
+    if not os.path.exists(state.conf('config.pipeline_configs')):
+        os.mkdir(state.conf('config.pipeline_configs'))
+
+    #yield _createErgatisConfig(state, pipeline.protocol)
+    #if :
+    #    yield _createErgatisConfigs(state, protocol)
+    
         
     tmpConfigName = os.path.join('/tmp', 'pipeline_configs', str(time.time()) + '.config')
 

@@ -43,7 +43,7 @@ def returnQueueSuccess(mq, queue, data):
 def returnQueueFailure(mq, queue, failure):
     mq.send(queue, json.dumps({'success': False,
                                'data': {'stacktrace': errors.stackTraceToString(failure),
-                                        'name': '',
+                                        'name': errors.failureExceptionName(failure),
                                         'msg': failure.getErrorMessage()}}))
     return failure
 
@@ -181,6 +181,7 @@ def wrapRequestHandler(state, f):
                                                  ackMsgFailure)])
 
 def wrapRequestHandlerTask(state, f):
-    _f = defer_pipe.pipe([f, tasks.setRequestComplete])
+    _f = defer_pipe.hookError(defer_pipe.pipe([f, tasks.setRequestComplete]),
+                              tasks.setRequestFailed)
     return wrapRequestHandler(state, _f)
                             

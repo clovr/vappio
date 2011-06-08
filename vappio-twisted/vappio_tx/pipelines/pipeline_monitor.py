@@ -114,10 +114,13 @@ def _updatePipelineChildren(state):
             else:
                 lastChecked = None
 
-            remotePipeline = yield pipelines_www.pipelineStatus('localhost',
-                                                                cl,
-                                                                pl.userName,
-                                                                remotePipelineName)
+            remotePipeline = yield pipelines_www.pipelineList('localhost',
+                                                              cl,
+                                                              pl.userName,
+                                                              remotePipelineName,
+                                                              True)
+
+            remotePipeline = remotePipeline[0]
 
             remoteTask = yield tasks_www.loadTask('localhost',
                                                   cl,

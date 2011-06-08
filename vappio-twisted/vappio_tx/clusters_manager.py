@@ -563,7 +563,7 @@ def subscribeStartCluster(mq, state):
                                                                        queue.createTaskAndForward(
                                                                            conf('clusters.startcluster_queue'),
                                                                            'startCluster',
-                                                                           1)]))
+                                                                           0)]))
                                                                        
     queue.subscribe(mq,
                     conf('clusters.startcluster_www'),
@@ -631,7 +631,7 @@ def subscribeAddInstances(mq, state):
                                                                            os.path.basename(conf('clusters.addinstances_www')),
                                                                            conf('clusters.addinstances_queue'),
                                                                            'addInstances',
-                                                                           1)]))
+                                                                           0)]))
 
     queue.subscribe(mq,
                     conf('clusters.addinstances_www'),

@@ -9,7 +9,10 @@ from igs.utils import config as config_
 
 from vappio.tasks import task
 
-class PipelineNotFoundError(Exception):
+class Error(Exception):
+    pass
+
+class PipelineNotFoundError(Error):
     pass
 
 class Pipeline(func.Record):

@@ -9,8 +9,10 @@ from twisted.python import log as logger
 
 from igs.utils import functional as func
 
+class Error(Exception):
+    pass
 
-class ProgramRunError(Exception):
+class ProgramRunError(Error):
     def __init__(self, cmd, stderr):
         self.cmd = cmd
         self.stderr = stderr

@@ -28,7 +28,13 @@ def blockOnTaskAndForward(host, cluster, taskName, dstTask):
     return d
 
 def setRequestComplete(request):
-    d =  updateTask(request.body['task_name'],
+    d = updateTask(request.body['task_name'],
                     lambda t : t.setState(task.TASK_COMPLETED))
+    d.addCallback(lambda _ : request)
+    return d
+
+def setRequestFailed(f, request):
+    d = updateTask(request.body['task_name'],
+                   lambda t : t.setState(task.TASK_FAILED).addFailure(f))
     d.addCallback(lambda _ : request)
     return d

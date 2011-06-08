@@ -90,6 +90,9 @@ def startMaster(state, credClient, taskName, cl):
                          credClient=credClient,
                          taskName=taskName)
 
+    yield tasks_tx.updateTask(taskName,
+                              lambda t : t.update(numTasks=t.numTasks + 5))
+    
 
     try:
         yield tasks_tx.updateTask(taskName,
