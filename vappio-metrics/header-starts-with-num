@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $header = <>;
+
+unless( trim( $header ) eq 'kv' ) {
+	die "Header must be 'kv'\n";
+}
+
+print STDOUT $header;
+
+my $arg = <>;
+
+print STDOUT $arg;
+
+my ( $tag_name ) = ( trim( $arg ) =~ /^input\..+=(.+)$/ );
+
+die "there is no tag_name found in $arg\n" unless( $tag_name );
+
+my $command = "vp-describe-dataset --tag-name $tag_name";
+
+open( COMMAND, "$command |" ) or die "Error in executing the command, $command, $!\n";
+
+while( my $output = <COMMAND> ) {
+	if( $output =~ /^FILE\t(.+)/ ) {
+		my $file = $1;
+		process_file( $file );
+	}
+}
+
+close COMMAND or die "Error executing the command, $command, $!\n";
+
+exit $?;
+
+
+sub trim {
+	my( $arg ) = @_;
+	$arg =~ s/^\s+//;
+	$arg =~ s/\s+$//;
+	return $arg;
+}
+
+sub process_file {
+	my( $file ) = @_;
+	open( FH, "<$file" ) or die "Error in opening the file, $file, $!\n";
+	while( my $line = <FH> ) {
+		chomp $line;
+		if( $line =~ /^>(.+)/ ) {
+			my $header = $1;
+			if( $header =~ /^[^A-Za-z]/ ) {
+				die "$file has header $line; DOES NOT start with letter at $.\n";
+			}
+		}
+	}
+	close FH or die "Error in closing the file, $file, $!\n";
+}
