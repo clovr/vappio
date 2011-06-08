@@ -2,5 +2,5 @@
 depends_on=/mnt/staging/tags_extra/clovr-keggdb.dlist
 
 [cluster.ALL]
-command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-keggdb.tar.gz --join-md5=f73f3bb079f479000b40a4efed116339 < ${phantom.depends_on}
+command=reliableDownloader.py -m 300 -t 20 -b ${base_dir} --join-name=clovr-keggdb.tar.gz --join-md5=f73f3bb079f479000b40a4efed116339 < ${depends_on}
 tag_options=-e

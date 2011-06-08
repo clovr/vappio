@@ -4,6 +4,7 @@ case "$1" in
     start)
 	twistd --pidfile=/opt/vappio-apps/www_data.pid --syslog -y /opt/vappio-apps/www_data.tac
 	touch /tmp/ergatisObserver.log
+	touch /tmp/startup_complete
 	chmod 666 /tmp/ergatisObserver.log
 	;;
     stop)

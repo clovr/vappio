@@ -33,7 +33,6 @@ echo " " >> /etc/issue
 ##
 # Write a file saying machine is alive
 chmod 777 /tmp
-touch /tmp/startup_complete
 
 ##
 # Set cloud type and node type
