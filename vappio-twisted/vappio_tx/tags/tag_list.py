@@ -24,8 +24,7 @@ def _removeDetail(tagDict):
     d = {}
     filteredMetadata = dict([(k, v)
                              for k, v in tagDict['metadata'].iteritems()
-                             if k in ['description',
-                                      'format_type']])
+                             if k not in ['pipeline_configs']])
     d.update({'files': [],
               'metadata': filteredMetadata,
               'tag_name': tagDict['tag_name'],
