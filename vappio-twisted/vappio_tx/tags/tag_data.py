@@ -130,7 +130,7 @@ def _compressFiles(tag, compressDir):
 
     yield commands.runProcess(cmd,
                               stderrf=log.err,
-                              initialText='\n'.join(baseDirFiles + nonBaseDirFiles))
+                              initialText=str('\n'.join(baseDirFiles + nonBaseDirFiles)))
     defer.returnValue(compressedFile)
     
 

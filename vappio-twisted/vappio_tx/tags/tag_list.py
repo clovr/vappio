@@ -101,7 +101,7 @@ def _loadAllTagsAndSubscribe(mq, state):
     
     for t in tags:
         state.tags[t.tagName] = t
-    
+
     yield _cacheTagDicts(state)
         
         

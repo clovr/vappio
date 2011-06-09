@@ -145,14 +145,14 @@ def _downloadTag(request):
                                                 request.body['dst_cluster'],
                                                 request.body['user_name'])
 
-    dstTagPath = os.path.join(dstCluster['config']['dirs.upload_dir'], remoteTag.tagName)
+    dstTagPath = os.path.join(dstCluster['config']['dirs.upload_dir'], remoteTag['tag_name'])
 
-    baseDirFiles, nonBaseDirFiles = _partitionFiles(remoteTag.files, remoteTag.metadata['tag_base_dir'])
+    baseDirFiles, nonBaseDirFiles = _partitionFiles(remoteTag['files'], remoteTag['metadata']['tag_base_dir'])
 
 
     if baseDirFiles:
         yield rsync.rsyncFrom(srcCluster['master']['public_dns'],
-                              remoteTag.metadata['tag_base_dir'],
+                              remoteTag['metadata']['tag_base_dir'],
                               dstTagPath,
                               baseDirFiles,
                               dstCluster['config']['rsync.options'],
@@ -171,11 +171,11 @@ def _downloadTag(request):
     remoteFiles = ([os.path.join(dstTagPath, f) for f in baseDirFiles] +
                    [os.path.join(dstTagPath, _makePathRelative(f)) for f in nonBaseDirFiles])
 
-    defer.returnValue(persist.Tag(tagName=remoteTag.tagName,
+    defer.returnValue(persist.Tag(tagName=remoteTag['tag_name'],
                                   files=remoteFiles,
-                                  metadata=func.updateDict(remoteTag.metadata,
+                                  metadata=func.updateDict(remoteTag['metadata'],
                                                            {'tag_base_dir': dstTagPath}),
-                                  phantom=remoteTag.phantom,
+                                  phantom=remoteTag['phantom'],
                                   taskName=None))
 
     
@@ -190,7 +190,6 @@ def _handleTransferTag(request):
                                     request.body['tag_name'])
 
     if not srcTag['phantom'] and (request.body['src_cluster'] != 'local' or request.body['dst_cluster'] != 'local'):
-        log.msg('Uploading?')
         if request.body['src_cluster'] == 'local':
             tag = yield _uploadTag(request)
         elif request.body['dst_cluster'] == 'local':
@@ -201,27 +200,37 @@ def _handleTransferTag(request):
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress())
 
-        newTag = yield www_tags.tagData('localhost',
-                                        request.body['dst_cluster'],
-                                        request.body['user_name'],
-                                        action=tag_data.ACTION_OVERWRITE,
-                                        tagName=tag.tagName,
-                                        files=tag.files,
-                                        metadata=tag.metadata,
-                                        recursive=False,
-                                        expand=False,
-                                        compressDir=tag.metadata['tag_base_dir'] if request.body.get('compress', False) else None)
+        if request.body['dst_cluster'] == 'local':
+            yield tag_data.tagData(request.state,
+                                   request.body['tag_name'],
+                                   request.body['task_name'],
+                                   files=[],
+                                   action=tag_data.ACTION_APPEND,
+                                   metadata={},
+                                   recursive=False,
+                                   expand=False,
+                                   compressDir='/mnt/output' if request.body.get('compress', False) else None)
+        else:
+            newTag = yield www_tags.tagData('localhost',
+                                            request.body['dst_cluster'],
+                                            request.body['user_name'],
+                                            action=tag_data.ACTION_OVERWRITE,
+                                            tagName=tag.tagName,
+                                            files=tag.files,
+                                            metadata=tag.metadata,
+                                            recursive=False,
+                                            expand=False,
+                                            compressDir=tag.metadata['tag_base_dir'] if request.body.get('compress', False) else None)
 
-        localTask = yield tasks_tx.loadTask(request.body['task_name'])
-        yield tasks_tx.blockOnTaskAndForward('localhost',
-                                             request.body['dst_cluster'],
-                                             newTag['task_name'],
-                                             localTask)
+            localTask = yield tasks_tx.loadTask(request.body['task_name'])
+            yield tasks_tx.blockOnTaskAndForward('localhost',
+                                                 request.body['dst_cluster'],
+                                                 newTag['task_name'],
+                                                 localTask)
     
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress())
     elif srcTag['phantom']:
-        log.msg('Phantom tag?')
         taskName = yield www_tags.realizePhantom('localhost',
                                                  request.body['dst_cluster'],
                                                  request.body['user_name'],
@@ -236,7 +245,6 @@ def _handleTransferTag(request):
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.update(numTasks=1).progress())        
     else:
-        log.msg('Neither?')
         yield tag_data.tagData(request.state,
                                request.body['tag_name'],
                                request.body['task_name'],
