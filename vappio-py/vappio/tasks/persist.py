@@ -22,7 +22,7 @@ def load(taskName, tries=3):
         return task
 
 def dump(task):
-    return pymongo.Connection().clovr.tasks.save(updateDict(dict(_id=task['name']), task))
+    return pymongo.Connection().clovr.tasks.save(updateDict(dict(_id=task['name']), task), safe=True)
 
 def loadAll():
     return pymongo.Connection().clovr.tasks.find()
