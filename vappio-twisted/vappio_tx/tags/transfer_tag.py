@@ -189,7 +189,8 @@ def _handleTransferTag(request):
                                     request.body['user_name'],
                                     request.body['tag_name'])
 
-    if not srcTag['phantom'] and request.body['src_cluster'] != 'local' and request.body['dst_cluster'] != 'local':
+    if not srcTag['phantom'] and (request.body['src_cluster'] != 'local' or request.body['dst_cluster'] != 'local'):
+        log.msg('Uploading?')
         if request.body['src_cluster'] == 'local':
             tag = yield _uploadTag(request)
         elif request.body['dst_cluster'] == 'local':
@@ -220,6 +221,7 @@ def _handleTransferTag(request):
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress())
     elif srcTag['phantom']:
+        log.msg('Phantom tag?')
         taskName = yield www_tags.realizePhantom('localhost',
                                                  request.body['dst_cluster'],
                                                  request.body['user_name'],
@@ -234,6 +236,7 @@ def _handleTransferTag(request):
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.update(numTasks=1).progress())        
     else:
+        log.msg('Neither?')
         yield tag_data.tagData(request.state,
                                request.body['tag_name'],
                                request.body['task_name'],
