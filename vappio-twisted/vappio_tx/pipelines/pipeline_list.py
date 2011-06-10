@@ -69,7 +69,7 @@ def pipelineToDict(machineConf, p):
                        'config': config.configToDict(p.config),
                        })
 
-def _removeDetail(p):
+def removeDetail(p):
     p = dict(p)
     p.pop('config')
     return p
@@ -77,7 +77,7 @@ def _removeDetail(p):
 @defer.inlineCallbacks
 def pipelineToDictLite(machineConf, p):
     pipelineDict = yield pipelineToDict(machineConf, p)
-    defer.returnValue(_removeDetail(pipelineDict))
+    defer.returnValue(removeDetail(pipelineDict))
 
 
 @defer.inlineCallbacks
@@ -96,7 +96,7 @@ def handleWWWPipelineList(request):
                                                                              request.body.get('criteria', {})))
 
     if not request.body.get('detail', False):
-        pipelinesDict = map(_removeDetail, pipelinesDict)
+        pipelinesDict = map(removeDetail, pipelinesDict)
     
     defer.returnValue(request.update(response=pipelinesDict))
 
