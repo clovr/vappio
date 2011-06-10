@@ -165,7 +165,7 @@ def keysInBody(ks):
         if core.keysInDict(ks, request.body):
             return defer_pipe.ret(request)
         else:
-            raise Exception('Missing keys in request')
+            raise Exception('Missing keys in request %r %r' % (ks, request.body))
 
     return _
 
