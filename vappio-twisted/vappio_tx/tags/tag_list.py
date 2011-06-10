@@ -1,8 +1,6 @@
 import time
 import os
 
-from twisted.python import log
-
 from twisted.internet import defer
 from twisted.internet import reactor
 
@@ -58,8 +56,6 @@ def tagToDict(tag):
     defer.returnValue(d)
 
 def handleTagList(request):
-    log.msg('Begin tag_list:' + repr(request.body))
-
     tags = request.state.tags.values()
     
     if request.body.get('criteria', None):
@@ -78,7 +74,6 @@ def handleTagList(request):
     else:
         tagDicts = [_removeDetail(request.state.tagDicts[t.tagName]) for t in tags]
                 
-    log.msg('End tag_list:' + repr(request.body))
     return defer_pipe.ret(request.update(response=tagDicts))
 
 @defer.inlineCallbacks
