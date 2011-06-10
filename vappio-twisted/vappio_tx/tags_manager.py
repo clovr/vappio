@@ -12,12 +12,16 @@ from twisted.internet import reactor
 
 from twisted.python import log
 
+from igs.utils import functional as func
+
 from vappio.tasks import task
 
 from igs_tx.utils import defer_pipe
 
+
 from vappio_tx.utils import queue
 from vappio_tx.utils import core as vappio_tx_core
+from vappio_tx.utils import mongo_cache
 
 from vappio_tx.mq import client
 
@@ -32,11 +36,19 @@ from vappio_tx.tags import realize_phantom
 class State:
     def __init__(self, conf):
         self.conf = conf
-        self.tags = {}
+        self.tagsCache = None
+        self.tagsLiteCache = None
         # We are going to want to serialize operations on tags
         self.tagLocks = {}
 
+@defer.inlineCallbacks
 def _subscribeToQueues(mq, state):
+    state.tagsCache = yield mongo_cache.createCache('tags_cache',
+                                                    lambda d : func.updateDict(d, {'_id': d['tag_name']}))
+
+    state.tagsLiteCache = yield mongo_cache.createCache('tags_lite_cache',
+                                                        lambda d : func.updateDict(d, {'_id': d['tag_name']}))
+    
     tag_data.subscribe(mq, state)
     delete_tag.subscribe(mq, state)
     tag_list.subscribe(mq, state)
@@ -49,7 +61,7 @@ def makeService(conf):
 
     state = State(conf)
 
-    startUpDefer = defer.maybeDeferred(_subscribeToQueues, mqFactory, state)
+    defer.maybeDeferred(_subscribeToQueues, mqFactory, state)
 
     return mqService
 

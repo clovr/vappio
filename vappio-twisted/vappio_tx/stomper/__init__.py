@@ -174,7 +174,8 @@ def unpack_frame(message):
     def _splitStrip(s):
         k, v = s.split(':', 1)
         return (k.strip(), v.strip())
-    
+
+
     try:
         msg, rest = message.split('\000', 1)
         cmd_headers, body = msg.split('\n\n', 1)

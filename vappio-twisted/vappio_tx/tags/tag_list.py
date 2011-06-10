@@ -1,6 +1,8 @@
 import time
 import os
 
+from twisted.python import log
+
 from twisted.internet import defer
 from twisted.internet import reactor
 
@@ -55,33 +57,29 @@ def tagToDict(tag):
     
     defer.returnValue(d)
 
+@defer.inlineCallbacks
 def handleTagList(request):
-    tags = request.state.tags.values()
-    
-    if request.body.get('criteria', None):
-        if 'tag_name' in request.body['criteria']:
-            tags = [t
-                    for t in tags
-                    if t.tagName == request.body['criteria']['tag_name']]
-        elif '$or' in request.body['criteria']:
-            tagNames = set([t['tag_name'] for t in request.body['criteria']['$or']])
-            tags = [t
-                    for t in tags
-                    if t.tagName in tagNames]
-
     if request.body.get('detail', False):
-        tagDicts = [request.state.tagDicts[t.tagName] for t in tags]
+        tagDicts = yield request.state.tagsCache.query(request.body.get('criteria', {}))
     else:
-        tagDicts = [_removeDetail(request.state.tagDicts[t.tagName]) for t in tags]
-                
-    return defer_pipe.ret(request.update(response=tagDicts))
+        tagDicts = yield request.state.tagsLiteCache.query(request.body.get('criteria', {}))
+        
+    defer.returnValue(request.update(response=tagDicts))
 
 @defer.inlineCallbacks
 def _cacheTagDicts(state):
-    tagDicts = yield defer_utils.mapSerial(lambda tag: tagToDict(tag),
-                                           state.tags.values())
+    tagsList = yield persist.listTags(state.conf)
 
-    state.tagDicts = dict([(t['tag_name'], t) for t in tagDicts])
+    tags = yield defer_utils.mapSerial(lambda tagName : persist.loadTag(state.conf, tagName),
+                                       tagsList)
+
+    tagDicts = yield defer_utils.mapSerial(lambda tag: tagToDict(tag),
+                                           tags)
+
+    tagLiteDicts = map(_removeDetail, tagDicts)
+    
+    yield defer_utils.mapSerial(state.tagsCache.save, tagDicts)
+    yield defer_utils.mapSerial(state.tagsLiteCache.save, tagLiteDicts)                            
     reactor.callLater(TAGS_REFRESH_FREQUENCY, _cacheTagDicts, state)
 
 def _forwardToCluster(conf, queueUrl):
@@ -89,16 +87,7 @@ def _forwardToCluster(conf, queueUrl):
 
 @defer.inlineCallbacks
 def _loadAllTagsAndSubscribe(mq, state):
-    tagsList = yield persist.listTags(state.conf)
-
-    tags = yield defer_utils.mapSerial(lambda tagName : persist.loadTag(state.conf, tagName),
-                                       tagsList)
-    
-    for t in tags:
-        state.tags[t.tagName] = t
-
     yield _cacheTagDicts(state)
-        
         
     processTagList = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                              'user_name']),
@@ -115,5 +104,15 @@ def _loadAllTagsAndSubscribe(mq, state):
 def subscribe(mq, state):
     _loadAllTagsAndSubscribe(mq, state)
 
-    
 
+@defer.inlineCallbacks
+def cacheTag(state, tag):
+    tagDict = yield tagToDict(tag)
+    yield state.tagsCache.save(tagDict)
+    tagDictLite = _removeDetail(tagDict)
+    yield state.tagsLiteCache.save(tagDictLite)
+
+@defer.inlineCallbacks
+def removeCachedTag(state, tagName):
+    yield state.tagsCache.remove({'tag_name': tagName})
+    yield state.tagsLiteCache.remove({'tag_name': tagName})

@@ -178,9 +178,7 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
                                        {'compressed': False})
 
     yield persist.saveTag(state.conf, tag)
-    tagDict = yield tag_list.tagToDict(tag)
-    state.tagDicts[tagDict['tag_name']] = tagDict
-    state.tags[tag.tagName] = tag
+    yield tag_list.cacheTag(state, tag)
     
     defer.returnValue(tag)
     
