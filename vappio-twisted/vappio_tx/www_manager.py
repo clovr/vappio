@@ -3,10 +3,13 @@ import json
 from twisted.internet import reactor
 from twisted.internet import error as twisted_error
 from twisted.internet import defer
+
 from twisted.application import internet
 from twisted.application import service
+
 from twisted.web import resource
 from twisted.web import server
+
 from twisted.python import log
 
 from igs.utils import functional as func
@@ -66,7 +69,10 @@ class QueueRequest(resource.Resource):
         delayed = reactor.callLater(TIMEOUT, _timeout)
         
         def _handleMsg(mq, m):
-            d.callback(m.body)
+            try:
+                d.callback(m.body)
+            except Exception, err:
+                log.err(err)
 
         self.mq.subscribe(_handleMsg, retQueue)
         self.mq.send('/queue/' + self.name, json.dumps(newReq))
@@ -87,7 +93,10 @@ class QueueRequest(resource.Resource):
         d.addCallback(request.write)
 
         def _error(_):
-            request.write(TimeoutRequestError())
+            try:
+                request.write(TimeoutRequestError())
+            except Exception, err:
+                log.err(err)
 
         d.addErrback(_error)
         
