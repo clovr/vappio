@@ -27,17 +27,19 @@ from vappio_tx.pipelines import persist
 
 from vappio_tx.tasks import tasks as tasks_tx
 
+from vappio_tx.pipelines import pipeline_list
 from vappio_tx.pipelines import protocol_format
 from vappio_tx.pipelines import pipeline_validate
 from vappio_tx.pipelines import pipeline_run
 from vappio_tx.pipelines import pipeline_monitor
 
-PIPELINES_UPDATE_FREQUENCY = 30
-
-class InvalidPipelineConfig(Exception):
+class Error(Exception):
     pass
 
-class InvalidParentPipeline(Exception):
+class InvalidPipelineConfig(Error):
+    pass
+
+class InvalidParentPipeline(Error):
     def __init__(self, parentName):
         self.parentName = parentName
 
@@ -82,61 +84,6 @@ def _checksumInput(request):
 
     return hashlib.md5(valuesCombined).hexdigest()
 
-@defer.inlineCallbacks
-def _pipelineToDict(machineConf, p):
-    protocolConf = protocol_format.load(machineConf, p.config('pipeline.PIPELINE_TEMPLATE'))
-
-    inputTagsList = [p.config(k).split(',')
-                     for k, v in protocolConf
-                     if v.get('type').split()[0] in ['dataset',
-                                                     'blastdb_dataset',
-                                                     'paired_dataset',
-                                                     'singleton_dataset'] and p.config(k)]
-    inputTags = []
-    for i in inputTagsList:
-        inputTags.extend(i)
-
-
-    possibleOutputTags = set([p.pipelineName + '_' + t.strip()
-                              for t in p.config('output.TAGS_TO_DOWNLOAD', default='').split(',')])
-
-    query = [{'tag_name': t} for t in possibleOutputTags]
-    
-    tags = yield www_tags.loadTagsBy('localhost', 'local', p.userName, {'$or': query}, False)
-
-    tags = set([t['tag_name'] for t in tags])
-
-    outputTags = list(tags & possibleOutputTags)
-    
-    pipelineTask = yield tasks_tx.loadTask(p.taskName)
-    
-    defer.returnValue({'pipeline_id': p.pipelineId,
-                       'pipeline_name': p.pipelineName,
-                       'user_name': p.userName,
-                       'wrapper': p.protocol == 'clovr_wrapper',
-                       'protocol': p.config('pipeline.PIPELINE_TEMPLATE'),
-                       'checksum': p.checksum,
-                       'task_name': p.taskName,
-                       'queue': p.queue,
-                       'children': p.children,
-                       'state': pipelineTask.state,
-                       'num_steps': pipelineTask.numTasks,
-                       'num_complete': pipelineTask.completedTasks,
-                       'input_tags': inputTags,
-                       'output_tags': outputTags,
-                       'pipeline_desc': p.config('pipeline.PIPELINE_DESC', default=''),
-                       'config': config.configToDict(p.config),
-                       })
-
-def _removeDetail(p):
-    p = dict(p)
-    p.pop('config')
-    return p
-
-@defer.inlineCallbacks
-def _pipelineToDictLite(machineConf, p):
-    pipelineDict = yield _pipelineToDict(machineConf, p)
-    defer.returnValue(_removeDetail(pipelineDict))
     
 def _deepValidation(request, pipeline):
     # Add stuff here
@@ -259,14 +206,14 @@ def handleWWWRunPipeline(request):
             existingPipeline = yield persist.loadPipelineBy({'checksum': checksum,
                                                              'protocol': protocol},
                                                             request.body['user_name'])
-            pipelineLite = yield _pipelineToDictLite(request.state.machineconf,
-                                                     existingPipeline)
+            pipelineLite = yield pipeline_list.pipelineToDictLite(request.state.machineconf,
+                                                                  existingPipeline)
             defer.returnValue(request.update(response=pipelineLite))
         except persist.PipelineNotFoundError:
             pipeline = yield _createPipeline(request)
             yield persist.savePipeline(pipeline)
-            pipelineDict = yield _pipelineToDict(request.state.machineconf,
-                                                 pipeline)
+            pipelineDict = yield pipeline_list.pipelineToDict(request.state.machineconf,
+                                                              pipeline)
             yield request.state.pipelinesCache.save(pipelineDict)
             pipelineLite = _removeDetail(pipelineDict)
             # We want to do a deeper validation of the configuration and then run the pipeline.
@@ -317,8 +264,8 @@ def handleWWWResumePipeline(request):
     yield defer_utils.sleep(5)()
     yield _monitor(request, pipeline)
 
-    pipelineLite = yield _pipelineToDictLite(request.state.machineconf,
-                                             pipeline)
+    pipelineLite = yield pipeline_list.pipelineToDictLite(request.state.machineconf,
+                                                          pipeline)
     defer.returnValue(request.update(response=pipelineLite))
         
 def handleWWWObserver(request):
@@ -382,27 +329,6 @@ def handleWWWValidatePipelineConfig(request):
     """
     errors = yield _validatePipelineConfig(request)
     defer.returnValue(request.update(response={'errors': errors}))
-    
-
-@defer.inlineCallbacks
-def handleWWWPipelineList(request):
-    """
-    Input:
-    { cluster: string
-      user_name: string
-      criteria: { key/value }
-      ?detail: boolean
-    }
-    Output:
-    pipeline
-    """
-    pipelinesDict = yield request.state.pipelinesCache.query(func.updateDict({'user_name': request.body['user_name']},
-                                                                             request.body.get('criteria', {})))
-
-    if not request.body.get('detail', False):
-        pipelinesDict = map(_removeDetail, pipelinesDict)
-    
-    defer.returnValue(request.update(response=pipelinesDict))
 
 def handleWWWListProtocols(request):
     """
@@ -461,44 +387,11 @@ def forwardToCluster(conf, queueUrl):
     return queue.forwardRequestToCluster(conf('www.url_prefix') + '/' + os.path.basename(queueUrl))
 
 
-@defer.inlineCallbacks
-def _cachePipelines(state):
-    pipelines = yield persist.loadAllPipelinesByAdmin({})
-    pipelinesDict = yield defer_utils.mapSerial(lambda p : _pipelineToDict(state.machineconf, p),
-                                                pipelines)
-
-    yield defer_utils.mapSerial(state.pipelinesCache.save, pipelinesDict)
-    reactor.callLater(PIPELINES_UPDATE_FREQUENCY, _cachePipelines, state)
 
 @defer.inlineCallbacks
-def _monitorAnyPipelines(mq, state):
-    @defer.inlineCallbacks
-    def _loadPipeline(p):
-        pl = yield _pipelineToDictLite(state.machineconf, p)
-        defer.returnValue((p, pl))
-
-
-    state.pipelinesCache = yield mongo_cache.createCache('pipelines_cache',
-                                                         lambda d : func.updateDict(d, {'_id': d['pipeline_name']}))
-    yield _cachePipelines(state)
+def _subscribeToQueues(mq, state):
+    yield defer.maybeDeferred(pipeline_list.subscribe, mq, state)
     
-    pipelines = yield persist.loadAllPipelinesByAdmin({})
-
-    # Expand out so we have state information
-    pipelinesLite = yield defer_utils.mapSerial(_loadPipeline, pipelines)
-
-    pipelines = [p
-                 for p, pl in pipelinesLite
-                 if pl['state'] not in [tasks_tx.task.TASK_COMPLETED,
-                                        tasks_tx.task.TASK_FAILED]]
-    
-    for p in pipelines:
-        pipeline_monitor.monitor(pipeline_monitor.MonitorState(state.conf,
-                                                               state.machineconf,
-                                                               mq,
-                                                               p))
-
-def _subscribeToQueues(mq, state):    
     processRunPipeline = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                  'user_name',
                                                                                  'bare_run',
@@ -564,15 +457,6 @@ def _subscribeToQueues(mq, state):
                     queue.wrapRequestHandler(state, processValidatePipelineConfig))
 
 
-    processPipelineList = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
-                                                                                  'user_name']),
-                                                                forwardToCluster(state.conf, state.conf('pipelines.list_www')),
-                                                                handleWWWPipelineList]))
-    queue.subscribe(mq,
-                    state.conf('pipelines.list_www'),
-                    state.conf('pipelines.concurrent_list'),
-                    queue.wrapRequestHandler(state, processPipelineList))
-
     processListProtocols = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                    'user_name']),
                                                                  forwardToCluster(state.conf, state.conf('pipelines.listprotocols_www')),
@@ -599,7 +483,6 @@ def makeService(conf):
     # State is currently not used, but kept around for future purposes
     state = State(conf)
 
-    d = _monitorAnyPipelines(mqFactory, state)
-    d.addCallback(lambda _ : _subscribeToQueues(mqFactory, state))
+    _subscribeToQueues(mqFactory, state)
     
     return mqService
