@@ -215,7 +215,7 @@ def handleWWWRunPipeline(request):
             pipelineDict = yield pipeline_list.pipelineToDict(request.state.machineconf,
                                                               pipeline)
             yield request.state.pipelinesCache.save(pipelineDict)
-            pipelineLite = removeDetail(pipelineDict)
+            pipelineLite = pipeline_listremoveDetail(pipelineDict)
             # We want to do a deeper validation of the configuration and then run the pipeline.
             # Then we want to monitor it both through the ergatis observer and a timed update
             # of any children it has.
