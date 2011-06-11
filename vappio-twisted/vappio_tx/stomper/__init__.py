@@ -192,11 +192,24 @@ def unpack_frame(message):
             if nlen > 0 and len(rest) >= nlen:
                 body += '\000' + rest[:nlen]
                 rest = rest[nlen:]
-
-        return (Frame(cmd=cmd,
-                      headers=headers,
-                      body=body),
-                rest)
+                return (Frame(cmd=cmd,
+                              headers=headers,
+                              body=body),
+                        rest)
+            elif nlen == 0:
+                return (Frame(cmd=cmd,
+                              headers=headers,
+                              body=body),
+                        rest)
+            else:
+                return (None, message)
+        elif rest or message[-1] == '\000':
+            return (Frame(cmd=cmd,
+                          headers=headers,
+                          body=body),
+                    rest)
+        else:
+            return (None, message)
     except ValueError, err:
         if 'unpack' in str(err):
             return (None, message)

@@ -308,6 +308,9 @@ def handleWWWUpdatePipelineConfig(request):
     if len(pipelines) == 1:
         p = pipelines[0].update(config=config.configFromMap(request.body['config']))
         yield persist.savePipeline(p)
+        pipelineDict = yield pipeline_list.pipelineToDict(request.state.machineconf,
+                                                          p)
+        yield request.state.pipelinesCache.save(pipelineDict)
     else:
         raise Exception('More than one pipelines matches provided criteria: ' + repr(request.body['criteria']))
 
