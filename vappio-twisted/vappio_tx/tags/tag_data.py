@@ -121,6 +121,8 @@ def _partitionFiles(files, baseDir):
 def _compressFiles(tag, compressDir):
     compressedFile = os.path.join(compressDir, tag.tagName + '.tar.gz')
 
+    yield commands.runProcess(['mkdir', '-p', compressDir], stderrf=log.err)
+    
     baseDirFiles, nonBaseDirFiles = _partitionFiles(tag.files, tag.metadata['tag_base_dir'])
 
     cmd = ['tar',
