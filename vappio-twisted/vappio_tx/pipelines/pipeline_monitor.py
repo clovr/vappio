@@ -23,6 +23,8 @@ from vappio_tx.tasks import tasks as tasks_tx
 from vappio_tx.www_client import pipelines as pipelines_www
 from vappio_tx.www_client import tasks as tasks_www
 
+from vappio_tx.pipelines import pipeline_run
+
 from vappio_tx.pipelines import persist
 
 PIPELINE_UPDATE_FREQUENCY = 30
@@ -37,7 +39,7 @@ class MonitorState:
         self.mq = mq
         self.pipeline = pipeline
         self.f = None
-        self.retries = 1
+        self.retries = 0
         self.childrenSteps = 0
         self.childrenCompletedSteps = 0
         # We want to serialize access to the task
@@ -200,16 +202,19 @@ def _running(state, event):
                                      lambda t : t.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Pipeline completed successfully'))
             state.mq.unsubscribe(_queueName(state))
     elif event['retval'] and int(event['retval']):
-        def _setFailed(t):
-            if t.state != task.TASK_FAILED:
-                return t.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, 'Task failed on step ' + event['name'])
-            else:
-                return t
-        yield state.taskLock.run(tasks_tx.updateTask,
-                                 state.pipeline.taskName,
-                                 _setFailed)
-        state.f = _failed
-
+        if state.retries > 0:
+            pass
+        else:
+            def _setFailed(t):
+                if t.state != task.TASK_FAILED:
+                    return t.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, 'Task failed on step ' + event['name'])
+                else:
+                    return t
+            yield state.taskLock.run(tasks_tx.updateTask,
+                                     state.pipeline.taskName,
+                                     _setFailed)
+            state.f = _failed
+            
 def _waitingToRestart(state, event):
     """
     Something bad has happened but the pipeline is still running,

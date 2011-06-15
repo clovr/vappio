@@ -30,6 +30,9 @@ class Error(Exception):
 class NoLocalClusterError(Error):
     pass
 
+class RealizePhantomError(Error):
+    pass
+
 def _makeDirsOnCluster(cluster, dirNames):
     """
     Creates a series of directories on a cluster
@@ -238,12 +241,16 @@ def _handleTransferTag(request):
                                                  srcTag['phantom'],
                                                  srcTag['metadata'])
         localTask = yield tasks_tx.loadTask(request.body['task_name'])
-        yield tasks_tx.blockOnTaskAndForward('localhost',
-                                             request.body['dst_cluster'],
-                                             taskName,
-                                             localTask)
+        endState, tsk = yield tasks_tx.blockOnTaskAndForward('localhost',
+                                                             request.body['dst_cluster'],
+                                                             taskName,
+                                                             localTask)
+        if endState == tasks_tx.task.TASK_FAILED:
+            yield tasks_tx.updateTask(request.body['task_name'],
+                                      lambda t : t.setState(tasks_tx.task.TASK_FAILED))
+            raise RealizePhantomError(request.body['tag_name'])
         yield tasks_tx.updateTask(request.body['task_name'],
-                                  lambda t : t.update(numTasks=1).progress())        
+                                  lambda t : t.update(numTasks=1).progress())
     else:
         yield tag_data.tagData(request.state,
                                request.body['tag_name'],
