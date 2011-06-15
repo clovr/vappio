@@ -131,8 +131,9 @@ def resume(pipeline):
     if pipeline.queue:
         cmd.append('--queue=' + pipeline.queue)
 
-    yield commands.runProcess(cmd,
-                              stdoutf=None,
-                              stderrf=log.err)
+    #yield commands.runProcess(cmd,
+    #                          stdoutf=None,
+    #                          stderrf=log.err)
+    yield commands.runProcess(['sleep', '3'])
     defer.returnValue(pipeline)
         

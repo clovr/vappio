@@ -1,0 +1,193 @@
+from twisted.internet import defer
+
+from igs_tx.utils import defer_pipe
+
+from vappio_tx.internal_client import clusters as clusters_client
+
+from vappio_tx.www_client import pipelines as pipelines_www_client
+
+from vappio_tx.utils import queue
+
+from vappio_tx.pipelines import pipeline_www_list
+
+from vappio_tx.pipelines import pipeline_misc
+from vappio_tx.pipelines import persist
+
+from vappio_tx.tasks import tasks as tasks_tx
+
+class Error(Exception):
+    pass
+
+class InvalidPipelineConfig(Error):
+    pass
+
+class InvalidParentPipeline(Error):
+    def __init__(self, parentName):
+        self.parentName = parentName
+
+    def __str__(self):
+        return 'Unknown parent pipeline: ' + self.parentName
+
+
+@defer.inlineCallbacks
+def handleWWWRunPipeline(request):
+    """
+    In the case of a pipeline we will do all the work necessary to
+    run the pipeline and then setup a listener to run in the background
+    tracking its progress.
+
+    If bare_run is False then the pipeline run will actually be wrapped in
+    `clovr_wrapper`.  Otherwise a pipeline of the type pipeline.PIPELINE_TEMPLATE
+    is run.
+    
+    Input:
+    { cluster: string
+      user_name: string
+      ?parent_pipeline: string
+      ?queue: string
+      ?overwrite: boolean
+      bare_run: boolean
+      config: { key/value }
+    }
+    Output:
+    lite_pipeline
+    """
+    @defer.inlineCallbacks
+    def _createPipeline(request):
+        taskName = yield tasks_tx.createTaskAndSave('runPipelines', 0)
+
+        # The name of a pipeline is being stored as a checksum.  Pipeline names
+        # are arbitrary and the user will likely never know or care what it is.
+        # The pipeline name still exists though because other tools will likely
+        # find it useful to refer to a pipeline by a particular name, but if
+        # we decide to change the pipeline name to something more meaningful they
+        # won't have to chagne their code to use pipelineName instead of checksum
+        if request.body['bare_run']:
+            protocol = request.body['config']['pipeline.PIPELINE_TEMPLATE']
+        else:
+            protocol = 'clovr_wrapper'
+            request.body['config']['pipeline.PIPELINE_WRAPPER_NAME'] = request.body['config']['pipeline.PIPELINE_NAME']
+            
+        defer.returnValue(persist.Pipeline(pipelineId=None,
+                                           pipelineName=checksum,
+                                           userName=request.body['user_name'],
+                                           protocol=protocol,
+                                           checksum=checksum,
+                                           taskName=taskName,
+                                           queue=request.body.get('queue', 'pipelinewrapper.q'),
+                                           children=[],
+                                           config=request.body['config']))
+
+
+    @defer.inlineCallbacks
+    def _startRemotePipeline(request):
+        cluster = yield clusters_client.loadCluster(request.body['cluster'],
+                                                    request.body['user_name'])
+
+        # Forward the request on to the remote cluster, set parent_pipeline to None
+        ret = yield pipelines_www_client.runPipeline(cluster['master']['public_dns'],
+                                                     'local',
+                                                     request.body['user_name'],
+                                                     None,
+                                                     request.body['bare_run'],
+                                                     request.body.get('queue', 'pipelinewrapper.q'),
+                                                     request.body['config'])
+
+        defer.returnValue(ret)
+
+    
+    # If the parent pipeline is set and doesn't exist, error
+    if request.body.get('parent_pipeline'):
+        parentPipelines = yield persist.loadAllPipelinesBy({'pipeline_name': request.body['parent_pipeline']},
+                                                           request.body['user_name'])
+        if not parentPipelines:
+            raise InvalidParentPipeline(request.body['parent_pipeline'])
+
+        if len(parentPipelines) == 1:
+            parentPipeline = parentPipelines[0]
+        else:
+            raise Exception('More than one possible parent pipeline choice, not sure what to do here')
+    else:
+        parentPipeline = None
+
+
+    if request.body['cluster'] == 'local':
+        checksum = pipeline_misc.checksumInput(request)
+
+        errors = yield pipeline_misc.validatePipelineConfig(request)
+
+        if errors:
+            raise InvalidPipelineConfig('Configuration did not pass validation')
+
+        request.body['config']['pipeline.PIPELINE_NAME'] = checksum
+        
+        protocol = 'clovr_wrapper' if not request.body['bare_run'] else request.body['config']['pipeline.PIPELINE_TEMPLATE']
+        
+        try:
+            # Pretty lame way to force control to the exceptional case
+            if request.body.get('overwrite', False):
+                raise persist.PipelineNotFoundError('flow control')
+            
+            existingPipeline = yield persist.loadPipelineBy({'checksum': checksum,
+                                                             'protocol': protocol},
+                                                            request.body['user_name'])
+            pipelineLite = yield pipeline_www_list.pipelineToDictLite(request.state.machineconf,
+                                                                      existingPipeline)
+            defer.returnValue(request.update(response=pipelineLite))
+        except persist.PipelineNotFoundError:
+            pipeline = yield _createPipeline(request)
+            yield persist.savePipeline(pipeline)
+            pipelineDict = yield pipeline_www_list.pipelineToDict(request.state.machineconf,
+                                                                  pipeline)
+            yield request.state.pipelinesCache.save(pipelineDict)
+            pipelineLite = pipeline_www_list.removeDetail(pipelineDict)
+            # We want to do a deeper validation of the configuration and then run the pipeline.
+            # Then we want to monitor it both through the ergatis observer and a timed update
+            # of any children it has.
+            #
+            # We are going to do all this work in the background so we can exit the
+            # handler.  Since incoming requests are rate-limited, we don't want to
+            # block the handler for too long.  In this case we weren't pushing the
+            # request and pipleine onto the queue for another handler to pick up
+            # like we do in many other cases because we don't have to.  Deeper
+            # validation is through a tasklet which is rate limited and submitting
+            # a pipeline and monitoring it are all fairly light operations.  This
+            # is somewhat lazy, and can be easily fixed in the future if it is an issue
+            d = pipeline_misc.deepValidation(request, pipeline)
+            d.addCallback(lambda p : pipeline_misc.runPipeline(request, p))
+            d.addCallback(lambda p : persist.savePipeline(p).addCallback(lambda _ : p))
+            d.addCallback(lambda p : pipeline_misc.monitor(request, p))
+            d.addErrback(lambda f : tasks_tx.updateTask(pipeline.taskName,
+                                                        lambda t : t.setState(tasks_tx.task.TASK_FAILED).addFailure(f)))
+
+            if parentPipeline:
+                parentPipeline = parentPipeline.update(children=parentPipeline.children + [('local',
+                                                                                            pipeline.pipelineName)])
+                yield persist.savePipeline(parentPipeline)
+
+            defer.returnValue(request.update(response=pipelineLite))
+    else:
+        pipelineLite = yield _startRemotePipeline(request)
+
+        childPipeline = [(request.body['cluster'],
+                          pipelineLite['pipeline_name'])]
+        
+        if parentPipeline and childPipeline not in parentPipeline.children:
+            parentPipeline = parentPipeline.update(children=parentPipeline.children + childPipeline)
+            yield persist.savePipeline(parentPipeline)
+
+        defer.returnValue(request.update(response=pipelineLite))
+
+
+
+def subscribe(mq, state):
+    processRunPipeline = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
+                                                                                 'user_name',
+                                                                                 'bare_run',
+                                                                                 'config']),
+                                                               pipeline_misc.containsPipelineTemplate,
+                                                               handleWWWRunPipeline]))
+    queue.subscribe(mq,
+                    state.conf('pipelines.run_www'),
+                    state.conf('pipelines.concurrent_run'),
+                    queue.wrapRequestHandler(state, processRunPipeline))

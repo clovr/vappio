@@ -9,7 +9,6 @@ from igs.utils import functional as func
 from igs_tx.utils import defer_utils
 from igs_tx.utils import defer_pipe
 
-from vappio_tx.www_client import pipelines as pipelines_www_client
 from vappio_tx.www_client import tags as www_tags
 
 from vappio_tx.utils import queue
