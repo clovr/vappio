@@ -48,4 +48,3 @@ def runTasklets(host, cluster, conf, tasklet):
     return performQuery(host, RUNTASKLETS_URL, dict(cluster=cluster,
                                                     conf=conf,
                                                     tasklet=tasklet))
-

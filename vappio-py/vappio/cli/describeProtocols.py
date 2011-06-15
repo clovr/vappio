@@ -20,16 +20,17 @@ def main(options, _args):
     if not options('general.config_from_protocol'):
         protocols = protocol.listProtocols(options('general.host'), options('general.cluster'))
         for p in protocols:
-            print '\t'.join(['PROTOCOL', p])
+            print '\t'.join(['PROTOCOL', p['protocol']])
     else:
         proto = protocol.protocolConfig(options('general.host'),
                                         options('general.cluster'),
-                                        options('general.config_from_protocol'))
+                                        options('general.config_from_protocol'))[0]
 
         kv = dict([v.split('=', 1) for v in options('general.config_options')])
-        section = proto and proto[0][0].split('.', 1)[0] or ''
+        section = proto and proto['config'][0]['name'].split('.', 1)[0] or ''
         print '[' + section + ']'
-        for k, d in proto:
+        for d in proto['config']:
+            k = d['name']
             if k.split('.', 1)[0] != section:
                 section = k.split('.', 1)[0]
                 print
