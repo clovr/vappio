@@ -52,11 +52,19 @@ def _createTagPath(conf, tagName):
     return os.path.join(conf('tags.tags_directory'), tagName)
 
 def listTags(conf):
+    def _isTag(f):
+        return not f.endswith('~') and ('.' not in f or '.' in f and f.split('.')[-1] != 'metadata')
+    
+    def _transformName(f):
+        if f.endswith('.phantom'):
+            return f.rsplit('.', 1)[0]
+        return f
+    
     def _listTags():
         try:
-            return [f
+            return [_transformName(f)
                     for f in os.listdir(conf('tags.tags_directory'))
-                    if not f.endswith('~') and ('.' not in f or '.' in f and f.split('.')[-1] not in ['metadata', 'phantom'])]
+                    if _isTag(f)]
         except OSError:
             return []
     return defer.maybeDeferred(_listTags)
