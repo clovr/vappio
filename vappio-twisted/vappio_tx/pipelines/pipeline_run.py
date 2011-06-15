@@ -14,6 +14,8 @@ from vappio_tx.pipelines import persist
 
 from vappio_tx.www_client import pipelines as pipeline_www
 
+from vappio_tx.tasks import tasks as tasks_tx
+
 def handleIncludes(sin):
     lines = [l.strip() for l in sin]
     sections = set([s[1:-1] for s in lines if s and s[0] == '[' and s[-1] == ']'])
@@ -124,6 +126,10 @@ def resume(pipeline):
                                               cl,
                                               pipeline.userName,
                                               child)
+
+    # Reset the pipeline task to IDLE
+    yield tasks_tx.updateTask(pipeline.taskName,
+                              lambda t : t.setState(tasks_tx.task.TASK_IDLE))
     cmd = ['resume_pipeline.pl',
            '--pipeline_id=' + pipeline.pipelineId,
            '--taskname=' + pipeline.taskName]
@@ -131,9 +137,7 @@ def resume(pipeline):
     if pipeline.queue:
         cmd.append('--queue=' + pipeline.queue)
 
-    #yield commands.runProcess(cmd,
-    #                          stdoutf=None,
-    #                          stderrf=log.err)
-    yield commands.runProcess(['sleep', '3'])
+    yield commands.runProcess(cmd,
+                              stderrf=log.err)
     defer.returnValue(pipeline)
         
