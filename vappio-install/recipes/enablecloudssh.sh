@@ -14,3 +14,6 @@ fi
 echo "cloud_type: auto
 user: qiime
 disable_root: 0" > /etc/cloud/cloud.cfg
+
+#Removed authorized keys
+rm /root/.ssh/authorized_keys
