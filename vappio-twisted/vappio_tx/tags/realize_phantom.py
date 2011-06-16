@@ -61,6 +61,8 @@ def handleRealizePhantom(request):
     dstTagPath = os.path.join(localCluster['config']['dirs.upload_dir'],
                               request.body['tag_name'])
 
+    metadata = func.updateDict(request.body['metadata'], {'tag_base_dir': dstTagPath})
+    
     yield commands.runProcess(['mkdir', '-p', dstTagPath])
 
     yield _realizePhantom(ctype, dstTagPath, request.body['phantom'])
@@ -69,7 +71,7 @@ def handleRealizePhantom(request):
                            tagName=request.body['tag_name'],
                            taskName=request.body['task_name'],
                            files=[dstTagPath],
-                           metadata=request.body['metadata'],
+                           metadata=metadata,
                            action=tag_data.ACTION_OVERWRITE,
                            recursive=True,
                            expand=True,
