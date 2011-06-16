@@ -7,7 +7,7 @@ deb-src http://archive.ubuntu.com/ubuntu/ lucid-updates main universe
 deb http://security.ubuntu.com/ubuntu lucid-security main universe
 deb-src http://security.ubuntu.com/ubuntu lucid-security main universe
 deb http://archive.canonical.com/ lucid partner
-deb http://mirrors.ibiblio.org/pub/mirrors/CRAN/bin/linux/ubuntu lucid/
+deb http://cran.r-project.org/bin/linux/ubuntu lucid/
 #deb http://archive.cloudera.com/debian lucid-cdh3 contrib
 #deb-src http://archive.cloudera.com/debian lucid-cdh3 contrib
 
