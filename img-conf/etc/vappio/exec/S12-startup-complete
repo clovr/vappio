@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Simply creates /tmp/startup_complete so vappio services know startup has happened
+touch /tmp/startup_complete
+
