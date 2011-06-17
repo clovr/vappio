@@ -26,7 +26,7 @@ WAIT_FOR_STATE_TRIES = 50
 
 WAIT_FOR_SSH_TRIES = 10
 
-WAIT_FOR_BOOT_TRIES = 10
+WAIT_FOR_BOOT_TRIES = 120
 
 def saveCluster(cl, state):
     state.clustersCache[(cl.clusterName, cl.userName)] = cl

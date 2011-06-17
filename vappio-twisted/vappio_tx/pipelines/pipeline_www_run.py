@@ -91,7 +91,8 @@ def handleWWWRunPipeline(request):
                                                      None,
                                                      request.body['bare_run'],
                                                      request.body.get('queue', 'pipelinewrapper.q'),
-                                                     request.body['config'])
+                                                     request.body['config'],
+                                                     request.body.get('overwrite', False))
 
         defer.returnValue(ret)
 
