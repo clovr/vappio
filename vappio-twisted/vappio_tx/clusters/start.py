@@ -28,6 +28,12 @@ WAIT_FOR_SSH_TRIES = 10
 
 WAIT_FOR_BOOT_TRIES = 120
 
+class Error(Exception):
+    pass
+
+class MasterError(Exception):
+    pass
+
 def saveCluster(cl, state):
     state.clustersCache[(cl.clusterName, cl.userName)] = cl
     saved = persist.saveCluster(cl)
@@ -38,10 +44,16 @@ def saveCluster(cl, state):
 @defer.inlineCallbacks
 def startMaster(state, credClient, taskName, cl):
     def _updatePState(pState, instances):
-        cl = pState.cluster.setMaster(instances[0])
-        pState = pState.update(cluster=cl,
-                               instances=instances)
-        return saveCluster(pState.cluster, pState.state).addCallback(lambda _ : pState)
+        if instances:
+            cl = pState.cluster.setMaster(instances[0])
+            pState = pState.update(cluster=cl,
+                                   instances=instances)
+            return saveCluster(pState.cluster, pState.state).addCallback(lambda _ : pState)
+        else:
+            cl = pState.cluster.setState(pState.cluster.FAILED)
+            def _raise(_):
+                raise MasterError('Could not start master')
+            return saveCluster(pState.cluster, pState.state).addCallback(_raise)
 
     
     @defer.inlineCallbacks
