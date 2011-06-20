@@ -33,6 +33,9 @@ class NoLocalClusterError(Error):
 class RealizePhantomError(Error):
     pass
 
+class TransferTagError(Error):
+    pass
+
 def _makeDirsOnCluster(cluster, dirNames):
     """
     Creates a series of directories on a cluster
@@ -99,10 +102,10 @@ def _uploadTag(request):
                                                 request.body['dst_cluster'],
                                                 request.body['user_name'])
 
-    dstTagPath = os.path.join(dstCluster['config']['dirs.upload_dir'], localTag.tagName)
+    # We want the trailing '/' so everyone knows it's a directory
+    dstTagPath = os.path.join(dstCluster['config']['dirs.upload_dir'], localTag.tagName) + '/'
 
     baseDirFiles, nonBaseDirFiles = _partitionFiles(localTag.files, localTag.metadata['tag_base_dir'])
-
 
     if baseDirFiles:
         yield rsync.rsyncTo(dstCluster['master']['public_dns'],
@@ -226,10 +229,14 @@ def _handleTransferTag(request):
                                             compressDir=tag.metadata['tag_base_dir'] if request.body.get('compress', False) else None)
 
             localTask = yield tasks_tx.loadTask(request.body['task_name'])
-            yield tasks_tx.blockOnTaskAndForward('localhost',
-                                                 request.body['dst_cluster'],
-                                                 newTag['task_name'],
-                                                 localTask)
+            endState, tsk = yield tasks_tx.blockOnTaskAndForward('localhost',
+                                                                 request.body['dst_cluster'],
+                                                                 newTag['task_name'],
+                                                                 localTask)
+            if endState == tasks_tx.task.TASK_FAILED:
+                yield tasks_tx.updateTask(request.body['task_name'],
+                                          lambda t : t.setState(tasks_tx.task.TASK_FAILED))
+                raise TransferTagError(request.body['tag_name'])
     
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress())
