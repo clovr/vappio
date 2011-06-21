@@ -7,6 +7,7 @@ from twisted.python import log
 from twisted.internet import threads
 from twisted.internet import defer
 from twisted.internet import reactor
+from twisted.internet import error as twisted_error
 
 from igs.xml import xmlquery
 
@@ -39,7 +40,7 @@ class MonitorState:
         self.mq = mq
         self.pipeline = pipeline
         self.f = None
-        self.retries = 0
+        self.retries = 1
         self.childrenSteps = 0
         self.childrenCompletedSteps = 0
         # We want to serialize access to the task
@@ -47,6 +48,8 @@ class MonitorState:
         # We get a lot of repeated messages for some reason, so storing
         # the last message as not to post it twice
         self.lastMsg = None
+
+        self.delayed = None
 
 def _queueName(state):
     return '/queue/pipelines/observer/' + state.pipeline.taskName
@@ -93,6 +96,12 @@ def _pipelineState(workflowXML):
 
     raise Error('Could not find state')
     
+def _cancelDelayed(state):
+    try:
+        state.delayed.cancel()
+        state.delayed = None
+    except twisted_error.AlreadyCalled:
+        pass
 
 @defer.inlineCallbacks
 def _updatePipelineChildren(state):
@@ -116,13 +125,13 @@ def _updatePipelineChildren(state):
             else:
                 lastChecked = None
 
-            remotePipeline = yield pipelines_www.pipelineList('localhost',
-                                                              cl,
-                                                              pl.userName,
-                                                              remotePipelineName,
-                                                              True)
+            remotePipelines = yield pipelines_www.pipelineList('localhost',
+                                                               cl,
+                                                               pl.userName,
+                                                               remotePipelineName,
+                                                               True)
 
-            remotePipeline = remotePipeline[0]
+            remotePipeline = remotePipelines[0]
 
             remoteTask = yield tasks_www.loadTask('localhost',
                                                   cl,
@@ -156,12 +165,34 @@ def _updatePipelineChildren(state):
                                                          completedTasks=completedSteps + completed))
     except Exception, err:
         log.err(err)
-    
-    plTask = yield tasks_tx.loadTask(state.pipeline.taskName)
-    if plTask.state not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
-        reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
 
-    
+    plTask = yield tasks_tx.loadTask(state.pipeline.taskName)
+    if state.f == _waitingToRestart:
+        pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
+        pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
+        
+        if pipelineState == tasks_tx.task.TASK_FAILED:
+            yield state.taskLock.run(tasks_tx.updateTask,
+                                     state.pipeline.taskName,
+                                     lambda t : t.addMessage(tasks_tx.task.MSG_NOTIFICATION,
+                                                             'Restarting pipeline').setState(tasks_tx.task.TASK_IDLE))
+            yield pipeline_run.resume(state.pipeline)
+            state.f = _idle
+        else:
+            state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                              _updatePipelineChildren,
+                                              state)
+    elif plTask.state not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED] and state.delayed:
+        # Call ourselves again if the pipeline is not finished and the delayed call hasn't already been
+        # cancelled
+        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                          _updatePipelineChildren,
+                                          state)
+
+
+def _pipelineCompleted(state):
+    state.mq.unsubscribe(_queueName(state))
+        
 # These are the different state functions
 @defer.inlineCallbacks
 def _idle(state, event):
@@ -173,6 +204,9 @@ def _idle(state, event):
                                  state.pipeline.taskName,
                                  lambda t : t.setState(task.TASK_RUNNING))
         state.f = _running
+        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                          _updatePipelineChildren,
+                                          state)
     else:
         log.msg(repr(event))
 
@@ -182,7 +216,7 @@ def _running(state, event):
     Pipeline is running, looking for failures or completion
     """
     if event['event'] == 'finish' and event['retval'] and not int(event['retval']):
-        # Something has just finished successfully
+        # Something has just finished successfully, read the XML to determine what
         completed, total = yield threads.deferToThread(_pipelineProgress, event['file'])
 
         yield state.taskLock.run(tasks_tx.updateTask,
@@ -200,10 +234,16 @@ def _running(state, event):
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
                                      lambda t : t.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Pipeline completed successfully'))
-            state.mq.unsubscribe(_queueName(state))
+            _pipelineCompleted(state)
     elif event['retval'] and int(event['retval']):
+        # Something bad has happened
+        # Should we retry?
         if state.retries > 0:
-            pass
+            yield state.taskLock.run(tasks_tx.updateTask,
+                                     state.pipeline.taskName,
+                                     lambda t : t.addMessage(tasks_tx.task.MSG_NOTIFICATION,
+                                                             'Pipeline failed, waiting for it to finish and restarting'))
+            state.f = _waitingToRestart
         else:
             def _setFailed(t):
                 if t.state != task.TASK_FAILED:
@@ -214,20 +254,12 @@ def _running(state, event):
                                      state.pipeline.taskName,
                                      _setFailed)
             state.f = _failed
-            
+
 def _waitingToRestart(state, event):
     """
-    Something bad has happened but the pipeline is still running,
-    here we wait until it finishes then restart
+    Just wait for the pipeline to finish, someone else will change our state
     """
-    pass
-
-def _waitingForRestart(state, event):
-    """
-    A restart has happend, waiting for the 'start' event to come in
-    in order to switch back into running state
-    """
-    pass
+    return defer.succeed(None)
 
 def _failed(state, event):
     """
@@ -235,7 +267,7 @@ def _failed(state, event):
     we already tried and that failed), just waiting for the pipeline to finish
     """
     if event['event'] == 'finish' and event['name'] == 'start pipeline:':
-        state.mq.unsubscribe(_queueName(state))
+        _pipelineCompleted(state)
 
     return defer.succeed(None)
 
@@ -245,35 +277,69 @@ def _handleEventMsg(request):
     return d
 
 @defer.inlineCallbacks
-def monitor(state, resume=False):
-    try:
-        pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId)
-        pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
-        if not resume:
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.setState(pipelineState))
-        if pipelineState != tasks_tx.task.TASK_COMPLETED:
-            if pipelineState == tasks_tx.task.TASK_IDLE or resume and pipelineState == tasks_tx.task.TASK_FAILED:
-                state.f = _idle
-            else:
-                state.f = _running
-            processEvent = defer_pipe.pipe([queue.keysInBody(['id',
-                                                              'file',
-                                                              'event',
-                                                              'retval',
-                                                              'props',
-                                                              'host',
-                                                              'time',
-                                                              'name',
-                                                              'message']),
-                                            _handleEventMsg])
-            
-            queue.subscribe(state.mq,
-                            _queueName(state),
-                            1,
-                            queue.wrapRequestHandler(state, processEvent))
+def monitor_run(state):
+    pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId)
+    pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
+    yield state.taskLock.run(tasks_tx.updateTask,
+                             state.pipeline.taskName,
+                             lambda t : t.setState(pipelineState))
+
+    if pipelineState not in [tasks_tx.task.TASK_COMPLETED, tasks_tx.task.TASK_FAILED]:
+        if pipelineState == tasks_tx.task.TASK_IDLE:
+            state.f = _idle
+        else:
+            state.f = _running
             reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
 
-    except Error, err:
-        log.err(err)
+        processEvent = defer_pipe.pipe([queue.keysInBody(['id',
+                                                          'file',
+                                                          'event',
+                                                          'retval',
+                                                          'props',
+                                                          'host',
+                                                          'time',
+                                                          'name',
+                                                          'message']),
+                                        _handleEventMsg])
+        
+        queue.subscribe(state.mq,
+                        _queueName(state),
+                        1,
+                        queue.wrapRequestHandler(state, processEvent))
+            
+
+@defer.inlineCallbacks
+def monitor_resume(state):
+    pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId)
+    pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
+
+    if pipelineState != tasks_tx.task.TASK_COMPLETED:
+        if pipelineState in [tasks_tx.task.TASK_IDLE, tasks_tx.task.TASK_FAILED]:
+            yield state.taskLock.run(tasks_tx.updateTask,
+                                     state.pipeline.taskName,
+                                     lambda t : t.setState(tasks_tx.task.TASK_IDLE))
+            state.f = _idle
+        else:
+            yield state.taskLock.run(tasks_tx.updateTask,
+                                     state.pipeline.taskName,
+                                     lambda t : t.setState(tasks_tx.task.TASK_RUNNING))            
+            state.f = _running
+            state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                              _updatePipelineChildren,
+                                              state)
+
+        processEvent = defer_pipe.pipe([queue.keysInBody(['id',
+                                                          'file',
+                                                          'event',
+                                                          'retval',
+                                                          'props',
+                                                          'host',
+                                                          'time',
+                                                          'name',
+                                                          'message']),
+                                        _handleEventMsg])
+        
+        queue.subscribe(state.mq,
+                        _queueName(state),
+                        1,
+                        queue.wrapRequestHandler(state, processEvent))    

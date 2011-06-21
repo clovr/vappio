@@ -15,7 +15,7 @@ def handleWWWResumePipeline(request):
     pipeline = yield persist.loadPipelineBy({'pipeline_name': request.body['pipeline_name']},
                                              request.body['user_name'])
     yield pipeline_run.resume(pipeline)
-    yield pipeline_misc.monitor(request, pipeline, True)
+    yield pipeline_misc.monitor_resume(request, pipeline)
 
     pipelineLite = yield pipeline_www_list.pipelineToDictLite(request.state.machineconf,
                                                               pipeline)

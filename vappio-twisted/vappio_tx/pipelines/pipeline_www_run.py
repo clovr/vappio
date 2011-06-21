@@ -157,7 +157,7 @@ def handleWWWRunPipeline(request):
             d = pipeline_misc.deepValidation(request, pipeline)
             d.addCallback(lambda p : pipeline_misc.runPipeline(request, p))
             d.addCallback(lambda p : persist.savePipeline(p).addCallback(lambda _ : p))
-            d.addCallback(lambda p : pipeline_misc.monitor(request, p))
+            d.addCallback(lambda p : pipeline_misc.monitor_run(request, p))
             d.addErrback(lambda f : tasks_tx.updateTask(pipeline.taskName,
                                                         lambda t : t.setState(tasks_tx.task.TASK_FAILED).addFailure(f)))
 

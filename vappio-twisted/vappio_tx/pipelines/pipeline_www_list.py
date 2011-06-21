@@ -132,11 +132,11 @@ def _monitorAnyPipelines(mq, state):
                                         tasks_tx.task.TASK_FAILED]]
     
     for p in pipelines:
-        pipeline_monitor.monitor(pipeline_monitor.MonitorState(state.conf,
-                                                               state.machineconf,
-                                                               mq,
-                                                               p))
-
+        pipeline_monitor.monitor_run(pipeline_monitor.MonitorState(state.conf,
+                                                                   state.machineconf,
+                                                                   mq,
+                                                                   p))
+        
     
 
 def _forwardToCluster(conf, queueUrl):
