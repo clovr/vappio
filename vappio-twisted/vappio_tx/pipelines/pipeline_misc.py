@@ -62,14 +62,16 @@ def monitor_run(request, pipeline):
     monitorState = pipeline_monitor.MonitorState(request.state.conf,
                                                  request.state.machineconf,
                                                  request.mq,
-                                                 pipeline)
+                                                 pipeline,
+                                                 int(request.state.conf('pipelines.retries')))
     return pipeline_monitor.monitor_run(monitorState, resume)
 
 def monitor_resume(request, pipeline):
     monitorState = pipeline_monitor.MonitorState(request.state.conf,
                                                  request.state.machineconf,
                                                  request.mq,
-                                                 pipeline)
+                                                 pipeline,
+                                                 int(request.state.conf('pipelines.retries')))
     return pipeline_monitor.monitor_resume(monitorState)
 
 def forwardToCluster(conf, queueUrl):

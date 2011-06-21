@@ -34,13 +34,13 @@ class Error(Exception):
     pass
 
 class MonitorState:
-    def __init__(self, conf, machineconf, mq, pipeline):
+    def __init__(self, conf, machineconf, mq, pipeline, retries):
         self.conf = conf
         self.machineconf = machineconf
         self.mq = mq
         self.pipeline = pipeline
         self.f = None
-        self.retries = 1
+        self.retries = retries
         self.childrenSteps = 0
         self.childrenCompletedSteps = 0
         # We want to serialize access to the task
