@@ -64,7 +64,7 @@ def monitor_run(request, pipeline):
                                                  request.mq,
                                                  pipeline,
                                                  int(request.state.conf('pipelines.retries')))
-    return pipeline_monitor.monitor_run(monitorState, resume)
+    return pipeline_monitor.monitor_run(monitorState)
 
 def monitor_resume(request, pipeline):
     monitorState = pipeline_monitor.MonitorState(request.state.conf,
