@@ -135,7 +135,8 @@ def _monitorAnyPipelines(mq, state):
         pipeline_monitor.monitor_run(pipeline_monitor.MonitorState(state.conf,
                                                                    state.machineconf,
                                                                    mq,
-                                                                   p))
+                                                                   p,
+                                                                   state.conf('pipelines.retries')))
         
     
 
