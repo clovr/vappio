@@ -60,4 +60,4 @@ def applyProtocol(protocolConf, pipelineConf):
     """
     for k, v in protocolConf:
         if v.get('visibility') == 'always_hidden':
-            pipelineConf[k] = v.get('default', '')
+            pipelineConf[k] = str(v.get('default', ''))
