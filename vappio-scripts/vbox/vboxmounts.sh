@@ -17,7 +17,7 @@ do_start() {
     #mkdir -p $shared_mp
     #chmod 777 $shared_mp
     #mount -o ttl=3 -t vboxsf $shared_dir $shared_mp -o uid=33 -o gid=33
-    mount $shared_dir $shared_mp -o uid=33 -o gid=33
+    mount $shared_dir $shared_mp 
 
     mkdir -p $conf_mp
     mkdir -p $userdata_mp
