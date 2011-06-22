@@ -1,7 +1,7 @@
 # VirtualBox specific configuration settings and environmental variables
 
 #shared_dir=shared
-shared_dir=-t ext3 /dev/sda2
+shared_dir="-t ext3 /dev/sda2"
 shared_mp=/mnt
 conf_dir=vappio-conf
 conf_mp=/mnt/vappio-conf
