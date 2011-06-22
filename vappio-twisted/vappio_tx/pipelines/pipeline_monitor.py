@@ -239,6 +239,7 @@ def _running(state, event):
         # Something bad has happened
         # Should we retry?
         if state.retries > 0:
+            state.retries -= 1
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
                                      lambda t : t.addMessage(tasks_tx.task.MSG_NOTIFICATION,
