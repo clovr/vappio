@@ -2,7 +2,7 @@
 
 USAGE="vp-bundle-ovf [-z] [-s] image.vmdk name outputprefix sharedpath\n
 Converts image.vmdk to Virtualbox compatible formats.\n
-An OVF file with $outputprefix.ovf with embedded VM $name\n
+An OVF file with $outputprefix.ovf that can import the VMDK\n
 A VDI file with outputprefix.vdi\n
 -s skip creation of VDI file\n
 -z compress vdi
@@ -58,13 +58,13 @@ then
     VBoxManage sharedfolder add $2 --name shared --hostpath $4/shared/ 
     VBoxManage sharedfolder add $2 --name keys --hostpath $4/keys/ 
     VBoxManage sharedfolder add $2 --name user_data --hostpath $4/user_data/
-    VBoxManage sharedfolder add $2 --name pg_data --hostpath $4/pg_data/
+    #VBoxManage sharedfolder add $2 --name pg_data --hostpath $4/pg_data/
 fi
 
 echo "Creating ovf"
 #Create ovf
-rm -rf $3.ovf
-VBoxManage export $2 -o $3.ovf
+#rm -rf $3.ovf
+#VBoxManage export $2 -o $3.ovf
 
 if [ "$skipvdi" = "" ]
 then
@@ -78,9 +78,32 @@ then
     VBoxManage internalcommands sethduuid $1
     
     #rm -f /root/.VirtualBox/HardDisks/$vdibname.vdi
-    rm -f /mnt/$vdibname.vdi
-    VBoxManage createhd --filename /mnt/$vdibname.vdi --size 120000 --format vdi
+    rm -f /mnt/${vdibname}.vdi
+    VBoxManage createhd --filename /mnt/$vdibname.vdi --size 100000 --format vdi
     VBoxManage clonehd --existing $1 /mnt/$vdibname.vdi 
+    #Need to create new second partition on the vdi
+    modprobe nbd max_part=16
+    qemu-nbd -d /dev/nbd0
+    qemu-nbd -c /dev/nbd0 /mnt/$vdibname.vdi 
+    sleep 2
+    fdisk /dev/nbd0 <<EOF
+n
+p
+2
+
+
+w
+EOF
+    #Format the new partition as ext3
+    mkfs.ext3 /dev/nbd0p2
+    qemu-nbd -d /dev/nbd0
+    /opt/vappio-util/vp-runonvdi /mnt/$vdibname.vdi /opt/vappio-scripts/vbox/vboxshared.sh 2
+
+    ##OVF export will force conversion to VMDK so skipping for now
+    #pushd ${vdibname}_vdi
+    #echo "Running ovf export"
+    #VBoxManage export ${2}_vdi -o ${3}_vdi.ovf
+
     if [ "$compress" != "" ]
     then
 	echo "Compressing vdi"
@@ -88,9 +111,4 @@ then
     fi
 fi
 
-#To automatically import
-#rm -rf /root/.Virtualbox
-#mkdir /mnt/.Virtualbox
-#ln -s /mnt/.Virtualbox /root/.Virtualbox
-#VBoxManage internalcommands sethduuid $1
-#VBoxManage import $3
+

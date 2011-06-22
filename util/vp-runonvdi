@@ -1,0 +1,76 @@
+#!/bin/bash
+
+USAGE="vp-runonvdi image.vdi cmd [partition]\n
+Runs cmd on image.vdi\n
+Equivalent to\n
+chroot image.vdi cmd\n
+"
+while getopts "h" options; do
+  case $options in
+      h ) echo -e $USAGE
+	  exit 1;;
+      \? ) echo -e $USAGE
+          exit 1;;
+  esac
+done
+
+#Mounts image as loopback, copies CMD onto the image and runs
+
+modprobe nbd max_part=16
+qemu-nbd -d /dev/nbd0
+sleep 3
+echo "Attempting to mount $1"
+qemu-nbd -c /dev/nbd0 $1
+#There appears to be a delay in being able to access this mount
+sleep 3
+
+rm -rf /mnt/$$
+mkdir /mnt/$$
+#Use user provided logical partition number if available
+if [ "$3" == "" ]
+then
+    echo "Mounting /dev/nbd0p1"
+    mount /dev/nbd0p1 /mnt/$$
+else
+    echo "Mounting /dev/nbd0p$3"
+    mount /dev/nbd0p$3 /mnt/$$
+fi
+sleep 3
+ismounted=`ls /mnt/$$`
+ls /mnt/$$
+if [ "$ismounted" == "" ]
+then
+    echo "Unable to mount /dev/nbd0p$3 as /mnt/$$"
+    exit 1
+fi
+
+if [ -e "/mnt/$$/proc" ]
+then
+    mount -t proc none /mnt/$$/proc
+    mount --bind /sys /mnt/$$/sys
+    mount --bind /dev /mnt/$$/dev 
+    #copy command onto the image
+    bname=`basename $2`
+    cp $2 /mnt/$$/tmp/$bname
+    chmod +x /mnt/$$/tmp/$bname || true
+    #Run the command
+    chroot /mnt/$$ /tmp/$bname
+else
+    pushd /mnt/$$
+    $2
+    popd
+fi
+
+sync
+
+umount -l /mnt/$$/proc
+umount -l /mnt/$$/sys
+umount -l /mnt/$$/dev
+umount -l /mnt/$$
+
+rmdir /mnt/$$
+
+qemu-nbd -d /dev/nbd0
+sleep 3
+
+exit

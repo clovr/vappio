@@ -14,19 +14,26 @@ do_start() {
     sleep 2
     chmod 777 /tmp
 # Generic Shared area
-    mkdir -p $shared_mp
-    chmod 777 $shared_mp
-    mount -o ttl=3 -t vboxsf $shared_dir $shared_mp -o uid=33 -o gid=33
+    #mkdir -p $shared_mp
+    #chmod 777 $shared_mp
+    #mount -o ttl=3 -t vboxsf $shared_dir $shared_mp -o uid=33 -o gid=33
+    mount $shared_dir $shared_mp -o uid=33 -o gid=33
 
+    mkdir -p $conf_mp
     mkdir -p $userdata_mp
     mkdir -p $keys_mp
     chmod 777 $userdata_mp
     chmod 777 $keys_mp
+    chmod 777 $conf_mp
+
     mount -o ttl=3 -t vboxsf $userdata_dir $userdata_mp -o uid=33 -o gid=33 -o fmask=000 -o dmask=000
-    mount -o ttl=3 -t vboxsf keys $keys_mp -o uid=33 -o gid=33 -o fmask=077 -o dmask=077
+    mount -o ttl=3 -t vboxsf $keys_dir $keys_mp -o uid=33 -o gid=33 -o fmask=077 -o dmask=077
+    mount -o ttl=3 -t vboxsf $conf_dir $conf_mp -o uid=33 -o gid=33 -o fmask=000 -o dmask=000
+
 
     chmod 777 $shared_mp
     chmod 777 $userdata_mp
+    chmod 777 $conf_mp
 
     grep "^postgres" /etc/passwd 
     if [ $? = 0 ]
