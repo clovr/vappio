@@ -79,7 +79,7 @@ then
     
     #rm -f /root/.VirtualBox/HardDisks/$vdibname.vdi
     rm -f /mnt/${vdibname}.vdi
-    VBoxManage createhd --filename /mnt/$vdibname.vdi --size 1000000 --format vdi
+    VBoxManage createhd --filename /mnt/$vdibname.vdi --size 500000 --format vdi
     VBoxManage clonehd --existing $1 /mnt/$vdibname.vdi 
     #Need to create new second partition on the vdi
     modprobe nbd max_part=16
