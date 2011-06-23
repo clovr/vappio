@@ -53,7 +53,7 @@ def startMaster(state, credClient, taskName, cl):
             cl = pState.cluster.setState(pState.cluster.FAILED)
             def _raise(_):
                 raise MasterError('Could not start master')
-            return saveCluster(pState.cluster, pState.state).addCallback(_raise)
+            return saveCluster(cl, pState.state).addCallback(_raise)
 
     
     @defer.inlineCallbacks
