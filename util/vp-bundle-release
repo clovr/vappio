@@ -85,7 +85,7 @@ then
 
     $utildir/vp-runonimg $currimg.vmbundle $utildir/cleanupimg
     
-    $utildir/vp-create-vmdk $currimg.vmbundle $bootloader $currimg.vmdk 5G
+    $utildir/vp-create-vmdk $currimg.vmbundle $bootloader $currimg.vmdk 10G
     echo "Created $currimg.vmdk"
     rm -f /mnt/grub-boot$$.tgz
     rm -rf $currimg.vmbundle
