@@ -25,6 +25,10 @@ fi
 #blocksize=512 #Has put dd into uninterruptible sleep
 blocksize=1M #Not used at the moment
 
+echo "Resizing image to $imgsize"
+resize2fs $1 $imgsize
+e2fsck -f $1
+
 #create a new blank raw disk image of desired size, eg 10G
 mkdir /mnt/$$
 clovrraw=/mnt/$$/vmdk.raw
