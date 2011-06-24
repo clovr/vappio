@@ -26,6 +26,7 @@ fi
 blocksize=1M #Not used at the moment
 
 echo "Resizing image to $imgsize"
+e2fsck -f $1
 resize2fs $1 $imgsize
 e2fsck -f $1
 
