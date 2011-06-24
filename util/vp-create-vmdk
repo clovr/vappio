@@ -26,9 +26,9 @@ fi
 blocksize=1M #Not used at the moment
 
 echo "Resizing image to $imgsize"
-e2fsck -f $1
+e2fsck -y -f $1
 resize2fs $1 $imgsize
-e2fsck -f $1
+e2fsck -y -f $1
 
 #create a new blank raw disk image of desired size, eg 10G
 mkdir /mnt/$$
