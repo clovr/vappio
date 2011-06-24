@@ -85,7 +85,8 @@ then
 
     $utildir/vp-runonimg $currimg.vmbundle $utildir/cleanupimg
     
-    $utildir/vp-create-vmdk $currimg.vmbundle $bootloader $currimg.vmdk 5G
+    $utildir/vp-create-vmdk $currimg.vmbundle $bootloader $currimg.vmdk 
+    #5G
     echo "Created $currimg.vmdk"
     rm -f /mnt/grub-boot$$.tgz
     rm -rf $currimg.vmbundle
@@ -96,7 +97,7 @@ mkdir $namepfx
 chmod 777 $namepfx
 pushd $namepfx
 #Create ovf bundle
-$utildir/vp-bundle-ovf -z $currimg.vmdk $namepfx `pwd` /clovr/$namepfx
+#$utildir/vp-bundle-ovf -z $currimg.vmdk $namepfx `pwd` /clovr/$namepfx
 
 #Add vmx file
 svn export --force $vmxtemplate /mnt/vmx$$.tmpl.vmx
