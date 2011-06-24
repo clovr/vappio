@@ -76,6 +76,9 @@ def _cacheTagDicts(state):
     tagDicts = yield defer_utils.mapSerial(lambda tag: tagToDict(tag),
                                            tags)
 
+    # Sort by number of files so smaller tags can show up first
+    tagDicts.sort(lambda x, y: cmp(x['file_count'], y['file_count']))
+    
     tagLiteDicts = map(_removeDetail, tagDicts)
     
     yield defer_utils.mapSerial(state.tagsCache.save, tagDicts)
@@ -89,10 +92,7 @@ def _cacheTagDicts(state):
 def _forwardToCluster(conf, queueUrl):
     return queue.forwardRequestToCluster(conf('www.url_prefix') + '/' + os.path.basename(queueUrl))
 
-@defer.inlineCallbacks
 def _loadAllTagsAndSubscribe(mq, state):
-    yield _cacheTagDicts(state)
-        
     processTagList = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                              'user_name']),
                                                            _forwardToCluster(state.conf,
@@ -104,6 +104,8 @@ def _loadAllTagsAndSubscribe(mq, state):
                     state.conf('tags.concurrent_list'),
                     queue.wrapRequestHandler(state, processTagList))
 
+    _cacheTagDicts(state)
+        
     
 def subscribe(mq, state):
     _loadAllTagsAndSubscribe(mq, state)
