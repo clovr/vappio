@@ -23,7 +23,7 @@ def _handleDeleteTag(request):
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.progress())
 
-    yield tag_list.removeCachedTag(request.state, request.body['tag_name'])
+    yield tag_list.removeCachedTag(request.state, {'tag_name': request.body['tag_name']})
     defer.returnValue(request)
 
 def _forwardToCluster(conf, queueUrl):

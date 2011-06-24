@@ -79,8 +79,12 @@ def _cacheTagDicts(state):
     tagLiteDicts = map(_removeDetail, tagDicts)
     
     yield defer_utils.mapSerial(state.tagsCache.save, tagDicts)
-    yield defer_utils.mapSerial(state.tagsLiteCache.save, tagLiteDicts)                            
-    reactor.callLater(TAGS_REFRESH_FREQUENCY, _cacheTagDicts, state)
+    yield defer_utils.mapSerial(state.tagsLiteCache.save, tagLiteDicts)
+    # It turns out caching some of these tags is really expensive, so
+    # rather than doing a full cache every N seconds, we are going to
+    # cache them all once then track deltas in the appropriate
+    # webservice
+    #reactor.callLater(TAGS_REFRESH_FREQUENCY, _cacheTagDicts, state)
 
 def _forwardToCluster(conf, queueUrl):
     return queue.forwardRequestToCluster(conf('www.url_prefix') + '/' + os.path.basename(queueUrl))
@@ -113,6 +117,6 @@ def cacheTag(state, tag):
     yield state.tagsLiteCache.save(tagDictLite)
 
 @defer.inlineCallbacks
-def removeCachedTag(state, tagName):
-    yield state.tagsCache.remove({'tag_name': tagName})
-    yield state.tagsLiteCache.remove({'tag_name': tagName})
+def removeCachedTag(state, criteria):
+    yield state.tagsCache.remove(criteria)
+    yield state.tagsLiteCache.remove(criteria)
