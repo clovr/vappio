@@ -210,9 +210,9 @@ def _handleTransferTag(request):
             yield tag_data.tagData(request.state,
                                    request.body['tag_name'],
                                    request.body['task_name'],
-                                   files=[],
-                                   action=tag_data.ACTION_APPEND,
-                                   metadata={},
+                                   files=tag.files,
+                                   action=tag_data.ACTION_OVERWRITE,
+                                   metadata=tag.metadata,
                                    recursive=False,
                                    expand=False,
                                    compressDir='/mnt/output' if request.body.get('compress', False) else None)
