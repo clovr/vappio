@@ -3,6 +3,7 @@
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get -y install zip
+apt-get -y install zerofree
 #Need grub legacy, it just works with xen
 #tried grub2 but it is a mess
 apt-get -y install grub
