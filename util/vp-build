@@ -61,7 +61,7 @@ while getopts "b:s:g:oztd:ch" options; do
 	  ;;
       b ) bootloader="-b $OPTARG"
 	  ;;
-      g ) imagesize="-s $OPTARG"
+      g ) imagesize="-g $OPTARG"
 	  ;;
       c ) clear=1;;
       h ) echo -e $USAGE
