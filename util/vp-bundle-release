@@ -99,7 +99,7 @@ mkdir $namepfx
 chmod 777 $namepfx
 pushd $namepfx
 #Create ovf bundle
-#$utildir/vp-bundle-ovf -z $currimg.vmdk $namepfx `pwd` /clovr/$namepfx
+$utildir/vp-bundle-ovf -z $currimg.vmdk $namepfx `pwd` /clovr/$namepfx
 
 #Add vmx file
 svn export --force $vmxtemplate /mnt/vmx$$.tmpl.vmx
