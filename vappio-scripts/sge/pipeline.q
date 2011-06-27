@@ -15,7 +15,7 @@ rerun                 TRUE
 slots                 1 
 tmpdir                /tmp
 shell                 /bin/bash
-prolog                NONE
+prolog                /opt/vappio-scripts/syncdata.sh --synchronous
 epilog                NONE 
 shell_start_mode      unix_behavior
 starter_method        NONE
