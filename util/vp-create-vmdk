@@ -79,6 +79,11 @@ losetup -o 32256 $devb $deva
 #TODO, mount file as parition and resizefs -M to minimum size first
 echo "Creating new image in $devb"
 dd if=$1 of=$devb bs=$blocksize oflag=direct conv=fsync
+if [ "$?" != 0 ]
+then
+    echo "Error writing image $1 to $devb"
+    exit 1;
+fi
 #dd if=$1 of=$devb conf=fsync
 
 #could stop at this point and format blank partition as ext3

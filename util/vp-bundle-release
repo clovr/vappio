@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="vp-bundle-release [-s size(GB)] [-b bootloader] [-f] [-t] image.img releasename [script1 script2 ...]\n
+USAGE="vp-bundle-release [-g size(GB)] [-b bootloader] [-f] [-t] image.img releasename [script1 script2 ...]\n
 Creates release-ready VMware (vmdk,vmx) and Virtualbox (ovf,vdi) VMs from a raw disk image, image.img\n
 -f force remakes a vmdk even if one already exists. Default is resume using an existing vmdk\n
 -t Bundle guest tools for VMware and VirtualBox. Off by default.\n
