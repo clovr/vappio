@@ -47,7 +47,7 @@ bundledir=/opt/vappio-install/bundles
 
 utildir=/opt/vappio-util
 
-while getopts "b:s:oztd:ch" options; do
+while getopts "b:s:g:oztd:ch" options; do
   case $options in
       o ) overwrite=1
 	  ;;

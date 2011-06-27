@@ -9,7 +9,7 @@ Creates release-ready VMware (vmdk,vmx) and Virtualbox (ovf,vdi) VMs from a raw 
 Additional parameters will be interpreted as scripts to run on the image. This can be used to install and configure a splash screen for the vmware and virtualbox images\n
 "
 
-while getopts "b:tfh" options; do
+while getopts "b:g:tfh" options; do
   case $options in
       b ) bootloader=$OPTARG
 	  ;;
