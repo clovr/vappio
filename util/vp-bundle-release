@@ -1,10 +1,11 @@
 #!/bin/bash
 
-USAGE="vp-bundle-release [-b bootloader] [-f] [-t] image.img releasename [script1 script2 ...]\n
+USAGE="vp-bundle-release [-s size(GB)] [-b bootloader] [-f] [-t] image.img releasename [script1 script2 ...]\n
 Creates release-ready VMware (vmdk,vmx) and Virtualbox (ovf,vdi) VMs from a raw disk image, image.img\n
 -f force remakes a vmdk even if one already exists. Default is resume using an existing vmdk\n
 -t Bundle guest tools for VMware and VirtualBox. Off by default.\n
 -b Custom boot loader. Must be a .tgz containing a /boot directory compatible with the kernel on image.img. If none is specified, will use the /boot directory from the image
+-g Size of the target image in GB. Must be >= size of image.img.
 Additional parameters will be interpreted as scripts to run on the image. This can be used to install and configure a splash screen for the vmware and virtualbox images\n
 "
 
@@ -15,6 +16,8 @@ while getopts "b:tfh" options; do
       t ) bundletools=1
 	  ;;
       f ) force=1
+	  ;;
+      g ) imagesize="$OPTARG"
 	  ;;
       h ) echo -e $USAGE
 	  exit 1;;
@@ -85,8 +88,7 @@ then
 
     $utildir/vp-runonimg $currimg.vmbundle $utildir/cleanupimg
     
-    $utildir/vp-create-vmdk $currimg.vmbundle $bootloader $currimg.vmdk 
-    #5G
+    $utildir/vp-create-vmdk $currimg.vmbundle $bootloader $currimg.vmdk $imagesize
     echo "Created $currimg.vmdk"
     rm -f /mnt/grub-boot$$.tgz
     rm -rf $currimg.vmbundle
