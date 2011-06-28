@@ -241,6 +241,25 @@ def _handleTransferTag(request):
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress())
     elif srcTag['phantom']:
+        # Upload the depends file
+        srcCluster = yield www_clusters.loadCluster('localhost',
+                                                    request.body['src_cluster'],
+                                                    request.body['user_name'])
+        
+        dstCluster = yield www_clusters.loadCluster('localhost',
+                                                    request.body['dst_cluster'],
+                                                    request.body['user_name'])
+        
+        dependsOn = srcTag['phantom'].get('depends_on', '').split()
+        yield rsync.rsyncTo(dstCluster['master']['public_dns'],
+                            '/',
+                            '/',
+                            dependsOn,
+                            srcCluster['config']['rsync.options'],
+                            srcCluster['config']['rsync.user'],
+                            log=True)
+        
+        
         taskName = yield www_tags.realizePhantom('localhost',
                                                  request.body['dst_cluster'],
                                                  request.body['user_name'],
