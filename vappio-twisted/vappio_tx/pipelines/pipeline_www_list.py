@@ -122,14 +122,6 @@ def _monitorAnyPipelines(mq, state):
     yield _cachePipelines(state)
     
     pipelines = yield persist.loadAllPipelinesByAdmin({})
-
-    # Expand out so we have state information
-    pipelinesLite = yield defer_utils.mapSerial(_loadPipeline, pipelines)
-
-    pipelines = [p
-                 for p, pl in pipelinesLite]
-                 #if pl['state'] not in [tasks_tx.task.TASK_COMPLETED,
-                 #                       tasks_tx.task.TASK_FAILED]]
     
     for p in pipelines:
         pipeline_monitor.monitor_run(pipeline_monitor.MonitorState(state.conf,
