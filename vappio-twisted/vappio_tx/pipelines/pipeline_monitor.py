@@ -186,7 +186,7 @@ def _updatePipelineChildren(state):
                                  state.pipeline.taskName,
                                  lambda t : t.setState(pipelineState))
         _pipelineCompleted(state)
-    elif pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED] and state.delayed:
+    elif pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
         # Call ourselves again if the pipeline is not finished and the delayed call hasn't already been
         # cancelled
         state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
@@ -294,7 +294,7 @@ def monitor_run(state):
             state.f = _idle
         else:
             state.f = _running
-            reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
+            state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
 
         processEvent = defer_pipe.pipe([queue.keysInBody(['id',
                                                           'file',
