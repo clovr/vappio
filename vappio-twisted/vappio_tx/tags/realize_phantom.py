@@ -20,9 +20,10 @@ from vappio_tx.tasks import tasks as tasks_tx
 
 
 def _runCommand(_ctype, _baseDir, command, _phantomConfig):
+    stderr = []
     return commands.runProcess(commands.shell(command),
-                               stderrf=log.err,
-                               log=True)
+                               stderrf=stderr.append,
+                               log=True).addCallback(lambda _ : '\n'.join(stderr))
 
 @defer.inlineCallbacks
 def _realizePhantom(ctype, baseDir, phantom):
@@ -46,7 +47,8 @@ def _realizePhantom(ctype, baseDir, phantom):
     else:
         ##
         # It's a command:
-        yield _runCommand(ctype, baseDir, download, phantomConfig)
+        stderr = yield _runCommand(ctype, baseDir, download, phantomConfig)
+        defer.returnValue(stderr)
 
     defer.returnValue(None)
 
@@ -65,7 +67,11 @@ def handleRealizePhantom(request):
     
     yield commands.runProcess(['mkdir', '-p', dstTagPath])
 
-    yield _realizePhantom(ctype, dstTagPath, request.body['phantom'])
+    stderr = yield _realizePhantom(ctype, dstTagPath, request.body['phantom'])
+
+    if stderr:
+        yield tasks_tx.updateTask(request.body['task_name'],
+                                  lambda t : t.addMessage(tasks_tx.task.MSG_ERROR, stderr))
 
     yield tag_data.tagData(request.state,
                            tagName=request.body['tag_name'],
