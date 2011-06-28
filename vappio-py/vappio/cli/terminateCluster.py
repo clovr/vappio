@@ -13,9 +13,6 @@ OPTIONS = [
 
 
 def main(options, _args):
-    if options('general.cluster') == 'local':
-        raise Exception('Cannot terminate local cluster')
-    
     taskName = terminateCluster(options('general.host'), options('general.cluster'))
 
     if options('general.print_task_name'):
