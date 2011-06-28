@@ -23,6 +23,7 @@ def handleWWWObserver(request):
     Output:
     None
     """
+    log.msg(request.body)
     request.mq.send('/queue/pipelines/observer/' + request.body['props'],
                     json.dumps(request.body))
     return defer_pipe.ret(request.update(response=None))
