@@ -1,4 +1,5 @@
 import os
+import StringIO
 
 from twisted.python import log
 
@@ -33,19 +34,19 @@ class UnknownActionError(Error):
 
 @defer.inlineCallbacks
 def _untargzFile(fname):
-    stdout = []
+    stdout = StringIO.StringIO()
     yield commands.runProcess(['tar', '-C', os.path.dirname(fname), '-zxvf', fname],
-                              stdoutf=stdout.append,
+                              stdoutf=stdout.write,
                               stderrf=log.err)
-    defer.returnValue([str(os.path.join(os.path.dirname(fname), i.strip())) for i in stdout])
+    defer.returnValue([str(os.path.join(os.path.dirname(fname), i.strip())) for i in stdout.getvalue().split('\n')])
 
 @defer.inlineCallbacks
 def _bunzip2File(fname):
-    stdout = []
+    stdout = StringIO.StringIO()
     yield commands.runProcess(commands.shell('bzcat %s | tar -C %s -xv' % (fname, os.path.dirname(fname))),
-                              stdoutf=stdout.append,
+                              stdoutf=stdout.write,
                               stderrf=log.err)
-    defer.returnValue([str(os.path.join(os.path.dirname(fname), i.strip())) for i in stdout])
+    defer.returnValue([str(os.path.join(os.path.dirname(fname), i.strip())) for i in stdout.getvalue().split('\n')])
 
 @defer.inlineCallbacks
 def _ungzFile(fname):
