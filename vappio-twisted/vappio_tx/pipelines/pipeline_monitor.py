@@ -166,11 +166,10 @@ def _updatePipelineChildren(state):
     except Exception, err:
         log.err(err)
 
-    plTask = yield tasks_tx.loadTask(state.pipeline.taskName)
+    pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
+    pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
+    
     if state.f == _waitingToRestart:
-        pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
-        pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
-        
         if pipelineState == tasks_tx.task.TASK_FAILED:
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
@@ -182,7 +181,12 @@ def _updatePipelineChildren(state):
             state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
                                               _updatePipelineChildren,
                                               state)
-    elif plTask.state not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED] and state.delayed:
+    elif state.f == _running and pipelineState in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
+        yield state.taskLock.run(tasks_tx.updateTask,
+                                 state.pipeline.taskName,
+                                 lambda t : t.setState(pipelineState))
+        _pipelineCompleted(state)
+    elif pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED] and state.delayed:
         # Call ourselves again if the pipeline is not finished and the delayed call hasn't already been
         # cancelled
         state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
