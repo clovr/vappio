@@ -21,8 +21,9 @@ vlogmirror() {
      trap "rm -f $npipe $npipe2" EXIT
      mknod $npipe p || true
      mknod $npipe2 p || true
-     tee <$npipe >(/usr/bin/logger -p local0.info -t VP.$0 --) &
-     tee <$npipe2 >(/usr/bin/logger -p local0.warning -t VP.$0 --) 1>&2 &
+     bname=`basename $0`
+     tee <$npipe >(/usr/bin/logger -p local0.info -t VP.$JOB_ID.$bname --) &
+     tee <$npipe2 >(/usr/bin/logger -p local0.warning -t VP.$JOB_ID.$bname --) 1>&2 &
      exec 1>$npipe
      exec 2>$npipe2
  fi
@@ -153,6 +154,8 @@ masterslots=1
 rolloverstart=10
 ##Time in minutes to poll activity before automatic shutdown
 idleshutdown=3
+#Additional delay in minutes for master to check for recent tasks
+masteridle=120
 ##Time in minutes to delay before shutdown
 delayshutdown=1
 #Number of 10-second intervals to wait for master node to boot

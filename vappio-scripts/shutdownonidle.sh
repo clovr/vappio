@@ -12,6 +12,11 @@
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
+#Support for custom interval
+if [ "$1" != "" ]
+then
+    idleshutdown=$1;
+fi
 
 #Support for manual override, cluster wide
 myhostname=`hostname -f`
@@ -24,6 +29,18 @@ then
 fi
 
 nodetype=`cat $vappio_runtime/node_type`
+
+if [ $nodetype == "master" ] && [ ! -f "$vappio_runtime/forceautoshutdown" ]
+then
+    #Use vp-describe-task to find minutes since last task
+    lasttaskmin=`vp-describe-task | grep '^Task' | perl -ne 'use POSIX;use Date::Manip;($x) = ($_ =~ /LastUpdated:\s+(.*\s+UTC)/);$diff=time()-UnixDate($x,"%s");print floor(($diff/60)),"\n"' | sort -n | head -1`
+    #If $masteridle has elapsed, force a shutdown for the master
+    if [ "$lasttaskmin" -gt "$masteridle" ]
+    then
+	verror "Master has been idle for $lasttaskmin, forcing shutdown"
+	touch $vappio_runtime/forceautoshutdown
+    fi
+fi
 
 #Don't shutdown master unless force
 if [ $nodetype != "master" ] || [ -f "$vappio_runtime/forceautoshutdown" ]
@@ -90,11 +107,13 @@ fi
 
 if [ "$nodetype" = "master" ]
 then
+    verror "Scheduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
+    sleep `expr $delayshutdown \* 60`
     vp-terminate-cluster --name=local
 else
     source $vappio_scripts/clovrEnv.sh 
-    verror "Sceduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
-    echo "Sceduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
+    verror "Scheduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
+    echo "Scheduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
     sleep `expr $delayshutdown \* 60`
     vp-terminate-instances -t --cluster=local --host=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster` --by=private_dns `hostname -f`
 fi
