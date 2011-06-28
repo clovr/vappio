@@ -109,7 +109,7 @@ if [ "$nodetype" = "master" ]
 then
     verror "Scheduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
     sleep `expr $delayshutdown \* 60`
-    vp-terminate-cluster --name=local
+    vp-terminate-cluster --cluster=local
 else
     source $vappio_scripts/clovrEnv.sh 
     verror "Scheduling shutdown in $delayshutdown minutes of $myhostname via vp-terminate-instances"
