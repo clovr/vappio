@@ -61,13 +61,12 @@ mkdir /media/
 mkdir /software/
 chown qiime:qiime /software/
 mkdir /software/app-deploy/
-svn co svn://svn.microbio.me/qiime_installer/app-deploy /software/app-deploy
+svn co svn://svn.microbio.me/qiime_installer/vb-upgrade/app-deploy /software/app-deploy
 find /software -type f -exec chmod 666 {} \;
 find /software -type d -exec chmod 777 {} \;
 find /software -exec chown qiime:qiime {} \;
 pushd /software/app-deploy/
-python /software/app-deploy/app-deploy.py /software/ -f /software/app-deploy/etc/qiime_1.3.0_repository.conf
-# Installing final requirement for pycogent
+python /software/app-deploy/app-deploy.py /software/ -f /software/app-deploy/etc/qiime_1.3.0.conf
 popd
 find /software -exec chown qiime:qiime {} \;	
 
