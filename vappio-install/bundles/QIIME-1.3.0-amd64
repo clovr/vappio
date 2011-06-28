@@ -61,12 +61,12 @@ mkdir /media/
 mkdir /software/
 chown qiime:qiime /software/
 mkdir /software/app-deploy/
-svn co svn://svn.microbio.me/qiime_installer/vb-upgrade/app-deploy /software/app-deploy
+svn co svn://svn.microbio.me/qiime_installer/app-deploy /software/app-deploy
 find /software -type f -exec chmod 666 {} \;
 find /software -type d -exec chmod 777 {} \;
 find /software -exec chown qiime:qiime {} \;
 pushd /software/app-deploy/
-python /software/app-deploy/app-deploy.py /software/ -f /software/app-deploy/etc/qiime_1.3.0.conf
+sudo -u qiime python /software/app-deploy/app-deploy.py /software/ -f /software/app-deploy/etc/qiime_1.3.0.conf
 popd
 find /software -exec chown qiime:qiime {} \;	
 
@@ -132,7 +132,7 @@ tar zxvf gconf.tgz
 rm gconf.tgz
 chown -R qiime:qiime /usr/local/qiime_home/
 cd /etc/init.d/
-svn export svn://svn.microbio.me/qiime_installer/clovr/qiime_user_conf.sh
+sudo -u qiime svn export svn://svn.microbio.me/qiime_installer/clovr/qiime_user_conf.sh
 update-rc.d qiime_user_conf.sh defaults
 
 # Firefox configuration
