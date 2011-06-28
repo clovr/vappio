@@ -180,6 +180,12 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
                                        {'compressed': False})
 
     yield persist.saveTag(state.conf, tag)
+
+    # The tag we saved at phantom set to None, but this could be a
+    # phantom tag, in which case we are going to reload it from disk
+    # then cache that in order to load any phantom information
+    tag = yield persist.loadTag(state.conf, tag.tagName)
+    
     yield tag_list.cacheTag(state, tag)
     
     defer.returnValue(tag)
