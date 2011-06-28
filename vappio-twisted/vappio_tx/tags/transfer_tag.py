@@ -62,6 +62,12 @@ def _makeDirsOnCluster(cluster, dirNames):
     return defer_utils.mapSerial(_createDir, dirNames)
 
 
+def _makePathRelative(path):
+    if path and path[0] == '/':
+        return path[1:]
+    else:
+        return path
+
 def _removeBase(baseDir, f):
     if baseDir[-1] != '/':
         baseDir += '/'
@@ -73,22 +79,16 @@ def _removeBase(baseDir, f):
 
 def _partitionFiles(files, baseDir):
     if baseDir:
-        baseDirFiles = [_removeBase(baseDir, f)
+        baseDirFiles = [_makePathRelative(_removeBase(baseDir, f))
                         for f in files
                         if f.startswith(baseDir)]
-        downloadFiles = [f
+        downloadFiles = [_makePathRelative(f)
                          for f in files
                          if not f.startswith(baseDir)]
         return (baseDirFiles, downloadFiles)
     else:
         return ([], files)
 
-
-def _makePathRelative(path):
-    if path and path[0] == '/':
-        return path[1:]
-    else:
-        return path
 
 @defer.inlineCallbacks
 def _uploadTag(request):
