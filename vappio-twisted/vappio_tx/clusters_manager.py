@@ -140,7 +140,7 @@ def terminateCluster(credClient, clusterName, userName):
     # Terminate 5 at a time
     yield defer_utils.mapSerial(lambda instances : credClient.terminateInstances(instances),
                                 func.chunk(5, cluster.execNodes + cluster.dataNodes))
-        
+
     if cluster.master:
         yield credClient.terminateInstances([cluster.master])
 

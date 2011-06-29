@@ -3,8 +3,7 @@ from twisted.internet import defer
 from igs.utils import config
 from igs.utils import functional as func
 
-from vappio.ec2 import control as ec2control
-
+from vappio_tx.credentials.ctypes import ec2 as ec2control
 
 ##
 # This module wants to go by
