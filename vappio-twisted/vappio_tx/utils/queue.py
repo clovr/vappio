@@ -97,7 +97,9 @@ def forwardRequestToCluster(url):
             return defer_pipe.ret(request)
         else:
             clusterDefer = clusters_client.loadCluster(request.body['cluster'],
-                                                       request.body['user_name'])
+                                                       request.body['user_name'],
+                                                       timeout=10,
+                                                       tries=1)
 
             def _askRemoteServer(cl):
                 return http.performQuery(cl['master']['public_dns'],
