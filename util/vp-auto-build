@@ -19,16 +19,12 @@ else
     chmod 777 $buildvm/shared/user-scripts
     echo "#!/bin/bash" > $buildvm/shared/user-scripts/02-starthudson
     echo "/etc/init.d/hudson start" >> $buildvm/shared/user-scripts/02-starthudson
-    echo "#!/bin/bash" > $buildvm/shared/user-scripts/03-startvnc
-    echo "apt-get -y install x11vnc" >> $buildvm/shared/user-scripts/03-startvnc
-    echo "x11vnc -http -forever -xkb -find &" >> $buildvm/shared/user-scripts/03-startvnc
     chmod a+rx $buildvm/shared/user-scripts/02-starthudson
-    chmod a+rx $buildvm/shared/user-scripts/03-startvnc
     /home/sangiuoli/vp-launch-headless $buildvm vmware
     sleep 10 #wait for hudson to finish booting
 fi
 
-ipaddr=`cat $buildvm/shared/clovr_ip`
+ipaddr=`cat $buildvm/shared/vappio-conf/clovr_ip`
 
 #Check for hudson
 curl --silent http://$ipaddr:$hudsonport > /dev/null

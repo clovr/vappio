@@ -12,7 +12,7 @@ else
     exit 1
 fi
 
-ipstat=`stat -t $1/shared/clovr_ip 2> /dev/null`
+ipstat=`stat -t $1/shared/vappio-conf/clovr_ip 2> /dev/null`
 
 if [ "$2" = "vbox" ]
 then
@@ -47,13 +47,13 @@ else
     fi
 fi
 echo "Waiting for VM to start" >&2
-ipstatnew=`stat -t $1/shared/clovr_ip 2> /dev/null`
+ipstatnew=`stat -t $1/shared/vappio-conf/clovr_ip 2> /dev/null`
 timeout=60 #5 minutes
 count=1
 while [ "$ipstat" = "$ipstatnew" ]
 do
     echo -n "." >&2
-    ipstatnew=`stat -t $1/shared/clovr_ip 2> /dev/null`
+    ipstatnew=`stat -t $1/shared/vappio-conf/clovr_ip 2> /dev/null`
     sleep 5
     count=`expr $count + 1`
     if [ $count -gt $timeout ]
@@ -64,5 +64,5 @@ do
 done
 
 echo >&2
-cat $1/shared/clovr_ip
+cat $1/shared/vappio-conf/clovr_ip
 exit

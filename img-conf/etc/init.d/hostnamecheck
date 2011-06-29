@@ -61,7 +61,7 @@ do_start() {
 	fi
 	echo "Attempting to set hostname clovr-$ipalias"
 	hostname clovr-$ipalias
-	echo "$ipaddr" > /mnt/clovr_ip
+	echo "$ipaddr" > /mnt/vappio-conf/clovr_ip
 	#If vappio is installed, mark no_dns
 	if [ -d "/var/vappio/runtime" ]
 	then

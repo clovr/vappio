@@ -13,7 +13,7 @@ then
 	vlog "DHCP new address $new_ip_address"
 	if [ "$nodetype" != "PENDING" ] 
 	then
-	    old_ip_address=`cat /mnt/clovr_ip`
+	    old_ip_address=`cat /mnt/vappio-conf/clovr_ip`
 	    if [ "$new_ip_address" != "$old_ip_address" ]
 	    then
 		vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
@@ -21,7 +21,7 @@ then
 	        #Reset hostname
 		/etc/init.d/hostnamecheck start $new_ip_address	    
 		vlog "DHCP change, reset hostname to SGE"
-		echo "$new_ip_address" > /mnt/clovr_ip
+		echo "$new_ip_address" > /mnt/vappio-conf/clovr_ip
 	        #This can take a few minutes
 		#Detect node types
 		platform=`/etc/vappio/vp-detect-platform`

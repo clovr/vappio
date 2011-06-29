@@ -11,9 +11,9 @@ rm -rf /root/.subversion
 
 ##
 # Delete the ip address file so outside scripts can know when the system is up
-if [ -e "/mnt/clovr_ip" ]
+if [ -e "/mnt/vappio-conf/clovr_ip" ]
 then
-    rm /mnt/clovr_ip
+    rm /mnt/vappio-conf/clovr_ip
 fi
 
 ## Rm vappio files

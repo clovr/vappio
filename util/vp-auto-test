@@ -93,7 +93,7 @@ do
     fi
     #Boot the image
     /home/sangiuoli/vp-launch-headless $dname/$bname vmware || true
-    nipaddr=`cat $dname/$bname/shared/clovr_ip`
+    nipaddr=`cat $dname/$bname/shared/vappio-conf/clovr_ip`
     
     #Launch the tests
     #Hudson has an initialization period, need to wait for it to come online

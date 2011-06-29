@@ -11,7 +11,7 @@ then
 	vlog "DHCP new address $new_ip_address"
 	if [ "$nodetype" != "PENDING" ] && [ "$nodetype" != "OFFLINE" ] && [ "$nodetype" != "" ]
 	then
-	    old_ip_address=`cat /mnt/clovr_ip`
+	    old_ip_address=`cat /mnt/vappio-conf/clovr_ip`
 	    if [ "$new_ip_address" != "$old_ip_address" ]
 	    then
 		vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
