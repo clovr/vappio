@@ -19,13 +19,20 @@ from vappio_tx.www_client import clusters as www_clusters
 from vappio_tx.tasks import tasks as tasks_tx
 
 
+class Error(Exception):
+    pass
+
+class RunCommandError(Error):
+    pass
+
 def _runCommand(_ctype, _baseDir, command, _phantomConfig):
+    def _reraise(stderr):
+        raise RunCommandError(''.join(stderr))
     stderr = []
     return commands.runProcess(commands.shell(command),
                                stderrf=stderr.append,
-                               log=True).addCallback(lambda _ : '\n'.join(stderr))
+                               log=True).addErrback(lambda _ : _reraise(stderr))
 
-@defer.inlineCallbacks
 def _realizePhantom(ctype, baseDir, phantom):
     phantomConfig = config.configFromMap(func.updateDict(phantom,
                                                          {'ctype': ctype,
@@ -47,10 +54,7 @@ def _realizePhantom(ctype, baseDir, phantom):
     else:
         ##
         # It's a command:
-        stderr = yield _runCommand(ctype, baseDir, download, phantomConfig)
-        defer.returnValue(stderr)
-
-    defer.returnValue(None)
+        return _runCommand(ctype, baseDir, download, phantomConfig)
 
 @defer.inlineCallbacks
 def handleRealizePhantom(request):
@@ -67,11 +71,11 @@ def handleRealizePhantom(request):
     
     yield commands.runProcess(['mkdir', '-p', dstTagPath])
 
-    stderr = yield _realizePhantom(ctype, dstTagPath, request.body['phantom'])
-
-    if stderr:
+    try:
+        yield _realizePhantom(ctype, dstTagPath, request.body['phantom'])
+    except RunCommandError, err:
         yield tasks_tx.updateTask(request.body['task_name'],
-                                  lambda t : t.addMessage(tasks_tx.task.MSG_ERROR, stderr))
+                                  lambda t : t.addMessage(tasks_tx.task.MSG_ERROR, str(err)))
 
     yield tag_data.tagData(request.state,
                            tagName=request.body['tag_name'],
