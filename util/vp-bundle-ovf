@@ -107,9 +107,11 @@ EOF
     #zerofree /dev/nbd0p1
     #zerofree /dev/nbd0p2
     #qemu-nbd -d /dev/nbd0
+    
     VBoxManage openmedium disk /mnt/$vdibname.vdi 
     VBoxManage modifyvdi /mnt/$vdibname.vdi compact
     VBoxManage closemedium disk /mnt/$vdibname.vdi 
+    
     ##OVF export will force conversion to VMDK so skipping for now
     #pushd ${vdibname}_vdi
     #echo "Running ovf export"
