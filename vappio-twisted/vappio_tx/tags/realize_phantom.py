@@ -76,6 +76,7 @@ def handleRealizePhantom(request):
     except RunCommandError, err:
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.addMessage(tasks_tx.task.MSG_ERROR, str(err)))
+        raise err
 
     yield tag_data.tagData(request.state,
                            tagName=request.body['tag_name'],
