@@ -63,9 +63,14 @@ fi
 
 sync
 
-umount -l /mnt/$$/proc
-umount -l /mnt/$$/sys
-umount -l /mnt/$$/dev
+if [ -e "/mnt/$$/proc" ]
+then
+    umount -l /mnt/$$/proc
+    umount -l /mnt/$$/sys
+    umount -l /mnt/$$/dev
+fi
+sleep 3
+
 umount -l /mnt/$$
 
 rmdir /mnt/$$
