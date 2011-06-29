@@ -23,3 +23,5 @@ update-rc.d -f vboxadd-x11 remove
 update-rc.d -f vboxadd-service remove
 update-rc.d -f vboxadd remove
 update-rc.d -f vboxdrv remove
+
+apt-get -y install virtualbox-ose-fuse
