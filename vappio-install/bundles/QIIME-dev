@@ -66,13 +66,10 @@ find /software -type f -exec chmod 666 {} \;
 find /software -type d -exec chmod 777 {} \;
 find /software -exec chown qiime:qiime {} \;
 pushd /software/app-deploy/
-# hack for running in clovr
-touch /var/lib/hudson/.bashrc
-#
+export HOME=/home/qiime/
 sudo -u qiime python /software/app-deploy/app-deploy.py /software/ -f /software/app-deploy/etc/qiime_1.3.0_repository.conf
 popd
 find /software -exec chown qiime:qiime {} \;
-echo "/software/activate.sh" >> /home/qiime/.bashrc
 
 # Stop some services that are started during installations
 killall cupsd
