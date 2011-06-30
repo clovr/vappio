@@ -14,10 +14,14 @@ do_start() {
     sleep 2
     chmod 777 /tmp
 # Generic Shared area
-    #mkdir -p $shared_mp
-    #chmod 777 $shared_mp
-    #mount -o ttl=3 -t vboxsf $shared_dir $shared_mp -o uid=33 -o gid=33
-    mount $shared_dir $shared_mp 
+    mkdir -p $shared_mp
+    chmod 777 $shared_mp
+    mount -o ttl=3 -t vboxsf $shared_dir $shared_mp -o uid=33 -o gid=33
+    if [ "$?" != 0 ]
+    then
+	#Try alternative
+	mount $vdishared_dir $shared_mp 
+    fi
 
     mkdir -p $conf_mp
     mkdir -p $userdata_mp
