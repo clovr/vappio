@@ -63,8 +63,8 @@ fi
 
 echo "Creating ovf"
 #Create ovf
-#rm -rf $3.ovf
-#VBoxManage export $2 -o $3.ovf
+rm -rf $3.ovf
+VBoxManage export $2 -o $3.ovf
 
 if [ "$skipvdi" = "" ]
 then
