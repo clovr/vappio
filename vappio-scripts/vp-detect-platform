@@ -24,6 +24,16 @@ case $platform in
 	    fi
 	fi
 	;;
+    kvm)
+	if [ -e /var/nimbus-metadata-server-url ]
+	then
+	    echo "diag"
+	    exit;
+	else
+	    echo "kvm"
+	    exit;
+	fi
+	;;
     vmware)
 	#In vmware
 	echo "vmware"
