@@ -82,7 +82,7 @@ $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq
 #$SGE_ROOT/bin/$ARCH/qconf -mattr exechost complex_values slots=1 $myhostname
 cloud_type=`cat /var/vappio/runtime/cloud_type`
 #Set local vm to numcpus for local VMs
-numcpus=`cat /proc/cpuinfo | grep -c CPU`
+numcpus=`cat /proc/cpuinfo | grep -c '^processor'`
 if [ "$cloud_type" == "vbox" ] || [ "$cloud_type" == "vmware" ]
 then
     $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $numcpus $execq@$myhostname

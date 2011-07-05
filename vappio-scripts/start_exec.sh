@@ -140,7 +140,7 @@ fi
 #add to runnable hosts in $execq
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $execq 
 #set slots to number of CPUs
-numcpus=`cat /proc/cpuinfo | grep -c CPU`
+numcpus=`cat /proc/cpuinfo | grep -c '^processor'`
 $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $numcpus $execq@$myhostname
 
 
