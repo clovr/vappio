@@ -6,5 +6,5 @@ if [ -f /mnt/clovr_home.html.tmpl ]
 then
     cat /mnt/clovr_home.html.tmpl | sed -e 's/\$\;IPADDR\$\;/'"$ipaddr"'/g' > /mnt/clovr_home.html
 fi
-echo $ipaddr > /mnt/clovr_ip
+echo $ipaddr > /mnt/vappio-conf/clovr_ip
 
