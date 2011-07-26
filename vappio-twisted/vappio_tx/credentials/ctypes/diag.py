@@ -9,10 +9,10 @@ from vappio_tx.credentials.ctypes import ec2
 ##
 # This module wants to go by
 NAME = 'DIAG'
-DESC = """Control module for DIAG users"""
+DESC = """Control module for DIAG test users"""
 
-DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr_diag.conf'
-DIAG_EC2_URL = 'https://diagcloud.igs.umaryland.edu:8443/wsrf/services/ElasticNimbusService'
+DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr_diag_test.conf'
+DIAG_EC2_URL = 'https://nimbus.diagcomputing.org:8443/wsrf/services/ElasticNimbusService'
 
 INSTANCE_TYPE_MAPPING = {'default': 'm1.small',
                          'small': 'm1.small',

@@ -75,7 +75,7 @@ def instantiateCredential(conf, cred):
 
         mainDeferred.addCallback(lambda _ : d)
         
-    ec2Home = '/opt/ec2-api-tools-1.3-42584'
+    ec2Home = cred.metadata.get('ec2_api_tools', '/opt/ec2-api-tools-1.3-57419')
     newCred = func.Record(name=cred.name, conf=conf, cert=certFile, pkey=keyFile, ec2Path=os.path.join(ec2Home, 'bin'),
                           env=dict(EC2_JVM_ARGS='-Djavax.net.ssl.trustStore=/tmp/jssecacerts',
                                    EC2_HOME=ec2Home,
