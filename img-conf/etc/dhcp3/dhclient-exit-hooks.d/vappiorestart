@@ -11,9 +11,11 @@ then
     if [ "$reason" = "BOUND" ] 
     then
 	vlog "DHCP new address $new_ip_address"
-	if [ "$nodetype" != "PENDING" ] 
+	old_ip_address=`cat /mnt/vappio-conf/clovr_ip`
+	#Avoid restart during boot or on failed boot
+	if [ "$nodetype" != "PENDING" ] && [ "$nodetype" != "OFFLINE" ] && [ "$nodetype" != "" ] 
+#&& [ -s "$old_ip_address" ]
 	then
-	    old_ip_address=`cat /mnt/vappio-conf/clovr_ip`
 	    if [ "$new_ip_address" != "$old_ip_address" ]
 	    then
 		vlog "DHCP returned new address $new_ip_address, old address $old_ip_address"
