@@ -11,7 +11,7 @@ from vappio_tx.credentials.ctypes import ec2
 NAME = 'DIAG'
 DESC = """Control module for DIAG test users"""
 
-DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr_diag_test.conf'
+DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr_diag.conf'
 DIAG_EC2_URL = 'https://nimbus.diagcomputing.org:8443/wsrf/services/ElasticNimbusService'
 
 INSTANCE_TYPE_MAPPING = {'default': 'm1.small',
