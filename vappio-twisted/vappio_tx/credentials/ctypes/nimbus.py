@@ -80,12 +80,13 @@ def instantiateCredential(conf, cred):
                           env=dict(EC2_JVM_ARGS='-Djavax.net.ssl.trustStore=/tmp/jssecacerts',
                                    EC2_HOME=ec2Home,
                                    EC2_URL=cred.metadata['ec2_url']))
+    log.msg(newCred.ec2Path)
     if os.path.exists(conf('cluster.cluster_private_key') + '.pub'):
         pubKey = open(conf('cluster.cluster_private_key') + '.pub').read().rstrip()
         def _addKeypair():
             keyPairDefer = ec2.addKeypair(newCred, conf('cluster.key') + '||' + pubKey)
             def _printError(f):
-                log.msg('Adding keypaired failed, retrying')
+                log.msg('Adding keypair failed, retrying')
                 log.err(f)
                 return f
             keyPairDefer.addErrback(_printError)
