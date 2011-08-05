@@ -2,6 +2,7 @@
 ##
 # Temporary program for loading keys into the proper location
 import os
+import sys
 
 from igs.utils.cli import buildConfigN
 from igs.utils.functional import identity
@@ -74,13 +75,13 @@ def main(options, _args):
             runSingleProgramEx('ssh-keygen -f /mnt/keys/devel1.pem -P ""', None, None)
 
     keyData = []
-    runSingleProgramEx('ssh-keygen -y -f /mnt/keys/devel1.pem', keyData.append, None)
+    runSingleProgramEx('ssh-keygen -y -f /mnt/keys/devel1.pem', keyData.append, sys.stderr.write)
     keyData = ''.join(keyData)
 
     authorizedKeys = open('/root/.ssh/authorized_keys').read()
     if keyData not in authorizedKeys:
         fout = open('/root/.ssh/authorized_keys', 'a')
-        fout.write(keyData + '\n')
+        fout.write('\n' + keyData + '\n')
         fout.close()
 
     print
