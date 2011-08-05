@@ -102,6 +102,12 @@ bash $VAPPIO_RECIPES/gbrowse2.sh
 #ExtJS
 bash $VAPPIO_RECIPES/extjs.sh
 
+#BWA
+bash $VAPPIO_RECIPES/bwa.sh
+
+#sra toolkit
+bash $VAPPIO_RECIPES/sratools.sh
+
 #TODO
 #updating clovr SVN filesystem packages/packages.list cpan.packages
 #making svn tags
