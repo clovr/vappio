@@ -6,7 +6,8 @@ vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
 
-mount -o uid=33 -o gid=33 /dev/sdb /mnt
+mount /dev/sdb /mnt
+chmod 777 /mnt
 
 # Download scripts
 export vappio_url_user_data=`cat /var/nimbus-metadata-server-url/*`/latest/user-data
