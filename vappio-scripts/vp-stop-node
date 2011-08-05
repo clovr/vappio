@@ -23,10 +23,12 @@ for n in $nodetype
 do
     if [ -d "/etc/vappio/$n" ]
     then
-	run-parts --regex '^K.*' --reverse --arg stop /etc/vappio/$n/
+	run-parts -v --regex '^K.*' --reverse --arg stop /etc/vappio/$n/
     else
 	vlog "Unsupported node type: $n"
     fi
 done
 
 echo "OFFLINE" > $vappio_runtime/node_type
+vlog "NODE IS OFFLINE"
+

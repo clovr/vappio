@@ -6,12 +6,20 @@ vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 
 
-mount /dev/sdb /mnt
+mount -o uid=33 -o gid=33 /dev/sdb /mnt
 
 # Download scripts
 export vappio_url_user_data=`cat /var/nimbus-metadata-server-url/*`/latest/user-data
 mkdir -p $user_data_scripts
 curl --retry 3 --silent --show-error --fail -o $user_data_scripts/metadata $vappio_url_user_data
+
+# Use our default if none exists
+FILE_SIZE=`wc -c $user_data_scripts/metadata | cut -f 1 -d ' '`
+if [ "$FILE_SIZE" -eq "1" ]
+then
+    cp /opt/vappio-scripts/cli/master_user-data.default $user_data_scripts/metadata
+fi
+
 chmod +x $user_data_scripts/metadata
 
 # Run user scripts

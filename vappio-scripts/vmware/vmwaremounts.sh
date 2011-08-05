@@ -40,7 +40,6 @@ do_start() {
 }
 
 do_stop() {
-    umount $shared_mp
     umount $userdata_mp
     umount $keysdir
     grep "^postgres" /etc/passwd
@@ -48,6 +47,7 @@ do_stop() {
     then
 	umount $postgres_data_dir_mp
     fi
+    umount $shared_mp
 }
 
 case "$1" in

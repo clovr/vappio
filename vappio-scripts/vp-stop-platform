@@ -21,7 +21,7 @@ vlog "SHUTDOWN PLATFORM $platform"
 if [ -d "/etc/vappio/$platform" ] 
 then
     vlog "SHUTDOWN PLATFORM $platform"
-    run-parts --regex '^K.*' --reverse --arg stop /etc/vappio/$platform/
+    run-parts -v --regex '^K.*' --reverse --arg stop /etc/vappio/$platform/
 else
     vlog "Unsupported platform: $platform"
 fi

@@ -1,0 +1,174 @@
+#!/bin/bash
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+vlog "###"
+vlog "### master_user-data.sh $0 (`whoami`)"
+vlog "###"
+
+# contextualize this node as a MASTER
+export MASTER_NODE=localhost
+echo "$MASTER_NODE" > $vappio_userdata/master_node
+echo "master" > $vappio_userdata/node_type
+
+# store the provided CLUSTER_PRIVATE_KEY into the ssh_key as defined in vappio_config
+mkdir -p `dirname $ssh_key`
+#cat > $ssh_key <<EOF
+#<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>
+#EOF
+
+
+bootStrapKeys.py
+
+chmod 600 $ssh_key
+chown www-data:www-data $ssh_key
+
+mkdir /mnt/output
+chown www-data:www-data /mnt/output
+
+# append the CLUSTER_PUBLIC_KEY to the authorized_keys file
+#echo -e '\n<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>' >> /root/.ssh/authorized_keys
+
+
+cat > /tmp/machine.conf <<EOF
+[]
+env.SGE_CELL=default
+env.PYTHON_EGG_CACHE=/tmp/python-eggs
+env.UPSTART_INSTANCE=
+env.ARCH=lx26-ia64
+general.mode=MASTER
+env.INSTANCE=
+env.MUGSY_INSTALL=/opt/mugsy_x86-64
+env.IFACE=eth0
+env.PWD=/
+dirs.clovr_pipelines_template_dir=/opt/clovr_pipelines/workflow/project_saved_templates/
+env.PYTHONPATH=:/opt/vappio-twisted:/opt/vappio-py:/opt/opt-packages/bioinf-v1r4b1//Denoiser/:/opt/opt-packages/bioinf-v1r4b1//PyNAST/lib/:/opt/opt-packages/bioinf-v1r4b1//qiime/lib/:/opt/vappio-twisted:/opt/vappio-py:/opt/opt-packages/bioinf-v1r4b1//Denoiser/:/opt/opt-packages/bioinf-v1r4b1//PyNAST/lib/:/opt/opt-packages/bioinf-v1r4b1//qiime/lib/:/opt/vappio-twisted:/opt/vappio-py:/opt/opt-packages/bioinf-v1r4b1//Denoiser/:/opt/opt-packages/bioinf-v1r4b1//PyNAST/lib/:/opt/opt-packages/bioinf-v1r4b1//qiime/lib/
+env.TERM=linux
+env.RDP_JAR_PATH=/opt/rdp_classifier/rdp_classifier-2.0.jar
+env.SGE_ARCH=lx26-ia64
+env.SAMTOOLS=/opt/opt-packages/samtools-0.1.7.5
+vappio.user=www-data
+dirs.tag_dir=/mnt/staging/tags
+dirs.pipeline_runtime=/mnt/projects/clovr/workflow/runtime/pipeline/
+env.BIOINF_HOME=/opt/opt-packages/bioinf-v1r4b1/
+env.UPSTART_JOB=vp-start-platform
+env.ADDRFAM=inet
+env.SHLVL=3
+env.CROSSBOW_HOME=/opt/crossbow
+instance.config_file=/mnt/vappio-conf/machine.conf
+env.LOGICAL=eth0
+env.PERL5LIB=/opt/mugsy_x86-64/perllibs
+env.HADOOP_DATANODE_USER=www-data
+env.BASH_ENV=
+env.HOME=/root
+env._=/opt/vappio-py/vappio/cli/createLocalMachineConf.py
+env.EC2_HOME=/opt/ec2-api-tools-1.3
+cluster.master_user_data_tmpl=/opt/vappio-scripts/cli/master_user-data.tmpl
+rsync.user=root
+dirs.staging_dir=/mnt/staging
+cluster.exec_user_data_tmpl=/opt/vappio-scripts/cli/exec_user-data.tmpl
+rsync.options=-zlptgoD -e "ssh -oNoneSwitch=yes -oNoneEnabled=yes -o PasswordAuthentication=no -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -q -i /mnt/keys/devel1.pem"
+env.BLASTMAT=/usr/share/ncbi/data/
+env.PREVLEVEL=N
+env.JAVA_HOME=/usr/lib/jvm/java-6-openjdk/
+env.QIIME_CONFIG_FP=/opt/opt-packages/bioinf-v1r4b1//qiime/.qiime_config
+dirs.upload_dir=/mnt/staging/data
+cluster.cluster_private_key=/mnt/keys/devel1.pem
+env.VAPPIO_HOME=/opt
+env.PATH=/opt/install-cert:/opt/ec2-api-tools-1.3/bin:/opt/install-cert:/opt/ec2-api-tools-1.3/bin:/opt/install-cert:/opt/ec2-api-tools-1.3/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin:/usr/local/bin:/usr/local/sbin:/usr/sbin:/opt/vappio-py/vappio/cli:/opt/vappio-py/vappio/cli/remote:/opt/vappio-scripts:/opt/vappio-scripts/pipelines:/opt/vappio-util:/opt/crossbow:/opt/crossbow/bin:/opt/samtools:/opt/cufflinks:/opt/bowtie:/opt/hadoop/bin:/opt/cdhit/:/opt/fasttree:/opt/rdp_classifier:/opt/uclust/:/opt/muscle/:/opt/mafft/bin/:/opt/opt-packages/bioinf-v1r4b1//PyNAST/bin/:/opt/opt-packages/bioinf-v1r4b1//qiime/bin/:/opt/opt-packages/bioinf-v1r4b1//mothur/:/opt/opt-packages/bioinf-v1r4b1//microbiomeutil/ChimeraSlayer/:/opt/mugsy_x86-64:/opt/mugsy_x86-64/mapping:/opt/cunningham:/usr/local/bin:/usr/local/sbin:/usr/sbin:/opt/vappio-py/vappio/cli:/opt/vappio-py/vappio/cli/remote:/opt/vappio-scripts:/opt/vappio-scripts/pipelines:/opt/vappio-util:/opt/crossbow:/opt/crossbow/bin:/opt/samtools:/opt/cufflinks:/opt/bowtie:/opt/hadoop/bin:/opt/cdhit/:/opt/fasttree:/opt/rdp_classifier:/opt/uclust/:/opt/muscle/:/opt/mafft/bin/:/opt/opt-packages/bioinf-v1r4b1//PyNAST/bin/:/opt/opt-packages/bioinf-v1r4b1//qiime/bin/:/opt/opt-packages/bioinf-v1r4b1//mothur/:/opt/opt-packages/bioinf-v1r4b1//microbiomeutil/ChimeraSlayer/:/opt/mugsy_x86-64:/opt/mugsy_x86-64/mapping:/opt/cunningham:/usr/local/bin:/usr/local/sbin:/usr/sbin:/opt/vappio-py/vappio/cli:/opt/vappio-py/vappio/cli/remote:/opt/vappio-scripts:/opt/vappio-scripts/pipelines:/opt/vappio-util:/opt/crossbow:/opt/crossbow/bin:/opt/samtools:/opt/cufflinks:/opt/bowtie:/opt/hadoop/bin:/opt/cdhit/:/opt/fasttree:/opt/rdp_classifier:/opt/uclust/:/opt/muscle/:/opt/mafft/bin/:/opt/opt-packages/bioinf-v1r4b1//PyNAST/bin/:/opt/opt-packages/bioinf-v1r4b1//qiime/bin/:/opt/opt-packages/bioinf-v1r4b1//mothur/:/opt/opt-packages/bioinf-v1r4b1//microbiomeutil/ChimeraSlayer/:/opt/mugsy_x86-64:/opt/mugsy_x86-64/mapping:/opt/cunningham
+ssh.options=-oNoneSwitch=yes -oNoneEnabled=yes -o PasswordAuthentication=no -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -q -i /mnt/keys/devel1.pem
+dirs.clovr_project=/mnt/projects/clovr
+env.JOB=rc
+env.UPSTART_EVENTS=net-device-up stopped
+env.HADOOP_NAMENODE_USER=www-data
+env.HISTFILE=
+env.METHOD=dhcp
+general.secure_tmp=/tmp
+env.RUNLEVEL=2
+env.SGE_ROOT=/var/lib/gridengine
+env.RESULT=ok
+ssh.user=root
+general.conf=/mnt/vappio-conf/clovr_base.conf
+config_loaded=True
+general.output=/tmp/machine.conf
+[cluster]
+cluster_private_key=/mnt/keys/devel1.pem
+
+[vappio]
+scripts_dir=/opt/vappio-scripts
+
+[sge]
+exec_user=guest
+admin_user=sgeadmin
+apache_user=www-data
+project=\${vappio.scripts_dir}/sge/global.project
+root=/opt/sge
+cell=default
+##
+# This may not work
+arch=lx26-ia64
+seeding_script=seedingSGE.py
+
+[sge.queues]
+execq_conf=\${vappio.scripts_dir}/sge/\${execq}
+harvestingq_conf=\${vappio.scripts_dir}/sge/\${harvestingq}
+stagingq_conf=\${vappio.scripts_dir}/sge/\${stagingq}
+stagingsubq_conf=\${vappio.scripts_dir}/sge/stagingsub.q
+wfq_conf=\${vappio.scripts_dir}/sge/\${wfq}
+repositoryq_conf=\${vappio.scripts_dir}/sge/\${repositoryq}
+execq=exec.q
+execslots=1
+stagingq=staging.q
+stagingslots=2
+staging_dir=/mnt/staging
+wfq=wf.q
+harvestingq=harvesting.q
+harvestingslots=2
+harvesting_dir=/mnt/harvesting
+repositoryq=repository.q
+wfworking_dir=/mnt/wf-working
+
+##
+# if 'y', retrieve all output before marking job complete
+# if 'n', workflow will continue after a distributed job and harvesting will run concurrently
+waitonharvest=y
+
+[misc]
+##
+# Not sure if these should stay in here
+scratch_dir=/mnt/scratch
+
+
+[]
+MY_IP=`hostname -f`
+
+##
+# instance specific variables will be placed here in the [] second.  They can be accessed in the above
+# variables though because this will not be processed until after instance specific variables
+# have been put in this file
+[]
+NODE_TYPE=MASTER
+general.ctype=UNKNOWN
+
+MASTER_IP=`hostname -f`
+EOF
+
+
+#cat > /tmp/cert.pem <<EOF
+#<TMPL_VAR NAME=CERT_FILE>
+#EOF
+
+#cat > /tmp/pk.pem <<EOF
+#<TMPL_VAR NAME=PK_FILE>
+#EOF
+
+
+#printf "/tmp/cert.pem\t/tmp/pk.pem\t<TMPL_VAR NAME=CTYPE>\t<TMPL_VAR NAME=METADATA>" > /tmp/cred-info
+
+#chmod a+r /tmp/*.pem
+
+touch /tmp/didsomething
+
+vlog "Done w/ master_user-data.sh"

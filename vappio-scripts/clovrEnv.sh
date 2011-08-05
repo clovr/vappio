@@ -12,7 +12,7 @@ export PATH=$PATH:/opt/vappio-py/vappio/cli:/opt/vappio-py/vappio/cli/remote:/op
 export PATH=$PATH:/opt/crossbow:/opt/crossbow/bin:/opt/samtools:/opt/cufflinks:/opt/bowtie
 export PATH=$PATH:/opt/hadoop/bin
 export PATH=$PATH:/opt/cdhit/:/opt/fasttree:/opt/rdp_classifier:/opt/uclust/:/opt/muscle/:/opt/mafft/bin/:$BIOINF_HOME/PyNAST/bin/:$BIOINF_HOME/qiime/bin/:$BIOINF_HOME/mothur/:$BIOINF_HOME/microbiomeutil/ChimeraSlayer/
-
+export PATH=$PATH:/opt/sratoolkit/
 ##
 # mugsy install
 export MUGSY_INSTALL=/opt/mugsy_x86-64

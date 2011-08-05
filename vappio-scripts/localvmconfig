@@ -37,5 +37,5 @@ bootStrapKeys.py
 # Start up all services on the node
 startUpNode.py >> /tmp/startUpNode.log 2>&1
 
-vmStatus.py -1 > /tmp/vmStatus.log
+# vmStatus.py -1 > /tmp/vmStatus.log
 

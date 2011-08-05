@@ -25,7 +25,7 @@ do
     if [ -d "/etc/vappio/$n" ]
     then
 	echo "INIT NODETYPE $n" 
-	run-parts --regex '^S.*' --arg start /etc/vappio/$n/ 
+	run-parts -v --regex '^S.*' --arg start /etc/vappio/$n/ 
     else
 	echo "Skipping node type with no configuration: $nodetype"
     fi
