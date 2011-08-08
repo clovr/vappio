@@ -50,6 +50,7 @@ def main(options, _args):
 
         for p in pipelines:
             print '\t'.join(['PIPELINE',
+                             p['pipeline_id'] if p['pipeline_id'] else '',
                              p['pipeline_name'],
                              p['state'],
                              p['task_name'],
