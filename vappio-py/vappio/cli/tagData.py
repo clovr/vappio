@@ -13,6 +13,7 @@ OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
     ('cluster', '', '--cluster', 'Name of cluster, defaults to local', cli.defaultIfNone('local')),
     ('tag_name', '', '--tag-name', 'Name of tag', cli.notNone),
+    ('urls', '', '--url', 'URLs to download, multiple --url flags can be specified', cli.defaultIfNone([]), cli.LIST),
     ('stdin', '', '--stdin', 'Take list of files from stdin rather than arguments on command line', cli.defaultIfNone(False), cli.BINARY),
     ('tag_base_dir', '', '--tag-base-dir', 'Base directory of the tag', func.identity),
     ('recursive', '-r', '--recursive', 'Recursively include directories', cli.defaultIfNone(False), cli.BINARY),
@@ -55,7 +56,6 @@ def main(options, files):
     else:
         raise Exception('--append and --overwrite are mutually exclusive')
 
-
     if options('general.stdin'):
         files = [f.strip() for f in sys.stdin.readlines()]
     
@@ -64,6 +64,7 @@ def main(options, files):
                   action,
                   options('general.tag_name'),
                   [_makeAbsolute(f) for f in files],
+                  options('general.urls'),
                   metadata,
                   options('general.recursive'),
                   options('general.expand'),

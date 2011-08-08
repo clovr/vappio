@@ -24,8 +24,12 @@ def main(options, files):
         for f in tagData['files']:
             print '\t'.join(['FILE', f])
 
+        for url in tagData['metadata'].get('urls', []):
+            print '\t'.join(['URL', url])
+
         for k, v in tagData['metadata'].iteritems():
-            print '\t'.join(['METADATA', k, str(v)])
+            if k not in ['urls']:
+                print '\t'.join(['METADATA', k, str(v)])
     else:
         tags = tag.listTags(options('general.host'), options('general.cluster'), None, False)
         for t in tags:
