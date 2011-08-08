@@ -94,21 +94,24 @@ def t_dataset(state, value, params):
     if value:
         tagPath = os.path.join(state.machineconf('dirs.tag_dir'), value)
         if os.path.exists(tagPath):
-            if params.get('transform_type') == 'prefix':
-                # tagToRefDBPath basically does what prefix does
-                return defer.succeed(ptu.tagToRefDBPath(tagPath))
-            elif params.get('transform_type') == 'directory':
-                commonPrefix = ptu.tagToRefDBPath(tagPath)
-                if os.path.isdir(commonPrefix):
-                    return defer.succeed(commonPrefix)
+            # very cheap right now, move along nothing to see here
+            tagMetadata = json.loads(open(tagPath + '.metadata').read())
+            if 'urls' not in tagMetadata or tagMetadata.get('urls_realized'):
+                if params.get('transform_type') == 'prefix':
+                    # tagToRefDBPath basically does what prefix does
+                    return defer.succeed(ptu.tagToRefDBPath(tagPath))
+                elif params.get('transform_type') == 'directory':
+                    commonPrefix = ptu.tagToRefDBPath(tagPath)
+                    if os.path.isdir(commonPrefix):
+                        return defer.succeed(commonPrefix)
+                    else:
+                        return defer.succeed(os.path.dirname(commonPrefix))
+                elif params.get('transform_type') == 'tag_base_dir':
+                    return defer.succeed(tagMetadata['tag_base_dir'])
                 else:
-                    return defer.succeed(os.path.dirname(commonPrefix))
-            elif params.get('transform_type') == 'tag_base_dir':
-                # very cheap right now, move a long nothing to see here
-                tagMetadata = json.loads(open(tagPath + '.metadata').read())
-                return defer.succeed(tagMetadata['tag_base_dir'])
+                    return defer.succeed(tagPath)
             else:
-                return defer.succeed(tagPath)
+                return defer.succeed('undefined')
         elif os.path.exists(tagPath + '.phantom'):
             return defer.succeed('undefined')
         else:
@@ -127,7 +130,12 @@ def t_blastdb_dataset(state, value, _params):
     if value:
         tagPath = os.path.join(state.machineconf('dirs.tag_dir'), value)
         if os.path.exists(tagPath):
-            return defer.succeed(ptu.tagToRefDBPath(tagPath))
+            # very cheap right now, move along nothing to see here
+            tagMetadata = json.loads(open(tagPath + '.metadata').read())
+            if 'urls' not in tagMetadata or tagMetadata.get('urls_realized'):
+                return defer.succeed(ptu.tagToRefDBPath(tagPath))
+            else:
+                return defer.succeed('undefined')
         elif os.path.exists(tagPath + '.phantom'):
             return defer.succeed('undefined')
         else:
