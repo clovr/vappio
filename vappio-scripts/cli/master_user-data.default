@@ -13,12 +13,7 @@ export MASTER_NODE=localhost
 echo "$MASTER_NODE" > $vappio_userdata/master_node
 echo "master" > $vappio_userdata/node_type
 
-# store the provided CLUSTER_PRIVATE_KEY into the ssh_key as defined in vappio_config
 mkdir -p `dirname $ssh_key`
-#cat > $ssh_key <<EOF
-#<TMPL_VAR NAME=CLUSTER_PRIVATE_KEY>
-#EOF
-
 
 bootStrapKeys.py
 
@@ -27,10 +22,6 @@ chown www-data:www-data $ssh_key
 
 mkdir /mnt/output
 chown www-data:www-data /mnt/output
-
-# append the CLUSTER_PUBLIC_KEY to the authorized_keys file
-#echo -e '\n<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>' >> /root/.ssh/authorized_keys
-
 
 cat > /tmp/machine.conf <<EOF
 []
@@ -154,20 +145,6 @@ general.ctype=UNKNOWN
 
 MASTER_IP=`hostname -f`
 EOF
-
-
-#cat > /tmp/cert.pem <<EOF
-#<TMPL_VAR NAME=CERT_FILE>
-#EOF
-
-#cat > /tmp/pk.pem <<EOF
-#<TMPL_VAR NAME=PK_FILE>
-#EOF
-
-
-#printf "/tmp/cert.pem\t/tmp/pk.pem\t<TMPL_VAR NAME=CTYPE>\t<TMPL_VAR NAME=METADATA>" > /tmp/cred-info
-
-#chmod a+r /tmp/*.pem
 
 touch /tmp/didsomething
 
