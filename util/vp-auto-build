@@ -15,11 +15,11 @@ if [ -d "$buildvm/start_clovr.vmx.lck" ]
 then
     echo "VM $buildvm is already running"
 else
-    mkdir $buildvm/shared/user-scripts
-    chmod 777 $buildvm/shared/user-scripts
-    echo "#!/bin/bash" > $buildvm/shared/user-scripts/02-starthudson
-    echo "/etc/init.d/hudson start" >> $buildvm/shared/user-scripts/02-starthudson
-    chmod a+rx $buildvm/shared/user-scripts/02-starthudson
+    mkdir $buildvm/shared/user_data/user_scripts
+    chmod 777 $buildvm/shared/user_data/user_scripts
+    echo "#!/bin/bash" > $buildvm/shared/user_data/user_scripts/02-starthudson
+    echo "/etc/init.d/hudson start" >> $buildvm/shared/user_data/user_scripts/02-starthudson
+    chmod a+rx $buildvm/shared/user_data/user_scripts/02-starthudson
     /home/sangiuoli/vp-launch-headless $buildvm vmware
     sleep 10 #wait for hudson to finish booting
 fi

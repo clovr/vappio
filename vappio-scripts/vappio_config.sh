@@ -1,7 +1,7 @@
 vappio_scripts=/opt/vappio-scripts
 vappio_userdata=/mnt/
 vappio_runtime=/var/vappio/runtime/
-user_data_scripts=/mnt/user-scripts
+user_data_scripts=/mnt/user_data/user_scripts
 
 #Use of vappio_log is deprecated
 vappio_log=/tmp/vappio.log

@@ -20,7 +20,7 @@ chmod 777 /mnt
 chmod 777 /tmp
 
 #Copy user-scripts off mount before new mount
-cp /mnt/user-scripts/* $sdir
+cp /mnt/user_data/user_scripts/* $sdir
 
 cloud-init start
 cloud-init-cfg config-misc
