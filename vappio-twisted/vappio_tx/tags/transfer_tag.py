@@ -91,6 +91,72 @@ def _partitionFiles(files, baseDir):
 
 
 @defer.inlineCallbacks
+def _realizeUrls(request):
+    localTag = yield persist.loadTag(request.state.conf, request.body['tag_name'])
+    
+    # If we have urls we create a fake phantom tag
+    fakePhantom = {'cluster.ALL.command':
+                   'reliableDownloader.py -m 300 -t 20 -b ${base_dir} ' + ' '.join(localTag.metadata['urls'])}
+    taskName = yield www_tags.realizePhantom('localhost',
+                                             request.body['dst_cluster'],
+                                             request.body['user_name'],
+                                             localTag.tagName,
+                                             fakePhantom,
+                                             func.updateDict(localTag.metadata, {'urls_realized': True}))
+    localTask = yield tasks_tx.loadTask(request.body['task_name'])
+    endState, tsk = yield tasks_tx.blockOnTaskAndForward('localhost',
+                                                         request.body['dst_cluster'],
+                                                         taskName,
+                                                         localTask)
+
+    if endState == tasks_tx.task.TASK_FAILED:
+        yield tasks_tx.updateTask(request.body['task_name'],
+                                  lambda t : t.setState(tasks_tx.task.TASK_FAILED))
+        raise RealizePhantomError(request.body['tag_name'])
+
+
+    if request.body['dst_cluster'] == 'local':
+        yield tag_data.tagData(request.state,
+                               request.body['tag_name'],
+                               request.body['task_name'],
+                               files=localTag.files,
+                               action=tag_data.ACTION_APPEND,
+                               metadata={},
+                               recursive=False,
+                               expand=False,
+                               compressDir=None)
+    else:
+        localTask = yield www_tags.tagData('localhost',
+                                           request.body['dst_cluster'],
+                                           request.body['user_name'],
+                                           action=tag_data.ACTION_APPEND,
+                                           tagName=localTag.tagName,
+                                           files=localTag.files,
+                                           metadata={},
+                                           recursive=False,
+                                           expand=False,
+                                           compressDir=None)
+
+    localTask = yield tasks_tx.loadTask(request.body['task_name'])
+    endState, tsk = yield tasks_tx.blockOnTaskAndForward('localhost',
+                                                         request.body['dst_cluster'],
+                                                         taskName,
+                                                         localTask)
+
+    if endState == tasks_tx.task.TASK_FAILED:
+        yield tasks_tx.updateTask(request.body['task_name'],
+                                  lambda t : t.setState(tasks_tx.task.TASK_FAILED))
+        raise RealizePhantomError(request.body['tag_name'])
+    
+    # Load the tag up and return it so we can have the files it created
+    tag = yield www_tags.loadTag('localhost',
+                                 request.body['dst_cluster'],
+                                 request.body['user_name'],
+                                 request.body['tag_name'])
+
+    defer.returnValue(tag)
+    
+@defer.inlineCallbacks
 def _uploadTag(request):
     localTag = yield persist.loadTag(request.state.conf, request.body['tag_name'])
 
@@ -128,6 +194,10 @@ def _uploadTag(request):
     remoteFiles = ([os.path.join(dstTagPath, f) for f in baseDirFiles] +
                    [os.path.join(dstTagPath, _makePathRelative(f)) for f in nonBaseDirFiles])
 
+    if localTag.metadata.get('urls', []):
+        tag = yield _realizeUrls(request)
+        remoteFiles.extend(tag.files)
+        
     defer.returnValue(persist.Tag(tagName=localTag.tagName,
                                   files=remoteFiles,
                                   metadata=func.updateDict(localTag.metadata,
@@ -240,6 +310,12 @@ def _handleTransferTag(request):
     
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress())
+    elif not srcTag['phantom'] and srcTag['metadata'].get('urls', []) and not srcTag['metadata'].get('urls_realized', False):
+        # It's a local to local but we have urls and haven't realized them
+        print 'yo'
+        yield _realizeUrls(request)
+        yield tasks_tx.updateTask(request.body['task_name'],
+                                  lambda t : t.progress(2))
     elif srcTag['phantom']:
         # Upload the depends file
         srcCluster = yield www_clusters.loadCluster('localhost',

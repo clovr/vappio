@@ -196,11 +196,15 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
 def _handleTaskTagData(request):
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.setState(tasks_tx.task.TASK_RUNNING).update(numTasks=1))
+
+    if 'urls' in request.body:
+        metadata = func.updateDict(request.body['metadata'],
+                                   {'urls': request.body['urls']})
     
     yield tagData(request.state,
                   request.body['tag_name'],
                   request.body['task_name'],
-                  request.body['files'],
+                  request.body.get('files', []),
                   request.body['metadata'],
                   request.body['action'],
                   request.body.get('recursive', False),
@@ -275,7 +279,6 @@ def _returnTag(request):
 def subscribe(mq, state):
     processTagData = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                              'tag_name',
-                                                                             'files',
                                                                              'metadata',
                                                                              'action']),
                                                            _forwardToCluster(state.conf,
