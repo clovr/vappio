@@ -1,0 +1,8 @@
+/var/log/mongo.log.* {
+       size 20M 
+       rotate 10 
+       compress
+       notifempty
+       missingok
+}
+
