@@ -18,11 +18,11 @@ def tags_is_filetype(tags, filetype):
                            True)
 
     for t in tagInfo:
-        if not t['files'] and (not t['phantom'] or not t['metadata'].get('urls_realized', False)):
-            raise Exception('A none-phantom-none-urls tag with no files is of no type')
-        else:
+        if t['files']:
             for f in t['files']:
                 if not FILE_TYPES[filetype](f):
                     raise Exception('File %s did not pass' % f)
+        elif not t['phantom'] and ('urls' not in t['metadata'] or 'urls' in t['metadata'] and t['metadata'].get('urls_realized', False)):
+            raise Exception('A none-phantom-none-urls tag with no files is of no type')
 
     
