@@ -1,134 +1,55 @@
-#!/usr/bin/perl
+#!/usr/bin/python
+import sys
 
-=head1 NAME
+from igs.utils import cli
+from igs.utils import commands
 
-tag-is-fasta --checks whether the given tag has files that are fasta
-             --also checks whether the input files are compatible with blast database selected (optional)
+from vappio.tags import tag_validate
 
-=head1 SYNOPSIS
+from vappio.webservice import tag
 
-    ./tag-is-fasta [--db_type=blastn|blastx|blastp|tblastn|tblastx
-		    --help ]
-
-=head1 PARAMETERS
-
-B<--db_type, -d>
-	The type of database selected
-	accepted values: blastn, blastp, blastx, tblastn, tblastx
-
-B<--help>
-	Prints this documentation
-
-=head1 DESCRIPTON
-
-Checks whether the files in the given tag are all of fasta type.
-Adds metadata such as filetype=fasta, seqtype=Protein or DNA or mixed to tag.metadata
-Also checks whether given blast database is compatible with input type
-
-=head1 INPUT
-
-tag name that has input files, (optional: db_type to check the compatibility)
-
-=head1 OUTPUT
-
-returns true (0) or false (other than 0)
-
-=head1 AUTHOR
-
-	Mahesh Vangala
-	mvangala@som.umaryland.edu
-	vangalamaheshh@gmail.com
-
-=cut
-
-use strict;
-use warnings;
-use Getopt::Long qw(:config no_ignore_case no_auto_abbrev pass_through);
-use Pod::Usage;
-
-my %options = parse_options();
-
-my $header = <>;
-unless(trim($header) eq 'kv') {
-	die "Header must be 'kv'\n";
-}
-print STDOUT $header;
-
-while(my $arg = <>) {
-	if(trim($arg) =~ /^input\.(.+)=(.+)$/) {
-		my $first_seq_type = undef;
-		my $tag_name = $2;
-		my $command = "vp-describe-dataset --tag-name=$tag_name";
-		open(COMMAND, "$command |") or die "Error in executing the command, $command, $!\n";
-		while(my $output = <COMMAND>) {
-			if($output =~ /^FILE\t(.+)/) {
-				my $cur_file = $1;
-				my $seq_stat_command = "seqstat $cur_file";
-				open(SEQ_COMMAND, "$seq_stat_command |") or die "Error in executing the command, $seq_stat_command, $!\n";
-				while(my $seq_output = <SEQ_COMMAND>) {
-					if($seq_output =~ /Format:\s*(.+)/) {
-						die "$cur_file is not of fasta type\n" unless($1 eq 'FASTA');
-					} elsif($seq_output =~ /Type\s+\(of\s+1st\s+seq\):\s+(.+)/) {
-						my $cur_seq_type = $1;
-						unless($first_seq_type) {
-							$first_seq_type = $cur_seq_type;
-						}
-						unless($cur_seq_type eq $first_seq_type) {
-							$first_seq_type = 'mixed';
-						}
-					}
-				}
-				die "Error in executing the command, $seq_stat_command, $!\n" if( $? );
-				close SEQ_COMMAND;
-			}
-		}
-		close COMMAND;
-		die "Error in executing the command $command; Error code: $?\n" if( $? );
-		add_seq_type_to_tag_metadata( $tag_name, $first_seq_type );
-		if($options{'db_type'}) {
-			check_compatibility($first_seq_type, $options{'db_type'});
-		}
-	}
-	print STDOUT $arg;
-}
-exit(0);
-
-sub check_compatibility {
-	my ($seq_type, $blast_type) = @_;
-	if($blast_type eq 'blastn' || $blast_type eq 'tblastx' || $blast_type eq 'blastx') {
-		die "Sequence type is not of nucleotides\n" unless( $seq_type eq 'DNA' );
-	}
-	elsif( $blast_type eq 'blastp' || $blast_type eq 'tblastn' ) {
-		die "Sequence type is not of protein\n" unless( $seq_type eq 'Protein' );
-	} 
-	else {
-		die "Given blast parameter, $blast_type, is of unknown type\n";
-	}
-}
-
-sub add_seq_type_to_tag_metadata {
-	my ($tag, $seq_type) = @_;
-	my $command = "vp-add-dataset --tag-name $tag -a -m filetype=fasta -m seqtype=$seq_type";
-	`$command`;
-	die "Error executing the command, $command, $\n" if( $? );	
-}
-
-sub trim {
-	my ($temp) = @_;
-	$temp =~ s/^\s+//;
-	$temp =~ s/\s+$//;
-	return $temp;
-}
+OPTIONS = [
+    ('db_type', '', '--db_type', 'Type of db',
+     cli.restrictValues(['blastn', 'tblastx', 'blastp', 'tblastn', 'blastx', None]))
+    ]
 
 
-sub parse_options {
-    my %opts = ();
-    GetOptions(\%opts,
-		'db_type|d:s',
-                'help') || pod2usage();
+def checkCompatibility(seqType, dbType):
+    if dbType in ['blastn', 'tblastx', 'blastx'] and seqType != 'DNA':
+        raise Exception('Sequence type must be nucleotide')
+    elif dbType in ['blastp', 'tblastn'] and seqType != 'Protein':
+        raise Exception('Sequence type must be protein')
 
-    &pod2usage( {-exitval => 1, -verbose => 1, -output => \*STDOUT}) if ($opts{'help'} );
+def main(options, _args):
+    if sys.stdin.readline().strip() != 'kv':
+        raise Exception('Header needs to be kv')
 
-    return %opts;
-}
+    sys.stdout.write('kv\n')
 
+    tags = []
+
+    for line in sys.stdin:
+        sys.stdout.write(line)
+        k, v = line.strip().split('=', 1)
+        if k.startswith('input.'):
+            tags.append(v)
+
+    tag_validate.tags_is_filetype(tags, 'fasta')
+        
+    tagsInfo = tag.listTags('localhost',
+                            'local',
+                            {'$or': [{'tag_name': t} for t in tags]},
+                            True)
+
+    if options('general.db_type'):
+        for t in tagsInfo:
+            for f in t['files']:
+                stdout = []
+                commands.runSingleProgramEx('seqstat ' + f,
+                                            stdout.append,
+                                            None)
+                seqType = [l for l in stdout if l.startswith('Type')][0].split(':')[1].strip()
+                checkCompatibility(seqType, options('general.db_type'))
+
+if __name__ == '__main__':
+    main(*cli.buildConfigN(OPTIONS))

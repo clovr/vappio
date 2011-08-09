@@ -1,0 +1,19 @@
+#!/usr/bin/python
+import sys
+
+from vappio.tags import tag_validate
+
+
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+sys.stdout.write('kv\n')
+
+tags = []
+
+for line in sys.stdin:
+    k, v = line.strip().split('=', 1)
+    if k.startswith('input.'):
+        tags.append(v)
+
+tag_validate.tags_is_filetype(tags, sys.argv[1])

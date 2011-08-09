@@ -54,6 +54,7 @@ for download_tag in tags_to_download:
                            'append',
                            tagName,
                            [],
+                           [],
                            metadata,
                            False,
                            False,
