@@ -19,7 +19,7 @@ def startup():
     if os.path.exists(LOCK_FILE):
         run('rm -f %s' % LOCK_FILE)
         run('mongod --dbpath=%s --logpath=/var/log/mongodb.log --repair > /dev/null 2>&1' % MONGO_DIR)
-    run('mongod --dbpath=%s --logpath=/var/log/mongodb.log --fork > /dev/null 2>&1' % MONGO_DIR)
+    run('mongod --quiet --dbpath=%s --logpath=/var/log/mongodb.log --fork > /dev/null 2>&1' % MONGO_DIR)
     # Wait for mongo to come up
     count = 0
     while True:
