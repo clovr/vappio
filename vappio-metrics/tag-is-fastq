@@ -1,37 +1,27 @@
-#!/usr/bin/perl
-use strict;
-use warnings;
+#!/usr/bin/python
+import sys
 
-my $header = <>;
-unless(trim($header) eq 'kv') {
-	die "Header must be 'kv'\n";
-}
-print STDOUT $header;
+from igs.utils import cli
 
-while(my $arg = <>) {
-	if(trim($arg) =~ /^input\.(.+)=(.+)$/) {
-		my $command = "vp-describe-dataset --tag-name=$2";
-		open(COMMAND, "$command |") or die "Error in executing the command, $command, $!\n";
-		while(my $output = <COMMAND>) {
-			if($output =~ /^FILE\t(.+)/) {
-				open(FILE, "<$1") or die "Error in opening the file, $1, $!\n";
-				my $firstLine = <FILE>;
-				unless(substr(trim($firstLine), 0, 1) eq '@') {
-					die "$1 is not a fastq file";
-				}
-				close FILE;
-			}
-		}
-		close COMMAND;
-		die "Error in executing the command $command; Error code: $?\n" if( $? );
-	}
-	print STDOUT $arg;
-}
-exit(0);
+from vappio.tags import tag_validate
 
-sub trim {
-	my ($temp) = @_;
-	$temp =~ s/^\s+//;
-	$temp =~ s/\s+$//;
-	return $temp;
-}
+OPTIONS = []
+
+def main(options, _args):
+    if sys.stdin.readline().strip() != 'kv':
+        raise Exception('Header needs to be kv')
+
+    sys.stdout.write('kv\n')
+
+    tags = []
+
+    for line in sys.stdin:
+        sys.stdout.write(line)
+        k, v = line.strip().split('=', 1)
+        if k.startswith('input.'):
+            tags.append(v)
+
+    tag_validate.tags_is_filetype(tags, 'fastq')
+        
+if __name__ == '__main__':
+    main(*cli.buildConfigN(OPTIONS))

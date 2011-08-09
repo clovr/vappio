@@ -1,38 +1,27 @@
-#!/usr/bin/perl
-use strict;
-use warnings;
-use File::Binary;
+#!/usr/bin/python
+import sys
 
-my $SFF = '.sff';
+from igs.utils import cli
 
-my $header = <>;
-unless(trim($header) eq 'kv') {
-	die "Header must be 'kv'\n";
-}
-print STDOUT $header;
+from vappio.tags import tag_validate
 
-while(my $arg = <>) {
-	if($arg =~ /^input\.(.+)=(.+)$/) {
-		my $command = "vp-describe-dataset --tag-name=$2";
-		open(COMMAND, "$command |") or die "Error in executing the command, $command, $!\n";
-		while(my $output = <COMMAND>) {
-			if($output =~ /^FILE\t(.+)$/) {
-				my $obj = File::Binary -> new($1);
-				unless($obj -> get_bytes(4) eq $SFF) {
-					die "$1 is not an sff file\n";
-				}
-			}
-		}
-		close COMMAND;
-		die "Error in executing the command $command; Error code: $?\n" if( $? );
-	}
-	print STDOUT $arg;
-}
-exit(0);
+OPTIONS = []
 
-sub trim {
-	my ($temp) = @_;
-	$temp =~ s/^\s+//;
-	$temp =~ s/\s+$//;
-	return $temp;
-}
+def main(options, _args):
+    if sys.stdin.readline().strip() != 'kv':
+        raise Exception('Header needs to be kv')
+
+    sys.stdout.write('kv\n')
+
+    tags = []
+
+    for line in sys.stdin:
+        sys.stdout.write(line)
+        k, v = line.strip().split('=', 1)
+        if k.startswith('input.'):
+            tags.append(v)
+
+    tag_validate.tags_is_filetype(tags, 'sff')
+        
+if __name__ == '__main__':
+    main(*cli.buildConfigN(OPTIONS))
