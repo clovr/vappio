@@ -197,7 +197,7 @@ def _handleTaskTagData(request):
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.setState(tasks_tx.task.TASK_RUNNING).update(numTasks=1))
 
-    if 'urls' in request.body:
+    if 'urls' in request.body and request.body['urls']:
         metadata = func.updateDict(request.body['metadata'],
                                    {'urls': request.body['urls']})
     
