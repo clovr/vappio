@@ -3,7 +3,6 @@ import sys
 
 from vappio.tags import tag_validate
 
-
 if sys.stdin.readline().strip() != 'kv':
     raise Exception('Header needs to be kv')
 
