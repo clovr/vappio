@@ -196,7 +196,7 @@ def _uploadTag(request):
 
     if localTag.metadata.get('urls', []):
         tag = yield _realizeUrls(request)
-        remoteFiles.extend(tag.files)
+        remoteFiles.extend(tag['files'])
         
     defer.returnValue(persist.Tag(tagName=localTag.tagName,
                                   files=remoteFiles,
