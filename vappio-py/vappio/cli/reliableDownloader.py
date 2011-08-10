@@ -107,8 +107,12 @@ def attemptDownload(options, url):
 
     downloaderChan = threads.runThreadWithChannel(runDownloader).channel.sendWithChannel(pr)
     ##
-    # sleep for a second so the wget can run
-    time.sleep(1)
+    # Wait 20 seconds or until files start appearing, if nothing appears
+    # then we will continue on to monitorDownload and it will fail out anyways
+    count = 20
+    while count > 0 and not getDownloadFilenames(baseDir, url):
+        count -= 1
+        time.sleep(1)
 
     logging.debugPrint(lambda : 'Downloading with a minimum acceptable rate of %d' % options('general.min_rate'))
 
@@ -160,7 +164,6 @@ def downloadUrls(chan):
     try:
         while True:
             url, md5 = queue.get_nowait()
-
 
             ##
             # Skip all this if it's already been downloaded
