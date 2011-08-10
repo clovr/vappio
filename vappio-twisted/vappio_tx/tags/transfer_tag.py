@@ -195,7 +195,7 @@ def _uploadTag(request):
                    [os.path.join(dstTagPath, _makePathRelative(f)) for f in nonBaseDirFiles])
 
     metadata = localTag.metadata
-    if metadata.get('urls', []):
+    if metadata.get('urls', []) and not metadata.get('urls_realized', False):
         tag = yield _realizeUrls(request)
         remoteFiles.extend(tag['files'])
         metadata = func.updateDict(metadata,
