@@ -63,7 +63,7 @@ def getSizeOfFiles(files):
 def monitorDownload(pr, downloaderChan, baseDir, url, minRate):
     sizeSamples = []
     while True:
-        baseSize = getSizeOfFiles(getDownloadFilenames(baseDir, url))
+        baseSize = getSizeOfFiles(getDownloadFilenames(options('general.base_dir'), url))
         time.sleep(SAMPLE_RATE)
         ##
         # If the program exited and exited correctly, then we're good
