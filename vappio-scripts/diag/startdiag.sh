@@ -19,6 +19,9 @@ FILE_SIZE=`wc -c $user_data_scripts/metadata | cut -f 1 -d ' '`
 if [ "$FILE_SIZE" -eq "1" ]
 then
     cp /opt/vappio-scripts/cli/master_user-data.default $user_data_scripts/metadata
+    INSTANCE_DATA_URL=`cat /var/nimbus-metadata-server-url/*`
+    AMI_ID=curl --retry 3 --silent --show-error --fail $INSTANCE_DATA_URL/latest/meta-data/ami-id
+    sed -i -e 's/cluster\.ami=.*/cluster\.ami=$AMI_ID/' $user_data_scripts/metadata
 fi
 
 chmod +x $user_data_scripts/metadata

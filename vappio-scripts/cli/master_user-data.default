@@ -84,6 +84,7 @@ ssh.user=root
 general.conf=/mnt/vappio-conf/clovr_base.conf
 config_loaded=True
 general.output=/tmp/machine.conf
+cluster.ami=
 [cluster]
 cluster_private_key=/mnt/keys/devel1.pem
 
