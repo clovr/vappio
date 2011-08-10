@@ -63,7 +63,7 @@ def getSizeOfFiles(files):
 def monitorDownload(pr, downloaderChan, baseDir, url, minRate):
     sizeSamples = []
     while True:
-        baseSize = getSizeOfFiles(getDownloadFilenames(options('general.base_dir'), url))
+        baseSize = getSizeOfFiles(getDownloadFilenames(baseDir, url))
         time.sleep(SAMPLE_RATE)
         ##
         # If the program exited and exited correctly, then we're good
@@ -110,7 +110,7 @@ def attemptDownload(options, url):
     # Wait 20 seconds or until files start appearing, if nothing appears
     # then we will continue on to monitorDownload and it will fail out anyways
     count = 20
-    while count > 0 and not getDownloadFilenames(baseDir, url):
+    while count > 0 and not getDownloadFilenames(options('general.base_dir'), url):
         count -= 1
         time.sleep(1)
 
