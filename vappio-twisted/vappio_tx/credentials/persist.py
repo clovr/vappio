@@ -92,7 +92,8 @@ def loadCredential(credentialName):
 
 def saveCredential(credential):
     d = threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.save(func.updateDict(dict(_id=credential.name),
-                                                                                                   credentialToDict(credential))))
+                                                                                                   credentialToDict(credential)),
+                                                                                   safe=True))
     return d
 
 def loadAllCredentials():
