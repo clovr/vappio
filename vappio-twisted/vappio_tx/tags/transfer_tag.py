@@ -194,13 +194,16 @@ def _uploadTag(request):
     remoteFiles = ([os.path.join(dstTagPath, f) for f in baseDirFiles] +
                    [os.path.join(dstTagPath, _makePathRelative(f)) for f in nonBaseDirFiles])
 
-    if localTag.metadata.get('urls', []):
+    metadata = localTag.metadata
+    if metadata.get('urls', []):
         tag = yield _realizeUrls(request)
         remoteFiles.extend(tag['files'])
+        metadata = func.updateDict(metadata,
+                                   {'urls_realized': True})
         
     defer.returnValue(persist.Tag(tagName=localTag.tagName,
                                   files=remoteFiles,
-                                  metadata=func.updateDict(localTag.metadata,
+                                  metadata=func.updateDict(metadata,
                                                            {'tag_base_dir': dstTagPath}),
                                   phantom=localTag.phantom,
                                   taskName=None))
@@ -312,7 +315,6 @@ def _handleTransferTag(request):
                                   lambda t : t.progress())
     elif not srcTag['phantom'] and srcTag['metadata'].get('urls', []) and not srcTag['metadata'].get('urls_realized', False):
         # It's a local to local but we have urls and haven't realized them
-        print 'yo'
         yield _realizeUrls(request)
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress(2))
