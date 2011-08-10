@@ -96,7 +96,7 @@ def t_dataset(state, value, params):
         if os.path.exists(tagPath):
             # very cheap right now, move along nothing to see here
             tagMetadata = json.loads(open(tagPath + '.metadata').read())
-            if 'urls' not in tagMetadata or tagMetadata.get('urls_realized'):
+            if 'urls' not in tagMetadata or ('urls' in tagMetadata and tagMetadata.get('urls_realized')):
                 if params.get('transform_type') == 'prefix':
                     # tagToRefDBPath basically does what prefix does
                     return defer.succeed(ptu.tagToRefDBPath(tagPath))
@@ -132,7 +132,7 @@ def t_blastdb_dataset(state, value, _params):
         if os.path.exists(tagPath):
             # very cheap right now, move along nothing to see here
             tagMetadata = json.loads(open(tagPath + '.metadata').read())
-            if 'urls' not in tagMetadata or tagMetadata.get('urls_realized'):
+            if 'urls' not in tagMetadata or ('urls' in tagMetadata and tagMetadata.get('urls_realized')):            
                 return defer.succeed(ptu.tagToRefDBPath(tagPath))
             else:
                 return defer.succeed('undefined')
