@@ -51,18 +51,34 @@ fi
 
 imgname=`basename $1`
 
+if [ `echo "$1" | cut -d "." -f2` == "vmdk" ]
+then
+    if [ "$3" != "" ]
+    then
+	echo "Running scripts on vmdk is not supported" 2>&1
+    fi
+    imgname=`basename $1 .vmdk`
+    imgname="${imgname}_conv"
+    dirname=`dirname $1`
+    pushd $dirname
+    qemu-img convert -O raw $1 ${imgname}.img
+    image="$dirname/${imgname}.img"
+    imagedir="$dirname"
+    popd
+else
+    if [ "$3" != "" ]
+    then
+    #Run init script on image
+	$utildir/vp-runonimg $1 $3
+    fi
+fi
+
+
 #Assumes running on a clovr build image
 source /opt/vappio-scripts/clovrEnv.sh
 export PATH=$PATH:/opt/opt-packages/nimbus-cloud-client-016/bin
 
 utildir=/opt/vappio-util
-
-
-if [ "$3" != "" ]
-then
-#Run init script on image
-    $utildir/vp-runonimg $1 $3
-fi
 
 # Setup keys
 mkdir -p ~/.globus
