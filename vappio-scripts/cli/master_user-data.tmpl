@@ -45,6 +45,7 @@ printf "/tmp/cert.pem\t/tmp/pk.pem\t<TMPL_VAR NAME=CTYPE>\t<TMPL_VAR NAME=METADA
 
 chmod a+r /tmp/*.pem
 
-touch /tmp/didsomething
+touch $vappio_runtime/clientmode
 
 vlog "Done w/ master_user-data.sh"
+

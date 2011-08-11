@@ -147,6 +147,4 @@ general.ctype=UNKNOWN
 MASTER_IP=`hostname -f`
 EOF
 
-touch /tmp/didsomething
-
 vlog "Done w/ master_user-data.sh"

@@ -41,5 +41,15 @@ fi
 #Background this for now
 $vappio_scripts/create_swap_file.sh &
 
+# Enter cloud only mode if not invoked by a clovr client VM
+if [ ! -e "$vappio_runtime/clientmode" ]
+then
+    touch $vappio_runtime/cloudonlymode
+    cp /opt/vappio-scripts/cli/master_user-data.default $vappio_runtime/cloudonly_metadata
+    AMI_ID=`curl --retry 3 --silent --show-error --fail http://169.254.169.254/latest/meta-data/ami-id`
+    sed -i -e 's/cluster\.ami=.*/cluster\.ami=$AMI_ID/' $vappio_runtime/cloudonly_metadata
+    chmod +x $vappio_runtime/cloudonly_metadata
+    $vappio_runtime/cloudonly_metadata
+fi
 
 

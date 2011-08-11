@@ -14,16 +14,6 @@ export vappio_url_user_data=`cat /var/nimbus-metadata-server-url/*`/latest/user-
 mkdir -p $user_data_scripts
 curl --retry 3 --silent --show-error --fail -o $user_data_scripts/metadata $vappio_url_user_data
 
-# Use our default if none exists
-FILE_SIZE=`wc -c $user_data_scripts/metadata | cut -f 1 -d ' '`
-if [ "$FILE_SIZE" -eq "1" ]
-then
-    cp /opt/vappio-scripts/cli/master_user-data.default $user_data_scripts/metadata
-    INSTANCE_DATA_URL=`cat /var/nimbus-metadata-server-url/*`
-    AMI_ID=curl --retry 3 --silent --show-error --fail $INSTANCE_DATA_URL/latest/meta-data/ami-id
-    sed -i -e 's/cluster\.ami=.*/cluster\.ami=$AMI_ID/' $user_data_scripts/metadata
-fi
-
 chmod +x $user_data_scripts/metadata
 
 # Run user scripts
@@ -34,3 +24,16 @@ then
     echo "Running user-scripts in $user_data_scripts"
     run-parts -v "$user_data_scripts"
 fi
+
+# Enter cloud only mode if not invoked by a clovr client VM
+if [ ! -e "$vappio_runtime/clientmode" ]
+then
+    touch $vappio_runtime/cloudonlymode
+    cp /opt/vappio-scripts/cli/master_user-data.default $vappio_runtime/cloudonly_metadata
+    INSTANCE_DATA_URL=`cat /var/nimbus-metadata-server-url/*`
+    AMI_ID=`curl --retry 3 --silent --show-error --fail $INSTANCE_DATA_URL/latest/meta-data/ami-id`
+    sed -i -e 's/cluster\.ami=.*/cluster\.ami=$AMI_ID/' $vappio_runtime/cloudonly_metadata
+    chmod +x $vappio_runtime/cloudonly_metadata
+    $vappio_runtime/cloudonly_metadata
+fi
+
