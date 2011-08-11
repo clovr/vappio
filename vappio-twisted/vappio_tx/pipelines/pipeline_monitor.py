@@ -33,6 +33,9 @@ PIPELINE_UPDATE_FREQUENCY = 30
 class Error(Exception):
     pass
 
+def _log(p, msg):
+    log.msg('MONITOR: ' + p.pipelineName + ' - ' + msg)
+
 class MonitorState:
     def __init__(self, conf, machineconf, mq, pipeline, retries):
         self.conf = conf
@@ -170,23 +173,29 @@ def _updatePipelineChildren(state):
     pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
     
     if state.f == _waitingToRestart:
+        _log(state.pipeline, 'Pipeline waiting to restart')
         if pipelineState == tasks_tx.task.TASK_FAILED:
+            _log(state.pipeline, 'Pipeline waiting to restart in failed state, restarting')
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
                                      lambda t : t.addMessage(tasks_tx.task.MSG_NOTIFICATION,
                                                              'Restarting pipeline').setState(tasks_tx.task.TASK_IDLE))
             yield pipeline_run.resume(state.pipeline)
             state.f = _idle
+            _log(state.pipeline, 'Restarted, moving to idle state')
         else:
+            _log(state.pipeline, 'Pipeline waiting to restart, not in failed state, waiting longer')
             state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
                                               _updatePipelineChildren,
                                               state)
     elif state.f == _running and pipelineState in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
+        _log(state.pipeline, 'Pipeline in running stated but failed or completed, unsubscribing %s' % pipelineState)
         yield state.taskLock.run(tasks_tx.updateTask,
                                  state.pipeline.taskName,
                                  lambda t : t.setState(pipelineState))
         _pipelineCompleted(state)
     elif pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
+        _log(state.pipeline, 'Looping')
         # Call ourselves again if the pipeline is not finished and the delayed call hasn't already been
         # cancelled
         state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
@@ -203,11 +212,13 @@ def _idle(state, event):
     """
     Waiting for the pipeline to start
     """
+    _log(state.pipeline, 'In idle state, got message')
     if event['event'] == 'start' and event['name'] == 'start pipeline:':
         yield state.taskLock.run(tasks_tx.updateTask,
                                  state.pipeline.taskName,
                                  lambda t : t.setState(task.TASK_RUNNING))
         state.f = _running
+        _log(state.pipeline, 'Got start message, switching to running state, starting update loop')
         state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
                                           _updatePipelineChildren,
                                           state)
@@ -219,7 +230,9 @@ def _running(state, event):
     """
     Pipeline is running, looking for failures or completion
     """
+    _log(state.pipeline, 'In running state, got message')
     if event['event'] == 'finish' and event['retval'] and not int(event['retval']):
+        _log(state.pipeline, 'Got a finish message')
         # Something has just finished successfully, read the XML to determine what
         completed, total = yield threads.deferToThread(_pipelineProgress, event['file'])
 
@@ -235,14 +248,17 @@ def _running(state, event):
             state.lastMsg = event['name']
 
         if event['name'] == 'start pipeline:':
+            _log(state.pipeline, 'Finish message is for entire pipeline, marking complete')
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
                                      lambda t : t.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Pipeline completed successfully'))
             _pipelineCompleted(state)
     elif event['retval'] and int(event['retval']):
+        _log(state.pipeline, 'Got failure message')
         # Something bad has happened
         # Should we retry?
         if state.retries > 0:
+            _log(state.pipeline, 'Retries left, going into waiting to restart state')
             state.retries -= 1
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
@@ -259,11 +275,13 @@ def _running(state, event):
                                      state.pipeline.taskName,
                                      _setFailed)
             state.f = _failed
+            _log(state.pipeline, 'No restarts left, going into failed state')
 
 def _waitingToRestart(state, event):
     """
     Just wait for the pipeline to finish, someone else will change our state
     """
+    _log(state.pipeline, 'In waiting to restart state, got message')
     return defer.succeed(None)
 
 def _failed(state, event):
@@ -271,7 +289,9 @@ def _failed(state, event):
     The pipeline failed and we can't restart (either it's not a restartable error or
     we already tried and that failed), just waiting for the pipeline to finish
     """
+    _log(state.pipeline, 'In failed message, got message')
     if event['event'] == 'finish' and event['name'] == 'start pipeline:':
+        _log(state.pipeline, 'Message is pipeline finish, unsubscribing')
         _pipelineCompleted(state)
 
     return defer.succeed(None)
@@ -292,8 +312,10 @@ def monitor_run(state):
     if pipelineState not in [tasks_tx.task.TASK_COMPLETED, tasks_tx.task.TASK_FAILED]:
         if pipelineState == tasks_tx.task.TASK_IDLE:
             state.f = _idle
+            _log(state.pipeline, 'Starting monitoring, initial state is idle')
         else:
             state.f = _running
+            _log(state.pipeline, 'Starting monitoring, initial state is running, xml says %s' % pipelineState)
             state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
 
         processEvent = defer_pipe.pipe([queue.keysInBody(['id',
@@ -324,11 +346,13 @@ def monitor_resume(state):
                                      state.pipeline.taskName,
                                      lambda t : t.setState(tasks_tx.task.TASK_IDLE))
             state.f = _idle
+            _log(state.pipeline, 'Pipeline not completed, initial state in idle')
         else:
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
                                      lambda t : t.setState(tasks_tx.task.TASK_RUNNING))            
             state.f = _running
+            _log(state.pipeline, 'Pipeline not complete, initial state in running, xml state is %s' % pipelineState)
             state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
                                               _updatePipelineChildren,
                                               state)
