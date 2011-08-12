@@ -50,6 +50,7 @@ then
 fi
 
 imgname=`basename $1`
+echo "Checking image $imgname"
 
 if [ `echo "$1" | cut -d "." -f2` == "vmdk" ]
 then
@@ -61,6 +62,7 @@ then
     imgname="${imgname}_conv"
     dirname=`dirname $1`
     pushd $dirname
+    echo "Converting $1 to $imgname.img"
     qemu-img convert -O raw $1 ${imgname}.img
     image="$dirname/${imgname}.img"
     imagedir="$dirname"
@@ -73,7 +75,7 @@ else
     fi
 fi
 
-
+echo "Uploading $imgname"
 #Assumes running on a clovr build image
 source /opt/vappio-scripts/clovrEnv.sh
 export PATH=$PATH:/opt/opt-packages/nimbus-cloud-client-016/bin
@@ -97,15 +99,15 @@ fi
 
 if [ ! "$IMAGE_EXISTS" = "" ] && [ ! "$force" = "force" ]
 then
-    rm -rf ~/.globus
+    rm -rf ~/.globus || true
     echo "Image is already on diag"
     exit 2
 fi
 
-echo "Running cloud client"
-cloud-client.sh --transfer --sourcefile $image
+echo "Running cloud client (output is redirected to /dev/null)"
+cloud-client.sh --transfer --sourcefile $image > /dev/null
 
-rm -rf ~/.globus
+rm -rf ~/.globus || true
 
 #Set AMI in clovr.conf if this is a clovr image
 if [ -d "$imagedir" ] && [ -f "$imagedir/shared/vappio-conf/clovr_diag.conf" ]
