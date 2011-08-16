@@ -9,3 +9,4 @@ update-rc.d -f gridengine-exec remove
 update-rc.d -f gridengine-master remove
 
 echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/gridengine-exec /etc/init.d/gridengine-exec
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/gridengine-master /etc/init.d/gridengine-master
