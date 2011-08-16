@@ -63,8 +63,8 @@ then
     dirname=`dirname $1`
     pushd $dirname
     echo "Converting $1 to $imgname.img"
-    qemu-img convert -O raw $1 ${imgname}.img
-    image="$dirname/${imgname}.img"
+    qemu-img convert -O raw $1 ../${imgname}.img
+    image="../${imgname}.img"
     imagedir="$dirname"
     popd
 else
@@ -105,7 +105,7 @@ then
 fi
 
 echo "Running cloud client (output is redirected to /dev/null)"
-cloud-client.sh --transfer --sourcefile $image > /dev/null
+cloud-client.sh --transfer --sourcefile $image  > /dev/null
 
 rm -rf ~/.globus || true
 
