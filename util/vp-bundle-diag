@@ -63,8 +63,12 @@ then
     dirname=`dirname $1`
     pushd $dirname
     echo "Converting $1 to $imgname.img"
-    qemu-img convert -O raw $1 ../${imgname}.img
-    image="../${imgname}.img"
+    qemu-img convert -O raw $1 ${imgname}.img
+    #Move image out of bundle directory
+    mv ${imgname}.img ../ || true
+    cd ../
+    image=`pwd`
+    image="${image}/${imgname}.img"
     imagedir="$dirname"
     popd
 else
