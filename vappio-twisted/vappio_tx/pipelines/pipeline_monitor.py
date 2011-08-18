@@ -240,7 +240,7 @@ def _waitForPipelineXmlRunningAndLoop(state):
     else:
         _log(state.pipeline, 'State is %s or we are not _running, looping')
         state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                          _waitforPipelineXmlRunningAndLoop,
+                                          _waitForPipelineXmlRunningAndLoop,
                                           state)
     
 def _pipelineCompleted(state):
