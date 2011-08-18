@@ -243,7 +243,7 @@ def _waitForPipelineXmlRunningAndLoop(state):
                                           _waitForPipelineXmlRunningAndLoop,
                                           state)
     else:
-        _log(state.pipeline, 'Pipeline state is %s, state function is not _running, switching')
+        _log(state.pipeline, 'Pipeline state is %s, state function is not _running, switching' % pipelineState)
         yield _updatePipelineChildren(state)
         
 def _pipelineCompleted(state):
