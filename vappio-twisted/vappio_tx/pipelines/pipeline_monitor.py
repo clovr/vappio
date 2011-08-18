@@ -234,15 +234,18 @@ def _waitForPipelineXmlRunningAndLoop(state):
     pipelineXml = _pipelineXmlPath(state)
     pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
 
-    if pipelineState == tasks_tx.task.TASK_RUNNING and state.f == _running:
+    if state.f == _running and pipelineState == tasks_tx.task.TASK_RUNNING:
         _log(state.pipeline, 'Pipeline state is running and we are in state running, switching')
         yield _updatePipelineChildren(state)
-    else:
+    elif state.f == _running:
         _log(state.pipeline, 'State is %s or we are not _running, looping' % pipelineState)
         state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
                                           _waitForPipelineXmlRunningAndLoop,
                                           state)
-    
+    else:
+        _log(state.pipeline, 'Pipeline state is %s, state function is not _running, switching')
+        yield _updatePipelineChildren(state)
+        
 def _pipelineCompleted(state):
     state.mq.unsubscribe(_queueName(state))
         
