@@ -1,5 +1,7 @@
 import time
 
+import pymongo
+
 from xml.dom import minidom
 
 from twisted.python import log
@@ -107,19 +109,10 @@ def _cancelDelayed(state):
         pass
 
 @defer.inlineCallbacks
-def _updatePipelineChildren(state):
-    """
-    Takes a pipeline and updates any children pipeline task information, putting
-    it in the parents
-    """
-    # Load the latest version of the pipeline, someone could have added
-    # children inbetween
-    pl = yield persist.loadPipelineBy({'task_name': state.pipeline.taskName},
-                                      state.pipeline.userName)
-
+def _sumChildrenPipelines(state, pl):
     numSteps = 0
     completedSteps = 0
-    
+
     for cl, remotePipelineName in pl.children:
         try:
             localTask = yield tasks_tx.loadTask(state.pipeline.taskName)
@@ -143,35 +136,22 @@ def _updatePipelineChildren(state):
 
             numSteps += remoteTask['numTasks']
             completedSteps += remoteTask['completedTasks']
-            
+
             messages = [m for m in remoteTask['messages']
                         if not lastChecked or lastChecked < m['timestamp']]
-            
+
             yield state.taskLock.run(tasks_tx.updateTask,
                                      state.pipeline.taskName,
                                      lambda t : t.update(messages=t.messages + messages))
-            
+
         except Exception, err:
             log.err(err)
 
-    state.childrenSteps = numSteps
-    state.childrenCompletedSteps = completedSteps
+    defer.returnValue((numSteps, completedSteps))
 
-    try:
-        if state.pipeline.pipelineId is not None:
-            pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
-            completed, total = yield threads.deferToThread(_pipelineProgress, pipelineXml)
-        
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.update(numTasks=numSteps + total,
-                                                         completedTasks=completedSteps + completed))
-    except Exception, err:
-        log.err(err)
 
-    pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
-    pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
-    
+@defer.inlineCallbacks
+def _loopUpdatePipelineChildren(state, pipelineState):
     if state.f == _waitingToRestart:
         _log(state.pipeline, 'Pipeline waiting to restart')
         if pipelineState == tasks_tx.task.TASK_FAILED:
@@ -201,8 +181,68 @@ def _updatePipelineChildren(state):
         state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
                                           _updatePipelineChildren,
                                           state)
+    
+def _pipelineXmlPath(state):
+    return state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
+    
+@defer.inlineCallbacks
+def _updatePipelineChildren(state):
+    """
+    Takes a pipeline and updates any children pipeline task information, putting
+    it in the parents
+    """
+    # Load the latest version of the pipeline, someone could have added
+    # children inbetween
+    try:
+        pl = yield persist.loadPipelineBy({'task_name': state.pipeline.taskName},
+                                          state.pipeline.userName)
 
 
+        numSteps, completedSteps = yield _sumChildrenPipelines(state, pl)
+        state.childrenSteps = numSteps
+        state.childrenCompletedSteps = completedSteps
+
+        pipelineXml = _pipelineXmlPath(state)
+        completed, total = yield threads.deferToThread(_pipelineProgress, pipelineXml)
+        
+        yield state.taskLock.run(tasks_tx.updateTask,
+                                 state.pipeline.taskName,
+                                 lambda t : t.update(numTasks=numSteps + total,
+                                                     completedTasks=completedSteps + completed))
+
+        pipelineXml = _pipelineXmlPath(state)
+        pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
+
+        yield _loopUpdatePipelineChildren(state, pipelineState)
+    except pymongo.errors.AutoReconnect:
+        _log(state.pipeline, 'Error connecting to mongo db, looping and trying again')
+        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                          _updatePipelineChildren,
+                                          state)
+    except Exception, err:
+        _log(state.pipeline, 'Got error %s, looping' % (str(err),))
+        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                          _updatePipelineChildren,
+                                          state)        
+
+@defer.inlineCallbacks
+def _waitForPipelineXmlRunningAndLoop(state):
+    """
+    Waits for a pipeline xml to come into running state then switches over to
+    _updatePipelineChildren
+    """
+    pipelineXml = _pipelineXmlPath(state)
+    pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
+
+    if pipelineState == tasks_tx.task.TASK_RUNNING and state.f == _running:
+        _log(state.pipeline, 'Pipeline state is running and we are in state running, switching')
+        yield _updatePipelineChildren(state)
+    else:
+        _log(state.pipeline, 'State is %s or we are not _running, looping')
+        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                          _waitforPipelineXmlRunningAndLoop,
+                                          state)
+    
 def _pipelineCompleted(state):
     state.mq.unsubscribe(_queueName(state))
         
@@ -220,7 +260,7 @@ def _idle(state, event):
         state.f = _running
         _log(state.pipeline, 'Got start message, switching to running state, starting update loop')
         state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                          _updatePipelineChildren,
+                                          _waitForPipelineXmlRunningAndLoop,
                                           state)
     else:
         log.msg(repr(event))
