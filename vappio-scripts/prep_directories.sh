@@ -23,7 +23,7 @@ chown $sge_exec_user:$sge_exec_user $harvesting_dir
 
 if [ -f /opt/mnt.tgz ]
 then
-    tar -C /mnt/ -xvzf /opt/mnt.tgz
+    tar -C /mnt/ -xkvzf /opt/mnt.tgz
     chown -R www-data.www-data /mnt
 fi
 
