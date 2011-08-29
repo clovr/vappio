@@ -23,6 +23,25 @@ ACTION_APPEND = 'append'
 ACTION_OVERWRITE = 'overwrite'
 ACTION_CREATE = 'create'
 
+
+RESTRICTED_DIRS = ['/bin/',
+                   '/boot/',
+                   '/dev/',
+                   '/etc/',
+                   '/home/',
+                   '/lib/',
+                   '/mnt/keys/',
+                   '/mnt/vappio-conf/',
+                   '/mnt/user-scripts/',
+                   '/proc/',
+                   '/root/',
+                   '/sbin/',
+                   '/tmp/'
+                   '/usr/',
+                   '/var/',
+                   ]
+
+
 class Error(Exception):
     pass
 
@@ -136,7 +155,6 @@ def _compressFiles(tag, compressDir):
                               initialText=str('\n'.join(baseDirFiles + nonBaseDirFiles)))
     defer.returnValue(compressedFile)
     
-
 @defer.inlineCallbacks
 def tagData(state, tagName, taskName, files, metadata, action, recursive, expand, compressDir, filterF=None):
     if not os.path.exists(state.conf('tags.tags_directory')):
@@ -190,7 +208,13 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
     yield tag_list.cacheTag(state, tag)
     
     defer.returnValue(tag)
-    
+
+def _restrictDirs(f):
+    for d in RESTRICTED_DIRS:
+        if f.startswith(d):
+            return False
+
+    return True
 
 @defer.inlineCallbacks
 def _handleTaskTagData(request):
@@ -209,7 +233,8 @@ def _handleTaskTagData(request):
                   request.body['action'],
                   request.body.get('recursive', False),
                   request.body.get('expand', False),
-                  request.body.get('compress_dir', None))
+                  request.body.get('compress_dir', None),
+                  filterF=_restrictDirs)
 
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.progress())
