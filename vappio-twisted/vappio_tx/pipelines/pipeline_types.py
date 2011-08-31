@@ -195,7 +195,7 @@ def t_random_pipeline_name(_state, value, params):
 def m_list(state, typCallback, value, params):
     values = [v.strip() for v in value.split(params.get('delimiter', ','))]
     values = yield defer.DeferredList(map(lambda v : typCallback(state, v, params),
-                                              values))
+                                          values))
     success = [v for s, v in values if s]
     failure = [f for s, f in values if not s]
 

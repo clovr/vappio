@@ -2,9 +2,10 @@ from twisted.internet import defer
 
 from igs.utils import functional as func
 
-from igs_tx.utils import defer_utils
+from igs_tx.utils import defer_work_queue
 
 from vappio_tx.pipelines import pipeline_types
+
 
 class Error(Exception):
     pass
@@ -48,26 +49,28 @@ def _validateType(state, pipelineConf, configParam):
                                 keys=[configParam[0]])])
     except pipeline_types.InvalidPipelineValueList, err:
         defer.returnValue([dict(message=str(e), keys=[configParam[0]]) for e in err.errorList])
-        
+
+
+@defer.inlineCallbacks
 def validate(state, protocolConf, pipelineConf):
-    @defer.inlineCallbacks
-    def _validateElements(acc, elms):
-        values = yield defer.DeferredList(map(lambda elm : _validateType(state, pipelineConf, elm),
-                                              elms))
-        success = [v for s, v in values if s]
-        failure = [f for s, f in values if not s]
+    success = []
+    failure = []
 
-        # If there are any failures just throw the first one
-        if failure:
-            failure[0].raiseException()
+    def _validateElement(elm):
+        d = _validateType(state, pipelineConf, elm)
+        d.addCallback(lambda v : success.extend(v))
+        d.addErrback(lambda f : failure.append(f))
+        return d
 
-        res = []
-        for i in success:
-            res.extend(i)
-        defer.returnValue(acc + res)
+    def _validateElementFunc(elm):
+        return lambda : _validateElement(elm)
 
-    # Validate 10 config options at a time
-    return defer_utils.fold(_validateElements,
-                            [],
-                            func.chunk(10, protocolConf))
-                            
+    dwq = defer_work_queue.DeferWorkQueue(10)
+    dwq.extend([_validateElementFunc(e) for e in protocolConf])
+    yield defer_work_queue.waitForCompletion(dwq)
+
+    if failure:
+        failure[0].raiseException()
+
+    defer.returnValue(success)
+    
