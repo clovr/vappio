@@ -11,6 +11,8 @@ class Dependable:
         for d in self.dependents:
             d.update(self, aspect, value)
 
+        return value
+
     def addDependent(self, who):
         self.dependents.append(who)
 
