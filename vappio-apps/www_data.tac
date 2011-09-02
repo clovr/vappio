@@ -4,6 +4,8 @@ from twisted.application import internet
 from twisted.application import service
 from twisted.internet import reactor
 
+from igs.utils import logging
+
 from vappio_tx import www_manager
 from vappio_tx import tasklets_manager
 from vappio_tx import credentials_manager
@@ -16,6 +18,8 @@ from igs.utils import config
 
 conf = config.configFromStream(open('/opt/vappio-apps/vappio_apps.conf'),
                                base=config.configFromEnv())
+
+logging.DEBUG = conf('config.debug').lower() == 'true'
 
 user = pwd.getpwnam('www-data')
 
