@@ -8,22 +8,18 @@ from vappio_tx.utils import queue
 
 from vappio_tx.tasks import tasks as tasks_tx
 
-from vappio_tx.tags import tag_list
-from vappio_tx.tags import persist
 
 @defer.inlineCallbacks
 def _handleDeleteTag(request):
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.setState(tasks_tx.task.TASK_RUNNING).update(numTasks=1))
 
-    yield persist.removeTag(request.state.conf,
-                            request.body['tag_name'],
-                            request.body.get('delete_everything', False))
+    yield request.state.tagPersist.removeTag(request.body['tag_name'],
+                                             request.body.get('delete_everything', False))
 
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.progress())
 
-    yield tag_list.removeCachedTag(request.state, {'tag_name': request.body['tag_name']})
     defer.returnValue(request)
 
 def _forwardToCluster(conf, queueUrl):

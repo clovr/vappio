@@ -145,7 +145,7 @@ class _ConnectedState:
             del self.receipts[receiptId]
 
     def errorReceived(self, msg):
-        raise Exception('Need to implement error')
+        raise Exception('Need to implement error: ' + str(msg))
 
     
 class _AuthenticatingState:

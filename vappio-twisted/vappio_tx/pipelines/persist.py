@@ -6,6 +6,7 @@ from twisted.internet import threads
 
 from igs.utils import functional as func
 from igs.utils import config as config_
+from igs.utils import dependency
 
 from vappio.tasks import task
 
@@ -88,47 +89,61 @@ def pipelineFromDict(d):
                     children=d['children'],
                     config=config_.configFromMap(d['config'], lazy=True))
 
-def loadAllPipelinesByAdmin(criteria):
-    def _query():
-        conn = pymongo.Connection()
-        return conn.clovr.pipelines.find(criteria)
+class PipelinePersistManager(dependency.Dependable):
+    def __init__(self):
+        dependency.Dependable.__init__(self)
+        
+    def loadAllPipelinesByAdmin(self, criteria):
+        def _query():
+            conn = pymongo.Connection()
+            return conn.clovr.pipelines.find(criteria)
 
-    def _convertToPipeline(r):
-        return [_documentToPipeline(p) for p in r]
-    
-    d = threads.deferToThread(_query)
-    d.addCallback(_convertToPipeline)
-    return d    
+        def _convertToPipeline(r):
+            return [_documentToPipeline(p) for p in r]
 
-def loadAllPipelinesBy(criteria, userName):
-    """
-    Loads all pipelines that match the the provided criteria and returns a list
-    of them.
-    """
-    return loadAllPipelinesByAdmin(func.updateDict(criteria, {'user_name': userName}))
+        d = threads.deferToThread(_query)
+        d.addCallback(_convertToPipeline).addCallback(lambda ps : self.changed('load', ps))
+        return d    
 
-def loadPipelineBy(criteria, userName):
-    """
-    Loads any pipelines that correspond to a criteria and returns the first
-    one in the list of responses.  Throws PipelineNotFoundError if no pipeline
-    is found.
-    """
-    def _checkForEmptyResponse(r):
-        if not r:
-            raise PipelineNotFoundError(criteria)
-        return r
+    def loadAllPipelinesBy(self, criteria, userName):
+        """
+        Loads all pipelines that match the the provided criteria and returns a list
+        of them.
+        """
+        return self.loadAllPipelinesByAdmin(func.updateDict(criteria,
+                                                            {'user_name': userName}))
 
-    d = loadAllPipelinesBy(criteria, userName)
-    d.addCallback(_checkForEmptyResponse)
-    d.addCallback(lambda r : r[0])
-    return d
+    def loadPipelineBy(self, criteria, userName):
+        """
+        Loads any pipelines that correspond to a criteria and returns the first
+        one in the list of responses.  Throws PipelineNotFoundError if no pipeline
+        is found.
+        """
+        def _checkForEmptyResponse(r):
+            if not r:
+                raise PipelineNotFoundError(criteria)
+            return r
+
+        d = self.loadAllPipelinesBy(criteria, userName)
+        d.addCallback(_checkForEmptyResponse)
+        d.addCallback(lambda r : r[0])
+        return d
 
 
-def savePipeline(pipeline):
-    def _save():
-        conn = pymongo.Connection()
-        conn.clovr.pipelines.save(func.updateDict({'_id': pipeline.pipelineName},
-                                                  _documentFromPipeline(pipeline)), safe=True)
-        return pipeline
+    def savePipeline(self, pipeline):
+        def _save():
+            conn = pymongo.Connection()
+            conn.clovr.pipelines.save(func.updateDict({'_id': pipeline.userName + '_' + pipeline.pipelineName},
+                                                      _documentFromPipeline(pipeline)), safe=True)
+            return pipeline
 
-    return threads.deferToThread(_save)
+        return threads.deferToThread(_save).addCallback(lambda p : self.changed('save', p))
+
+    def removePipeline(self, userName, pipelineName):
+        def _remove():
+            conn = pymongo.Connection()
+            conn.clovr.pipelines.remove({'_id': userName + '_' + pipelineName})
+
+        d = threads.deferToThread(_remove)
+        d.addCallback(lambda _ : self.changed('remove', {'user_name': userName, 'pipeline_name': pipelineName}))
+        return d

@@ -22,7 +22,7 @@ from vappio_tx.tags import persist
 from vappio_tx.www_client import clusters as www_clusters
 from vappio_tx.www_client import tags as www_tags
 
-from vappio_tx.tags import tag_data
+from vappio_tx.tags import tag_mq_data
 
 class Error(Exception):
     pass
@@ -92,7 +92,7 @@ def _partitionFiles(files, baseDir):
 
 @defer.inlineCallbacks
 def _realizeUrls(request):
-    localTag = yield persist.loadTag(request.state.conf, request.body['tag_name'])
+    localTag = yield request.state.tagPersist.loadTag(request.body['tag_name'])
     
     # If we have urls we create a fake phantom tag
     fakePhantom = {'cluster.ALL.command':
@@ -116,20 +116,20 @@ def _realizeUrls(request):
 
 
     if request.body['dst_cluster'] == 'local':
-        yield tag_data.tagData(request.state,
-                               request.body['tag_name'],
-                               request.body['task_name'],
-                               files=localTag.files,
-                               action=tag_data.ACTION_APPEND,
-                               metadata={},
-                               recursive=False,
-                               expand=False,
-                               compressDir=None)
+        yield tag_mq_data.tagData(request.state,
+                                  request.body['tag_name'],
+                                  request.body['task_name'],
+                                  files=localTag.files,
+                                  action=tag_mq_data.ACTION_APPEND,
+                                  metadata={},
+                                  recursive=False,
+                                  expand=False,
+                                  compressDir=None)
     else:
         localTask = yield www_tags.tagData('localhost',
                                            request.body['dst_cluster'],
                                            request.body['user_name'],
-                                           action=tag_data.ACTION_APPEND,
+                                           action=tag_mq_data.ACTION_APPEND,
                                            tagName=localTag.tagName,
                                            files=localTag.files,
                                            metadata={},
@@ -158,7 +158,7 @@ def _realizeUrls(request):
     
 @defer.inlineCallbacks
 def _uploadTag(request):
-    localTag = yield persist.loadTag(request.state.conf, request.body['tag_name'])
+    localTag = yield request.state.tagPersist.loadTag(request.body['tag_name'])
 
     srcCluster = yield www_clusters.loadCluster('localhost',
                                                 request.body['src_cluster'],
@@ -280,20 +280,20 @@ def _handleTransferTag(request):
                                   lambda t : t.progress())
 
         if request.body['dst_cluster'] == 'local':
-            yield tag_data.tagData(request.state,
-                                   request.body['tag_name'],
-                                   request.body['task_name'],
-                                   files=tag.files,
-                                   action=tag_data.ACTION_OVERWRITE,
-                                   metadata=tag.metadata,
-                                   recursive=False,
-                                   expand=False,
-                                   compressDir='/mnt/output' if request.body.get('compress', False) else None)
+            yield tag_mq_data.tagData(request.state,
+                                      request.body['tag_name'],
+                                      request.body['task_name'],
+                                      files=tag.files,
+                                      action=tag_mq_data.ACTION_OVERWRITE,
+                                      metadata=tag.metadata,
+                                      recursive=False,
+                                      expand=False,
+                                      compressDir='/mnt/output' if request.body.get('compress', False) else None)
         else:
             newTag = yield www_tags.tagData('localhost',
                                             request.body['dst_cluster'],
                                             request.body['user_name'],
-                                            action=tag_data.ACTION_OVERWRITE,
+                                            action=tag_mq_data.ACTION_OVERWRITE,
                                             tagName=tag.tagName,
                                             files=tag.files,
                                             metadata=tag.metadata,
@@ -356,15 +356,15 @@ def _handleTransferTag(request):
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.update(numTasks=1).progress())
     else:
-        yield tag_data.tagData(request.state,
-                               request.body['tag_name'],
-                               request.body['task_name'],
-                               files=[],
-                               action=tag_data.ACTION_APPEND,
-                               metadata={},
-                               recursive=False,
-                               expand=False,
-                               compressDir='/mnt/output' if request.body.get('compress', False) else None)
+        yield tag_mq_data.tagData(request.state,
+                                  request.body['tag_name'],
+                                  request.body['task_name'],
+                                  files=[],
+                                  action=tag_mq_data.ACTION_APPEND,
+                                  metadata={},
+                                  recursive=False,
+                                  expand=False,
+                                  compressDir='/mnt/output' if request.body.get('compress', False) else None)
         
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress(2))

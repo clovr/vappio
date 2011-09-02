@@ -4,7 +4,7 @@ import pymongo
 
 from xml.dom import minidom
 
-from twisted.python import log
+from igs.utils import logging
 
 from twisted.internet import threads
 from twisted.internet import defer
@@ -36,12 +36,13 @@ class Error(Exception):
     pass
 
 def _log(p, msg):
-    log.msg('MONITOR: ' + p.pipelineName + ' - ' + msg)
+    logging.debugPrint(lambda : 'MONITOR: ' + p.pipelineName + ' - ' + msg)
 
 class MonitorState:
-    def __init__(self, conf, machineconf, mq, pipeline, retries):
-        self.conf = conf
-        self.machineconf = machineconf
+    def __init__(self, requestState, mq, pipeline, retries):
+        self.requestState = requestState
+        self.conf = requestState.conf
+        self.machineconf = requestState.machineconf
         self.mq = mq
         self.pipeline = pipeline
         self.f = None
@@ -194,8 +195,8 @@ def _updatePipelineChildren(state):
     # Load the latest version of the pipeline, someone could have added
     # children inbetween
     try:
-        pl = yield persist.loadPipelineBy({'task_name': state.pipeline.taskName},
-                                          state.pipeline.userName)
+        pl = yield state.requestState.pipelinePersist.loadPipelineBy({'task_name': state.pipeline.taskName},
+                                                                     state.pipeline.userName)
 
 
         numSteps, completedSteps = yield _sumChildrenPipelines(state, pl)
@@ -266,7 +267,7 @@ def _idle(state, event):
                                           _waitForPipelineXmlRunningAndLoop,
                                           state)
     else:
-        log.msg(repr(event))
+        logging.debugPrint(lambda : repr(event))
 
 @defer.inlineCallbacks
 def _running(state, event):

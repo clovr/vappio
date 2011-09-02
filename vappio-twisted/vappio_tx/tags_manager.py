@@ -21,39 +21,46 @@ from igs_tx.utils import defer_pipe
 
 from vappio_tx.utils import queue
 from vappio_tx.utils import core as vappio_tx_core
-from vappio_tx.utils import mongo_cache
 
 from vappio_tx.mq import client
 
 from vappio_tx.tasks import tasks as tasks_tx
 
-from vappio_tx.tags import tag_data
-from vappio_tx.tags import delete_tag
-from vappio_tx.tags import tag_list
-from vappio_tx.tags import transfer_tag
-from vappio_tx.tags import realize_phantom
+from vappio_tx.tags import persist
+from vappio_tx.tags import tags_cache
+
+from vappio_tx.tags import tag_mq_data
+from vappio_tx.tags import tag_mq_delete
+from vappio_tx.tags import tag_mq_list
+from vappio_tx.tags import tag_mq_transfer
+from vappio_tx.tags import tag_mq_realize_phantom
+
+from vappio_tx.tags import tag_notify
 
 class State:
     def __init__(self, conf):
         self.conf = conf
-        self.tagsCache = None
-        self.tagsLiteCache = None
+        self.tagPersist = persist.TagPersistManager(self.conf)
+        self.tagsCache = tags_cache.TagsCache(self.tagPersist)
+        self.tagsLiteCache = tags_cache.TagsLiteCache(self.tagsCache)
+        self.tagNotify = None
         # We are going to want to serialize operations on tags
         self.tagLocks = {}
 
 @defer.inlineCallbacks
 def _subscribeToQueues(mq, state):
-    state.tagsCache = yield mongo_cache.createCache('tags_cache',
-                                                    lambda d : func.updateDict(d, {'_id': d['tag_name']}))
+    state.tagNotify = tag_notify.TagNotify(mq, state.tagPersist)
+     
+    yield state.tagsCache.initialize()
+    yield state.tagsLiteCache.initialize()
 
-    state.tagsLiteCache = yield mongo_cache.createCache('tags_lite_cache',
-                                                        lambda d : func.updateDict(d, {'_id': d['tag_name']}))
+
     
-    tag_data.subscribe(mq, state)
-    delete_tag.subscribe(mq, state)
-    tag_list.subscribe(mq, state)
-    transfer_tag.subscribe(mq, state)
-    realize_phantom.subscribe(mq, state)
+    tag_mq_data.subscribe(mq, state)
+    tag_mq_delete.subscribe(mq, state)
+    tag_mq_list.subscribe(mq, state)
+    tag_mq_transfer.subscribe(mq, state)
+    tag_mq_realize_phantom.subscribe(mq, state)
     
 def makeService(conf):
     mqService = client.makeService(conf)

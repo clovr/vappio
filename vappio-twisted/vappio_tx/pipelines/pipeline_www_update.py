@@ -6,10 +6,7 @@ from igs_tx.utils import defer_pipe
 
 from vappio_tx.utils import queue
 
-from vappio_tx.pipelines import pipeline_www_list
-
 from vappio_tx.pipelines import pipeline_misc
-from vappio_tx.pipelines import persist
 
 class Error(Exception):
     pass
@@ -29,14 +26,11 @@ def handleWWWUpdatePipelineConfig(request):
     Output:
     None
     """
-    pipelines = yield persist.loadAllPipelinesBy(request.body['criteria'],
-                                                 request.body['user_name'])
+    pipelines = yield request.state.pipelinePersist.loadAllPipelinesBy(request.body['criteria'],
+                                                                       request.body['user_name'])
     if len(pipelines) == 1:
         p = pipelines[0].update(config=config.configFromMap(request.body['config']))
-        yield persist.savePipeline(p)
-        pipelineDict = yield pipeline_www_list.pipelineToDict(request.state.machineconf,
-                                                              p)
-        yield request.state.pipelinesCache.save(pipelineDict)
+        yield request.state.pipelinePersist.savePipeline(p)
     else:
         raise Error('More than one pipelines matches provided criteria: ' + repr(request.body['criteria']))
 

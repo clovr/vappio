@@ -2,6 +2,8 @@
 # This is a queue that takes functions that return a deferred and runs N in parallel
 from twisted.internet import defer
 
+from twisted.python import log
+
 from igs.utils import dependency
 
 class DeferWorkQueue(dependency.Dependable):
@@ -16,12 +18,12 @@ class DeferWorkQueue(dependency.Dependable):
         self.work = []
         self.running = 0
 
-    def add(self, work):
-        self.work.append(work)
+    def add(self, work, *args, **kwargs):
+        self.work.append((work, args, kwargs))
         self._runWork()
 
     def extend(self, works):
-        self.work.extend(works)
+        self.work.extend([(w, [], {}) for w in works])
         self._runWork()
 
 
@@ -32,12 +34,13 @@ class DeferWorkQueue(dependency.Dependable):
         
         if self.running < self.parallel and self.work:
             while self.running < self.parallel and self.work:
-                work = self.work.pop(0)
-                d = defer.maybeDeferred(work)
+                work, args, kwargs = self.work.pop(0)
+                d = defer.maybeDeferred(work, *args, **kwargs)
                 self.running += 1
+                d.addErrback(lambda f : log.err(f))
                 d.addCallback(_nextWork)
 
-        self.change('running', self.running)
+        self.changed('running', self.running)
         
 
 def waitForCompletion(dwq):

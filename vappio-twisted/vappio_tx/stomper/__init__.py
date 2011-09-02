@@ -162,6 +162,9 @@ class Frame(object):
 
         return msg
 
+    def __str__(self):
+        return '%r %r %r' % (self.cmd, self.headers, self.body)
+
 
 def unpack_frame(message):
     """

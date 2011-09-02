@@ -14,10 +14,9 @@ from igs_tx.utils import errors
 
 from vappio_tx.utils import queue
 
-from vappio_tx.tasks import tasks as tasks_tx
-
 from vappio_tx.tags import persist
-from vappio_tx.tags import tag_list
+
+from vappio_tx.tasks import tasks as tasks_tx
 
 ACTION_APPEND = 'append'
 ACTION_OVERWRITE = 'overwrite'
@@ -168,7 +167,7 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
 
     if action == ACTION_APPEND:
         try:
-            tag = yield persist.loadTag(state.conf, tagName)
+            tag = yield state.tagPersist.loadTag(tagName)
             metadata = func.updateDict(tag.metadata, metadata)
             oldFiles = set(tag.files)
         except persist.TagNotFoundError:
@@ -199,20 +198,19 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
         tag.metadata = func.updateDict(tag.metadata,
                                        {'compressed': False})
 
-    yield persist.saveTag(state.conf, tag)
+    yield state.tagPersist.saveTag(tag)
 
     # The tag we saved at phantom set to None, but this could be a
     # phantom tag, in which case we are going to reload it from disk
     # then cache that in order to load any phantom information
-    tag = yield persist.loadTag(state.conf, tag.tagName)
-    
-    yield tag_list.cacheTag(state, tag)
+    tag = yield state.tagPersist.loadTag(tag.tagName)
     
     defer.returnValue(tag)
 
 def _restrictDirs(f):
     for d in RESTRICTED_DIRS:
-        if f.startswith(d):
+        # Special case for Hudson tests
+        if f.startswith(d) and not f.startswith('/opt/hudson/'):
             return False
 
     return True
@@ -260,7 +258,7 @@ def _validateAction(request):
     @defer.inlineCallbacks
     def _tagExists(conf, tagName):
         try:
-            yield persist.loadTag(conf, tagName)
+            yield request.state.tagPersist.loadTag(tagName)
             defer.returnValue(True)
         except persist.TagNotFoundError:
             defer.returnValue(False)
@@ -284,7 +282,7 @@ def _validateAction(request):
                               {},
                               None,
                               None)
-            yield persist.saveTag(request.state.conf, tag)
+            yield request.state.tagPersist.saveTag(tag)
         defer.returnValue(request)
 
     lock = request.state.tagLocks.setdefault(request.body['tag_name'], defer.DeferredLock())

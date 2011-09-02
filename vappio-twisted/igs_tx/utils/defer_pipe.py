@@ -70,9 +70,7 @@ def runPipeCurry(m):
 
 def pipe(fs):
     def _runf(a, f):
-        d = f(a)
-        assert isinstance(d, defer.Deferred)
-        return d
+        return defer.maybeDeferred(f, a)
     
     def _(v):
         return defer_utils.fold(_runf, v, fs)

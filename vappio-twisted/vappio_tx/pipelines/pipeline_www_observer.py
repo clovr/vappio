@@ -1,6 +1,6 @@
 import json
 
-from twisted.python import log
+from igs.utils import logging
 
 from igs_tx.utils import defer_pipe
 
@@ -23,7 +23,7 @@ def handleWWWObserver(request):
     Output:
     None
     """
-    log.msg(request.body)
+    logging.debugPrint(lambda : repr(request.body))
     request.mq.send('/queue/pipelines/observer/' + request.body['props'],
                     json.dumps(request.body))
     return defer_pipe.ret(request.update(response=None))

@@ -4,22 +4,20 @@ from igs_tx.utils import defer_pipe
 
 from vappio_tx.utils import queue
 
-from vappio_tx.pipelines import pipeline_www_list
-
 from vappio_tx.pipelines import pipeline_run
 from vappio_tx.pipelines import pipeline_misc
-from vappio_tx.pipelines import persist
 
 @defer.inlineCallbacks
 def handleWWWResumePipeline(request):
-    pipeline = yield persist.loadPipelineBy({'pipeline_name': request.body['pipeline_name']},
-                                             request.body['user_name'])
+    pipeline = yield request.state.pipelinePersist.loadPipelineBy({'pipeline_name': request.body['pipeline_name']},
+                                                                  request.body['user_name'])
     yield pipeline_run.resume(pipeline)
     yield pipeline_misc.monitor_resume(request, pipeline)
 
-    pipelineLite = yield pipeline_www_list.pipelineToDictLite(request.state.machineconf,
-                                                              pipeline)
-    defer.returnValue(request.update(response=pipelineLite))
+    pipelineDict = yield request.state.pipelineCache.cache.query({'pipeline_name': request.body['pipeline_name'],
+                                                                  'user_name': request.body['user_name']})
+
+    defer.returnValue(request.update(response=pipelineDict))
 
 
 def subscribe(mq, state):

@@ -8,8 +8,6 @@ from vappio_tx.www_client import pipelines as pipelines_www_client
 
 from vappio_tx.utils import queue
 
-from vappio_tx.pipelines import pipeline_www_list
-
 from vappio_tx.pipelines import pipeline_misc
 from vappio_tx.pipelines import persist
 
@@ -99,8 +97,8 @@ def handleWWWRunPipeline(request):
     
     # If the parent pipeline is set and doesn't exist, error
     if request.body.get('parent_pipeline'):
-        parentPipelines = yield persist.loadAllPipelinesBy({'pipeline_name': request.body['parent_pipeline']},
-                                                           request.body['user_name'])
+        parentPipelines = yield request.state.pipelinePersist.loadAllPipelinesBy({'pipeline_name': request.body['parent_pipeline']},
+                                                                                 request.body['user_name'])
         if not parentPipelines:
             raise InvalidParentPipeline(request.body['parent_pipeline'])
 
@@ -129,19 +127,19 @@ def handleWWWRunPipeline(request):
             if request.body.get('overwrite', False):
                 raise persist.PipelineNotFoundError('flow control')
             
-            existingPipeline = yield persist.loadPipelineBy({'checksum': checksum,
-                                                             'protocol': protocol},
-                                                            request.body['user_name'])
-            pipelineLite = yield pipeline_www_list.pipelineToDictLite(request.state.machineconf,
-                                                                      existingPipeline)
-            defer.returnValue(request.update(response=pipelineLite))
+            existingPipeline = yield request.state.pipelinePersist.loadPipelineBy({'checksum': checksum,
+                                                                                   'protocol': protocol},
+                                                                                  request.body['user_name'])
+            pipelineDict = yield request.state.pipelinesCache.waitForCache('save',
+                                                                           lambda p : p['pipeline_name'] == existingPipeline.pipelineName)
+            defer.returnValue(request.update(response=pipelineDict))
         except persist.PipelineNotFoundError:
             pipeline = yield _createPipeline(request)
-            yield persist.savePipeline(pipeline)
-            pipelineDict = yield pipeline_www_list.pipelineToDict(request.state.machineconf,
-                                                                  pipeline)
-            yield request.state.pipelinesCache.save(pipelineDict)
-            pipelineLite = pipeline_www_list.removeDetail(pipelineDict)
+            yield request.state.pipelinePersist.savePipeline(pipeline)
+
+            pipelineDict = yield request.state.pipelinesCache.waitForCache('save',
+                                                                           lambda p : p['pipeline_name'] == pipeline.pipelineName)
+
             # We want to do a deeper validation of the configuration and then run the pipeline.
             # Then we want to monitor it both through the ergatis observer and a timed update
             # of any children it has.
@@ -156,7 +154,7 @@ def handleWWWRunPipeline(request):
             # is somewhat lazy, and can be easily fixed in the future if it is an issue
             d = pipeline_misc.deepValidation(request, pipeline)
             d.addCallback(lambda p : pipeline_misc.runPipeline(request, p))
-            d.addCallback(lambda p : persist.savePipeline(p).addCallback(lambda _ : p))
+            d.addCallback(lambda p : request.state.pipelinePersist.savePipeline(p).addCallback(lambda _ : p))
             d.addCallback(lambda p : pipeline_misc.monitor_run(request, p))
             d.addErrback(lambda f : tasks_tx.updateTask(pipeline.taskName,
                                                         lambda t : t.setState(tasks_tx.task.TASK_FAILED).addFailure(f)))
@@ -164,9 +162,9 @@ def handleWWWRunPipeline(request):
             if parentPipeline:
                 parentPipeline = parentPipeline.update(children=parentPipeline.children + [('local',
                                                                                             pipeline.pipelineName)])
-                yield persist.savePipeline(parentPipeline)
+                yield request.state.pipelinePersist.savePipeline(parentPipeline)
 
-            defer.returnValue(request.update(response=pipelineLite))
+            defer.returnValue(request.update(response=pipelineDict))
     else:
         pipelineLite = yield _startRemotePipeline(request)
 
@@ -175,9 +173,9 @@ def handleWWWRunPipeline(request):
         
         if parentPipeline and childPipeline not in parentPipeline.children:
             parentPipeline = parentPipeline.update(children=parentPipeline.children + childPipeline)
-            yield persist.savePipeline(parentPipeline)
+            yield request.state.pipelinePersist.savePipeline(parentPipeline)
 
-        defer.returnValue(request.update(response=pipelineLite))
+        defer.returnValue(request.update(response=pipelineDict))
 
 
 
