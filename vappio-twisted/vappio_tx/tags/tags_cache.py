@@ -29,6 +29,8 @@ class TagsCache(dependency.Dependable):
         for tagName in tags:
             yield self.persistManager.loadTag(tagName)
 
+        yield defer_work_queue.waitForCompletion(self.workQueue)
+
 
     def update(self, who, aspect, value):
         if aspect == 'load':
