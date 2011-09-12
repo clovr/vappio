@@ -8,8 +8,8 @@ from vappio_tx.pipelines import pipeline_misc
 
 @defer.inlineCallbacks
 def handleWWWResumePipeline(request):
-    pipelineMonitor = request.state.pipelinesMonitor.findByPipelineName(request.body['pipeline_name'],
-                                                                        request.body['user_name'])
+    pipelineMonitor = request.state.pipelinesMonitor.findMonitor(request.body['pipeline_name'],
+                                                                 request.body['user_name'])
     if not pipelineMonitor or pipelineMonitor.state() == 'failed':
         pipeline = yield request.state.pipelinePersist.loadPipelineBy({'pipeline_name': request.body['pipeline_name']},
                                                                       request.body['user_name'])
