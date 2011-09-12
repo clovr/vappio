@@ -178,6 +178,7 @@ class PipelineMonitor(dependency.Dependable):
     def _sumChildrenPipelines(self, pl):
         numSteps = 0
         completedSteps = 0
+        messages = []
 
         for cl, remotePipelineName in pl.children:
             try:
@@ -196,10 +197,11 @@ class PipelineMonitor(dependency.Dependable):
 
                 numSteps += remoteTask['numTasks']
                 completedSteps += remoteTask['completedTasks']
+                messages += remoteTask['messages']
             except Exception, err:
                 log.err(err)
 
-        defer.returnValue((numSteps, completedSteps))
+        defer.returnValue({'num_steps': numSteps, 'completed_steps': completedSteps, 'messages': messages})
             
     @defer.inlineCallbacks
     def _updatePipelineChildren(self):
@@ -214,15 +216,17 @@ class PipelineMonitor(dependency.Dependable):
                                                                          self.pipeline.userName)
 
 
-            numSteps, completedSteps = yield self._sumChildrenPipelines(pl)
-            self.childrenSteps = numSteps
-            self.childrenCompletedSteps = completedSteps
+            childrenInfo = yield self._sumChildrenPipelines(pl)
+            self.childrenSteps = childrenInfo['num_steps']
+            self.childrenCompletedSteps = childrenInfo['completed_steps']
 
             pipelineXml = self._pipelineXmlPath()
             completed, total = yield threads.deferToThread(_pipelineProgress, pipelineXml)
 
             self.changed('task_count', {'completed': self.childrenCompletedSteps + completed,
                                         'total': self.childrenSteps + total})
+
+            self.changed('messages', childrenInfo['messages'])
 
             yield self._updatePipelineState()
             yield self._loopUpdatePipelineChildren()
@@ -363,6 +367,9 @@ class PipelineMonitor(dependency.Dependable):
         self._log('In failed message, got message')
         if event['event'] == 'finish' and event['name'] == 'start pipeline:':
             self._log('Message is pipeline finish')
+        elif event['event'] == 'start' and event['name'] == 'start pipeline:':
+            self._log('In failed state but got that the pipeline start, handing to idle state')
+            self.STATE_IDLE(event)
 
 
 class PipelineMonitorManager:

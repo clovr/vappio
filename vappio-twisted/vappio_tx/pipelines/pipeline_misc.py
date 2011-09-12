@@ -1,6 +1,8 @@
 import os
 import hashlib
 
+from twisted.python import log
+
 from twisted.internet import defer
 
 from igs.utils import logging
@@ -52,8 +54,23 @@ class TaskPipeline:
         elif aspect == 'task_count':
             self.updateTask(lambda t : t.update(numTasks=value['total'],
                                                 completedTasks=value['completed']))
+        elif aspect == 'step_completed':
+            self.updateTask(lambda t : t.addMessage(tasks_tx.task.MSG_SILENT, 'Completed ' + value))
+        elif aspect == 'messages':
+            self.updateTask(lambda t : self._updateMessages(t, value))
 
         self.forceRefresh()
+
+    def _updateMessages(self, task, messages):
+        if task.messages:
+            lastChecked = task.messages[-1]['timestamp']
+        else:
+            lastChecked = None
+
+        latestMessages = [m for m in messages
+                          if not lastChecked or lastChecked < m['timestamp']]
+        
+        return task.update(messages=task.messages + latestMessages)
             
 
         
@@ -76,8 +93,6 @@ class TaskResumePipeline(TaskPipeline):
         elif state in ['running', 'waiting_to_restart']:
             self.updateTask(lambda t : t.setState(tasks_tx.task.TASK_RUNNING))
 
-        self.updateTask(lambda t : t.update(numTasks=self.monitor.childrenSteps,
-                                            completedTasks=self.monitor.childrenCompletedSteps))
         self.monitor.addDependent(self)
         self.forceRefresh()
 
@@ -98,8 +113,6 @@ class TaskRunPipeline(TaskPipeline):
         else:
             self.updateTask(self._stateActions[state])
             
-        self.updateTask(lambda t : t.update(numTasks=self.monitor.childrenSteps,
-                                            completedTasks=self.monitor.childrenCompletedSteps))
         self.monitor.addDependent(self)
         self.forceRefresh()
 
