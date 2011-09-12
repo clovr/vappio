@@ -12,7 +12,7 @@ from igs_tx.utils import commands
 
 from vappio_tx.utils import queue
 
-from vappio_tx.tags import tag_data
+from vappio_tx.tags import tag_mq_data
 
 from vappio_tx.www_client import clusters as www_clusters
 
@@ -78,15 +78,15 @@ def handleRealizePhantom(request):
                                   lambda t : t.addMessage(tasks_tx.task.MSG_ERROR, str(err)))
         raise err
 
-    yield tag_data.tagData(request.state,
-                           tagName=request.body['tag_name'],
-                           taskName=request.body['task_name'],
-                           files=[dstTagPath],
-                           metadata=metadata,
-                           action=tag_data.ACTION_OVERWRITE,
-                           recursive=True,
-                           expand=True,
-                           compressDir=None)
+    yield tag_mq_data.tagData(request.state,
+                              tagName=request.body['tag_name'],
+                              taskName=request.body['task_name'],
+                              files=[dstTagPath],
+                              metadata=metadata,
+                              action=tag_data.ACTION_OVERWRITE,
+                              recursive=True,
+                              expand=True,
+                              compressDir=None)
 
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.progress())
