@@ -15,9 +15,9 @@ def handleWWWResumePipeline(request):
                                                                       request.body['user_name'])
         yield pipeline_misc.resumePipeline(request, pipeline)
 
-    pipelineDict = yield request.state.pipelinesCache.cache.query({'pipeline_name': request.body['pipeline_name'],
-                                                                   'user_name': request.body['user_name']})
-    defer.returnValue(request.update(response=pipelineDict))
+    pipelineDicts = yield request.state.pipelinesCache.cache.query({'pipeline_name': request.body['pipeline_name'],
+                                                                    'user_name': request.body['user_name']})
+    defer.returnValue(request.update(response=pipelineDicts[0]))
 
 
 def subscribe(mq, state):
