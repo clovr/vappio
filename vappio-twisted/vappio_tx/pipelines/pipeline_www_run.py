@@ -124,21 +124,21 @@ def handleWWWRunPipeline(request):
         
         try:
             # Pretty lame way to force control to the exceptional case
+            # We aren't in a try block just for this line, though.  The line
+            # that loads the pipeline could also fail
             if request.body.get('overwrite', False):
                 raise persist.PipelineNotFoundError('flow control')
             
             existingPipeline = yield request.state.pipelinePersist.loadPipelineBy({'checksum': checksum,
                                                                                    'protocol': protocol},
                                                                                   request.body['user_name'])
-            pipelineDict = yield request.state.pipelinesCache.waitForCache('save',
-                                                                           lambda p : p['pipeline_name'] == existingPipeline.pipelineName)
+
+            pipelineDict = yield request.state.pipelinesCache.pipelineToDict(existingPipeline)
+
             defer.returnValue(request.update(response=pipelineDict))
         except persist.PipelineNotFoundError:
             pipeline = yield _createPipeline(request)
             yield request.state.pipelinePersist.savePipeline(pipeline)
-
-            pipelineDict = yield request.state.pipelinesCache.waitForCache('save',
-                                                                           lambda p : p['pipeline_name'] == pipeline.pipelineName)
 
             # We want to do a deeper validation of the configuration and then run the pipeline.
             # Then we want to monitor it both through the ergatis observer and a timed update
@@ -150,14 +150,16 @@ def handleWWWRunPipeline(request):
             # request and pipleine onto the queue for another handler to pick up
             # like we do in many other cases because we don't have to.  Deeper
             # validation is through a tasklet which is rate limited and submitting
-            # a pipeline and monitoring it are all fairly light operations.  This
-            # is somewhat lazy, and can be easily fixed in the future if it is an issue
+            # a pipeline and monitoring it are all fairly light operations.
             d = pipeline_misc.deepValidation(request, pipeline)
             d.addCallback(lambda p : pipeline_misc.runPipeline(request, p))
-            d.addCallback(lambda p : request.state.pipelinePersist.savePipeline(p).addCallback(lambda _ : p))
-            d.addCallback(lambda p : pipeline_misc.monitor_run(request, p))
+            # runPipeline returns a pipeline monitor, not a pipeline
+            d.addCallback(lambda pm : request.state.pipelinePersist.savePipeline(pm.pipeline).addCallback(lambda _ : pm.pipeline))
             d.addErrback(lambda f : tasks_tx.updateTask(pipeline.taskName,
                                                         lambda t : t.setState(tasks_tx.task.TASK_FAILED).addFailure(f)))
+
+
+            pipelineDict = yield request.state.pipelinesCache.pipelineToDict(pipeline)
 
             if parentPipeline:
                 parentPipeline = parentPipeline.update(children=parentPipeline.children + [('local',

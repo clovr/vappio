@@ -4,7 +4,7 @@ import pymongo
 
 from xml.dom import minidom
 
-from igs.utils import logging
+from twisted.python import log
 
 from twisted.internet import threads
 from twisted.internet import defer
@@ -13,9 +13,9 @@ from twisted.internet import error as twisted_error
 
 from igs.xml import xmlquery
 
+from igs.utils import logging
 from igs.utils import core
-
-from vappio.tasks import task
+from igs.utils import dependency
 
 from igs_tx.utils import defer_pipe
 
@@ -28,37 +28,11 @@ from vappio_tx.www_client import tasks as tasks_www
 
 from vappio_tx.pipelines import pipeline_run
 
-from vappio_tx.pipelines import persist
-
 PIPELINE_UPDATE_FREQUENCY = 30
 
 class Error(Exception):
     pass
 
-def _log(p, msg):
-    logging.debugPrint(lambda : 'MONITOR: ' + p.pipelineName + ' - ' + msg)
-
-class MonitorState:
-    def __init__(self, requestState, mq, pipeline, retries):
-        self.requestState = requestState
-        self.conf = requestState.conf
-        self.machineconf = requestState.machineconf
-        self.mq = mq
-        self.pipeline = pipeline
-        self.f = None
-        self.retries = retries
-        self.childrenSteps = 0
-        self.childrenCompletedSteps = 0
-        # We want to serialize access to the task
-        self.taskLock = defer.DeferredLock()
-        # We get a lot of repeated messages for some reason, so storing
-        # the last message as not to post it twice
-        self.lastMsg = None
-
-        self.delayed = None
-
-def _queueName(state):
-    return '/queue/pipelines/observer/' + state.pipeline.taskName
 
 def _try(f):
     count = 10
@@ -71,6 +45,7 @@ def _try(f):
                 time.sleep(1)
             else:
                 raise
+
 
 def _pipelineProgress(workflowXML):
     doc = _try(lambda : minidom.parse(workflowXML))
@@ -109,310 +84,312 @@ def _cancelDelayed(state):
     except twisted_error.AlreadyCalled:
         pass
 
-@defer.inlineCallbacks
-def _sumChildrenPipelines(state, pl):
-    numSteps = 0
-    completedSteps = 0
 
-    for cl, remotePipelineName in pl.children:
-        try:
-            localTask = yield tasks_tx.loadTask(state.pipeline.taskName)
-            if localTask.messages:
-                lastChecked = localTask.messages[-1]['timestamp']
-            else:
-                lastChecked = None
-
-            remotePipelines = yield pipelines_www.pipelineList('localhost',
-                                                               cl,
-                                                               pl.userName,
-                                                               remotePipelineName,
-                                                               True)
-
-            remotePipeline = remotePipelines[0]
-
-            remoteTask = yield tasks_www.loadTask('localhost',
-                                                  cl,
-                                                  pl.userName,
-                                                  remotePipeline['task_name'])
-
-            numSteps += remoteTask['numTasks']
-            completedSteps += remoteTask['completedTasks']
-
-            messages = [m for m in remoteTask['messages']
-                        if not lastChecked or lastChecked < m['timestamp']]
-
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.update(messages=t.messages + messages))
-
-        except Exception, err:
-            log.err(err)
-
-    defer.returnValue((numSteps, completedSteps))
-
-
-@defer.inlineCallbacks
-def _loopUpdatePipelineChildren(state, pipelineState):
-    if state.f == _waitingToRestart:
-        _log(state.pipeline, 'Pipeline waiting to restart')
-        if pipelineState == tasks_tx.task.TASK_FAILED:
-            _log(state.pipeline, 'Pipeline waiting to restart in failed state, restarting')
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.addMessage(tasks_tx.task.MSG_NOTIFICATION,
-                                                             'Restarting pipeline').setState(tasks_tx.task.TASK_IDLE))
-            yield pipeline_run.resume(state.pipeline)
-            state.f = _idle
-            _log(state.pipeline, 'Restarted, moving to idle state')
-        else:
-            _log(state.pipeline, 'Pipeline waiting to restart, not in failed state, waiting longer')
-            state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                              _updatePipelineChildren,
-                                              state)
-    elif state.f == _running and pipelineState in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
-        _log(state.pipeline, 'Pipeline in running stated but failed or completed, unsubscribing %s' % pipelineState)
-        yield state.taskLock.run(tasks_tx.updateTask,
-                                 state.pipeline.taskName,
-                                 lambda t : t.setState(pipelineState))
-        _pipelineCompleted(state)
-    elif pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
-        _log(state.pipeline, 'Looping')
-        # Call ourselves again if the pipeline is not finished and the delayed call hasn't already been
-        # cancelled
-        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                          _updatePipelineChildren,
-                                          state)
-    
-def _pipelineXmlPath(state):
-    return state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId.replace('\n', ''))
-    
-@defer.inlineCallbacks
-def _updatePipelineChildren(state):
-    """
-    Takes a pipeline and updates any children pipeline task information, putting
-    it in the parents
-    """
-    # Load the latest version of the pipeline, someone could have added
-    # children inbetween
-    try:
-        pl = yield state.requestState.pipelinePersist.loadPipelineBy({'task_name': state.pipeline.taskName},
-                                                                     state.pipeline.userName)
-
-
-        numSteps, completedSteps = yield _sumChildrenPipelines(state, pl)
-        state.childrenSteps = numSteps
-        state.childrenCompletedSteps = completedSteps
-
-        pipelineXml = _pipelineXmlPath(state)
-        completed, total = yield threads.deferToThread(_pipelineProgress, pipelineXml)
+class PipelineMonitor(dependency.Dependable):
+    def __init__(self, requestState, mq, pipeline, retries):
+        dependency.Dependable.__init__(self)
         
-        yield state.taskLock.run(tasks_tx.updateTask,
-                                 state.pipeline.taskName,
-                                 lambda t : t.update(numTasks=numSteps + total,
-                                                     completedTasks=completedSteps + completed))
+        self.requestState = requestState
+        self.conf = requestState.conf
+        self.machineconf = requestState.machineconf
+        self.mq = mq
+        self.pipeline = pipeline
+        self.stateF = None
+        self.retries = retries
+        self.childrenSteps = 0
+        self.childrenCompletedSteps = 0
+        # We get a lot of repeated messages for some reason, so storing
+        # the last message as not to post it twice
+        self.lastMsg = None
 
-        pipelineXml = _pipelineXmlPath(state)
+        self.delayed = None
+        self.delayedLock = defer.DeferredLock()
+        
+        self.pipelineState = None
+
+    def _log(self, msg):
+        if logging.DEBUG:
+            log.msg('MONITOR: ' + self.pipeline.pipelineName + ' - ' + msg)
+        #logging.debugPrint(lambda : 'MONITOR: ' + self.pipeline.pipelineName + ' - ' + msg)
+        
+    def _queueName(self):
+        return '/queue/pipelines/observer/' + self.pipeline.taskName
+        
+    @defer.inlineCallbacks
+    def _handleEventMessage(self, request):
+        if self.stateF:
+            yield defer.maybeDeferred(self.stateF, request.body)
+        defer.returnValue(request)
+
+    def _subscribe(self):
+        processEvent = defer_pipe.pipe([queue.keysInBody(['id',
+                                                          'file',
+                                                          'event',
+                                                          'retval',
+                                                          'props',
+                                                          'host',
+                                                          'time',
+                                                          'name',
+                                                          'message']),
+                                        self._handleEventMessage])
+        
+        queue.subscribe(self.mq,
+                        self._queueName(),
+                        1,
+                        queue.wrapRequestHandler(None, processEvent))
+
+    def _unsubscribe(self):
+        self.mq.unsubscribe(self._queueName())
+    
+    @defer.inlineCallbacks
+    def _updatePipelineState(self):
+        pipelineXml = self.conf('ergatis.pipeline_xml').replace('???', self.pipeline.pipelineId)
+        pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
+        if self.pipelineState != pipelineState:
+            self.pipelineState = pipelineState
+            self.changed('pipeline_state', self.pipelineState)
+
+    def _pipelineXmlPath(self):
+        return self.conf('ergatis.pipeline_xml').replace('???', self.pipeline.pipelineId.replace('\n', ''))
+
+    @defer.inlineCallbacks
+    def _waitForPipelineXmlRunningAndLoop(self):
+        """
+        Waits for a pipeline xml to come into running state then switches over to
+        _updatePipelineChildren
+        """
+        pipelineXml = self._pipelineXmlPath()
         pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
 
-        yield _loopUpdatePipelineChildren(state, pipelineState)
-    except pymongo.errors.AutoReconnect:
-        _log(state.pipeline, 'Error connecting to mongo db, looping and trying again')
-        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                          _updatePipelineChildren,
-                                          state)
-    except Exception, err:
-        _log(state.pipeline, 'Got error %s, looping' % (str(err),))
-        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                          _updatePipelineChildren,
-                                          state)        
-
-@defer.inlineCallbacks
-def _waitForPipelineXmlRunningAndLoop(state):
-    """
-    Waits for a pipeline xml to come into running state then switches over to
-    _updatePipelineChildren
-    """
-    pipelineXml = _pipelineXmlPath(state)
-    pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
-
-    if state.f == _running and pipelineState == tasks_tx.task.TASK_RUNNING:
-        _log(state.pipeline, 'Pipeline state is running and we are in state running, switching')
-        yield _updatePipelineChildren(state)
-    elif state.f == _running:
-        _log(state.pipeline, 'State is %s or we are not _running, looping' % pipelineState)
-        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                          _waitForPipelineXmlRunningAndLoop,
-                                          state)
-    else:
-        _log(state.pipeline, 'Pipeline state is %s, state function is not _running, switching' % pipelineState)
-        yield _updatePipelineChildren(state)
-        
-def _pipelineCompleted(state):
-    state.mq.unsubscribe(_queueName(state))
-        
-# These are the different state functions
-@defer.inlineCallbacks
-def _idle(state, event):
-    """
-    Waiting for the pipeline to start
-    """
-    _log(state.pipeline, 'In idle state, got message')
-    if event['event'] == 'start' and event['name'] == 'start pipeline:':
-        yield state.taskLock.run(tasks_tx.updateTask,
-                                 state.pipeline.taskName,
-                                 lambda t : t.setState(task.TASK_RUNNING))
-        state.f = _running
-        _log(state.pipeline, 'Got start message, switching to running state, starting update loop')
-        state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                          _waitForPipelineXmlRunningAndLoop,
-                                          state)
-    else:
-        logging.debugPrint(lambda : repr(event))
-
-@defer.inlineCallbacks
-def _running(state, event):
-    """
-    Pipeline is running, looking for failures or completion
-    """
-    _log(state.pipeline, 'In running state, got message')
-    if event['event'] == 'finish' and event['retval'] and not int(event['retval']):
-        _log(state.pipeline, 'Got a finish message')
-        # Something has just finished successfully, read the XML to determine what
-        completed, total = yield threads.deferToThread(_pipelineProgress, event['file'])
-
-        yield state.taskLock.run(tasks_tx.updateTask,
-                                 state.pipeline.taskName,
-                                 lambda t : t.update(numTasks=total + state.childrenSteps,
-                                                     completedTasks=completed + state.childrenCompletedSteps))
-        
-        if event['name'] != state.lastMsg:
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.addMessage(task.MSG_SILENT, 'Completed ' + event['name']))
-            state.lastMsg = event['name']
-
-        if event['name'] == 'start pipeline:':
-            _log(state.pipeline, 'Finish message is for entire pipeline, marking complete')
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.setState(task.TASK_COMPLETED).addMessage(task.MSG_NOTIFICATION, 'Pipeline completed successfully'))
-            _pipelineCompleted(state)
-    elif event['retval'] and int(event['retval']):
-        _log(state.pipeline, 'Got failure message')
-        # Something bad has happened
-        # Should we retry?
-        if state.retries > 0:
-            _log(state.pipeline, 'Retries left, going into waiting to restart state')
-            state.retries -= 1
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.addMessage(tasks_tx.task.MSG_NOTIFICATION,
-                                                             'Pipeline failed, waiting for it to finish and restarting'))
-            state.f = _waitingToRestart
+        if self.stateF == self.STATE_RUNNING and pipelineState == tasks_tx.task.TASK_RUNNING:
+            self._log('Pipeline state is running and we are in state running, switching')
+            yield self._updatePipelineChildren()
+        elif self.stateF == self.STATE_RUNNING:
+            self._log('State is %s or we are not _running, looping' % pipelineState)
+            self.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                             self.delayedLock.run,
+                                             self._waitForPipelineXmlRunningAndLoop)
         else:
-            def _setFailed(t):
-                if t.state != task.TASK_FAILED:
-                    return t.setState(task.TASK_FAILED).addMessage(task.MSG_ERROR, 'Task failed on step ' + event['name'])
-                else:
-                    return t
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     _setFailed)
-            state.f = _failed
-            _log(state.pipeline, 'No restarts left, going into failed state')
+            self._log('Pipeline state is %s, state function is not _running, switching' % pipelineState)
+            yield self._updatePipelineChildren()
 
-def _waitingToRestart(state, event):
-    """
-    Just wait for the pipeline to finish, someone else will change our state
-    """
-    _log(state.pipeline, 'In waiting to restart state, got message')
-    return defer.succeed(None)
 
-def _failed(state, event):
-    """
-    The pipeline failed and we can't restart (either it's not a restartable error or
-    we already tried and that failed), just waiting for the pipeline to finish
-    """
-    _log(state.pipeline, 'In failed message, got message')
-    if event['event'] == 'finish' and event['name'] == 'start pipeline:':
-        _log(state.pipeline, 'Message is pipeline finish, unsubscribing')
-        _pipelineCompleted(state)
+    @defer.inlineCallbacks
+    def _sumChildrenPipelines(self, pl):
+        numSteps = 0
+        completedSteps = 0
 
-    return defer.succeed(None)
+        for cl, remotePipelineName in pl.children:
+            try:
+                remotePipelines = yield pipelines_www.pipelineList('localhost',
+                                                                   cl,
+                                                                   pl.userName,
+                                                                   remotePipelineName,
+                                                                   True)
 
-def _handleEventMsg(request):
-    d = request.state.f(request.state, request.body)
-    d.addCallback(lambda _ : request)
-    return d
+                remotePipeline = remotePipelines[0]
 
-@defer.inlineCallbacks
-def monitor_run(state):
-    pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId)
-    pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
-    yield state.taskLock.run(tasks_tx.updateTask,
-                             state.pipeline.taskName,
-                             lambda t : t.setState(pipelineState))
+                remoteTask = yield tasks_www.loadTask('localhost',
+                                                      cl,
+                                                      pl.userName,
+                                                      remotePipeline['task_name'])
 
-    if pipelineState not in [tasks_tx.task.TASK_COMPLETED, tasks_tx.task.TASK_FAILED]:
-        if pipelineState == tasks_tx.task.TASK_IDLE:
-            state.f = _idle
-            _log(state.pipeline, 'Starting monitoring, initial state is idle')
-        else:
-            state.f = _running
-            _log(state.pipeline, 'Starting monitoring, initial state is running, xml says %s' % pipelineState)
-            state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY, _updatePipelineChildren, state)
+                numSteps += remoteTask['numTasks']
+                completedSteps += remoteTask['completedTasks']
+            except Exception, err:
+                log.err(err)
 
-        processEvent = defer_pipe.pipe([queue.keysInBody(['id',
-                                                          'file',
-                                                          'event',
-                                                          'retval',
-                                                          'props',
-                                                          'host',
-                                                          'time',
-                                                          'name',
-                                                          'message']),
-                                        _handleEventMsg])
-        
-        queue.subscribe(state.mq,
-                        _queueName(state),
-                        1,
-                        queue.wrapRequestHandler(state, processEvent))
+        defer.returnValue((numSteps, completedSteps))
+            
+    @defer.inlineCallbacks
+    def _updatePipelineChildren(self):
+        """
+        Takes a pipeline and updates any children pipeline task information, putting
+        it in the parents
+        """
+        # Load the latest version of the pipeline, someone could have added
+        # children inbetween
+        try:
+            pl = yield self.requestState.pipelinePersist.loadPipelineBy({'task_name': self.pipeline.taskName},
+                                                                         self.pipeline.userName)
+
+
+            numSteps, completedSteps = yield self._sumChildrenPipelines(pl)
+            self.childrenSteps = numSteps
+            self.childrenCompletedSteps = completedSteps
+
+            pipelineXml = self._pipelineXmlPath()
+            completed, total = yield threads.deferToThread(_pipelineProgress, pipelineXml)
+
+            self.changed('task_count', {'completed': self.childrenCompletedSteps + completed,
+                                        'total': self.childrenSteps + total})
+
+            yield self._updatePipelineState()
+            yield self._loopUpdatePipelineChildren()
+        except pymongo.errors.AutoReconnect:
+            self._log('Error connecting to mongo db, looping and trying again')
+            self.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                             self.delayedLock.run,
+                                             self._updatePipelineChildren)
+        except Exception, err:
+            self._log('Got error %s, looping' % (str(err),))
+            self.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                             self.delayedLock.run,
+                                             self._updatePipelineChildren)        
             
 
-@defer.inlineCallbacks
-def monitor_resume(state):
-    pipelineXml = state.conf('ergatis.pipeline_xml').replace('???', state.pipeline.pipelineId)
-    pipelineState = yield threads.deferToThread(_pipelineState, pipelineXml)
 
-    if pipelineState != tasks_tx.task.TASK_COMPLETED:
-        if pipelineState in [tasks_tx.task.TASK_IDLE, tasks_tx.task.TASK_FAILED]:
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.setState(tasks_tx.task.TASK_IDLE))
-            state.f = _idle
-            _log(state.pipeline, 'Pipeline not completed, initial state in idle')
-        else:
-            yield state.taskLock.run(tasks_tx.updateTask,
-                                     state.pipeline.taskName,
-                                     lambda t : t.setState(tasks_tx.task.TASK_RUNNING))            
-            state.f = _running
-            _log(state.pipeline, 'Pipeline not complete, initial state in running, xml state is %s' % pipelineState)
-            state.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
-                                              _updatePipelineChildren,
-                                              state)
+    @defer.inlineCallbacks
+    def _loopUpdatePipelineChildren(self):
+        if self.stateF == self.STATE_WAITING_TO_RESTART:
+            self._log('Pipeline waiting to restart')
+            if self.pipelineState == tasks_tx.task.TASK_FAILED:
+                self._log('Pipeline waiting to restart in failed state, restarting')
+                yield pipeline_run.resume(self.pipeline)
+                self.stateF = self.STATE_IDLE
+                self.changed('state', self.state())
+                self._log('Restarted, moving to idle state')
+            else:
+                self._log('Pipeline waiting to restart, not in failed state, waiting longer')
+                self.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                                 self.delayedLock.run,
+                                                 self._updatePipelineChildren)
+        elif self.stateF == self.STATE_RUNNING and self.pipelineState in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
+            self._log('Pipeline in running stated but failed or completed, unsubscribing %s' % pipelineState)
+            self.stateF = self.STATE_COMPLETED if pipelineState == tasks_tx.task.TASK_COMPLETED else self.STATE_FAILED
+            self.changed('state', self.state())
+        elif self.pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
+            self._log('Looping')
+            # Call ourselves again if the pipeline is not finished and the delayed call hasn't already been
+            # cancelled
+            self.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                             self.delayedLock.run,
+                                             self._updatePipelineChildren)
 
-        processEvent = defer_pipe.pipe([queue.keysInBody(['id',
-                                                          'file',
-                                                          'event',
-                                                          'retval',
-                                                          'props',
-                                                          'host',
-                                                          'time',
-                                                          'name',
-                                                          'message']),
-                                        _handleEventMsg])
+            
+    @defer.inlineCallbacks
+    def initialize(self):
+        yield self._updatePipelineState()
+
+        self._log('Pipeline state : ' + self.pipelineState)
         
-        queue.subscribe(state.mq,
-                        _queueName(state),
-                        1,
-                        queue.wrapRequestHandler(state, processEvent))    
+        if self.pipelineState == tasks_tx.task.TASK_COMPLETED:
+            self.stateF = self.STATE_COMPLETED
+            self.changed('state', self.state())
+        elif self.pipelineState == tasks_tx.task.TASK_FAILED:
+            self.stateF = self.STATE_FAILED
+            self.changed('state', self.state())
+        elif self.pipelineState == tasks_tx.task.TASK_IDLE:
+            self.stateF = self.STATE_IDLE
+            self.changed('state', self.state())
+        elif self.pipelineState == tasks_tx.task.TASK_RUNNING:
+            self.stateF = self.STATE_RUNNING
+            self.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                             self.delayedLock.run,
+                                             self._updatePipelineChildren)
+            self.changed('state', self.state())
+
+        self._subscribe()
+
+
+    def release(self):
+        if self.delayed:
+            self.delayedLock.run(self.delayed.cancel)
+        self._unsubscribe()
+
+    def state(self):
+        return {self.STATE_COMPLETED: 'completed',
+                self.STATE_IDLE: 'idle',
+                self.STATE_FAILED: 'failed',
+                self.STATE_RUNNING: 'running',
+                self.STATE_WAITING_TO_RESTART: 'waiting_to_restart',
+                None: None}[self.stateF]
+
+    def STATE_IDLE(self, event):
+        self._log('In idle state, got message')
+        if event['event'] == 'start' and event['name'] == 'start pipeline:':
+            self.stateF = self.STATE_RUNNING
+            self.changed('state', self.state())
+            
+            self._log('Got start message, switching to running state, starting update loop')
+            self.delayed = reactor.callLater(PIPELINE_UPDATE_FREQUENCY,
+                                             self.delayedLock.run,
+                                             self._waitForPipelineXmlRunningAndLoop)
+        else:
+            logging.debugPrint(lambda : repr(event))
+
+    @defer.inlineCallbacks
+    def STATE_RUNNING(self, event):
+        self._log('In running state, got message')
+        if event['event'] == 'finish' and event['retval'] and not int(event['retval']):
+            self._log('Got a finish message')
+            # Something has just finished successfully, read the XML to determine what
+            completed, total = yield threads.deferToThread(_pipelineProgress, event['file'])
+
+            self.changed('task_count', {'completed': completed + self.childrenCompletedSteps,
+                                        'total': total + self.childrenSteps})
+
+            if event['name'] != self.lastMsg:
+                self.changed('step_completed', event['name'])
+                self.lastMsg = event['name']
+
+            if event['name'] == 'start pipeline:':
+                self._log('Finish message is for entire pipeline, marking complete')
+                self.stateF = self.STATE_COMPLETED
+                self.changed('state', self.state())
+
+        elif event['retval'] and int(event['retval']):
+            self._log('Got failure message')
+            # Something bad has happened
+            # Should we retry?
+            if self.retries > 0:
+                self._log('Retries left, going into waiting to restart state')
+                self.retries -= 1
+                self.stateF = self.STATE_WAITING_TO_RESTART
+                self.changed('state', self.state())
+            else:
+                self.stateF = self.STATE_FAILED
+                self.changed('state', self.state())
+                self._log('No restarts left, going into failed state')
+        
+    def STATE_WAITING_TO_RESTART(self, event):
+        self._log('In waiting to restart, got message')
+
+
+    def STATE_COMPLETED(self, event):
+        self._log('In completed, got message')
+        
+    def STATE_FAILED(self, event):
+        self._log('In failed message, got message')
+        if event['event'] == 'finish' and event['name'] == 'start pipeline:':
+            self._log('Message is pipeline finish')
+
+
+class PipelineMonitorManager:
+    def __init__(self):
+        self.monitors = {}
+
+    def add(self, monitor):
+        """
+        Adds a monitor to the group being managed.  If a monitor for this
+        pipeline already exists then it is replaced, if it does not it is
+        added
+        """
+        self.monitors[(monitor.pipeline.pipelineName, monitor.pipeline.userName)] = monitor
+        return monitor
+
+    def remove(self, monitor):
+        """
+        Remove a specified monitor, if it exists.  The monitor is returned regardless.
+        """
+        return self.monitors.pop((monitor.pipeline.pipelineName, monitor.pipeline.userName), monitor)
+
+    def contains(self, monitor):
+        return monitor.pipeline.pipelineName in self.monitors
+
+    def findMonitor(self, pipelineName, userName):
+        """
+        Tries to locate a pipeline monitor by a pipeline name and user name. Returns None on failure.
+        """
+        return self.monitors.get((pipelineName, userName), None)
+    

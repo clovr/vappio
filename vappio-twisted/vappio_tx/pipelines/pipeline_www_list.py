@@ -8,7 +8,7 @@ from igs_tx.utils import defer_pipe
 
 from vappio_tx.utils import queue
 
-from vappio_tx.pipelines import pipeline_monitor
+from vappio_tx.pipelines import pipeline_misc
 
 
 def removeDetail(p):
@@ -42,10 +42,8 @@ def _monitorAnyPipelines(mq, state):
     pipelines = yield state.pipelinePersist.loadAllPipelinesByAdmin({})
     
     for p in pipelines:
-        pipeline_monitor.monitor_run(pipeline_monitor.MonitorState(state,
-                                                                   mq,
-                                                                   p,
-                                                                   state.conf('pipelines.retries')))
+        yield pipeline_misc.monitorPipeline(func.Record(state=state, mq=mq),
+                                            p)
         
     
 

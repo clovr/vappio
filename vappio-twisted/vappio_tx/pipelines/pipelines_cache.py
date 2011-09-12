@@ -37,8 +37,29 @@ class PipelinesCache(dependency.Dependable):
 
         pipelines = yield self.persistManager.loadAllPipelinesByAdmin({})
         for pipeline in pipelines:
-            self.workQueue.add(self._pipelineToDict, 'load', pipeline)
+            self.workQueue.add(self._pipelineToDictAndCache, 'load', pipeline)
 
+    def release(self):
+        """
+        Even though it doesn't do anything async, it still returns a deferred to be
+        symmetrical with initialize
+        """
+        self.persistManager.removeDependent(self)
+        self.tagNotify.removeDependent(self)
+        return defer.succeed(None)
+
+
+    def invalidate(self, pipelineName, userName):
+        @defer.inlineCallbacks
+        def _loadAndCache():
+            pipeline = yield self.persistManager.loadPipelineBy({'pipeline_name': pipelineName},
+                                                                userName)
+            yield self._pipelineToDictAndCache('save', pipeline)
+
+        self.workQueue.add(_loadAndCache)
+            
+        
+                                                             
 
     def update(self, who, aspect, value):
         if who == self.persistManager:
@@ -46,7 +67,7 @@ class PipelinesCache(dependency.Dependable):
                 # We don't want to do anything on load
                 pass
             elif aspect == 'save':
-                self.workQueue.add(self._pipelineToDict, aspect, value)
+                self.workQueue.add(self._pipelineToDictAndCache, aspect, value)
             elif aspect == 'remove':
                 self.workQueue.add(self.cache.remove, value)
         elif who == self.tagNotify:
@@ -58,32 +79,8 @@ class PipelinesCache(dependency.Dependable):
             elif aspect == 'remove':
                 pass
 
-
-    def waitForCache(self, waitAspect, f):
-        """
-        Takes a function and waits for it to evaluate to True on cached values.
-
-        NOTE:
-        This function is somewhat dangerous.  If the function will never evaluate to true
-        it will stick around forever
-        """
-        class _Waiter:
-            def __init__(self, cache):
-                self.cache = cache
-                self.cache.addDependent(self)
-                self.deferred = defer.Deferred()
-
-            def update(self, _who, aspect, value):
-                if aspect == waitAspect and f(value):
-                    self.cache.removeDependent(self)
-                    self.deferred.callback(value)
-
-        return _Waiter(self).deferred
-                    
-
-            
     @defer.inlineCallbacks
-    def _pipelineToDict(self, aspect, pipeline):
+    def pipelineToDict(self, pipeline):
         protocolConf = protocol_format.load(self.machineConf, pipeline.config('pipeline.PIPELINE_TEMPLATE'))
 
         inputTagsList = [pipeline.config(k).split(',')
@@ -128,6 +125,11 @@ class PipelinesCache(dependency.Dependable):
                         'config': config.configToDict(pipeline.config),
                         }
 
+        defer.returnValue(pipelineDict)
+
+    @defer.inlineCallbacks
+    def _pipelineToDictAndCache(self, aspect, pipeline):
+        pipelineDict = yield self.pipelineToDict(pipeline)
         yield self.cache.save(pipelineDict)
         self.changed(aspect, pipelineDict)
 

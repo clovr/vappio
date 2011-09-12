@@ -177,7 +177,7 @@ def t_credential(state, value, _params):
     try:
         yield credClient.listInstances()
         defer.returnValue(value)
-    except Exception, e:
+    except Exception:
         raise InvalidPipelineValue('"%s" is not a valid credential' % str(value))
 
 def t_random_pipeline_name(_state, value, params):

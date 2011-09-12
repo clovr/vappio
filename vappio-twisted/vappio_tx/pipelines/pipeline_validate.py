@@ -1,7 +1,5 @@
 from twisted.internet import defer
 
-from igs.utils import functional as func
-
 from igs_tx.utils import defer_work_queue
 
 from vappio_tx.pipelines import pipeline_types

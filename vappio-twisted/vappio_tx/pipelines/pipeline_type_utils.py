@@ -1,8 +1,6 @@
 # Various utilities to make it easier to do things with pipeline types
 import itertools
 
-from igs.utils import config
-
 def commonPrefix(s1, s2):
     """Finds the common prefix between two iterables"""
     return s1[:len(list(itertools.takewhile(lambda (x, y) : x == y, zip(s1, s2))))]

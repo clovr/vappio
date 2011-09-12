@@ -4,19 +4,19 @@ from igs_tx.utils import defer_pipe
 
 from vappio_tx.utils import queue
 
-from vappio_tx.pipelines import pipeline_run
 from vappio_tx.pipelines import pipeline_misc
 
 @defer.inlineCallbacks
 def handleWWWResumePipeline(request):
-    pipeline = yield request.state.pipelinePersist.loadPipelineBy({'pipeline_name': request.body['pipeline_name']},
-                                                                  request.body['user_name'])
-    yield pipeline_run.resume(pipeline)
-    yield pipeline_misc.monitor_resume(request, pipeline)
+    pipelineMonitor = request.state.pipelinesMonitor.findByPipelineName(request.body['pipeline_name'],
+                                                                        request.body['user_name'])
+    if not pipelineMonitor or pipelineMonitor.state() == 'failed':
+        pipeline = yield request.state.pipelinePersist.loadPipelineBy({'pipeline_name': request.body['pipeline_name']},
+                                                                      request.body['user_name'])
+        yield pipeline_misc.resumePipeline(request, pipeline)
 
-    pipelineDict = yield request.state.pipelineCache.cache.query({'pipeline_name': request.body['pipeline_name'],
-                                                                  'user_name': request.body['user_name']})
-
+    pipelineDict = yield request.state.pipelinesCache.cache.query({'pipeline_name': request.body['pipeline_name'],
+                                                                   'user_name': request.body['user_name']})
     defer.returnValue(request.update(response=pipelineDict))
 
 

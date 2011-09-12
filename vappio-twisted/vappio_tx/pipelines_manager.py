@@ -8,6 +8,7 @@ from vappio_tx.internal_client import tag_notify_listener
 
 from vappio_tx.pipelines import persist
 from vappio_tx.pipelines import pipelines_cache
+from vappio_tx.pipelines import pipeline_monitor
 
 from vappio_tx.pipelines import pipeline_www_list
 from vappio_tx.pipelines import pipeline_www_observer
@@ -25,6 +26,7 @@ class State:
         self.machineconf = config.configFromStream(open(conf('config.machine_conf')),
                                                    base=config.configFromEnv())
         self.pipelinesCache = pipelines_cache.PipelinesCache(self.machineconf, self.pipelinePersist, self.tagNotify)
+        self.pipelinesMonitor = pipeline_monitor.PipelineMonitorManager()
 
 
 @defer.inlineCallbacks
