@@ -83,7 +83,7 @@ def handleRealizePhantom(request):
                               taskName=request.body['task_name'],
                               files=[dstTagPath],
                               metadata=metadata,
-                              action=tag_data.ACTION_OVERWRITE,
+                              action=tag_mq_data.ACTION_OVERWRITE,
                               recursive=True,
                               expand=True,
                               compressDir=None)
