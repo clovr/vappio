@@ -168,10 +168,10 @@ def handleWWWRunPipeline(request):
 
             defer.returnValue(request.update(response=pipelineDict))
     else:
-        pipelineLite = yield _startRemotePipeline(request)
+        pipelineDict = yield _startRemotePipeline(request)
 
         childPipeline = [(request.body['cluster'],
-                          pipelineLite['pipeline_name'])]
+                          pipelineDict['pipeline_name'])]
         
         if parentPipeline and childPipeline not in parentPipeline.children:
             parentPipeline = parentPipeline.update(children=parentPipeline.children + childPipeline)
