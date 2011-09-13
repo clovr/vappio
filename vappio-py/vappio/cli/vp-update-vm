@@ -22,7 +22,10 @@ def _applyPatches(options):
     updateLog.write('Running patch: %s\n' % patch)
     
     patchPath = os.path.join('/tmp/patches', patch)
-    commands.runSingleProgramEx('chmod +x ' + patchPath, log=True)
+    commands.runSingleProgramEx('chmod +x ' + patchPath,
+                                stdoutf=updateLog.write,
+                                stderrf=updateLog.write,
+                                log=True)
     commands.runSingleProgramEx(patchPath,
                                 stdoutf=updateLog.write,
                                 stderrf=updateLog.write,
