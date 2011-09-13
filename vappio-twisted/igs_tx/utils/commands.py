@@ -133,6 +133,10 @@ def runProcess(cmdArgs,
                          env=newEnv,
                          **kwargs)
 
+    def _error(_):
+        raise ProgramRunError(cmdArgs, '')
+    
+    pp.deferred.addErrback(_error)
     return pp.deferred
 
 def shell(cmd):

@@ -49,7 +49,6 @@ def makeService(conf):
 
     mqFactory = mqService.mqFactory
 
-    # State is currently not used, but kept around for future purposes
     state = State(conf)
 
     _subscribeToQueues(mqFactory, state)

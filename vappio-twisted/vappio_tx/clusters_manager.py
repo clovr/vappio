@@ -70,6 +70,9 @@ def loadRemoteClusterData(cl, mq, state):
                                                            tries=3)
         clusterLoadDefer.addCallback(lambda cluster : cl.update(execNodes=cluster['exec_nodes']
                                                                 ).update(dataNodes=cluster['data_nodes']))
+        # We want to save the exec and data nodes incase the cluster becomes unresponsive we can
+        # terminate it and all it's nodes
+        clusterLoadDefer.addCallback(lambda cl : saveCluster(cl, state))
         clusterLoadDefer.addErrback(lambda _fail : cl.setState(cl.UNRESPONSIVE))
         
         return clusterLoadDefer
