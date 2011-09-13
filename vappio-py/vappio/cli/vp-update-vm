@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import os
+import time
+
+from igs.utils import cli
+from igs.utils import functional as func
+from igs.utils import commands
+
+from vappio.webservice import vm
+
+OPTIONS = [
+    ('reboot_delay', '-r', '--reboot-delay', 'Number of seconds to delay if a reboot is needed',
+     func.compose(int, cli.defaultIfNone(5)))
+    ]
+
+
+def _applyPatches(options):
+    updateLog = open('/tmp/update.log', 'w')
+    vmInfo = vm.info()
+    patch = vmInfo['patches'][0]
+    patchPath = os.path.join('/tmp/patches', patch)
+    commands.runSingleProgramEx('chmod +x ' + patchPath, log=True)
+    commands.runSingleProgramEx(patchPath,
+                                stdoutf=updateLog.write,
+                                stderrf=updateLog.write,
+                                log=True)
+
+    if open('/etc/vappio/release_name.info').read().strip() == vmInfo['release_name']:
+        updateLog.write('Patch did not manually modify release name, updating...\n')
+        fout = open('/etc/vappio/release_name.info', 'w')
+        fout.write(patch + '\n')
+        fout.close()
+
+    if os.path.exists('/var/vappio/runtime/reboot_now'):
+        os.remove('/var/vappio/runtime/reboot_now')
+        print 'Rebooting in %d seconds...' % options('general.reboot_delay')
+        time.sleep(options('general.reboot_delay'))
+        commands.runSingleProgramEx('reboot', log=True)
+    else:
+        _applyPatches(options)
+
+def main(options, _args):
+    _applyPatches(options)
+    
+if __name__ == '__main__':
+    main(*cli.buildConfigN(OPTIONS))
+    
+
