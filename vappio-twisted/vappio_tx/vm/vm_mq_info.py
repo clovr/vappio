@@ -97,10 +97,8 @@ def handleWWWInfo(request):
 
 @defer.inlineCallbacks
 def subscribe(mq, state):
-    print 'MADE IT HERE'
     yield _getVMInfo(state)
     yield _checkForUpdatesAndLoop(state)
-    print 'MADE IT THERE'
     
     processInfo = queue.returnResponse(defer_pipe.pipe([handleWWWInfo]))
     queue.subscribe(mq,
