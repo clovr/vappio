@@ -96,7 +96,7 @@ def handleWWWInfo(request):
     defer.returnValue(request.update(response=response))
 
 @defer.inlineCallbacks
-def subscribe(mq, state):
+def _subscribe(mq, state):
     yield _getVMInfo(state)
     yield _checkForUpdatesAndLoop(state)
     
@@ -105,3 +105,6 @@ def subscribe(mq, state):
                     state.conf('vm.info_www'),
                     state.conf('vm.concurrent_info'),
                     queue.wrapRequestHandler(state, processInfo))
+
+def subscribe(mq, state):
+    reactor.callLater(0.0, _subscribe, mq, state)
