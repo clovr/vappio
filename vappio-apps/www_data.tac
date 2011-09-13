@@ -13,6 +13,7 @@ from vappio_tx import clusters_manager
 from vappio_tx import pipelines_manager
 from vappio_tx import tags_manager
 from vappio_tx import tasks_manager
+from vappio_tx import vm_manager
 
 from igs.utils import config
 
@@ -33,5 +34,6 @@ clusters_manager.makeService(conf).setServiceParent(serviceCollection)
 pipelines_manager.makeService(conf).setServiceParent(serviceCollection)
 tags_manager.makeService(conf).setServiceParent(serviceCollection)
 tasks_manager.makeService(conf).setServiceParent(serviceCollection)
+vm_manager.makeService(conf).setServiceParent(serviceCollection)
 
 www_manager.makeService(conf).setServiceParent(serviceCollection)
