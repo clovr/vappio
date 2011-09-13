@@ -17,36 +17,40 @@ OPTIONS = [
 def _applyPatches(options):
     updateLog = open('/tmp/update.log', 'a')
     vmInfo = vm.info()
-    patch = vmInfo['patches'][0]
 
-    updateLog.write('Running patch: %s\n' % patch)
-    
-    patchPath = os.path.join('/tmp/patches', patch)
-    commands.runSingleProgramEx('chmod +x ' + patchPath,
-                                stdoutf=updateLog.write,
-                                stderrf=updateLog.write,
-                                log=True)
-    commands.runSingleProgramEx(patchPath,
-                                stdoutf=updateLog.write,
-                                stderrf=updateLog.write,
-                                log=True)
+    if vmInfo['patches']:
+        patch = vmInfo['patches'][0]
+
+        updateLog.write('Running patch: %s\n' % patch)
+
+        patchPath = os.path.join('/tmp/patches', patch)
+        commands.runSingleProgramEx('chmod +x ' + patchPath,
+                                    stdoutf=updateLog.write,
+                                    stderrf=updateLog.write,
+                                    log=True)
+        commands.runSingleProgramEx(patchPath,
+                                    stdoutf=updateLog.write,
+                                    stderrf=updateLog.write,
+                                    log=True)
 
 
-    os.remove(patchPath)
-    
-    if open('/etc/vappio/release_name.info').read().strip() == vmInfo['release_name']:
-        updateLog.write('Patch did not manually modify release name, updating...\n')
-        fout = open('/etc/vappio/release_name.info', 'w')
-        fout.write(patch + '\n')
-        fout.close()
+        os.remove(patchPath)
 
-    if os.path.exists('/var/vappio/runtime/reboot_now'):
-        os.remove('/var/vappio/runtime/reboot_now')
-        print 'Rebooting in %d seconds...' % options('general.reboot_delay')
-        time.sleep(options('general.reboot_delay'))
-        commands.runSingleProgramEx('reboot', log=True)
+        if open('/etc/vappio/release_name.info').read().strip() == vmInfo['release_name']:
+            updateLog.write('Patch did not manually modify release name, updating...\n')
+            fout = open('/etc/vappio/release_name.info', 'w')
+            fout.write(patch + '\n')
+            fout.close()
+
+        if os.path.exists('/var/vappio/runtime/reboot_now'):
+            os.remove('/var/vappio/runtime/reboot_now')
+            print 'Rebooting in %d seconds...' % options('general.reboot_delay')
+            time.sleep(options('general.reboot_delay'))
+            commands.runSingleProgramEx('reboot', log=True)
+        else:
+            _applyPatches(options)
     else:
-        _applyPatches(options)
+        updateLog.write('No updates to apply\n')
 
 def main(options, _args):
     _applyPatches(options)
