@@ -37,8 +37,12 @@ def _checkForUpdates(state):
                                         state.majorVersion,
                                         state.patchVersion)
 
+
+@defer.inlineCallbacks
+def _checkForUpdatesAndLoop(state):
+    yield _checkForUpdates(state)
     reactor.callLater(PATCH_UPDATE_FREQUENCY,
-                      _checkForUpdates,
+                      _checkForUpdatesAndLoop,
                       state)
 
     
@@ -54,7 +58,14 @@ def _sharedFoldersEnabled(vmType):
 
 @defer.inlineCallbacks
 def _getVMInfo(state):
-    state.releaseName = open('/etc/vappio/release_name.info').read().strip()
+    releaseName = open('/etc/vappio/release_name.info').read().strip()
+
+    if state.releaseName and releaseName != state.releaseName:
+        state.releaseName = releaseName
+        yield _checkForUpdates(state)
+    else:
+        state.releaseName = releaseName
+
     versionSplit = state.releaseName.split('-p')
     if len(versionSplit) == 2:
         state.majorVersion = versionSplit[0]
@@ -86,8 +97,10 @@ def handleWWWInfo(request):
 
 @defer.inlineCallbacks
 def subscribe(mq, state):
+    print 'MADE IT HERE'
     yield _getVMInfo(state)
-    yield _checkForUpdates(state)
+    yield _checkForUpdatesAndLoop(state)
+    print 'MADE IT THERE'
     
     processInfo = queue.returnResponse(defer_pipe.pipe([handleWWWInfo]))
     queue.subscribe(mq,
