@@ -60,13 +60,9 @@ def _sharedFoldersEnabled(vmType):
 def _getVMInfo(state):
     releaseName = open('/etc/vappio/release_name.info').read().strip()
 
-    if state.releaseName and releaseName != state.releaseName:
-        state.releaseName = releaseName
-        yield _checkForUpdates(state)
-    else:
-        state.releaseName = releaseName
 
-    versionSplit = state.releaseName.split('-p')
+
+    versionSplit = releaseName.split('-p')
     if len(versionSplit) == 2:
         state.majorVersion = versionSplit[0]
         state.patchVersion = int(versionSplit[1])
@@ -74,7 +70,12 @@ def _getVMInfo(state):
         state.majorVersion = versionSplit[0]
         state.patchVersion = 0
     
-
+    if state.releaseName and releaseName != state.releaseName:
+        state.releaseName = releaseName
+        yield _checkForUpdates(state)
+    else:
+        state.releaseName = releaseName
+        
     state.vmType = open('/var/vappio/runtime/cloud_type').read().strip()
     state.sharedFoldersEnabled = yield _sharedFoldersEnabled(state.vmType)
     
