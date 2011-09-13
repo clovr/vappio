@@ -15,9 +15,12 @@ OPTIONS = [
 
 
 def _applyPatches(options):
-    updateLog = open('/tmp/update.log', 'w')
+    updateLog = open('/tmp/update.log', 'a')
     vmInfo = vm.info()
     patch = vmInfo['patches'][0]
+
+    updateLog.write('Running patch: %s\n' % patch)
+    
     patchPath = os.path.join('/tmp/patches', patch)
     commands.runSingleProgramEx('chmod +x ' + patchPath, log=True)
     commands.runSingleProgramEx(patchPath,
@@ -25,6 +28,9 @@ def _applyPatches(options):
                                 stderrf=updateLog.write,
                                 log=True)
 
+
+    os.remove(patchPath)
+    
     if open('/etc/vappio/release_name.info').read().strip() == vmInfo['release_name']:
         updateLog.write('Patch did not manually modify release name, updating...\n')
         fout = open('/etc/vappio/release_name.info', 'w')
