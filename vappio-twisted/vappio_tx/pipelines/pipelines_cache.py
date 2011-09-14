@@ -5,6 +5,7 @@ from igs.utils import config
 from igs.utils import dependency
 
 from igs_tx.utils import defer_work_queue
+from igs_tx.utils import defer_utils
 
 from vappio_tx.tasks import tasks as tasks_tx
 
@@ -35,7 +36,9 @@ class PipelinesCache(dependency.Dependable):
         self.persistManager.addDependent(self)
         self.tagNotify.addDependent(self)
 
-        pipelines = yield self.persistManager.loadAllPipelinesByAdmin({})
+        pipelines = yield defer_utils.tryUntil(10,
+                                               lambda : self.persistManager.loadAllPipelinesByAdmin({}),
+                                               onFailure=defer_utils.sleep(2))
         for pipeline in pipelines:
             self.workQueue.add(self._pipelineToDictAndCache, 'load', pipeline)
 
