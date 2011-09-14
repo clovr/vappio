@@ -58,8 +58,6 @@ class PipelinesCache(dependency.Dependable):
 
         self.workQueue.add(_loadAndCache)
             
-        
-                                                             
 
     def update(self, who, aspect, value):
         if who == self.persistManager:

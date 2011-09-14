@@ -5,6 +5,7 @@ from twisted.internet import defer
 from igs.utils import functional as func
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
@@ -53,7 +54,10 @@ def _forwardToCluster(conf, queueUrl):
 
 @defer.inlineCallbacks
 def subscribe(mq, state):
-    yield _monitorAnyPipelines(mq, state)
+    yield defer_utils.tryUntil(10,
+                               lambda : _monitorAnyPipelines(mq, state),
+                               onFailure=defer_utils.sleep(2))
+    
     processPipelineList = queue.returnResponse(defer_pipe.pipe([queue.keysInBody(['cluster',
                                                                                   'user_name']),
                                                                 _forwardToCluster(state.conf, state.conf('pipelines.list_www')),
