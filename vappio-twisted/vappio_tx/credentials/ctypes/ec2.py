@@ -8,6 +8,8 @@
 # it does not work on NIMBUS but on ec2 or vice versa.
 import os
 
+from twisted.python import log
+
 from twisted.internet import defer
 
 from igs_tx.utils import commands
@@ -216,6 +218,76 @@ def parseInstanceLine(line):
 
 
 
+@defer.inlineCallbacks
+def _createGroups(cred):
+    groups = yield listGroups(cred)
+    groupNames = [g['name'] for g in groups]
+    
+    if 'vappio' not in groupNames:
+        log.msg('Setting up vappio group')
+        # Create vappio
+        yield addGroup(cred, 'vappio', 'Vappio services group')
+
+        # Get our account number
+        groups = yield listGroups(cred)
+        accountNumber = groups[0]['account_number']
+        
+        # Authorize vappio stuff
+        yield authorizeGroup(cred,
+                             'vappio',
+                             'tcp',
+                             (1, 65535),
+                             'vappio',
+                             accountNumber,
+                             None)
+        yield authorizeGroup(cred,
+                             'vappio',
+                             'udp',
+                             (1, 65535),
+                             'vappio',
+                             accountNumber,
+                             None)
+        yield authorizeGroup(cred,
+                             'vappio',
+                             'icmp',
+                             (-1, -1),
+                             'vappio',
+                             accountNumber,
+                             None)
+        yield authorizeGroup(cred,
+                             'vappio',
+                             'tcp',
+                             22,
+                             None,
+                             None,
+                             None)
+        for port in [8888, 50030, 50060, 50070]:
+            yield authorizeGroup(cred,
+                                 'vappio',
+                                 'tcp',
+                                 port,
+                                 None,
+                                 None,
+                                 None)            
+
+    if 'web' not in groupNames:
+        log.msg('Setting up web group')
+        # Add web group
+        yield addGroup(cred, 'web', 'Web services group')
+
+        for port in [22, 80, 443, 1555, 2222, 2811, 5000, 8004, 8080, 50030, 50070]:
+            yield authorizeGroup(cred,
+                                 'web',
+                                 'tcp',
+                                 port,
+                                 None,
+                                 None,
+                                 None)
+        
+
+        
+        
+@defer.inlineCallbacks
 def instantiateCredential(conf, cred):
     """
     Takes a credential and instanitates it.  It returns a Record that has all of the
@@ -234,11 +306,11 @@ def instantiateCredential(conf, cred):
         open(keyFile, 'w').write(cred.pkey)
     newCred = functional.Record(name=cred.name, conf=conf, cert=certFile, pkey=keyFile, ec2URL=None, env={})
     if 'ec2_url' in cred.metadata:
-        return defer.succeed(newCred.update(env=functional.updateDict(newCred.env,
-                                                                      dict(EC2_URL=cred.metadata['ec2_url']))))
-    else:
-        return defer.succeed(newCred)
+        newCred = newCred.update(env=functional.updateDict(newCred.env,
+                                                           dict(EC2_URL=cred.metadata['ec2_url'])))
 
+    yield _createGroups(newCred)
+    defer.returnValue(newCred)
     
 def runInstances(cred,
                  amiId,
@@ -468,9 +540,18 @@ def addKeypair(cred, name, log=False):
 def listGroups(cred, log=False):
     cmd = ['ec2-describe-group']
     d = run(cred, cmd, log=log)
-    d.addCallback(lambda ls : [tuple(l.strip().split('\t', 3)[2:])
-                               for l in ls
-                               if l.startswith('GROUP')])
+
+    def _groups(lines):
+        lines = [l.strip().split('\t', 3)
+                 for l in lines
+                 if l.startswith('GROUP')]
+        
+        return [{'account_number': l[1],
+                 'name': l[2],
+                 'description': l[3]}
+                for l in lines]
+    
+    d.addCallback(_groups)
     return d
 
 def addGroup(cred, name, description, log=False):
@@ -489,7 +570,7 @@ def authorizeGroup(cred,
     
     cmd = ['ec2-authorize',
            groupName,
-           '-P ' + protocol,
+           '-P', protocol,
            ]
     
     if protocol == 'icmp':
