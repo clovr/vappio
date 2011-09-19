@@ -23,8 +23,9 @@ do
 done
 
 #Clear all error states, task #315
-qmod -cj '*'
-qmod -cq '*'
+#Disabling, to avoid unintentional rescheduling of bad responding DIAG hosts
+#qmod -cj '*'
+#qmod -cq '*'
 
 #Gather list of other exec hosts that are unreachable
 #hosts2=`vp-describe-cluster | grep EXEC`
