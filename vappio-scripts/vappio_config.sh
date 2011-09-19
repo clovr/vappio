@@ -151,9 +151,9 @@ execslots=2
 masterslots=1
 
 ##Time in minutes prior to hourly rollover since launch to start activity checks
-rolloverstart=10
+rolloverstart=15
 ##Time in minutes to poll activity before automatic shutdown
-idleshutdown=3
+idleshutdown=10
 #Additional delay in minutes for master to check for recent tasks
 masteridle=120
 ##Time in minutes to delay before shutdown
