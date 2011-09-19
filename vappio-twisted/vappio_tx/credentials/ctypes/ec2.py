@@ -284,7 +284,11 @@ def _createGroups(cred):
                                  None,
                                  None)
         
-
+@defer.inlineCallbacks
+def _createKeypair(cred):
+    keys = yield listKeypairs(cred)
+    if 'vappio_00' not in keys:
+        yield addKeypair(cred, 'vappio_00')
         
         
 @defer.inlineCallbacks
@@ -310,6 +314,7 @@ def instantiateCredential(conf, cred):
                                                            dict(EC2_URL=cred.metadata['ec2_url'])))
 
     yield _createGroups(newCred)
+    yield _createKeypair(newCred)
     defer.returnValue(newCred)
     
 def runInstances(cred,
