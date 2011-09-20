@@ -36,10 +36,12 @@ class TaskPipeline:
         self.workQueue = defer_work_queue.DeferWorkQueue(1)
 
         self._stateActions = {'idle': lambda t : t.setState(tasks_tx.task.TASK_IDLE),
-                              'running': lambda t : t.setState(tasks_tx.task.TASK_RUNNING),
+                              'running': lambda t : t.setState(tasks_tx.task.TASK_RUNNING
+                                                               ).addNotification('Running pipeline'),
                               'failed': lambda t : t.setState(tasks_tx.task.TASK_FAILED),
                               'completed': lambda t : t.setState(tasks_tx.task.TASK_COMPLETED),
-                              'waiting_to_restart': lambda t : t.setState(tasks_tx.task.TASK_RUNNING)}
+                              'waiting_to_restart': lambda t : t.setState(tasks_tx.task.TASK_RUNNING
+                                                                          ).addNotification('Pipeline failed, waiting to restart')}
 
     def updateTask(self, updateFunc):
         self.workQueue.add(tasks_tx.updateTask, self.taskName, updateFunc)
