@@ -8,7 +8,7 @@ from twisted.internet import defer
 
 from igs_tx.utils import commands
 
-from vappio_tx.internal_client import clusters_client
+from vappio_tx.internal_client import clusters as cluster_client
 
 EXEC_QUEUE = 'exec.q'
 STAGING_QUEUE = 'staging.q'
