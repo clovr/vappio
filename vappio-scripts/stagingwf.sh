@@ -38,6 +38,23 @@ vlog "wfcomponentdir: $wfcomponentdir"
 vlog "wfgroupdir: $wfgroupdir"
 vlog "group: $group"
 
+#Reset workflow xml, group must start from the beginning
+wfxmlbname=`basename $wfxml`
+if [ ${wfxmlbname##*.} == "gz" ]
+then
+    wfxmlbase=`dirname $wfxml`
+    wfxmlfile=`basename $wfxml .gz`
+    vlog "Unzipping $wfxml and setting name to ${wfxmlbase}${wfxmlfile}"
+    gunzip "$wfxml"
+    wfxml="${wfxmlbase}${wfxmlfile}"
+fi
+compljobs=`grep -c "<state>complete" $wfxml"`
+if [ "$compljobs" -gt 0 ]
+then
+    vlog "Resetting group xml $wfxml to incomplete"
+    perl -pi -e 's/\<state\>complete/<state>incomplete/g' $wfxml
+fi
+
 vlog "Start transfer of input from $wfgroupdir/$group.iter to $remotehost" 
 #Detect if this looks like a workflow iterator and transfer needed files; otherwise just transfer a wfxml
 #Check for $;I_FILE_PATH$;, if this exists good indicator we are in an iterator
@@ -82,7 +99,7 @@ else
 	    verror "STAGING WF FAILURE. WORKFLOW XML FILE DOES NOT EXIST"
 	    exit 100;
 	fi
-	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $wfxml root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
+	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $wfxml root@$remotehost:/ 
 	if [ $? == 0 ]
 	then
 	    vlog "rsync success. return value: $?"
@@ -106,10 +123,11 @@ then
 	verror "STAGING WF CONFIG FAILURE. Can't find $wfcomponendir/*.final.config"
     fi
 fi
+
 cd $wfcomponentdir
 vlog "Start transfer of workflow xml from $wfcomponentdir/$wfgroupdir to $remotehost:$wfcomponentdir" 
 vlog "CMD: rsync -av -R -e \"$ssh_client -i $ssh_key $ssh_options\" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir" 
-rsync -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir #1>> $vappio_log 2>> $vappio_log
+rsync -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir 
 if [ $? == 0 ]
 then
     vlog "rsync success. return value: $?"
