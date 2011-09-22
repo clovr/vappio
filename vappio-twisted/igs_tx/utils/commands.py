@@ -1,10 +1,12 @@
 #
 # A rewrite of what igs.utils.commands, it really just boils down to 1 sane function
 import os
+import StringIO
 
 from twisted.internet import reactor
 from twisted.internet import protocol
 from twisted.internet import defer
+
 from twisted.python import log as logger
 
 from igs.utils import functional as func
@@ -13,7 +15,7 @@ class Error(Exception):
     pass
 
 class ProgramRunError(Error):
-    def __init__(self, cmd, stderr):
+    def __init__(self, cmd, stderr=None):
         self.cmd = cmd
         self.stderr = stderr
 
@@ -134,7 +136,7 @@ def runProcess(cmdArgs,
                          **kwargs)
 
     def _error(_):
-        raise ProgramRunError(cmdArgs, '')
+        raise ProgramRunError(cmdArgs)
     
     pp.deferred.addErrback(_error)
     return pp.deferred
@@ -147,3 +149,33 @@ def shell(cmd):
     ex. shell('echo testing') -> ['/bin/sh', '-c', 'echo testing']
     """
     return ['/bin/sh', '-c', cmd]
+
+
+@defer.inlineCallbacks
+def getOutput(cmdArgs,
+              expected=None,
+              initialText=None,
+              addEnv=None,
+              newEnv=None,
+              workingDir=None,
+              uid=None,
+              gid=None,
+              log=False):
+    stdout = StringIO.StringIO()
+    stderr = StringIO.StringIO()
+
+    try:
+        yield runProcess(cmdArgs,
+                         stdout.write,
+                         stderr.write,
+                         initialText,
+                         addEnv,
+                         newEnv,
+                         workingDir,
+                         uid,
+                         gid,
+                         log)
+        defer.returnValue({'stdout': stdout.getvalue(), 'stderr': stderr.getvalue()})
+    except ProgramRunError:
+        raise ProgramRunError(cmdArgs, stderr.getvalue())
+    
