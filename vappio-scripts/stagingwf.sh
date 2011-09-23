@@ -39,19 +39,19 @@ vlog "wfgroupdir: $wfgroupdir"
 vlog "group: $group"
 
 #Reset workflow xml, group must start from the beginning
-wfxmlbname=`basename $wfxml`
-if [ ${wfxmlbname##*.} == "gz" ]
-then
-    wfxmlbase=`dirname $wfxml`
-    wfxmlfile=`basename $wfxml .gz`
-    vlog "Unzipping $wfxml and setting name to ${wfxmlbase}${wfxmlfile}"
-    gunzip "$wfxml"
-    wfxml="${wfxmlbase}${wfxmlfile}"
-    dozip=1
-fi
 compljobs=`grep -c "<state>complete" $wfxml"`
 if [ "$compljobs" -gt 0 ]
 then
+    wfxmlbname=`basename $wfxml`
+    if [ ${wfxmlbname##*.} == "gz" ]
+    then
+	wfxmlbase=`dirname $wfxml`
+	wfxmlfile=`basename $wfxml .gz`
+	vlog "Unzipping $wfxml and setting name to ${wfxmlbase}${wfxmlfile}"
+	gunzip "$wfxml"
+	wfxml="${wfxmlbase}${wfxmlfile}"
+	dozip=1
+    fi
     vlog "Resetting group xml $wfxml to incomplete"
     perl -pi -e 's/\<state\>complete/<state>incomplete/g' $wfxml
     if [ "$dozip" == 1 ]
