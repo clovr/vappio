@@ -35,7 +35,7 @@ def _parseSGEConf(data):
 def listSlotsForQueue(queue):
     output = yield commands.getOutput(['qconf', '-sq', queue])
 
-    conf = _parseSGEConf(output)
+    conf = _parseSGEConf(output['stdout'])
     slots = conf['slots'].split(',')
 
     clusterWide = [s for s in slots if s[0] != '[']

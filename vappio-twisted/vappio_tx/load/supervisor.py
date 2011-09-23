@@ -53,14 +53,14 @@ def _loopSupervisorNoThrow(state):
         len(localCluster['exec_nodes']) > 0):
         execSlots = state.master.execSlots()
         execSlots -= 1
-        yield sge_queue.setSlotsForQueue(EXEC_QUEUE, self.hostname, execSlots)
+        yield sge_queue.setSlotsForQueue(EXEC_QUEUE, state.hostname, execSlots)
         state.master.setExecSlots(execSlots)
     elif (oneMinuteLoad < LOAD_THESHOLD and
           state.master.execSlots() == 0 and
           len(localCluster['exec_nodes']) == 0):
         execSlots = state.master.execSlots()
         execSlots += 1
-        yield sge_queue.setSlotsForQueue(EXEC_QUEUE, self.hostname, execSlots)
+        yield sge_queue.setSlotsForQueue(EXEC_QUEUE, state.hostname, execSlots)
         state.master.setExecSlots(execSlots)
         
 

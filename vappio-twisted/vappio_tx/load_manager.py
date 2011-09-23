@@ -13,7 +13,7 @@ class State:
 
 
 def _subscribeToQueues(mq, state):
-    yield defer.maybeDeferred(supervisor.subscribe, mq, state)
+    supervisor.subscribe(mq, state)
 
 def makeService(conf):
     mqService = client.makeService(conf)
