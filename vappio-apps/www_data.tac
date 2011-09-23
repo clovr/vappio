@@ -14,7 +14,6 @@ from vappio_tx import pipelines_manager
 from vappio_tx import tags_manager
 from vappio_tx import tasks_manager
 from vappio_tx import vm_manager
-from vappio_tx import load_manager
 
 from igs.utils import config
 
@@ -36,6 +35,5 @@ pipelines_manager.makeService(conf).setServiceParent(serviceCollection)
 tags_manager.makeService(conf).setServiceParent(serviceCollection)
 tasks_manager.makeService(conf).setServiceParent(serviceCollection)
 vm_manager.makeService(conf).setServiceParent(serviceCollection)
-load_manager.makeService(conf).setServiceParent(serviceCollection)
 
 www_manager.makeService(conf).setServiceParent(serviceCollection)
