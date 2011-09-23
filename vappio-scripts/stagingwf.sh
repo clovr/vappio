@@ -47,12 +47,18 @@ then
     vlog "Unzipping $wfxml and setting name to ${wfxmlbase}${wfxmlfile}"
     gunzip "$wfxml"
     wfxml="${wfxmlbase}${wfxmlfile}"
+    dozip=1
 fi
 compljobs=`grep -c "<state>complete" $wfxml"`
 if [ "$compljobs" -gt 0 ]
 then
     vlog "Resetting group xml $wfxml to incomplete"
     perl -pi -e 's/\<state\>complete/<state>incomplete/g' $wfxml
+    if [ "$dozip" == 1 ]
+    then
+	gzip $wfxml
+	wfxml="$wfxml.gz"
+    fi
 fi
 
 vlog "Start transfer of input from $wfgroupdir/$group.iter to $remotehost" 
