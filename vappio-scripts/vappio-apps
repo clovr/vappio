@@ -3,12 +3,14 @@
 case "$1" in
     start)
 	twistd --pidfile=/opt/vappio-apps/www_data.pid --syslog -y /opt/vappio-apps/www_data.tac
+	twistd --pidfile=/opt/vappio-apps/load_manager.pid --syslog -y /opt/vappio-apps/load_manager.tac
 	touch /tmp/ergatisObserver.log
 	touch /tmp/startup_complete
 	chmod 666 /tmp/ergatisObserver.log
 	;;
     stop)
 	kill `cat /opt/vappio-apps/www_data.pid`
+	kill `cat /opt/vappio-apps/load_manager.pid`
 	;;
     restart)
 	$0 stop
