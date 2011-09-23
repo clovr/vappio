@@ -41,7 +41,7 @@ def listSlotsForQueue(queue):
     clusterWide = [s for s in slots if s[0] != '[']
     nodeSpecific = [s[1:-1].split('=') for s in slots if s[0] == '[']
 
-    defer.returnValue({'cluster': int(clusterWide),
+    defer.returnValue({'cluster': int(clusterWide[0]),
                        'nodes': dict([(h, int(v)) for h, v in nodeSpecific])})
 
 def setSlotsForQueue(queue, hostname, slots):

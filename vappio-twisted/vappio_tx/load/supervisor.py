@@ -8,13 +8,17 @@ from twisted.internet import defer
 
 from igs_tx.utils import commands
 
-from vappio_tx.internal_client import clusters as cluster_client
+from vappio_tx.internal_client import clusters as clusters_client
+
+from vappio_tx.load import sge_queue
 
 EXEC_QUEUE = 'exec.q'
 STAGING_QUEUE = 'staging.q'
 
 # Refresh every 60 seconds
 REFRESH_FREQUENCY = 60
+
+LOAD_THRESHOLD = 6
 
 
 class MachineInformation:
@@ -44,14 +48,14 @@ def _loopSupervisorNoThrow(state):
 
     oneMinuteLoad = loadAverages[0]
     
-    if (oneMinuteLoad > 10 and
+    if (oneMinuteLoad > LOAD_THRESHOLD and
         state.master.execSlots() > 0 and
         len(localCluster['exec_nodes']) > 0):
         execSlots = state.master.execSlots()
         execSlots -= 1
         yield sge_queue.setSlotsForQueue(EXEC_QUEUE, self.hostname, execSlots)
         state.master.setExecSlots(execSlots)
-    elif (oneMinuteLoad < 10 and
+    elif (oneMinuteLoad < LOAD_THESHOLD and
           state.master.execSlots() == 0 and
           len(localCluster['exec_nodes']) == 0):
         execSlots = state.master.execSlots()
@@ -75,13 +79,15 @@ def _loopSupervisor(state):
 def _createSupervisor(state):
     output = yield commands.getOutput(['hostname', '-f'])
     
-    self.hostname = output['stdout']
+    state.hostname = output['stdout'].strip()
     
     # Let's get our queue information
     execSlots = yield sge_queue.listSlotsForQueue(EXEC_QUEUE)
     stagingSlots = yield sge_queue.listSlotsForQueue(STAGING_QUEUE)
-    self.master = MachineInformation().setExecSlots(execSlots['nodes'][hostname]
-                                                    ).setStagingSlots(stagingSlots['nodes'][hostname])
+    
+    state.master = MachineInformation()
+    state.master.setExecSlots(execSlots['nodes'].get(state.hostname, execSlots['cluster']))
+    state.master.setStagingSlots(stagingSlots['nodes'].get(state.hostname, stagingSlots['cluster']))
     
     reactor.callLater(0.0, _loopSupervisor, state)
 
