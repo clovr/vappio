@@ -47,7 +47,7 @@ def _loopSupervisorNoThrow(state):
     loadAverages = os.getloadavg()
 
     oneMinuteLoad = loadAverages[0]
-    
+
     if (oneMinuteLoad > LOAD_THRESHOLD and
         state.master.execSlots() > 0 and
         len(localCluster['exec_nodes']) > 0):
@@ -55,13 +55,15 @@ def _loopSupervisorNoThrow(state):
         execSlots -= 1
         yield sge_queue.setSlotsForQueue(EXEC_QUEUE, state.hostname, execSlots)
         state.master.setExecSlots(execSlots)
-    elif (oneMinuteLoad < LOAD_THESHOLD and
+        log.msg('Reduced exec slots by one')
+    elif (oneMinuteLoad < LOAD_THRESHOLD and
           state.master.execSlots() == 0 and
           len(localCluster['exec_nodes']) == 0):
         execSlots = state.master.execSlots()
         execSlots += 1
         yield sge_queue.setSlotsForQueue(EXEC_QUEUE, state.hostname, execSlots)
         state.master.setExecSlots(execSlots)
+        log.msg('Increased exec slots by one')
         
 
 
@@ -88,7 +90,7 @@ def _createSupervisor(state):
     state.master = MachineInformation()
     state.master.setExecSlots(execSlots['nodes'].get(state.hostname, execSlots['cluster']))
     state.master.setStagingSlots(stagingSlots['nodes'].get(state.hostname, stagingSlots['cluster']))
-    
+
     reactor.callLater(0.0, _loopSupervisor, state)
 
 def subscribe(_mq, state):
