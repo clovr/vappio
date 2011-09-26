@@ -33,7 +33,7 @@ def _parseSGEConf(data):
 
 @defer.inlineCallbacks
 def listSlotsForQueue(queue):
-    output = yield commands.getOutput(['qconf', '-sq', queue])
+    output = yield commands.getOutput(['qconf', '-sq', queue], log=True)
 
     conf = _parseSGEConf(output['stdout'])
     slots = conf['slots'].split(',')

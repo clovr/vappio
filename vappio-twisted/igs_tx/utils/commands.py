@@ -166,15 +166,16 @@ def getOutput(cmdArgs,
 
     try:
         yield runProcess(cmdArgs,
-                         stdout.write,
-                         stderr.write,
-                         initialText,
-                         addEnv,
-                         newEnv,
-                         workingDir,
-                         uid,
-                         gid,
-                         log)
+                         stdoutf=stdout.write,
+                         stderrf=stderr.write,
+                         expected=expected,
+                         initialText=initialText,
+                         addEnv=addEnv,
+                         newEnv=newEnv,
+                         workingDir=workingDir,
+                         uid=uid,
+                         gid=gid,
+                         log=log)
         defer.returnValue({'stdout': stdout.getvalue(), 'stderr': stderr.getvalue()})
     except ProgramRunError:
         raise ProgramRunError(cmdArgs, stderr.getvalue())

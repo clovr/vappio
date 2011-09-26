@@ -55,7 +55,7 @@ def _loopSupervisorNoThrow(state):
         execSlots -= 1
         yield sge_queue.setSlotsForQueue(EXEC_QUEUE, state.hostname, execSlots)
         state.master.setExecSlots(execSlots)
-        log.msg('Reduced exec slots by one')
+        log.msg('LOAD: Reduced exec slots by one')
     elif (oneMinuteLoad < LOAD_THRESHOLD and
           state.master.execSlots() == 0 and
           len(localCluster['exec_nodes']) == 0):
@@ -63,7 +63,7 @@ def _loopSupervisorNoThrow(state):
         execSlots += 1
         yield sge_queue.setSlotsForQueue(EXEC_QUEUE, state.hostname, execSlots)
         state.master.setExecSlots(execSlots)
-        log.msg('Increased exec slots by one')
+        log.msg('LOAD: Increased exec slots by one')
         
 
 
@@ -72,6 +72,7 @@ def _loopSupervisor(state):
     try:
         yield _loopSupervisorNoThrow(state)
     except Exception, err:
+        log.err('LOAD: An error occured')
         log.err(err)
         
     reactor.callLater(REFRESH_FREQUENCY, _loopSupervisor, state)
@@ -79,7 +80,8 @@ def _loopSupervisor(state):
     
 @defer.inlineCallbacks
 def _createSupervisor(state):
-    output = yield commands.getOutput(['hostname', '-f'])
+    log.msg('LOAD: Starting')
+    output = yield commands.getOutput(['hostname', '-f'], log=True)
     
     state.hostname = output['stdout'].strip()
     
@@ -99,5 +101,5 @@ def subscribe(_mq, state):
     way components register themselves.  This just sets up a loop to check
     things about the machine and adjust them as necessary.
     """
-    _createSupervisor(state)
+    reactor.callLater(0.0, _createSupervisor, state)
     
