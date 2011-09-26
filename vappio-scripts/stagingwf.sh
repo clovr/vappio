@@ -39,7 +39,7 @@ vlog "wfgroupdir: $wfgroupdir"
 vlog "group: $group"
 
 #Reset workflow xml, group must start from the beginning
-compljobs=`grep -c "<state>complete" $wfxml"`
+compljobs=`zcat $wfxml | grep -c "<state>complete"`
 if [ "$compljobs" -gt 0 ]
 then
     wfxmlbname=`basename $wfxml`
