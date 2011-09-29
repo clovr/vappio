@@ -76,7 +76,7 @@ then
 	then
 	    vlog "ERROR: $f does not exist"
 	    verror "STAGING WF FAILURE. FILE DOES NOT EXIST"
-	    exit 100;
+	    exit 1;
 	fi
 
 	# Commands can't be stored in variables, it just doesn't work w/ the quotes
@@ -103,7 +103,7 @@ else
 	then
 	    vlog "ERROR: $wfxml does not exist"
 	    verror "STAGING WF FAILURE. WORKFLOW XML FILE DOES NOT EXIST"
-	    exit 100;
+	    exit 1;
 	fi
 	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $wfxml root@$remotehost:/ 
 	if [ $? == 0 ]
