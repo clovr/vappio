@@ -18,7 +18,7 @@ vlog "###"
 vlog "### $0 (`whoami`)" 
 vlog "###" 
 
-myhost=`hostname -f`
+myhost=`vhostname`
 
 vlog "Running epilog on $myhost. Script arguments exechost=$1 request_cwd=$2 command_str=$3 args=$4" 
 
@@ -39,7 +39,7 @@ then
     
     if [ -z "$outdir" ]
     then
-	verror "EPILOG. Unable to retrive wfdir from file ${request_cwd}/outdir" 
+	verror "EPILOG. Unable to retrive outdir from file ${request_cwd}/outdir" 
 	exit 100
     fi
     

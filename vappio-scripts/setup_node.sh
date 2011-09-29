@@ -12,10 +12,10 @@ vlog "### $0 aka setup_node.sh (`whoami`)"
 vlog "###"
 
 # Gather some data
-myhostname=`hostname -f`
+myhostname=`vhostname`
 
 if [ ! -n "$myhostname" ]; then
-    vlog "No valid hostname. Cannot configure node"
+    verror "No valid hostname. Cannot configure node"
     echo "No valid hostname. Cannot configure node"
     exit 1 ;
 fi

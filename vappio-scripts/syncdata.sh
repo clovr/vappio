@@ -26,7 +26,7 @@ vlog "###"
 
 #This script should be run on the master
 master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
-myhostname=`hostname -f`;
+myhostname=`vhostname`;
 
 if [ "$master" != "$myhostname" ]; then
     vlog "WARNING: Master is $master but syndata.sh being called on $myhostname"

@@ -4,7 +4,7 @@ vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/vappio_config.sh
 ##
 
-myhostname=`hostname -f`
+myhostname=`vhostname`
 
 # Remove all submit hosts
 hosts=`qconf -ss`

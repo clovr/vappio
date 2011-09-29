@@ -66,7 +66,7 @@ $vappio_scripts/prep_directories.sh
 echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 
 #start sgeexecd here or after add_host?
-myhostname=`hostname -f`
+myhostname=`vhostname`
 
 #add this host as an administrative host
 #if there is no DNS, we need to add master to our hosts file

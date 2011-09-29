@@ -19,7 +19,13 @@ then
 fi
 
 #Support for manual override, cluster wide
-myhostname=`hostname -f`
+myhostname=`vhostname`
+if [ "$myhostname" = "" ]
+then
+    verror "Bad hostname during autoshutdown, setting to localhost"
+    myhostname="localhost"
+fi
+
 master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 /usr/bin/curl -f -s http://$master/noautoshutdown
 if [ $? = 0 ] || [ -f "$vappio_runtime/noautoshutdown" ]
