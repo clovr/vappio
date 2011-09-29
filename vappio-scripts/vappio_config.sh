@@ -73,6 +73,24 @@ verror() {
 #    fi
 }
 
+# Retreive hostname allowing for DNS failures up to one minute
+vhostname() {
+    hn=`hostname -f`
+    if [ "$hn" == "" ]
+    then
+	i=0;
+	while [ "$hn" = "" ] && [ $i < 10 ]
+	do
+	    verror "Unable to resolve hostname, retries $1"
+	    sleep 6
+	    hn=`hostname -f`
+	    i=`expr $i + 1`
+	done
+	verror "Hostname [$hn], retries $i"
+    fi
+    echo $hn
+}
+
 # This is used to make changes to the configuration at boot time
 mod_config() { perl -pi -e "s/^$1=.*/$1=$2/" $vappio_scripts/vappio_config.sh; }
 
@@ -192,6 +210,7 @@ stagingslots=2
 #Secondary queue for data staging
 stagingsubq=stagingsub.q
 stagingsubslots=1
+stagetmp=0
 #Dedicated queue for syncing wf XML
 wfq=wf.q
 
