@@ -31,7 +31,7 @@ then
 	vlog "rsync success. return value: $?"
     else
 	vlog "ERROR: $0 rsync fail. return value: $?"
-	verror "HARVESTING WF XML FAILURE"
+	verror "HARVESTING WF XML FAILURE for $wfdir"
         #requeue if certain conditions met
 	isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
 	if [ -d "${request_cwd}" ] && [ "$isreachable" = "" ]
@@ -54,7 +54,7 @@ then
     vlog "rsync success. return value: $?"
 else
     vlog "ERROR: $0 rsync fail. return value: $?"
-    verror "HARVESTING WF event.log FAILURE"
+    verror "HARVESTING WF event.log FAILURE for $wfdir"
     #requeue if certain conditions met
     isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
     fileexists=`$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$exechost ls ${request_cwd}/event.log`
