@@ -25,7 +25,7 @@ request_cwd=$1
 command_str=$2
 command_args=$3
 
-myhost=`hostname -f`
+myhost=`vhostname`
 vlog "###" 
 vlog "### $0 (`whoami`)" 
 vlog "###" 
@@ -78,11 +78,17 @@ then
     #Get iterator input, workflow xml and final.config from the master to the exec host
     cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $stagingwf_script $myhost $wfxml"
     vlog "CMD: $cmd" 
-    $cmd #1>> $vappio_log 2>> $vappio_log
+    $cmd 1> stagingwf.qsub.$$.out 2> stagingwf.qsub.$$.stderr
     ret1=$?
-    if [ $ret1 -ne 0 ] 
+
+    #Check for more error conditions
+    #qsub returns 0 in some failure conditions, including if job is killed with qdel
+    eout=`grep "Unable to run job" stagingwf.qsub.$$.out`
+    vlog "Workflow staging ran with exit code $ret1 [$eout]"
+
+    if [ $ret1 -ne 0 ] || [ "$eout" != "" ]
     then
-	verror "PROLOG. Error during qsub return code: $ret1"
+	verror "PROLOG. Error during qsub return code: $ret1 [$eout]"
 	#Requeue, entire job
 	exit 99
     fi
@@ -146,6 +152,7 @@ then
 	fi 
 	vlog "Finished staging of $f@$myhost"
     fi
+    
 fi
 
 exit 0
