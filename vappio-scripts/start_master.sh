@@ -20,7 +20,7 @@ $vappio_scripts/stop_node.sh
 $vappio_scripts/prep_directories.sh
 
 #conf sgemaster
-myhostname=`hostname -f`
+myhostname=`vhostname`
 echo "$myhostname" > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 
 /etc/init.d/gridengine-master restart
@@ -87,7 +87,13 @@ if [ "$cloud_type" == "vbox" ] || [ "$cloud_type" == "vmware" ]
 then
     $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $numcpus $execq@$myhostname
 else
-    $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $masterslots $execq@$myhostname
+    if [ "$cloud_type" == "diag" ]
+    then
+	#Limit master load on DIAG machines
+	$SGE_ROOT/bin/$ARCH/qconf -aattr queue load_thresholds np_load_avg=1 $execq@$myhostname
+    else
+	$SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $masterslots $execq@$myhostname
+    fi
 fi
 
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
