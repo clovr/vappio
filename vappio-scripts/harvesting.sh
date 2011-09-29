@@ -35,7 +35,7 @@ then
     vlog "rsync success. return value: $?"
 else
     vlog "ERROR: $0 rsync fail. return value: $?"
-    verror "HARVESTING FAILURE"
+    verror "HARVESTING FAILURE for $dir"
     #requeue if certain conditions met
     isreachable=`printf "kv\nhostname=$exechost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
     direxists=`$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$exechost ls -d $dir`
