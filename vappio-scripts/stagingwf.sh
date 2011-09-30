@@ -42,17 +42,23 @@ compljobs=`zcat $wfxml | grep -c "<state>complete"`
 vlog "completed jobs:$compljobs"
 if [ "$compljobs" -gt 0 ]
 then
+    vlog "Handling restart of workflow $wfxml with completed jobs"
     wfxmlbname=`basename $wfxml`
     if [ ${wfxmlbname##*.} == "gz" ]
     then
 	wfxmlbase=`dirname $wfxml`
 	wfxmlfile=`basename $wfxml .gz`
-	echo "Unzipping $wfxml and setting name to ${wfxmlbase}/${wfxmlfile}"
+	vlog "Unzipping $wfxml and setting name to ${wfxmlbase}/${wfxmlfile}"
 	gunzip "$wfxml"
 	wfxml="${wfxmlbase}/${wfxmlfile}"
+	#Save backup copy
+	rm -f $wfxml.$$
+	cp -f $wfxml $wfxml.$$
+	#Reset DCE spec
+	cat $wfxml.$$ | perl -e 'my $in_dcespec=0;while(<STDIN>){if(m|\<dceSpec|){$in_dcespec=1}if(!$in_dcespec){print;}if(m|<\</dceSpec|){$in_dcespec=0;}}' | grep -v -P '^\s+\<host\>' | grep -v -P '^\s+\<port\>' > $wfxml
 	dozip=1
     fi
-    echo "Resetting group xml $wfxml to incomplete"
+    vlog "Resetting group xml $wfxml to incomplete"
     perl -pi -e 's/\<state\>complete/<state>incomplete/g' $wfxml
     if [ "$dozip" == 1 ]
     then
