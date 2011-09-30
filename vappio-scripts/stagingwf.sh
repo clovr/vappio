@@ -37,9 +37,9 @@ vlog "wfxml: $wfxml"
 vlog "wfcomponentdir: $wfcomponentdir"
 vlog "wfgroupdir: $wfgroupdir"
 vlog "group: $group"
-
 #Reset workflow xml, group must start from the beginning
 compljobs=`zcat $wfxml | grep -c "<state>complete"`
+vlog "completed jobs:$compljobs"
 if [ "$compljobs" -gt 0 ]
 then
     wfxmlbname=`basename $wfxml`
@@ -47,12 +47,12 @@ then
     then
 	wfxmlbase=`dirname $wfxml`
 	wfxmlfile=`basename $wfxml .gz`
-	vlog "Unzipping $wfxml and setting name to ${wfxmlbase}${wfxmlfile}"
+	echo "Unzipping $wfxml and setting name to ${wfxmlbase}/${wfxmlfile}"
 	gunzip "$wfxml"
-	wfxml="${wfxmlbase}${wfxmlfile}"
+	wfxml="${wfxmlbase}/${wfxmlfile}"
 	dozip=1
     fi
-    vlog "Resetting group xml $wfxml to incomplete"
+    echo "Resetting group xml $wfxml to incomplete"
     perl -pi -e 's/\<state\>complete/<state>incomplete/g' $wfxml
     if [ "$dozip" == 1 ]
     then
