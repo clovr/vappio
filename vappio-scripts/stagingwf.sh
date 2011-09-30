@@ -51,13 +51,14 @@ then
 	vlog "Unzipping $wfxml and setting name to ${wfxmlbase}/${wfxmlfile}"
 	gunzip "$wfxml"
 	wfxml="${wfxmlbase}/${wfxmlfile}"
-	#Save backup copy
-	rm -f $wfxml.$$
-	cp -f $wfxml $wfxml.$$
-	#Reset DCE spec
-	cat $wfxml.$$ | perl -e 'my $in_dcespec=0;while(<STDIN>){if(m|\<dceSpec|){$in_dcespec=1}if(!$in_dcespec){print;}if(m|<\</dceSpec|){$in_dcespec=0;}}' | grep -v -P '^\s+\<host\>' | grep -v -P '^\s+\<port\>' > $wfxml
 	dozip=1
     fi
+    #Save backup copy
+    rm -f $wfxml.$$
+    cp -f $wfxml $wfxml.$$
+    #Reset DCE spec
+    cat $wfxml.$$ | perl -e 'my $in_dcespec=0;while(<STDIN>){if(m|\<dceSpec|){$in_dcespec=1}if(!$in_dcespec){print;}if(m|<\</dceSpec|){$in_dcespec=0;}}' | grep -v -P '^\s+\<host\>' | grep -v -P '^\s+\<port\>' > $wfxml
+
     vlog "Resetting group xml $wfxml to incomplete"
     perl -pi -e 's/\<state\>complete/<state>incomplete/g' $wfxml
     if [ "$dozip" == 1 ]
