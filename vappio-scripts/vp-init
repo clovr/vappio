@@ -4,14 +4,18 @@
 vappio_scripts=/opt/vappio-scripts
 source $vappio_scripts/clovrEnv.sh
 source $vappio_scripts/vappio_config.sh
-echo "OFFLINE" > $vappio_runtime/node_type 
 
 touch $vappio_log  
 chmod 666 $vappio_log
-mkdir -p $vappio_runtime
-chmod 777 $vappio_runtime
 
-$vappio_scripts/prep_directories.sh
+#create critical directories
+for i in $vappio_runtime /mnt/keys /mnt/user_data; 
+do
+  mkdir -p $i
+  chmod 777 $i
+done;
+
+echo "OFFLINE" > $vappio_runtime/node_type 
 
 netcount=$(/sbin/ifconfig | grep -o "inet")
 if [[ $netcount > 1 ]]
