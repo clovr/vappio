@@ -13,12 +13,24 @@ source $vappio_scripts/vappio_config.sh
 
 #Gather list of likely dead hosts from unreachabe state 'u' in SGE
 #On testing, we've encountered state combinations including u,du,uo,duo
+echo -n "REAPER " 
+date
+echo "Checking for dead hosts"
 deadhosts1=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][contains(text(),'u')]/../../@name" | perl -ne '($host) = ($_ =~ /name="(.*)"/);print $host," " if ($host)'`
+if [ "$deadhosts1" != "" ]
+then
+    echo "Found dead host(s)..."
+    $SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][contains(text(),'u')]/../../@name"
+fi
 
 #
 for deadhostname in $deadhosts1
 do
+    vlog "Running remove_sgehost on $deadhostname"
+    echo "Running remove_sgehost on $deadhostname"
     $vappio_scripts/remove_sgehost.sh $deadhostname
+    vlog "Running vp-terminate-instances on $deadhostname"
+    echo "Running vp-terminate-instances on $deadhostname"
     vp-terminate-instances -t --by=private_dns $deadhostname
 done
 
