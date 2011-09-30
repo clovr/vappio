@@ -59,9 +59,6 @@ fi
 #stop node if already running
 $vappio_scripts/stop_node.sh
 
-# create local directories for workflows
-$vappio_scripts/prep_directories.sh
-
 #conf sgemaster
 echo $MASTER_NODE > $SGE_ROOT/$SGE_CELL/common/act_qmaster
 
