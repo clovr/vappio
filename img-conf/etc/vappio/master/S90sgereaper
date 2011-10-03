@@ -6,4 +6,4 @@ source $vappio_scripts/vappio_config.sh
 ##
 
 #Run cron every 5 minutes
-echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root bash $vappio_scripts/reaper.sh >> $vappio_runtime/reaper.log 2>> $vappio_runtime/reaper.log" > /etc/cron.d/sgereaper
+echo "0,10,20,30,40,50 * * * * root bash $vappio_scripts/reaper.sh >> $vappio_runtime/reaper.log 2>> $vappio_runtime/reaper.log" > /etc/cron.d/sgereaper
