@@ -29,10 +29,10 @@ class InvalidParentPipeline(Error):
 
 def _determineProtocol(request):
     if request.body['bare_run']:
-        protocol = request.body['config']['pipeline.PIPELINE_TEMPLATE']
+        return request.body['config']['pipeline.PIPELINE_TEMPLATE']
     else:
-        protocol = pipeline_misc.determineWrapper(request,
-                                                  request.body['config']['pipeline.PIPELINE_TEMPLATE'])
+        return pipeline_misc.determineWrapper(request,
+                                              request.body['config']['pipeline.PIPELINE_TEMPLATE'])
     
     
 @defer.inlineCallbacks

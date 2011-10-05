@@ -43,8 +43,9 @@ def _monitorAnyPipelines(mq, state):
     pipelines = yield state.pipelinePersist.loadAllPipelinesByAdmin({})
     
     for p in pipelines:
-        yield pipeline_misc.monitorPipeline(func.Record(state=state, mq=mq),
-                                            p)
+        if p.pipelineId:
+            yield pipeline_misc.monitorPipeline(func.Record(state=state, mq=mq),
+                                                p)
         
     
 
