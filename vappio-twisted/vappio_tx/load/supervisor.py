@@ -57,8 +57,7 @@ def _loopSupervisorNoThrow(state):
         state.master.setExecSlots(execSlots)
         log.msg('LOAD: Reduced exec slots by one')
     elif (oneMinuteLoad < LOAD_THRESHOLD and
-          state.master.execSlots() == 0 and
-          len(localCluster['exec_nodes']) == 0):
+          state.master.execSlots() == 0):
         execSlots = state.master.execSlots()
         execSlots += 1
         yield sge_queue.setSlotsForQueue(EXEC_QUEUE, state.hostname, execSlots)

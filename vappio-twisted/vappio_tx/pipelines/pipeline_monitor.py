@@ -259,8 +259,8 @@ class PipelineMonitor(dependency.Dependable):
                                                  self.delayedLock.run,
                                                  self._updatePipelineChildren)
         elif self.stateF == self.STATE_RUNNING and self.pipelineState in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
-            self._log('Pipeline in running stated but failed or completed, unsubscribing %s' % pipelineState)
-            self.stateF = self.STATE_COMPLETED if pipelineState == tasks_tx.task.TASK_COMPLETED else self.STATE_FAILED
+            self._log('Pipeline in running stated but failed or completed, unsubscribing %s' % self.pipelineState)
+            self.stateF = self.STATE_COMPLETED if self.pipelineState == tasks_tx.task.TASK_COMPLETED else self.STATE_FAILED
             self.changed('state', self.state())
         elif self.pipelineState not in [tasks_tx.task.TASK_FAILED, tasks_tx.task.TASK_COMPLETED]:
             self._log('Looping')
