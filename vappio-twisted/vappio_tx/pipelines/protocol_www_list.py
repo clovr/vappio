@@ -40,10 +40,10 @@ def handleWWWListProtocols(request):
 
     protocolConfs = []
     for p in protocols:
-        protocolConfig = (protocol_format.load(request.state.machineconf,
-                                               p) +
-                          protocol_format.load(request.state.machineconf,
-                                               'clovr_wrapper'))
+        protocolConfig = protocol_format.load(request.state.machineconf, p)
+        wrapperName = pipeline_misc.determineWrapper(request, p)
+        if wrapperName != p:
+            protocolConfig += protocol_format.load(request.state.machineconf, wrapperName)
 
         if request.body.get('detail', False):
             conf = [func.updateDict(c[1], {'name': c[0]})

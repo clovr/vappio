@@ -27,6 +27,14 @@ class InvalidParentPipeline(Error):
         return 'Unknown parent pipeline: ' + self.parentName
 
 
+def _determineProtocol(request):
+    if request.body['bare_run']:
+        protocol = request.body['config']['pipeline.PIPELINE_TEMPLATE']
+    else:
+        protocol = pipeline_misc.determineWrapper(request,
+                                                  request.body['config']['pipeline.PIPELINE_TEMPLATE'])
+    
+    
 @defer.inlineCallbacks
 def handleWWWRunPipeline(request):
     """
@@ -60,10 +68,9 @@ def handleWWWRunPipeline(request):
         # find it useful to refer to a pipeline by a particular name, but if
         # we decide to change the pipeline name to something more meaningful they
         # won't have to chagne their code to use pipelineName instead of checksum
-        if request.body['bare_run']:
-            protocol = request.body['config']['pipeline.PIPELINE_TEMPLATE']
-        else:
-            protocol = 'clovr_wrapper'
+        protocol = _determineProtocol(request)
+        
+        if not request.body['bare_run']:
             request.body['config']['pipeline.PIPELINE_WRAPPER_NAME'] = request.body['config']['pipeline.PIPELINE_NAME']
             
         defer.returnValue(persist.Pipeline(pipelineId=None,
@@ -119,8 +126,8 @@ def handleWWWRunPipeline(request):
             raise InvalidPipelineConfig('Configuration did not pass validation')
 
         request.body['config']['pipeline.PIPELINE_NAME'] = checksum
-        
-        protocol = 'clovr_wrapper' if not request.body['bare_run'] else request.body['config']['pipeline.PIPELINE_TEMPLATE']
+
+        protocol = _determineProtocol(request)
         
         try:
             # Pretty lame way to force control to the exceptional case

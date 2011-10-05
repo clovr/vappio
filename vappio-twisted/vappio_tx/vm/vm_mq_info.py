@@ -51,7 +51,7 @@ def _checkForUpdatesAndLoop(state):
 def _sharedFoldersEnabled(vmType):
     if vmType == 'vmware':
         stdout = StringIO.StringIO()
-        yield commands.runProcess(['df'], stdoutf=stdout.write)
+        yield commands.runProcess(['df'], expected=[0, 1], stdoutf=stdout.write)
         defer.returnValue('.host:/shared' in stdout.getvalue())
     else:
         defer.returnValue(False)
@@ -59,8 +59,6 @@ def _sharedFoldersEnabled(vmType):
 @defer.inlineCallbacks
 def _getVMInfo(state):
     releaseName = open('/etc/vappio/release_name.info').read().strip()
-
-
 
     versionSplit = releaseName.split('-p')
     if len(versionSplit) == 2:

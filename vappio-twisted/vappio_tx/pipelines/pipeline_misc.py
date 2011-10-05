@@ -128,6 +128,17 @@ def containsPipelineTemplate(request):
     else:
         raise Error('Must provide a config with pipeline.PIPELINE_TEMPLATE')
 
+def determineWrapper(request, pipelineTemplate):
+    protocolConf = protocol_format.load(request.state.machineconf,
+                                        pipelineTemplate)
+    wrapper = [v for k, v in protocolConf if k == 'pipeline.PIPELINE_WRAPPER']
+    if wrapper and wrapper[0]['default'] is None:
+        return pipelineTemplate
+    elif wrapper:
+        return wrapper[0]['default']
+    else:
+        return 'clovr_wrapper'
+    
 def validatePipelineConfig(request):
     validateState = func.Record(conf=request.state.conf,
                                 machineconf=request.state.machineconf,
