@@ -200,7 +200,16 @@ else
 	else
 	    vlog "ERROR: $0 rsync fail. return value $ret"
 	    verror "STAGING FAILURE";
-	    exit $ret;
+	    isreachable=`printf "kv\nhostname=$remotehost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
+	    fileexists=`ls -d $staging_dir`
+	    if [ -d "$staging_dir" ] && [ "$isreachable" != "" ] && [ "$fileexists" != "" ]
+	    then
+		vlog "Retrying staging.sh transfer isreachable=$isreachable fileexists=$fileexists"
+		exit 99
+	    else
+		exit $ret
+	    fi
+
 	fi
     fi
 fi
