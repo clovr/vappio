@@ -90,7 +90,7 @@ chmod a+rx /var/www/ergatis/cgi/kill_wf.cgi
 
 #Pull old version of pipeline.pm 
 #Latest code changes the environment
-svn export -r r7110 https://ergatis.svn.sourceforge.net/svnroot/ergatis/trunk/lib/Ergatis/Pipeline.pm
+svn export -r r7110 https://ergatis.svn.sourceforge.net/svnroot/ergatis/trunk/lib/Ergatis/Pipeline.pm /opt/ergatis/lib/perl5/Ergatis/Pipeline.pm
 
 #DEPRECATED
 #Update configuration
