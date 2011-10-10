@@ -181,7 +181,7 @@ def handleWWWRunPipeline(request):
                           pipelineDict['pipeline_name'])]
         
         if parentPipeline and childPipeline not in parentPipeline.children:
-            parentPipeline = parentPipeline.update(children=list(set(parentPipeline.children + childPipeline)))
+            parentPipeline = parentPipeline.update(children=list(set([tuple(e) for e in parentPipeline.children + childPipeline])))
             yield request.state.pipelinePersist.savePipeline(parentPipeline)
 
         defer.returnValue(request.update(response=pipelineDict))
