@@ -33,6 +33,7 @@ from vappio_tx.internal_client import credentials as cred_client
 from vappio_tx.www_client import clusters as clusters_client_www
 
 from vappio_tx.clusters import start
+from vappio_tx.clusters import clusters_cleanup
 
 WAIT_FOR_STATE_TRIES = 50
 
@@ -54,6 +55,7 @@ class State:
     def __init__(self, conf):
         self.conf = conf
         self.clustersCache = {}
+        self.unresponsiveClusters = {}
     
 
 def loadRemoteClusterData(cl, mq, state):
@@ -651,6 +653,7 @@ def subscribeToQueues(mq, state):
     subscribeTerminateCluster(mq, state)
     subscribeTerminateInstances(mq, state)
     subscribeAddInstances(mq, state)
+    clusters_cleanup.subscribe(mq, state)
     
     #
     # These return immediatly

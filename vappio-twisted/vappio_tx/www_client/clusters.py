@@ -4,10 +4,19 @@ CLUSTERINFO_URL = '/vappio/clusterInfo_ws.py'
 ADDINSTANCES_URL = '/vappio/addInstances_ws.py'
 TERMINATECLUSTER_URL = '/vappio/terminateCluster_ws.py'
 TERMINATEINSTANCES_URL = '/vappio/terminateInstances_ws.py'
+LISTCLUSTERS_URL = '/vappio/listClusters_ws.py'
 
 def loadCluster(host, clusterName, userName, timeout=30, tries=4):
     return http.performQuery(host,
                              CLUSTERINFO_URL,
+                             dict(cluster=clusterName,
+                                  user_name=userName),
+                             timeout=timeout,
+                             tries=tries)
+
+def listClusters(host, clusterName, userName, timeout=30, tries=4):
+    return http.performQuery(host,
+                             LISTCLUSTERS_URL,
                              dict(cluster=clusterName,
                                   user_name=userName),
                              timeout=timeout,
