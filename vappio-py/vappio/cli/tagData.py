@@ -74,7 +74,7 @@ def main(options, files):
     if options('general.print_task_name'):
         print tag['task_name']
     else:
-        runTaskStatus(tag['task_name'])
+        runTaskStatus(tag['task_name'], otpions('general.cluster'))
     
 
 if __name__ == '__main__':
