@@ -14,6 +14,7 @@ from vappio_tx.www_client import tags as www_tags
 from vappio_tx.utils import mongo_cache
 
 from vappio_tx.pipelines import protocol_format
+from vappio_tx.pipelines import pipeline_misc
 
 class PipelinesCache(dependency.Dependable):
     def __init__(self, machineConf, persistManager, tagNotify):
@@ -108,10 +109,13 @@ class PipelinesCache(dependency.Dependable):
 
         pipelineTask = yield tasks_tx.loadTask(pipeline.taskName)
 
+        pipelineWrapper = pipeline_misc.determineWrapper(self.machineConf,
+                                                         pipeline.config('pipeline.PIPELINE_TEMPLATE'))
+
         pipelineDict = {'pipeline_id': pipeline.pipelineId,
                         'pipeline_name': pipeline.pipelineName,
                         'user_name': pipeline.userName,
-                        'wrapper': pipeline.protocol == 'clovr_wrapper',
+                        'wrapper': pipeline.protocol == pipelineWrapper,
                         'protocol': pipeline.config('pipeline.PIPELINE_TEMPLATE'),
                         'checksum': pipeline.checksum,
                         'task_name': pipeline.taskName,

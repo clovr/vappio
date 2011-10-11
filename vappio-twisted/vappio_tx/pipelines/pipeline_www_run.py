@@ -31,7 +31,7 @@ def _determineProtocol(request):
     if request.body['bare_run']:
         return request.body['config']['pipeline.PIPELINE_TEMPLATE']
     else:
-        return pipeline_misc.determineWrapper(request,
+        return pipeline_misc.determineWrapper(request.state.machineconf,
                                               request.body['config']['pipeline.PIPELINE_TEMPLATE'])
     
     
