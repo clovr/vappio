@@ -46,8 +46,6 @@ def _updateClusterInfoThrow(state):
     
     _updateUnresponsiveClusters(state.unresponsiveClusters, clusters)
 
-    log.msg(state.unresponsiveClusters)
-            
     for c, v in state.unresponsiveClusters.iteritems():
         if v > CLUSTER_TIMEOUT:
             log.msg('CLEANUP: Terminating cluster - ' + c)
