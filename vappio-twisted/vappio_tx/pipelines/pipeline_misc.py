@@ -147,7 +147,7 @@ def validatePipelineConfig(request):
     protocolConf = protocol_format.load(request.state.machineconf,
                                         request.body['config']['pipeline.PIPELINE_TEMPLATE'])
 
-    pipelienWrapper = determineWrapper(request.state.machineconf,
+    pipelineWrapper = determineWrapper(request.state.machineconf,
                                        request.body['config']['pipeline.PIPELINE_TEMPLATE'])
     
     if not request.body['bare_run']:
