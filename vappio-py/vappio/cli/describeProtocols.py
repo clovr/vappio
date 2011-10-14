@@ -44,7 +44,7 @@ def main(options, _args):
                 print '# Possible values:', ' '.join([str(f) for f in d['type_params']['choices']])
 
             if k in kv:
-                v = kv[k]
+                v = kv.pop(k)
             elif 'default' in d:
                 v = d['default']
             else:
@@ -52,6 +52,11 @@ def main(options, _args):
 
             print k.split('.', 1)[1] + '=' + str(v)
             print
+
+        if kv:
+            print '[]'
+            for k, v in kv.iteritems():
+                print '%s=%s' % (k, v)
 
         
 if __name__ == '__main__':
