@@ -111,8 +111,8 @@ do
 		then
 		    echo "Automated tests $t for $bname started at http://$nipaddr:$hudsonport/" | nc $netcat || true
 		fi
-		rm $n
 	    fi
 	done
+	rm -f $n
     fi
 done
