@@ -93,7 +93,7 @@ if (defined $opts{log}) {
 my $install_base=$opts{install_base};
 # using http instead of https
 my %SVN_CO_PATH = (
-		   ergatis => 'http://ergatis.svn.sourceforge.net/svnroot/ergatis/release/trunk',
+		   ergatis => 'http://ergatis.svn.sourceforge.net/svnroot/ergatis/tags/clovr-standard-2011-10-07-03-00-28',
 		   bsml => 'http://bsml.svn.sourceforge.net/svnroot/bsml/release',
 		   coati_install => 'http://coati-api.svn.sourceforge.net/svnroot/coati-api/release/coati_install',
 		   shared_prism => 'http://prism-api.svn.sourceforge.net/svnroot/prism-api/release/shared_prism',
