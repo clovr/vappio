@@ -9,6 +9,8 @@ apt-get -y install libgraphviz-perl
 apt-get -y install libxml-libxml-perl
 apt-get -y install libmldbm-perl
 apt-get -y install libjson-perl
+apt-get -y install lib32stdc++6
+
 #Need to to automate, is interactive
 export PERL_MM_USE_DEFAULT=1
 export PERL_AUTOINSTALL=1
