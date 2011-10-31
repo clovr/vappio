@@ -115,8 +115,8 @@ chmod 777 keys
 mkdir user_data
 chmod 777 user_data
 #vappio_conf continues to live in shared for now
-mv shared/vappio_conf .
-chmod 777 vappio_conf
+mv shared/vappio-conf .
+chmod 777 vappio-conf
 popd
 
 #Move files around into the $namepfx directory
