@@ -181,6 +181,9 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
              if f not in oldFiles and (not filterF or filterF and filterF(f))]
 
     files += oldFiles
+
+    # Remove any dups
+    files = list(set(files))
     
     tag = persist.Tag(tagName=tagName,
                       files=files,
