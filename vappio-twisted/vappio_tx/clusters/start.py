@@ -59,9 +59,9 @@ def startMaster(state, credClient, taskName, cl):
     @defer.inlineCallbacks
     def _loadConfig(pState):
         credConfig = yield credClient.credentialConfig()
-        cluster = pState.cluster.update(config=config.configFromConfig({'general.ctype': credConfig['general.ctype']},
-                                                                       base=config.configFromConfig(pState.cluster.config,
-                                                                                                    base=config.configFromMap(credConfig))))
+        cluster = pState.cluster.update(config=config.configFromMap({'general.ctype': credConfig['general.ctype']},
+                                                                    base=config.configFromConfig(pState.cluster.config,
+                                                                                                 base=config.configFromMap(credConfig))))
         pState = pState.update(cluster=cluster)
         defer.returnValue(pState)    
 
