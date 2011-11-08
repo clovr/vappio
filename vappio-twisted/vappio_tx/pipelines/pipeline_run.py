@@ -122,10 +122,14 @@ def resume(pipeline):
                                                          pipeline.userName)
             yield resume(childPipeline)
         else:
-            yield pipeline_www.resumePipeline('localhost',
-                                              cl,
-                                              pipeline.userName,
-                                              child)
+            try:
+                yield pipeline_www.resumePipeline('localhost',
+                                                  cl,
+                                                  pipeline.userName,
+                                                  child)
+            except Exception, err:
+                log.err('Error trying to resume child:')
+                log.err(err)
 
     # Reset the pipeline task to IDLE
     yield tasks_tx.updateTask(pipeline.taskName,
