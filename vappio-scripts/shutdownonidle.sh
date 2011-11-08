@@ -74,8 +74,8 @@ then
     #Check for jobs running on this host
 	$SGE_ROOT/bin/$ARCH/qstat -u '*' -l hostname=$myhostname | grep -v "[[:space:]]ERq[[:space:]]" >> $vappio_runtime/sge.running 
     #Check for staging,harvesting jobs or other jobs submitted by this host
-	$SGE_ROOT/bin/$ARCH/qstat -j '*' | grep sge_o_host | grep $myhostname >> $vappio_runtime/sge.running 
-	$SGE_ROOT/bin/$ARCH/qstat -j '*' | grep job_args | grep $myhostname >> $vappio_runtime/sge.running 
+	$SGE_ROOT/bin/$ARCH/qstat -u '*' | grep sge_o_host | grep $myhostname >> $vappio_runtime/sge.running 
+	$SGE_ROOT/bin/$ARCH/qstat -u '*' | grep job_args | grep $myhostname >> $vappio_runtime/sge.running 
     #Check for hadoop jobs
 	/opt/hadoop/bin/hadoop job -list | grep running | /usr/bin/perl -ne '($num) = ($_ =~ /(\d+) jobs /);print $_ if($num>0);' >> $vappio_runtime/sge.running 
     #Shortcircuit if any running jobs
