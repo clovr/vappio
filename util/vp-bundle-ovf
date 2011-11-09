@@ -83,13 +83,12 @@ then
     rm -f /mnt/${vdibname}.vdi
     VBoxManage createhd --filename /mnt/$vdibname.vdi --size 500000 --format vdi
     VBoxManage clonehd --existing $1 /mnt/$vdibname.vdi 
-    rm -rf /mnt/vfuse_$$
-    mkdir /mnt/vfuse_$$
-    vdfuse -f /mnt/$vdibname.vdi /mnt/vfuse_$$
-    devname=`losetup --show -f /mnt/vfuse_$$/EntireDisk`
     #Need to create new second partition on the vdi
+    modprobe nbd max_part=16
+    qemu-nbd -d /dev/nbd0
+    qemu-nbd -c /dev/nbd0 /mnt/$vdibname.vdi 
     sleep 2
-    fdisk $devname <<EOF
+    fdisk /dev/nbd0 <<EOF
 n
 p
 2
@@ -97,21 +96,12 @@ p
 
 w
 EOF
-    losetup -d $devname
-    umount -l /mnt/vfuse_$$
-    sleep 2
-    #Remount to find partition 2
-    vdfuse -f /mnt/$vdibname.vdi /mnt/vfuse_$$
-    devname=`losetup --show -f /mnt/vfuse_$$/Partition2`
-    sleep 2
     #Format the new partition as ext3
-    mkfs.ext3 $devname
-    #Unmount
-    losetup -d $devname
-    umount -l /mnt/vfuse_$$
-    sleep 2
-    #Run setup scripts on VDI
+    mkfs.ext3 /dev/nbd0p2
+    qemu-nbd -d /dev/nbd0
     /opt/vappio-util/vp-runonvdi /mnt/$vdibname.vdi /opt/vappio-scripts/vbox/vboxshared.sh 2
+    
+    #VBoxManage createhd --filename /mnt/$vdibname.copy.vdi --size 500000 --format vdi
     
     #This currently crashes
     #qemu-nbd -c /dev/nbd0 /mnt/$vdibname.vdi 
@@ -132,18 +122,18 @@ EOF
     if [ "$compress" != "" ]
     then
 	echo "Compressing vdi"
-	mkdir -p vdi/$vdibname
 	mv /mnt/$vdibname.vdi vdi/$vdibname/
-	pushd vdi/$vdibname
-	svn export --force $sharedtemplate/vappio-conf vappio-conf
-	chmod 777 vappio-conf
-	mkdir -p user_data
-	mkdir -p keys
-	chmod 777 keys
-	chmod 777 user_data
-	cd ../
-	tar cvzf $vdibname.vdi.tgz 
-	popd
+        pushd vdi/$vdibname
+        svn export --force $sharedtemplate/vappio-conf vappio
+        chmod 777 vappio-conf
+        mkdir -p user_data
+        mkdir -p keys
+        chmod 777 keys
+        chmod 777 user_data
+        cd ../
+        tar cvzf $vdibname.vdi.tgz 
+        mv $vdibname.vdi.tgz /mnt/
+        popd
     fi
 fi
 
