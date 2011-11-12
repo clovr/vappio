@@ -48,6 +48,8 @@ def main(options, _args):
                                                  options('general.cluster'),
                                                  {})
 
+        pipelines.sort(lambda x, y : cmp(int(x['pipeline_id']) if x['pipeline_id'] else x['pipeline_id'],
+                                         int(y['pipeline_id']) if y['pipeline_id'] else y['pipeline_id']))
         for p in pipelines:
             print '\t'.join(['PIPELINE',
                              p['pipeline_id'] if p['pipeline_id'] else '',
