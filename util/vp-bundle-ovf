@@ -122,6 +122,7 @@ EOF
     if [ "$compress" != "" ]
     then
 	echo "Compressing vdi"
+	mkdir -p vdi/$vdibname
 	mv /mnt/$vdibname.vdi vdi/$vdibname/
         pushd vdi/$vdibname
         svn export --force $sharedtemplate/vappio-conf vappio
