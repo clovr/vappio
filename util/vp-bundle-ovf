@@ -125,14 +125,14 @@ EOF
 	mkdir -p vdi/$vdibname
 	mv /mnt/$vdibname.vdi vdi/$vdibname/
         pushd vdi/$vdibname
-        svn export --force $sharedtemplate/vappio-conf vappio
+        svn export --force $sharedtemplate/vappio-conf vappio-conf
         chmod 777 vappio-conf
         mkdir -p user_data
         mkdir -p keys
         chmod 777 keys
         chmod 777 user_data
         cd ../
-        tar cvzf $vdibname.vdi.tgz 
+        tar cvzf $vdibname.vdi.tgz $vdibname
         mv $vdibname.vdi.tgz /mnt/
         popd
     fi
