@@ -121,10 +121,15 @@ def startMaster(state, credClient, taskName, cl):
         pState = pState.update(cluster=pState.cluster.setState(pState.cluster.RUNNING))
         yield saveCluster(pState.cluster, pState.state)
     except Exception, err:
+        # Doing it this way because deferred inlines aren't *completely* legit,
+        # in that I cannot yield anything in an except block without losing my stacktrace
+        # on the reraise.  So I'm doing this call-back style and raising.  There IS a
+        # possible race here where what if the raise causes the entire program to terminate?
+        # If so we cannot gurantee that the FAILED state will actually be set. But given how
+        # vappio is setup, this seems unlikely to happen
+        persist.loadCluster(cl.clusterName, cl.userName
+                            ).addCallback(lambda cluster : saveCluster(cluster.setState(cluster.FAILED), state))
         raise
-        cluster = yield persist.loadCluster(cl.clusterName, cl.userName)
-        yield saveCluster(cluster.setState(cluster.FAILED), state)
-        raise err
 
     defer.returnValue(pState.cluster)
 
