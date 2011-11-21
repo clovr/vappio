@@ -128,8 +128,7 @@ def resume(pipeline):
                                                   pipeline.userName,
                                                   child)
             except Exception, err:
-                log.err('Error trying to resume child:')
-                log.err(err)
+                log.err('Error trying to resume child')
 
     # Reset the pipeline task to IDLE
     yield tasks_tx.updateTask(pipeline.taskName,
