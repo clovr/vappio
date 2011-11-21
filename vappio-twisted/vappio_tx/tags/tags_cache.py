@@ -24,12 +24,18 @@ class TagsCache(dependency.Dependable):
                                                    lambda d : func.updateDict(d, {'_id': d['tag_name']}))
         self.persistManager.addDependent(self)
 
+        # If there are a lot of tags we want to parallelize caching them
+        self.workQueue.parallel = 100
+        
         # Force all tags to be cached
         tags = yield self.persistManager.listTags()
         for tagName in tags:
             yield self.persistManager.loadTag(tagName)
 
         yield defer_work_queue.waitForCompletion(self.workQueue)
+
+        # Now that we are done, set it back to 1
+        self.workQueue.parallel = 1
 
 
     def update(self, who, aspect, value):
@@ -80,7 +86,7 @@ class TagsLiteCache(dependency.Dependable):
         self.cache = yield mongo_cache.createCache('tags_lite_cache',
                                                    lambda d : func.updateDict(d, {'_id': d['tag_name']}))
         self.tagsCache.addDependent(self)
-
+        
         # Force any already-cached values to be cached
         tags = yield self.tagsCache.cache.query({})
         for tagDict in tags:
