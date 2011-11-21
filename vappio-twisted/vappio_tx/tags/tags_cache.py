@@ -44,8 +44,11 @@ class TagsCache(dependency.Dependable):
     @defer.inlineCallbacks
     def _tagToDictAndCache(self, aspect, tag):
         if tag.taskName:
-           t = yield tasks_tx.loadTask(tag.taskName)
-           state = t.state
+            try:
+                t = yield tasks_tx.loadTask(tag.taskName)
+                state = t.state
+            except:
+                state = None
         else:
            state = None
 
