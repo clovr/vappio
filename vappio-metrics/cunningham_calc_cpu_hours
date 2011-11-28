@@ -58,14 +58,16 @@ DBS  = set(['clovr-refseqdb',
 
 def cunninghamIt(f):
     estimate = 0
-    ret = []
-    commands.runSingleProgramEx('/opt/cunningham/cunningham -S -Q ' + f + ' -D '+ kv['misc.REP_DB'] + ' -P ' +  kv['params.PROGRAM'], stdoutf=ret.append, stderrf=None)
+
+    if os.stat(f).st_size > 0:
+        ret = []
+        commands.runSingleProgramEx('/opt/cunningham/cunningham -S -Q ' + f + ' -D '+ kv['misc.REP_DB'] + ' -P ' +  kv['params.PROGRAM'], stdoutf=ret.append, stderrf=None)
      
-    for r in ret:  
-        if 'Runtime' not in r: continue
-        _notimportant, estimate = r.split(':', 1) 
+        for r in ret:  
+            if 'Runtime' not in r: continue
+            _notimportant, estimate = r.split(':', 1) 
     
-    return (float(estimate))
+    return float(estimate)
 
 
 # *****************************************************************************
