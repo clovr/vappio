@@ -13,6 +13,7 @@ from igs_tx.utils import commands
 from vappio_tx.pipelines import persist
 
 from vappio_tx.www_client import pipelines as pipeline_www
+from vappio_tx.www_client import cluster as cluster_www
 
 from vappio_tx.tasks import tasks as tasks_tx
 
@@ -123,8 +124,12 @@ def resume(pipeline):
             yield resume(childPipeline)
         else:
             try:
-                yield pipeline_www.resumePipeline('localhost',
-                                                  cl,
+                cluster = yield cluster_www.loadCluster('localhost',
+                                                        cl,
+                                                        'guest')
+                                                        
+                yield pipeline_www.resumePipeline(cluster['master']['public_dns'],
+                                                  'local',
                                                   pipeline.userName,
                                                   child)
             except Exception, err:
