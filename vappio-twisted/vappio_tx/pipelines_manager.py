@@ -16,7 +16,9 @@ from vappio_tx.pipelines import pipeline_www_validate
 from vappio_tx.pipelines import pipeline_www_run
 from vappio_tx.pipelines import pipeline_www_resume
 from vappio_tx.pipelines import pipeline_www_update
+from vappio_tx.pipelines import pipeline_www_create
 from vappio_tx.pipelines import protocol_www_list
+
 
 class State:
     def __init__(self, conf):
@@ -42,6 +44,7 @@ def _subscribeToQueues(mq, state):
     yield defer.maybeDeferred(pipeline_www_run.subscribe, mq, state)
     yield defer.maybeDeferred(pipeline_www_resume.subscribe, mq, state)
     yield defer.maybeDeferred(pipeline_www_update.subscribe, mq, state)
+    yield defer.maybeDeferred(pipeline_www_create.subscribe, mq, state)
     yield defer.maybeDeferred(protocol_www_list.subscribe, mq, state)
 
 def makeService(conf):

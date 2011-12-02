@@ -40,6 +40,7 @@ def tagData(host,
             recursive,
             expand,
             compressDir,
+            urls=[],
             timeout=30,
             tries=4):
     return http.performQuery(host,
@@ -52,7 +53,8 @@ def tagData(host,
                                   metadata=metadata,
                                   recursive=recursive,
                                   expand=expand,
-                                  compress_dir=compressDir),
+                                  compress_dir=compressDir,
+                                  urls=urls),
                              timeout=timeout,
                              tries=tries)
 

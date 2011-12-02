@@ -1,3 +1,15 @@
+# DANGER WILL ROBINSON!
+# Be very weary of adding any caching behavior to this.  For starters,
+# it's probably useless, unless some pipelines are getting messages so
+# large that loading it from mongo is prohibitively expensive.  Secondly
+# and most importantly is that webservices ARE NOT the sole gateway to
+# modifying tasks.  People expect to be able to modify tasks by acessing
+# the database directly.  That means any caching layer added here is bound
+# to fail.
+#
+# This expected behavior is silly, I know, but it is a balance between this
+# silly behavior and a possible security hole where anyone with webservice
+# access can modify a task.
 import os
 
 from twisted.internet import defer

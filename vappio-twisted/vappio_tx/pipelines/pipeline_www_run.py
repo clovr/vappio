@@ -34,7 +34,7 @@ def _determineProtocol(request):
         return pipeline_misc.determineWrapper(request.state.machineconf,
                                               request.body['config']['pipeline.PIPELINE_TEMPLATE'])
     
-    
+
 @defer.inlineCallbacks
 def handleWWWRunPipeline(request):
     """
@@ -118,16 +118,19 @@ def handleWWWRunPipeline(request):
 
 
     if request.body['cluster'] == 'local':
-        checksum = pipeline_misc.checksumInput(request)
+        checksum = pipeline_misc.checksumInput(request.body['config'])
 
-        errors = yield pipeline_misc.validatePipelineConfig(request)
+        protocol = _determineProtocol(request)
+        
+        if protocol == 'clovr_batch_wrapper':
+            errors = yield pipeline_misc.validateBatchPipelineConfig(request)
+        else:
+            errors = yield pipeline_misc.validatePipelineConfig(request)
 
         if errors:
             raise InvalidPipelineConfig('Configuration did not pass validation')
 
         request.body['config']['pipeline.PIPELINE_NAME'] = checksum
-
-        protocol = _determineProtocol(request)
         
         try:
             # Pretty lame way to force control to the exceptional case
@@ -169,8 +172,10 @@ def handleWWWRunPipeline(request):
             pipelineDict = yield request.state.pipelinesCache.pipelineToDict(pipeline)
 
             if parentPipeline:
-                parentPipeline = parentPipeline.update(children=parentPipeline.children + [('local',
-                                                                                            pipeline.pipelineName)])
+                parentPipeline = parentPipeline.update(children=list(set([tuple(e)
+                                                                          for e in
+                                                                          parentPipeline.children + [('local',
+                                                                                                      pipeline.pipelineName)]])))
                 yield request.state.pipelinePersist.savePipeline(parentPipeline)
 
             defer.returnValue(request.update(response=pipelineDict))
@@ -180,9 +185,9 @@ def handleWWWRunPipeline(request):
         childPipeline = [(request.body['cluster'],
                           pipelineDict['pipeline_name'])]
         
-        if parentPipeline and childPipeline not in parentPipeline.children:
-            parentPipeline = parentPipeline.update(children=list(set([tuple(e) for e in parentPipeline.children + childPipeline])))
-            yield request.state.pipelinePersist.savePipeline(parentPipeline)
+        parentPipeline = parentPipeline.update(children=list(set([tuple(e) for e in parentPipeline.children + childPipeline])))
+
+        yield request.state.pipelinePersist.savePipeline(parentPipeline)
 
         defer.returnValue(request.update(response=pipelineDict))
 

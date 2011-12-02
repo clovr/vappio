@@ -6,6 +6,14 @@ from vappio_tx.utils import queue
 
 from vappio_tx.pipelines import pipeline_misc
 
+def _determineProtocol(request):
+    if request.body['bare_run']:
+        return request.body['config']['pipeline.PIPELINE_TEMPLATE']
+    else:
+        return pipeline_misc.determineWrapper(request.state.machineconf,
+                                              request.body['config']['pipeline.PIPELINE_TEMPLATE'])
+
+
 @defer.inlineCallbacks
 def handleWWWValidatePipelineConfig(request):
     """
@@ -20,7 +28,10 @@ def handleWWWValidatePipelineConfig(request):
     { errors: [{ message: string, keys: [string] }]
     }
     """
-    errors = yield pipeline_misc.validatePipelineConfig(request)
+    if _determineProtocol(request) == 'clovr_batch_wrapper':
+        errors = yield pipeline_misc.validateBatchPipelineConfig(request)
+    else:
+        errors = yield pipeline_misc.validatePipelineConfig(request)
     defer.returnValue(request.update(response={'errors': errors}))
 
 

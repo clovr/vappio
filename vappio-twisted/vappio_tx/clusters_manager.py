@@ -395,7 +395,7 @@ def handleWWWClusterInfo(request):
                                                                                     request.body['user_name'])])
         return defer_pipe.ret(request.update(response=response))
     else:
-        raise Error('Cluster not found')
+        raise Error('Cluster not found - %r' % request.body['cluster'])
 
 @defer.inlineCallbacks
 def handleWWWListClusters(request):

@@ -16,8 +16,8 @@ DIAG_EC2_URL = 'https://nimbus.diagcomputing.org:8443/wsrf/services/ElasticNimbu
 
 INSTANCE_TYPE_MAPPING = {'default': 'm1.small',
                          'small': 'm1.small',
-                         'medium': 'm1.small',
-                         'large': 'm1.small',
+                         'medium': 'm1.large',
+                         'large': 'm1.xlarge',
                          }
 
 

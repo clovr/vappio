@@ -14,6 +14,7 @@ def handleWWWListProtocols(request):
     { cluster: string
       ?criteria: { key/value }
       ?detail: boolean
+      ?batch_mode: boolean
     }
     Output:
     [{ protocol: string, config: [ { key/value } ]}]
@@ -23,6 +24,7 @@ def handleWWWListProtocols(request):
                 for pc in protocolConfig
                 if pc[1].get('visibility') != 'always_hidden']
 
+    # Create a criterial filter called protocolF
     if 'criteria' in request.body:
         if '$or' in request.body['criteria']:
             protocolNames = [p['protocol'] for p in request.body['criteria']['$or']]
@@ -33,11 +35,19 @@ def handleWWWListProtocols(request):
             protocolF = lambda _ : True
     else:
         protocolF = lambda _ : True
-    
+
+    # Get all protocols and filter out the ones we don't need
     protocols = [p
                  for p in protocol_format.protocols(request.state.machineconf)
                  if protocolF(p)]
 
+    if request.body.get('batch_mode'):
+        batchConfig = [func.updateDict(c[1], {'name': c[0]})
+                       for c in _removeAlwaysHidden(protocol_format.load(request.state.machineconf,
+                                                                         'clovr_batch_wrapper'))]
+    else:
+        batchConfig = []
+    
     protocolConfs = []
     for p in protocols:
         protocolConfig = protocol_format.load(request.state.machineconf, p)
@@ -48,6 +58,9 @@ def handleWWWListProtocols(request):
         if request.body.get('detail', False):
             conf = [func.updateDict(c[1], {'name': c[0]})
                     for c in _removeAlwaysHidden(protocolConfig)]
+            if request.body.get('batch_mode', False):
+                conf = batchConfig + [func.updateDict(c, {'name': 'batch_pipeline.' + c['name']})
+                                      for c in conf]
         else:
             conf = []
             
