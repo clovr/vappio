@@ -10,7 +10,8 @@ OPTIONS = [
     ('config_from_protocol', '-p', '--config-from-protocol', 'Create a config file from a protocol and print it to stdout', func.identity),
     ('config_options', '-c', '--config',
      'Specify a value to replace when outputing a config file. Can specify multiple i.e. -c input.PIPELINE_NAME=foo -c cluster.CLUSTER_NAME=bar',
-     cli.defaultIfNone([]), cli.LIST)
+     cli.defaultIfNone([]), cli.LIST),
+    ('batch_mode', '', '--batch-mode', 'Want to run the protocol in batch mode', cli.defaultIfNone(False), cli.BINARY)
     ]
 
 def main(options, _args):
@@ -24,7 +25,8 @@ def main(options, _args):
     else:
         proto = protocol.protocolConfig(options('general.host'),
                                         options('general.cluster'),
-                                        options('general.config_from_protocol'))[0]
+                                        options('general.config_from_protocol'),
+                                        options('general.batch_mode'))[0]
 
         kv = dict([v.split('=', 1) for v in options('general.config_options')])
         section = proto and proto['config'][0]['name'].split('.', 1)[0] or ''

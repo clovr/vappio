@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+import os
+import sys
+
+from twisted.python import log
+
+from twisted.internet import reactor
+
+from igs.utils import cli
+
+from vappio_tx.batch import batch_job_runner
+
+OPTIONS = [
+    ('pipeline_config', '', '--pipeline-config', 'Pipeline configuration', cli.notNone),
+    ('batch_states', '', '--batch-states', 'File to store the states of the batches', cli.notNone),
+    ('batch_file', '', '--batch-file', 'Tab delimited file for the batches to run', cli.notNone),
+    ('workflow_config', '', '--workflow-config', 'Configuration file to use when running workflow', cli.notNone),
+    ('pipeline_queue', '', '--pipeline-queue', 'Queue to run the inner pipelines in', cli.notNone)
+    ]
+
+class ExitCode:
+    def __init__(self):
+        self.exitCode = 0
+
+def run(batchOptions, exitCode):
+    d = batch_job_runner.run(batchOptions)
+
+    def _callback(_):
+        reactor.stop()
+
+    d.addCallback(_callback)
+
+    def _errback(f):
+        log.err(f)
+        exitCode.exitCode = 1
+        reactor.stop()
+    
+    d.addErrback(_errback)
+
+def main(options, _args):
+    batchOptions = batch_job_runner.Options(configFile=options('general.pipeline_config'),
+                                            batchFile=options('general.batch_file'),
+                                            batchStatesFile=options('general.batch_states'),
+                                            workflowConfig=options('general.workflow_config'))
+
+    exitCode = ExitCode()
+    reactor.callLater(0.0, run, batchOptions, exitCode)
+    reactor.run()
+    exit(exitCode.exitCode)
+
+if __name__ == '__main__':
+    main(*cli.buildConfigN(OPTIONS))

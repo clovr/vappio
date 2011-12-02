@@ -1,0 +1,6 @@
+#!/bin/sh
+
+export WF_ROOT=/opt/workflow-sforge/
+export PATH=/opt/workflow-sforge/:/opt/workflow-sforge/bin/:/opt/ergatis/bin:$PATH
+
+vp-run-batch $@

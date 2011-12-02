@@ -32,6 +32,7 @@ def main(options, files):
                 print '\t'.join(['METADATA', k, str(v)])
     else:
         tags = tag.listTags(options('general.host'), options('general.cluster'), None, False)
+        tags.sort(lambda x, y : cmp(x['tag_name'], y['tag_name']))
         for t in tags:
             print '\t'.join(['TAG', t['tag_name'], str(t['file_count'])])
 

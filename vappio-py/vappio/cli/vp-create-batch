@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+
+from igs.utils import cli
+from igs.utils import config
+
+from vappio.webservice import tag as tag_client
+
+OPTIONS = [
+    ('pipeline_config', '', '--pipeline-config', 'Input pipeline config', cli.notNone),
+    ('batch_tab', '', '--batch-tab', 'Output batch tab file', cli.notNone)
+    ]
+
+class Error(Exception):
+    pass
+
+def _writeBatchTab(pipelineConfig, batchTab):
+    if pipelineConfig('batch.options.BATCH_TAG'):
+        tag = tag_client.listTags('localhost',
+                                  'local',
+                                  {'tag_name': pipelineConfig('batch.options.BATCH_TAG')},
+                                  True)[0]
+
+        if len(tag['files']) > 1:
+            raise Error('BATCH_TAG has too many files')
+
+        batchTab.write(open(tag['files'][0]).read())
+
+
+def main(options, _args):
+    pipelineConfig = config.configFromStream(open(options('general.pipeline_config')), lazy=True)
+
+    batchTab = open(options('general.batch_tab'), 'w')
+
+    _writeBatchTab(pipelineConfig, batchTab)
+
+if __name__ == '__main__':
+    main(*cli.buildConfigN(OPTIONS))    
