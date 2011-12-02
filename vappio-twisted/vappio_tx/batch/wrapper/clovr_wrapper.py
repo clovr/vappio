@@ -2,6 +2,8 @@ import os
 
 from twisted.internet import defer
 
+from igs.utils import logging
+
 from igs_tx import workflow_runner
 
 from igs_tx.utils import global_state
@@ -12,6 +14,8 @@ from vappio_tx.pipelines import pipeline_misc
 from vappio_tx.www_client import tags as tags_client
 from vappio_tx.www_client import pipelines as pipelines_client
 from vappio_tx.www_client import tasks as tasks_client
+
+from vappio_tx.tasks import tasks
 
 TMP_DIR='/tmp'
 
@@ -27,6 +31,10 @@ TAG_FILE_ACTION = 'TAG_FILE'
 TAG_URL_ACTION = 'TAG_URL'
 TAG_METADATA_ACTION = 'TAG_METADATA'
 CONFIG_ACTION = 'CONFIG'
+
+
+def _log(batchState, msg):
+    logging.logPrint('BATCH_NUM %d - %s' % (batchState['batch_num'], msg))
 
 @defer.inlineCallbacks
 def _createTags(actions):
@@ -102,6 +110,7 @@ def _waitForPipeline(batchState):
 @defer.inlineCallbacks
 def _run(state, batchState):
     if 'state' not in batchState:
+        _log(batchState, 'First time running, creating pipeline state information')
         batchState['pipeline_config'] = yield _applyActions(state.innerPipelineConfig(),
                                                             batchState['actions'])
         batchState['state'] = PRESTART_STATE
@@ -120,9 +129,12 @@ def _run(state, batchState):
                                                          batchState['pipeline_config'])
 
         batchState['clovr_wrapper_task_name'] = pipeline['task_name']
+
+        _log(batchState, 'Setting number of tasks to 6 (number in a standard clovr_wrapper)')
         
         state.updateBatchState()
     else:
+        _log(batchState, 'Pipeline run before, loading pipeline information')
         pipeline = yield pipelines_client.pipelineList('localhost',
                                                        'local',
                                                        'guest',
@@ -130,9 +142,12 @@ def _run(state, batchState):
                                                        detail=True)
 
     pipelineConfigFile = os.path.join(TMP_DIR, 'pipeline_configs', global_state.make_ref() + '.conf')
+    
+    _log(batchState, 'Creating ergatis configuration')
     _writeErgatisConfig(batchState['pipeline_config'], pipelineConfigFile)
 
     if batchState['state'] == PRESTART_STATE:
+        _log(batchState, 'Pipeline is in PRESTART state')
         yield state.prerunQueue.addWithDeferred(workflow_runner.run,
                                                 state.workflowConfig(),
                                                 batchState['pipeline_config']['pipeline.PRESTART_TEMPLATE_XML'],
@@ -143,6 +158,7 @@ def _run(state, batchState):
 
 
     if batchState['state'] == PRERUN_STATE:
+        _log(batchState, 'Pipeline is in PRERUN state')
         yield state.prerunQueue.addWithDeferred(workflow_runner.run,
                                                 state.workflowConfig(),
                                                 batchState['pipeline_config']['pipeline.PRERUN_TEMPLATE_XML'],
@@ -153,10 +169,11 @@ def _run(state, batchState):
         
 
     if batchState['state'] == RUN_PIPELINE_STATE:
+        _log(batchState, 'Pipeline is in RUN_PIPELINE state')
         pipeline = yield pipelines_client.runPipeline(host='localhost',
                                                       clusterName=batchState['pipeline_config']['cluster.CLUSTER_NAME'],
                                                       userName='guest',
-                                                      parentPipeline=state.parentPipeline(),
+                                                      parentPipeline=None,
                                                       bareRun=True,
                                                       queue=state.innerPipelineQueue(),
                                                       config=batchState['pipeline_config'],
@@ -167,11 +184,13 @@ def _run(state, batchState):
 
 
     if batchState['state'] == RUNNING_PIPELINE_STATE:
+        _log(batchState, 'Pipeline is in RUNNING_PIPELINE state')
         yield _waitForPipeline(batchState)
         batchState['state'] = POSTRUN_STATE
         state.updateBatchState()
 
     if batchState['state'] == POSTRUN_STATE:
+        _log(batchState, 'Pipeline is in POSTRUN state')
         yield state.postrunQueue.addWithDeferred(workflow_runner.run,
                                                  state.workflowConfig(),
                                                  batchState['pipeline_config']['pipeline.POSTRUN_TEMPLATE_XML'],
@@ -179,6 +198,8 @@ def _run(state, batchState):
                                                  TMP_DIR)
         batchState['state'] = COMPLETED_STATE
         state.updateBatchState()
+
+    _log(batchState, 'Pipeline finished successfully')
     
 
 @defer.inlineCallbacks
@@ -186,6 +207,7 @@ def run(state, batchState):
     try:
         yield _run(state, batchState)
     except:
+        _log(batchState, 'There was an error in the pipeline, setting to failed')
         batchState['state'] = FAILED_STATE
         raise
     
