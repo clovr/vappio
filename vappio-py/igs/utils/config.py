@@ -235,11 +235,15 @@ def flattenMap(map, depth):
 
     return res
 
-def replaceVariables(k, value, lookup):
+def replaceVariables(k, value, lookup, ignoreList=[]):
     """
     Takes value and determines if any variables need replacing in it and replaces
-    them with whatever is in 'lookup'.  This will blow out the stack if
-    you have a recursive variables.
+    them with whatever is in 'lookup'. Recursive variables will appear to be unevaulated,
+    for example the config:
+
+    {'FOO', '${FOO}'}
+
+    Will evaluate to '${FOO}' rather than infinitely look itself up
 
     If a variable cannot be found a NoKeyFoundError is thrown.
     """
@@ -257,7 +261,9 @@ def replaceVariables(k, value, lookup):
     ##
     # Check to make sure this is a string:
     if hasattr(value, 'replace'):
-        vars = VARIABLE_RE.findall(value)
+        vars = [v
+                for v in VARIABLE_RE.findall(value)
+                if v not in ignoreList]
         if vars:
             for var in vars:
                 if '.' not in var:
@@ -270,7 +276,7 @@ def replaceVariables(k, value, lookup):
                 except NoKeyFoundError:
                     value = value.replace('${%s}' % var, lookup(var))
 
-            return replaceVariables(secVar, value, lookup)
+            return replaceVariables(secVar, value, lookup, ignoreList=vars)
         else:
             return value
     else:
@@ -305,8 +311,8 @@ def configFromEnv(base=None, lazy=False, depth=None):
     return configFromMap({'env': os.environ}, base, lazy, depth)
 
 
-def configToDict(config):
-    if config.lazy:
+def configToDict(config, lazy=False):
+    if config.lazy or lazy:
         return dict([(k, config.get_raw(k)) for k in config.keys()])
     else:
         return dict([(k, config.get(k)) for k in config.keys()])

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import hashlib
 
 from igs.utils import cli
 from igs.utils import config
@@ -13,6 +14,106 @@ OPTIONS = [
 class Error(Exception):
     pass
 
+class TagListTooSmall(Error):
+    pass
+
+class ParamListTooSmall(Error):
+    pass
+
+def _paramListToList(paramList):
+    return [v.strip() for v in paramList.split(',')]
+
+def _ensureTagListSize(groupCount, tagLists):
+    """
+    Ensures that every tag in tagLists is at least
+    groupCount elements long
+    """
+    for v in tagLists.values():
+        tag = tag_client.listTags('localhost',
+                                  'local',
+                                  {'tag_name': v},
+                                  True)[0]
+
+        if len(tag['files']) < groupCount:
+            raise TagListTooSmall(v)
+        
+
+def _ensureParamListSize(groupCount, paramList):
+    """
+    Ensure that every list in paramList is at least groupCount long
+    """
+    for v in paramList.values():
+        if len(_paramListToList(v)) < groupCount:
+            raise ParamListTooSmall(v)
+
+def _ensureEqualParamListSize(paramList):
+    groupCount = None
+    for v in paramList.values():
+        if groupCount is None:
+            groupCount = len(_paramListToList(v))
+        else:
+            if len(_paramListToList(v)) != groupCount:
+                raise ParamListTooSmall(v)
+
+    return groupCount
+        
+def _addTagLists(batches, tagLists):
+    groupCount = len(batches)
+    
+    for configOption, tagName in tagLists.iteritems():
+        tag = tag_client.listTags('localhost',
+                                  'local',
+                                  {'tag_name': tagName},
+                                  True)[0]
+
+        for idx, f in enumerate(tag['files']):
+            batches[idx % groupCount]['tag_list'].setdefault(configOption, []).append(f)
+
+
+def _addParamLists(batches, paramLists):
+    groupCount = len(batches)
+    
+    for configOption, value in paramLists.iteritems():
+        for idx, v in enumerate(_paramListToList(value)):
+            batches[idx % groupCount]['params'][configOption] = v
+
+
+def _addVariableConfigs(batches, pipelineConfig):
+    for idx, batch in enumerate(batches):
+        for k, v in pipelineConfig.iteritems():
+            if '${BATCH_NUM}' in v:
+                batches[idx]['params'][k] = v.replace('${BATCH_NUM}', str(idx))
+
+
+def _checksumPipeline(pipelineConfig):
+    values = ','.join([pipelineConfig(k) for k in pipelineConfig.keys()])
+    return hashlib.md5(values).hexdigest()
+                
+def _writeBatches(batches, pipelineName, batchTab):
+    for idx, batch in enumerate(batches):
+        batchNum = str(idx)
+        tagLists = batch['tag_list'].keys()
+        tagLists.sort()
+        for tagIdx, configOption in enumerate(tagLists):
+            tagNum = str(tagIdx)
+            tagName = '_'.join([pipelineName, batchNum, tagNum]),
+            for f in tagLists[configOption]:
+                batchTab.write('\t'.join([batchNum,
+                                          'TAG_FILE',
+                                          tagName,
+                                          f]) + '\n')
+                
+            batchTab.write('\t'.join([batchNum,
+                                      'CONFIG',
+                                      configOption,
+                                      tagName]) + '\n')
+
+        for configOption, value in batch['params'].iteritems():
+            batchTab.write('\t'.join([batchNum,
+                                      'CONFIG',
+                                      configOption,
+                                      value]) + '\n')
+                
 def _writeBatchTab(pipelineConfig, batchTab):
     if pipelineConfig('batch.options.BATCH_TAG'):
         tag = tag_client.listTags('localhost',
@@ -24,10 +125,49 @@ def _writeBatchTab(pipelineConfig, batchTab):
             raise Error('BATCH_TAG has too many files')
 
         batchTab.write(open(tag['files'][0]).read())
+    else:
+        tagLists = dict([(k.split('.', 2)[-1], pipelineConfig(k))
+                         for k in pipelineConfig.keys()
+                         if k.startswith('batch.tag_list.')])
+        
+        paramList = dict([(k.split('.', 2)[-1], pipelineConfig(k))
+                          for k in pipelineConfig.keys()
+                          if k.startswith('batch.param_list.')])
+
+        groupCount = int(pipelineConfig('batch.options.GROUP_COUNT'))
+
+        if tagLists:
+            _ensureTagListSize(groupCount, tagLists)
+            _ensureParamListSize(groupCount, paramList)
+        else:
+            groupCount = _ensureEqualParamListSize(paramList)
+
+        batches = [{'tag_list': {},
+                    'params': {}}
+                   for _ in range(groupCount)]
+            
+        _addTagLists(batches, tagLists)
+        _addParamLists(batches, paramList)
+
+        innerPipelineConfig = dict([(k.split('.', 1)[-1], pipelineConfig(k))
+                                    for k in pipelineConfig.keys()
+                                    if k.startswith('batch_pipeline.')])
+
+        if ('pipeline.PIPELINE_DESC' in innerPipelineConfig and
+            not innerPipelineConfig['pipeline.PIPELINE_DESC']):
+            innerPipelineConfig['pipeline.PIPELINE_DESC'] = 'batch run ${BATCH_NUM}'
+
+        pipelineChecksum = _checksumPipeline(pipelineConfig)
+        
+        _addVariableConfigs(batches, innerPipelineConfig)
+
+        _writeBatches(batches, pipelineChecksum, batchTab)
 
 
 def main(options, _args):
-    pipelineConfig = config.configFromStream(open(options('general.pipeline_config')), lazy=True)
+    pipelineConfig = config.configFromStream(open(options('general.pipeline_config')),
+                                             base=config.configFromMap({'BATCH_NUM': '${BATCH_NUM}'}, lazy=True),
+                                             lazy=True)
 
     batchTab = open(options('general.batch_tab'), 'w')
 
