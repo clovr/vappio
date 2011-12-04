@@ -127,7 +127,7 @@ class PipelinesCache(dependency.Dependable):
                         'input_tags': inputTags,
                         'output_tags': outputTags,
                         'pipeline_desc': pipeline.config('pipeline.PIPELINE_DESC', default=''),
-                        'config': config.configToDict(pipeline.config),
+                        'config': config.configToDict(pipeline.config, lazy=True),
                         }
 
         defer.returnValue(pipelineDict)

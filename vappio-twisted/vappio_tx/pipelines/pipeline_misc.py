@@ -185,7 +185,7 @@ def validateBatchPipelineConfig(request):
 
     
     # First things first, rip out the inner pipeline config:
-    innerConfig = dict([(k.split('.', 1)[1], v)
+    innerConfig = dict([(k.split('.', 1)[-1], v)
                         for k, v in request.body['config'].iteritems()
                         if k.startswith('batch_pipeline.')])
 
@@ -202,15 +202,17 @@ def validateBatchPipelineConfig(request):
         if v['type'] in ['dataset', 'paired_dataset', 'singleton_dataset']:
             if ('batch.tag_list.' + k) in request.body['config']:
                 params = dict(v)
-                typeParams = params.setdefault('type_params', {})
-                typeParams['transform_name'] = 'batch.tag_list.file_list.' + k
+                params['type_params'] = dict(params.get('type_params', {}))
+                typeParams = params['type_params']
+                typeParams['transform_name'] = 'batch.tag_list.file_list.' + k + '_throwaway'
                 additionalConf.append(('batch.tag_list.' + k, params))
                 _makeNoop(v)
             elif ('batch.param_list.' + k) in request.body['config']:
                 params = dict(v)
                 params['type'] = params['type'] + ' list'
-                typeParams = params.setdefault('type_params', {})
-                typeParams['transform_name'] = 'batch.param_list.file_list.' + k
+                params['type_params'] = dict(params.get('type_params', {}))
+                typeParams = params['type_params']
+                typeParams['transform_name'] = 'batch.param_list.file_list.' + k + '_throwaway'
                 additionalConf.append(('batch.param_list.' + k, params))
                 _makeNoop(v)
             elif '${BATCH_NUM}' in request.body['config'].get(k, ''):
@@ -218,8 +220,9 @@ def validateBatchPipelineConfig(request):
         elif ('batch.param_list.' + k) in request.body['config']:
             params = dict(v)
             params['type'] = params['type'] + ' list'
-            typeParams = params.setdefault('type_params', {})
-            typeParams['transform_name'] = 'batch.param_list.transformed.' + k
+            params['type_params'] = dict(params.get('type_params', {}))
+            typeParams = params['type_params']
+            typeParams['transform_name'] = 'batch.param_list.transformed.' + k + '_throwaway'
         elif '${BATCH_NUM}' in request.body['config'].get(k, ''):
             _makeNoop(v)
         else:
@@ -237,8 +240,6 @@ def validateBatchPipelineConfig(request):
 
     protocolConf += additionalConf
 
-    print 'Validating: ', protocolConf
-    
     validateState = func.Record(conf=request.state.conf,
                                 machineconf=request.state.machineconf,
                                 mq=request.mq)

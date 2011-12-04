@@ -1,5 +1,7 @@
 import os
 
+from twisted.python import log
+
 from twisted.internet import defer
 
 from igs.utils import logging
@@ -12,6 +14,7 @@ from igs_tx.utils import defer_utils
 from vappio_tx.pipelines import pipeline_misc
 
 from vappio_tx.www_client import tags as tags_client
+from vappio_tx.www_client import clusters as clusters_client
 from vappio_tx.www_client import pipelines as pipelines_client
 from vappio_tx.www_client import tasks as tasks_client
 
@@ -20,6 +23,7 @@ from vappio_tx.tasks import tasks
 TMP_DIR='/tmp'
 
 PRESTART_STATE = 'prestart'
+STARTING_STATE = 'starting'
 PRERUN_STATE = 'prerun'
 RUN_PIPELINE_STATE = 'run_pipeline'
 RUNNING_PIPELINE_STATE = 'running_pipeline'
@@ -36,6 +40,33 @@ CONFIG_ACTION = 'CONFIG'
 def _log(batchState, msg):
     logging.logPrint('BATCH_NUM %d - %s' % (batchState['batch_num'], msg))
 
+@defer.inlineCallbacks
+def _updateTask(batchState, f):
+    if 'clovr_wrapper_task_name' in batchState:
+        task = yield tasks.updateTask(batchState['clovr_wrapper_task_name'], f)
+
+        # This is cheap, but we need a way for the pipelines cache to realize
+        # the pipeline we just modified the task for has been changed. We do
+        # this by loading the config and resaving it, which cause an invalidation
+        # in the cache.  There is not a more direct way for an outside process
+        # to cause an invalidation yet.
+        pipeline = yield pipelines_client.pipelineList('localhost',
+                                                       'local',
+                                                       'guest',
+                                                       batchState['pipeline_name'],
+                                                       detail=True)
+
+        pipeline = pipeline[0]
+        yield pipelines_client.updateConfigPipeline('localhost',
+                                                    'local',
+                                                    'guest',
+                                                    {'pipeline_name': batchState['pipeline_name']},
+                                                    pipeline['config'])
+
+        defer.returnValue(task)
+    
+
+    
 @defer.inlineCallbacks
 def _createTags(actions):
     tags = {}
@@ -119,6 +150,8 @@ def _run(state, batchState):
         batchState['pipeline_name'] = pipeline_misc.checksumInput(batchState['pipeline_config'])
         batchState['pipeline_config']['pipeline.PIPELINE_NAME'] = batchState['pipeline_name']
         batchState['pipeline_config']['pipeline.PIPELINE_WRAPPER_NAME'] = batchState['pipeline_name']
+
+        _log(batchState, 'Pipeline named ' + batchState['pipeline_name'])
         
         pipeline = yield pipelines_client.createPipeline('localhost',
                                                          'local',
@@ -131,6 +164,9 @@ def _run(state, batchState):
         batchState['clovr_wrapper_task_name'] = pipeline['task_name']
 
         _log(batchState, 'Setting number of tasks to 6 (number in a standard clovr_wrapper)')
+        yield _updateTask(batchState,
+                               lambda t : t.update(completedTasks=0,
+                                                   numTasks=6).setState(tasks.task.TASK_RUNNING))
         
         state.updateBatchState()
     else:
@@ -153,6 +189,38 @@ def _run(state, batchState):
                                                 batchState['pipeline_config']['pipeline.PRESTART_TEMPLATE_XML'],
                                                 pipelineConfigFile,
                                                 TMP_DIR)
+
+        yield _updateTask(batchState,
+                          lambda t : t.addMessage(tasks.task.MSG_SILENT,
+                                                  'Completed prestart'
+                                                  ).progress())
+                               
+        batchState['state'] = STARTING_STATE
+        state.updateBatchState()
+
+    if batchState['state'] == STARTING_STATE:
+        _log(batchState, 'Pipeline is in STARTING state')
+        clusterTask = yield clusters_client.startCluster('localhost',
+                                                         batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                                         'guest',
+                                                         int(batchState['pipeline_config']['cluster.EXEC_NODES']),
+                                                         0,
+                                                         batchState['pipeline_config']['cluster.CLUSTER_CREDENTIAL'],
+                                                         {'cluster.MASTER_INSTANCE_TYPE': batchState['pipeline_config']['cluster.MASTER_INSTANCE_TYPE'],
+                                                          'cluster.MASTER_BID_PRICE': batchState['pipeline_config']['cluster.MASTER_BID_PRICE'],
+                                                          'cluster.EXEC_INSTANCE_TYPE': batchState['pipeline_config']['cluster.EXEC_INSTANCE_TYPE'],
+                                                          'cluster.EXEC_BID_PRICE': batchState['pipeline_config']['cluster.EXEC_BID_PRICE']})
+
+        yield tasks.blockOnTask('localhost',
+                                'local',
+                                clusterTask)
+
+        
+        yield _updateTask(batchState,
+                          lambda t : t.addMessage(tasks.task.MSG_SILENT,
+                                                  'Completed start'
+                                                  ).progress())
+
         batchState['state'] = PRERUN_STATE
         state.updateBatchState()
 
@@ -164,6 +232,11 @@ def _run(state, batchState):
                                                 batchState['pipeline_config']['pipeline.PRERUN_TEMPLATE_XML'],
                                                 pipelineConfigFile,
                                                 TMP_DIR)
+
+        yield _updateTask(batchState,
+                          lambda t : t.addMessage(tasks.task.MSG_SILENT,
+                                                  'Completed prerun'
+                                                  ).progress())
         batchState['state'] = RUN_PIPELINE_STATE
         state.updateBatchState()
         
@@ -179,6 +252,11 @@ def _run(state, batchState):
                                                       config=batchState['pipeline_config'],
                                                       overwrite=True)
         batchState['pipeline_task'] = pipeline['task_name']
+
+        yield _updateTask(batchState,
+                          lambda t : t.addMessage(tasks.task.MSG_SILENT,
+                                                  'Completed run pipeline'
+                                                  ).progress())
         batchState['state'] = RUNNING_PIPELINE_STATE
         state.updateBatchState()
 
@@ -186,6 +264,11 @@ def _run(state, batchState):
     if batchState['state'] == RUNNING_PIPELINE_STATE:
         _log(batchState, 'Pipeline is in RUNNING_PIPELINE state')
         yield _waitForPipeline(batchState)
+
+        yield _updateTask(batchState,
+                          lambda t : t.addMessage(tasks.task.MSG_SILENT,
+                                                  'Completed running pipeline'
+                                                  ).progress())
         batchState['state'] = POSTRUN_STATE
         state.updateBatchState()
 
@@ -196,18 +279,33 @@ def _run(state, batchState):
                                                  batchState['pipeline_config']['pipeline.POSTRUN_TEMPLATE_XML'],
                                                  pipelineConfigFile,
                                                  TMP_DIR)
+
+        yield _updateTask(batchState,
+                          lambda t : t.addMessage(tasks.task.MSG_SILENT,
+                                                  'Completed postrun'
+                                                  ).progress())
+                                                   
         batchState['state'] = COMPLETED_STATE
         state.updateBatchState()
 
+    yield _updateTask(batchState,
+                      lambda t : t.setState(tasks.task.TASK_COMPLETED))
     _log(batchState, 'Pipeline finished successfully')
     
 
-@defer.inlineCallbacks
 def run(state, batchState):
-    try:
-        yield _run(state, batchState)
-    except:
+    d = _run(state, batchState)
+
+    @defer.inlineCallbacks
+    def _errback(f):
         _log(batchState, 'There was an error in the pipeline, setting to failed')
+        log.err(f)
         batchState['state'] = FAILED_STATE
-        raise
+        yield _updateTask(batchState,
+                          lambda t : t.setState(tasks.task.TASK_FAILED))
+        state.updateBatchState()
+        defer.returnValue(f)
+
+    d.addErrback(_errback)
+    return d
     

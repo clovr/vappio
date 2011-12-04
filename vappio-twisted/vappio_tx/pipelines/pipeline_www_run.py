@@ -182,12 +182,11 @@ def handleWWWRunPipeline(request):
     else:
         pipelineDict = yield _startRemotePipeline(request)
 
-        childPipeline = [(request.body['cluster'],
-                          pipelineDict['pipeline_name'])]
-        
-        parentPipeline = parentPipeline.update(children=list(set([tuple(e) for e in parentPipeline.children + childPipeline])))
-
-        yield request.state.pipelinePersist.savePipeline(parentPipeline)
+        if parentPipeline:
+            childPipeline = [(request.body['cluster'],
+                              pipelineDict['pipeline_name'])]
+            parentPipeline = parentPipeline.update(children=list(set([tuple(e) for e in parentPipeline.children + childPipeline])))
+            yield request.state.pipelinePersist.savePipeline(parentPipeline)
 
         defer.returnValue(request.update(response=pipelineDict))
 

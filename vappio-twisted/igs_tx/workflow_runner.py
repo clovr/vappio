@@ -35,17 +35,19 @@ def _replaceTemplateKeys(templateXml, componentConfig, instanceXml):
 
 def _runWorkflow(instanceXml):
     stderr = StringIO.StringIO()
+
+    cmd = ['RunWorkflow',
+           '-i', instanceXml,
+           '-m', '1',
+           '--init-heap=100m',
+           '--max-heap=1024m',
+           '--logconf=/opt/workflow-sforge/log4j.properties',
+           '--debug']
     
     def _raiseProgramError(_):
         raise commands.ProgramRunError(cmd, stderr.getvalue())
     
-    return commands.runProcess(['RunWorkflow',
-                                '-i', instanceXml,
-                                '-m', '1',
-                                '--init-heap=100m',
-                                '--max-heap=1024m',
-                                '--logconf=/opt/workflow-sforge/log4j.properties',
-                                '--debug'],
+    return commands.runProcess(cmd,
                                stderrf=stderr.write,
                                log=True).addErrback(_raiseProgramError)
     

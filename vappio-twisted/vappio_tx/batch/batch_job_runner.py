@@ -133,7 +133,7 @@ def _interpretBatchFile(batchFile):
             currentBatch.append(entry)
         else:
             batches.append(currentBatch)
-            currentBatch = []
+            currentBatch = [entry]
             currentBatchNum = batchNum
 
     if currentBatch:

@@ -3,7 +3,9 @@ from igs_tx.utils import http
 LIST_URL = '/vappio/pipeline_list'
 RUN_URL = '/vappio/pipeline_run'
 RESUME_URL = '/vappio/pipeline_resume'
+UPDATECONFIG_URL = '/vappio/pipeline_update'
 CREATE_URL = '/vappio/pipeline_create'
+
 
 def pipelineListBy(host, clusterName, userName, criteria, detail):
     return http.performQuery(host,
@@ -44,6 +46,18 @@ def resumePipeline(host, clusterName, userName, pipelineName):
                              dict(cluster=clusterName,
                                   user_name=userName,
                                   pipeline_name=pipelineName))
+
+def updateConfigPipeline(host,
+                         clusterName,
+                         userName,
+                         criteria,
+                         config):
+    return http.performQuery(host,
+                             UPDATECONFIG_URL,
+                             dict(cluster=clusterName,
+                                  user_name=userName,
+                                  criteria=criteria,
+                                  config=config))
 
 def createPipeline(host,
                    clusterName,
