@@ -28,6 +28,8 @@ PRERUN_STATE = 'prerun'
 RUN_PIPELINE_STATE = 'run_pipeline'
 RUNNING_PIPELINE_STATE = 'running_pipeline'
 POSTRUN_STATE = 'postrun'
+
+RUNNING_STATE = 'running'
 COMPLETED_STATE = 'completed'
 FAILED_STATE = 'failed'
 
@@ -36,6 +38,12 @@ TAG_URL_ACTION = 'TAG_URL'
 TAG_METADATA_ACTION = 'TAG_METADATA'
 CONFIG_ACTION = 'CONFIG'
 
+
+class Error(Exception):
+    pass
+
+class TaskError(Error):
+    pass
 
 def _log(batchState, msg):
     logging.logPrint('BATCH_NUM %d - %s' % (batchState['batch_num'], msg))
@@ -130,9 +138,9 @@ def _waitForPipeline(batchState):
                                            batchState['pipeline_config']['cluster.CLUSTER_NAME'],
                                            'guest',
                                            batchState['pipeline_task'])
-        if task['state'] == 'completed':
+        if task['state'] == tasks.task.TASK_COMPLETED:
             break
-        elif task['state'] == 'failed':
+        elif task['state'] == tasks.task.TASK_FAILED:
             raise Exception('Task failed - %s' % batchState['pipeline_task'])
 
         yield defer_utils.sleep(30)()
@@ -144,7 +152,7 @@ def _run(state, batchState):
         _log(batchState, 'First time running, creating pipeline state information')
         batchState['pipeline_config'] = yield _applyActions(state.innerPipelineConfig(),
                                                             batchState['actions'])
-        batchState['state'] = PRESTART_STATE
+        batchState['pipeline_state'] = PRESTART_STATE
 
         # We need to create a fake, local, pipeline for metrics to work
         batchState['pipeline_name'] = pipeline_misc.checksumInput(batchState['pipeline_config'])
@@ -165,8 +173,8 @@ def _run(state, batchState):
 
         _log(batchState, 'Setting number of tasks to 6 (number in a standard clovr_wrapper)')
         yield _updateTask(batchState,
-                               lambda t : t.update(completedTasks=0,
-                                                   numTasks=6).setState(tasks.task.TASK_RUNNING))
+                          lambda t : t.update(completedTasks=0,
+                                              numTasks=6))
         
         state.updateBatchState()
     else:
@@ -177,12 +185,17 @@ def _run(state, batchState):
                                                        batchState['pipeline_name'],
                                                        detail=True)
 
+    batchState['state'] = RUNNING_STATE
+
+    yield _updateTask(batchState,
+                      lambda t : t.setState(tasks.task.TASK_RUNNING))
+    
     pipelineConfigFile = os.path.join(TMP_DIR, 'pipeline_configs', global_state.make_ref() + '.conf')
     
     _log(batchState, 'Creating ergatis configuration')
     _writeErgatisConfig(batchState['pipeline_config'], pipelineConfigFile)
 
-    if batchState['state'] == PRESTART_STATE:
+    if batchState['pipeline_state'] == PRESTART_STATE:
         _log(batchState, 'Pipeline is in PRESTART state')
         yield state.prerunQueue.addWithDeferred(workflow_runner.run,
                                                 state.workflowConfig(),
@@ -195,10 +208,10 @@ def _run(state, batchState):
                                                   'Completed prestart'
                                                   ).progress())
                                
-        batchState['state'] = STARTING_STATE
+        batchState['pipeline_state'] = STARTING_STATE
         state.updateBatchState()
 
-    if batchState['state'] == STARTING_STATE:
+    if batchState['pipeline_state'] == STARTING_STATE:
         _log(batchState, 'Pipeline is in STARTING state')
         clusterTask = yield clusters_client.startCluster('localhost',
                                                          batchState['pipeline_config']['cluster.CLUSTER_NAME'],
@@ -211,21 +224,23 @@ def _run(state, batchState):
                                                           'cluster.EXEC_INSTANCE_TYPE': batchState['pipeline_config']['cluster.EXEC_INSTANCE_TYPE'],
                                                           'cluster.EXEC_BID_PRICE': batchState['pipeline_config']['cluster.EXEC_BID_PRICE']})
 
-        yield tasks.blockOnTask('localhost',
-                                'local',
-                                clusterTask)
+        taskState = yield tasks.blockOnTask('localhost',
+                                            'local',
+                                            clusterTask)
 
+        if taskState != tasks.task.TASK_COMPLETED:
+            raise TaskError(clusterTask)
         
         yield _updateTask(batchState,
                           lambda t : t.addMessage(tasks.task.MSG_SILENT,
                                                   'Completed start'
                                                   ).progress())
 
-        batchState['state'] = PRERUN_STATE
+        batchState['pipeline_state'] = PRERUN_STATE
         state.updateBatchState()
 
 
-    if batchState['state'] == PRERUN_STATE:
+    if batchState['pipeline_state'] == PRERUN_STATE:
         _log(batchState, 'Pipeline is in PRERUN state')
         yield state.prerunQueue.addWithDeferred(workflow_runner.run,
                                                 state.workflowConfig(),
@@ -237,11 +252,11 @@ def _run(state, batchState):
                           lambda t : t.addMessage(tasks.task.MSG_SILENT,
                                                   'Completed prerun'
                                                   ).progress())
-        batchState['state'] = RUN_PIPELINE_STATE
+        batchState['pipeline_state'] = RUN_PIPELINE_STATE
         state.updateBatchState()
         
 
-    if batchState['state'] == RUN_PIPELINE_STATE:
+    if batchState['pipeline_state'] == RUN_PIPELINE_STATE:
         _log(batchState, 'Pipeline is in RUN_PIPELINE state')
         pipeline = yield pipelines_client.runPipeline(host='localhost',
                                                       clusterName=batchState['pipeline_config']['cluster.CLUSTER_NAME'],
@@ -257,11 +272,11 @@ def _run(state, batchState):
                           lambda t : t.addMessage(tasks.task.MSG_SILENT,
                                                   'Completed run pipeline'
                                                   ).progress())
-        batchState['state'] = RUNNING_PIPELINE_STATE
+        batchState['pipeline_state'] = RUNNING_PIPELINE_STATE
         state.updateBatchState()
 
 
-    if batchState['state'] == RUNNING_PIPELINE_STATE:
+    if batchState['pipeline_state'] == RUNNING_PIPELINE_STATE:
         _log(batchState, 'Pipeline is in RUNNING_PIPELINE state')
         yield _waitForPipeline(batchState)
 
@@ -269,10 +284,10 @@ def _run(state, batchState):
                           lambda t : t.addMessage(tasks.task.MSG_SILENT,
                                                   'Completed running pipeline'
                                                   ).progress())
-        batchState['state'] = POSTRUN_STATE
+        batchState['pipeline_state'] = POSTRUN_STATE
         state.updateBatchState()
 
-    if batchState['state'] == POSTRUN_STATE:
+    if batchState['pipeline_state'] == POSTRUN_STATE:
         _log(batchState, 'Pipeline is in POSTRUN state')
         yield state.postrunQueue.addWithDeferred(workflow_runner.run,
                                                  state.workflowConfig(),
@@ -285,6 +300,7 @@ def _run(state, batchState):
                                                   'Completed postrun'
                                                   ).progress())
                                                    
+        batchState['pipeline_state'] = COMPLETED_STATE
         batchState['state'] = COMPLETED_STATE
         state.updateBatchState()
 

@@ -146,7 +146,7 @@ def _queueIncompleteWork(state):
     count = 0
     for idx, batch in enumerate(state.batches):
         if (idx not in state.batchStates or
-            state.batchStates[idx]['state'] not in ['completed', 'failed']):
+            state.batchStates[idx]['state'] != 'completed'):
             state.pipelinesQueue.add(state.wrapper,
                                      state,
                                      state.batchStates.setdefault(idx, {'actions': batch, 'batch_num': idx}))
