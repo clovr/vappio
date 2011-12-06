@@ -5,12 +5,14 @@ from twisted.internet import defer
 from igs.utils import functional as func
 
 from igs_tx.utils import defer_pipe
-from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
-from vappio_tx.pipelines import pipeline_misc
+class Error(Exception):
+    pass
 
+class EmptyCriteriaError(Error):
+    pass    
 
 @defer.inlineCallbacks
 def handleWWWPipelineDelete(request):
@@ -24,6 +26,9 @@ def handleWWWPipelineDelete(request):
     Output:
     List of pipeline dictionaries
     """
+    if not request.body['criteria']:
+        raise EmptyCriteriaError()
+
     pipelinesDict = yield request.state.pipelinesCache.cache.query(func.updateDict({'user_name': request.body['user_name']},
                                                                                    request.body['criteria']))
     
