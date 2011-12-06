@@ -68,6 +68,7 @@ def createPipeline(host,
                    config,
                    pipelineId=None,
                    taskName=None,
+                   parentPipeline=None,
                    timeout=30,
                    tries=4):
     params = dict(cluster=clusterName,
@@ -82,6 +83,9 @@ def createPipeline(host,
 
     if taskName is not None:
         params['task_name'] = taskName
+
+    if parentPipeline:
+        params['parent_pipeline'] = parentPipeline
 
     return http.performQuery(host,
                              CREATE_URL,

@@ -20,6 +20,7 @@ from vappio_tx.www_client import tasks as tasks_client
 
 from vappio_tx.tasks import tasks
 
+RETRIES = 3
 TMP_DIR='/tmp'
 
 PRESTART_STATE = 'prestart'
@@ -161,13 +162,14 @@ def _run(state, batchState):
 
         _log(batchState, 'Pipeline named ' + batchState['pipeline_name'])
         
-        pipeline = yield pipelines_client.createPipeline('localhost',
-                                                         'local',
-                                                         'guest',
-                                                         batchState['pipeline_name'],
-                                                         'clovr_wrapper',
-                                                         'pipeline.q',
-                                                         batchState['pipeline_config'])
+        pipeline = yield pipelines_client.createPipeline(host='localhost',
+                                                         clusterName='local',
+                                                         userName='guest',
+                                                         pipelineName=batchState['pipeline_name'],
+                                                         protocol='clovr_wrapper',
+                                                         queue='pipeline.q',
+                                                         config=batchState['pipeline_config'],
+                                                         parentPipeline=state.parentPipeline())
 
         batchState['clovr_wrapper_task_name'] = pipeline['task_name']
 
@@ -261,7 +263,7 @@ def _run(state, batchState):
         pipeline = yield pipelines_client.runPipeline(host='localhost',
                                                       clusterName=batchState['pipeline_config']['cluster.CLUSTER_NAME'],
                                                       userName='guest',
-                                                      parentPipeline=None,
+                                                      parentPipeline=pipeline['pipeline_name'],
                                                       bareRun=True,
                                                       queue=state.innerPipelineQueue(),
                                                       config=batchState['pipeline_config'],
@@ -310,6 +312,7 @@ def _run(state, batchState):
     
 
 def run(state, batchState):
+    batchState.setdefault('retry_count', RETRIES)
     d = _run(state, batchState)
 
     @defer.inlineCallbacks
@@ -320,6 +323,7 @@ def run(state, batchState):
         yield _updateTask(batchState,
                           lambda t : t.setState(tasks.task.TASK_FAILED))
         state.updateBatchState()
+        batchState['retry_count'] -= 1
         defer.returnValue(f)
 
     d.addErrback(_errback)
