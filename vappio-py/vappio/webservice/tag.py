@@ -7,6 +7,7 @@ from igs.cgi.request import performQuery
 CREATEUPDATE_URL = '/vappio/tag_createupdate'
 TRANSFER_URL = '/vappio/tag_transfer'
 LIST_URL = '/vappio/tag_list'
+DELETE_URL = '/vappio/tag_delete'
 
 def tagData(host,
             cluster,
@@ -45,3 +46,7 @@ def listTags(host, cluster, criteria, detail):
                                              criteria=criteria,
                                              detail=detail))
 
+def deleteTag(host, cluster, tagName, deleteEverything):
+    return performQuery(host, DELETE_URL, dict(cluster=cluster,
+                                               tag_name=tagName,
+                                               delete_everything=deleteEverything))

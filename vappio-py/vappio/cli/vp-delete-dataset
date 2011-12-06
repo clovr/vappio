@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+from igs.utils import cli
+from igs.utils import functional as func
+
+from vappio.webservice import tag
+
+from vappio.tasks.utils import runTaskStatus
+
+OPTIONS = [
+    ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
+    ('cluster', '', '--cluster', 'Name of cluster', cli.defaultIfNone('local')),
+    ('tag_name', '', '--tag-name', 'Name of tag', cli.notNone),
+    ('delete_everything', '', '--delete', 'Deletes all files associated with this tag', cli.defaultIfNone(False), cli.BINARY),
+    ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', cli.defaultIfNone(False), cli.BINARY),
+    ]
+
+def main(options, _args):
+    taskName = tag.deleteTag(options('general.host'), 
+                             options('general.cluster'),
+                             options('general.tag_name'),
+                             options('general.delete_everything'))
+
+    if options('general.print_task_name'):
+        print taskName
+    else:
+        runTaskStatus(taskName, options('general.cluster'))
+
+if __name__ == '__main__':
+    main(*cli.buildConfigN(OPTIONS))
+    
