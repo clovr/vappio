@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+from igs.utils import cli
+
+from vappio.webservice import pipeline
+
+OPTIONS = [
+    ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
+    ('cluster', '', '--cluster', 'Name of cluster', cli.defaultIfNone('local')),
+    ('pipeline_name', '-p', '--pipeline-name', 'Name of tag', cli.notNone),
+    ('dry_run', '-n', '--dry-run', 'Executes a dry run of the pipeline deletion', cli.defaultIfNone(False), cli.BINARY),
+    ]
+
+def main(options, _args):
+    deletedPipelines = pipeline.deletePipeline(options('general.host'),
+                                               options('general.cluster'),
+                                               options('general.pipeline_name'),
+                                               options('general.dry_run'))
+    
+    for delPipeline in deletedPipelines:
+        print '\t'.join(['PIPELINE', 
+                         delPipeline['pipeline_name'],
+                         delPipeline['task_name']])
+
+if __name__ == '__main__':        
+    main(*cli.buildConfigN(OPTIONS))

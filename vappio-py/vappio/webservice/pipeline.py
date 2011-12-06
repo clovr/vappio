@@ -9,6 +9,7 @@ UPDATE_URL = '/vappio/pipeline_update'
 DOWNLOADOUTPUT_URL = '/vappio/downloadPipelineOutput_ws.py'
 RUNTASKLETS_URL = '/vappio/runTasklets_ws.py'
 VALIDATE_URL = '/vappio/pipeline_validate'
+DELETE_URL = '/vappio/pipeline_delete'
 
 def pipelineList(host, cluster, criteria, detail=False):
     return performQuery(host, LIST_URL, dict(cluster=cluster,
@@ -43,6 +44,11 @@ def downloadPipelineOutput(host, cluster, pipelineName, outputDir, overwrite):
                                                        pipeline_name=pipelineName,
                                                        output_dir=outputDir,
                                                        overwrite=overwrite))
+
+def deletePipeline(host, cluster, pipelineName, dryRun):
+    return performQuery(host, DELETE_URL, dict(cluster=cluster,
+                                               criteria={'pipeline_name': pipelineName},
+                                               dry_run=dryRun))
 
 def runTasklets(host, cluster, conf, tasklet):
     return performQuery(host, RUNTASKLETS_URL, dict(cluster=cluster,
