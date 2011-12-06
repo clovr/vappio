@@ -79,6 +79,7 @@ class PipelinesCache(dependency.Dependable):
             elif aspect == 'save':
                 self.workQueue.add(self._updateIfOutputTag, value)
             elif aspect == 'remove':
+                # Invalidate any pipelines associated with this tag
                 pass
 
     @defer.inlineCallbacks

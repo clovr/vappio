@@ -1,4 +1,5 @@
 from twisted.internet import defer
+from twisted.internet import reactor
 
 from igs.utils import config
 
@@ -17,6 +18,7 @@ from vappio_tx.pipelines import pipeline_www_run
 from vappio_tx.pipelines import pipeline_www_resume
 from vappio_tx.pipelines import pipeline_www_update
 from vappio_tx.pipelines import pipeline_www_create
+from vappio_tx.pipelines import pipeline_www_delete
 from vappio_tx.pipelines import protocol_www_list
 
 
@@ -45,6 +47,7 @@ def _subscribeToQueues(mq, state):
     yield defer.maybeDeferred(pipeline_www_resume.subscribe, mq, state)
     yield defer.maybeDeferred(pipeline_www_update.subscribe, mq, state)
     yield defer.maybeDeferred(pipeline_www_create.subscribe, mq, state)
+    yield defer.maybeDeferred(pipeline_www_delete.subscribe, mq, state)
     yield defer.maybeDeferred(protocol_www_list.subscribe, mq, state)
 
 def makeService(conf):
@@ -53,7 +56,7 @@ def makeService(conf):
     mqFactory = mqService.mqFactory
 
     state = State(conf)
-
-    _subscribeToQueues(mqFactory, state)
+    
+    reactor.callLater(0.0, _subscribeToQueues, mqFactory, state)
     
     return mqService
