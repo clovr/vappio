@@ -163,6 +163,15 @@ def inlinedReturn():
     ret = yield _inlinedReturn()
     print ret
 
+# Example 7: Error handling looks closer to what we would expect in sequential code too
+@defer.inlineCallbacks
+def inlinedErrors():
+    try:
+        yield sleep(1)
+        raise Exception('Causing an exception')
+    except Exception, err:
+        print 'Caught exception:', err
+    
 @defer.inlineCallbacks
 def _timeit(f):
     startTime = time.time()
@@ -196,6 +205,11 @@ def run():
     print 'Example 6'
     yield _timeit(lambda : inlinedReturn())
     print
+
+    print 'Example 7'
+    yield _timeit(lambda : inlinedErrors())
+    print
+
     
 def main():
     def _run():
