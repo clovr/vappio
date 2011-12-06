@@ -148,9 +148,9 @@ class TagPersistManager(dependency.Dependable):
             return defer_utils.mapSerial(_rmDir, dirs)
 
         if deleteEverything:
-            tag = yield loadTag(self.conf, tagName)
+            tag = yield self.loadTag(tagName)
             yield threads.deferToThread(_deleteFiles, tag.files)
-            yield _deleteEmptyDirs(files)
+            yield _deleteEmptyDirs(tag.files)
 
         tagPath = _createTagPath(self.conf, tagName)
         yield _deleteFiles([tagPath, tagPath + '.metadata'])
