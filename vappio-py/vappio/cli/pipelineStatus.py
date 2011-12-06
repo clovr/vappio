@@ -27,7 +27,8 @@ def main(options, _args):
         if pipeline['wrapper']:
             print 'WRAPPER'
         print 'STATE\t%s' % pipeline['state']
-        print 'CHILDREN\t%s' % ','.join([cl + ' ' + pName for cl, pName in pipeline['children']])
+        for cl, pName in pipeline['children']:
+            print 'CHILD\t%s\t%s' % (cl, pName)
         print 'TASK\t%s' % pipeline['task_name']
         print 'COMPLETED_STEPS\t%d' % pipeline['num_complete']
         print 'NUM_STEPS\t%d' % pipeline['num_steps']

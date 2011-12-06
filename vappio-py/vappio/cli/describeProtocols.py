@@ -20,6 +20,7 @@ def main(options, _args):
 
     if not options('general.config_from_protocol'):
         protocols = protocol.listProtocols(options('general.host'), options('general.cluster'))
+        protocols.sort(lambda x, y : cmp(x['protocol'], y['protocol']))
         for p in protocols:
             print '\t'.join(['PROTOCOL', p['protocol']])
     else:
