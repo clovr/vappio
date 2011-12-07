@@ -25,3 +25,8 @@ update-rc.d -f vboxadd remove
 update-rc.d -f vboxdrv remove
 
 apt-get -y install virtualbox-ose-fuse
+
+#Remove 70-persistent-net.rules on shutdown to prevent networking problems on subsequent boot
+echo "rm -f /etc/udev/rules.d/70-persistent-net.rules" > /etc/init.d/rmudevnet
+chmod +x /etc/init.d/rmudevnet
+update-rc.d -f rmudevnet start 01 0
