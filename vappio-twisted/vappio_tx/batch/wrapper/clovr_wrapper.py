@@ -3,6 +3,7 @@ import os
 from twisted.python import log
 
 from twisted.internet import defer
+from twisted.internet import reactor
 
 from igs.utils import logging
 
@@ -20,6 +21,7 @@ from vappio_tx.www_client import tasks as tasks_client
 
 from vappio_tx.tasks import tasks
 
+CHILDREN_PIPELINE_REFRESH = 30
 RETRIES = 3
 TMP_DIR='/tmp'
 
@@ -146,7 +148,52 @@ def _waitForPipeline(batchState):
 
         yield defer_utils.sleep(30)()
         
-    
+
+@defer.inlineCallbacks
+def _monitorPipeline(batchState):
+    """
+    Monitors the current pipeline, propogating its children state to it
+    """
+    pl = yield pipelines_client.pipelineList('localhost',
+                                             'local',
+                                             'guest',
+                                             batchState['pipeline_name'],
+                                             True)
+    pl = pl[0]
+
+
+    numTasks = 6
+    completedTasks = 4
+    for cl, pName in pl['children']:
+        try:
+            _log(batchState, 'Loading child pipeline: (%s, %s)' % (cl, pName))
+            remotePipelines = yield pipelines_client.pipelineList('localhost',
+                                                                  cl,
+                                                                  'guest',
+                                                                  pName,
+                                                                  True)
+            remotePipeline = remotePipelines[0]
+            _log(batchState, 'Loading task for child pipeline: %s' % remotePipeline['task_name'])
+            remoteTask = yield tasks_client.loadTask('localhost',
+                                                     cl,
+                                                     'guest',
+                                                     remotePipeline['task_name'])
+            _log(batchState, 'Got back remote task: %r' % remoteTask)
+            numTasks += remoteTask['numTasks']
+            completedTasks += remoteTask['completedTasks']
+        except Exception, err:
+            _log(batchState, 'Error in monitorPipeline: %s' % str(err))
+
+    if pl['children']:
+        _log(batchState, 'Updating task with numSteps=%d completedSteps=%d' % (numTasks, completedTasks))
+        yield _updateTask(batchState,
+                          lambda t : t.update(numTasks=numTasks,
+                                              completedTasks=completedTasks))
+
+    if batchState['pipeline_state'] == RUNNING_PIPELINE_STATE:
+        reactor.callLater(CHILDREN_PIPELINE_REFRESH, _monitorPipeline, batchState)
+
+        
 @defer.inlineCallbacks
 def _run(state, batchState):
     if 'state' not in batchState:
@@ -280,6 +327,7 @@ def _run(state, batchState):
 
     if batchState['pipeline_state'] == RUNNING_PIPELINE_STATE:
         _log(batchState, 'Pipeline is in RUNNING_PIPELINE state')
+        _monitorPipeline(batchState)
         yield _waitForPipeline(batchState)
 
         yield _updateTask(batchState,
