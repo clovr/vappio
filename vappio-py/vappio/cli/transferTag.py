@@ -22,6 +22,7 @@ OPTIONS = [
      func.compose(cli.restrictValues(['cluster', 's3']), cli.defaultIfNone('cluster'))),
     ('block', '-b', '--block', 'Block until cluster is up (no longer used)', func.identity, cli.BINARY),
     ('compress', '', '--compress', 'Compress files', func.identity, cli.BINARY),
+    ('compress_dir', '', '--compress-dir', 'Compress files into the specified directory', cli.defaultIfNone(None)),
     ('expand', '', '--expand', 'Expand files (always on regardless of this right now )', func.identity, cli.BINARY),
     ('print_task_name', '-t', '--print-task-name', 'Print the name of the task at the end', cli.defaultIfNone(False), cli.BINARY),
     ]
@@ -33,7 +34,8 @@ def transferBetweenClusters(options):
                            options('general.tag_name'),
                            options('general.src_cluster'),
                            options('general.dst_cluster'),
-                           options('general.compress'))
+                           options('general.compress'),
+                           options('general.compress_dir'))
                            
 
 def transferToS3(options):
