@@ -178,7 +178,7 @@ def _monitorPipeline(batchState):
                                                      cl,
                                                      'guest',
                                                      remotePipeline['task_name'])
-            _log(batchState, 'Got back remote task: %r' % remoteTask)
+
             numTasks += remoteTask['numTasks']
             completedTasks += remoteTask['completedTasks']
         except Exception, err:
@@ -310,7 +310,7 @@ def _run(state, batchState):
         pipeline = yield pipelines_client.runPipeline(host='localhost',
                                                       clusterName=batchState['pipeline_config']['cluster.CLUSTER_NAME'],
                                                       userName='guest',
-                                                      parentPipeline=pipeline['pipeline_name'],
+                                                      parentPipeline=batchState['pipeline_name'],
                                                       bareRun=True,
                                                       queue=state.innerPipelineQueue(),
                                                       config=batchState['pipeline_config'],
@@ -372,7 +372,14 @@ def run(state, batchState):
                           lambda t : t.setState(tasks.task.TASK_FAILED))
         state.updateBatchState()
         batchState['retry_count'] -= 1
-        defer.returnValue(f)
+        if batchState['retry_count'] > 0:
+            yield run(state, batchState)
+        else:
+            # Since we are giving up, reset the counter so the next time we are called
+            # we will retry again
+            batchState['retry_count'] = RETRIES
+            state.updateBatchState()
+            defer.returnValue(f)
 
     d.addErrback(_errback)
     return d
