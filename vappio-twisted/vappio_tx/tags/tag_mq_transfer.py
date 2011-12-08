@@ -200,6 +200,14 @@ def _uploadTag(request):
         remoteFiles.extend(tag['files'])
         metadata = func.updateDict(metadata,
                                    {'urls_realized': True})
+
+    yield ssh.runProcessSSH(dstCluster['master']['public_dns'],
+                            'chown -R %s %s' % (dstCluster['config']['vappio.user'],
+                                                dstTagPath),
+                            None,
+                            log.err,
+                            srcCluster['config']['ssh.user'],
+                            srcCluster['config']['ssh.options'])
         
     defer.returnValue(persist.Tag(tagName=localTag.tagName,
                                   files=remoteFiles,
@@ -249,7 +257,7 @@ def _downloadTag(request):
 
     remoteFiles = ([os.path.join(dstTagPath, f) for f in baseDirFiles] +
                    [os.path.join(dstTagPath, _makePathRelative(f)) for f in nonBaseDirFiles])
-
+    
     defer.returnValue(persist.Tag(tagName=remoteTag['tag_name'],
                                   files=remoteFiles,
                                   metadata=func.updateDict(remoteTag['metadata'],
@@ -279,6 +287,13 @@ def _handleTransferTag(request):
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress())
 
+
+        if request.body.get('compress', False) or request.body.get('compress_dir', False):
+            defaultDir = '/mnt/output' if request.body['dst_cluster'] == 'local' else tag.metadata['tag_base_dir']
+            compressDir = request.body.get('compress_dir', defaultDir)
+        else:
+            compressDir = None
+        
         if request.body['dst_cluster'] == 'local':
             yield tag_mq_data.tagData(request.state,
                                       request.body['tag_name'],
@@ -288,7 +303,7 @@ def _handleTransferTag(request):
                                       metadata=tag.metadata,
                                       recursive=False,
                                       expand=False,
-                                      compressDir='/mnt/output' if request.body.get('compress', False) else None)
+                                      compressDir=compressDir)
         else:
             newTag = yield www_tags.tagData('localhost',
                                             request.body['dst_cluster'],
@@ -299,7 +314,7 @@ def _handleTransferTag(request):
                                             metadata=tag.metadata,
                                             recursive=False,
                                             expand=False,
-                                            compressDir=tag.metadata['tag_base_dir'] if request.body.get('compress', False) else None)
+                                            compressDir=compressDir)
 
             localTask = yield tasks_tx.loadTask(request.body['task_name'])
             endState, tsk = yield tasks_tx.blockOnTaskAndForward('localhost',
