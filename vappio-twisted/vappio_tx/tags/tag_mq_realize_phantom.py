@@ -86,7 +86,8 @@ def handleRealizePhantom(request):
                               action=tag_mq_data.ACTION_OVERWRITE,
                               recursive=True,
                               expand=True,
-                              compressDir=None)
+                              compressDir=None,
+                              deleteOnExpand=True)
 
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.progress())

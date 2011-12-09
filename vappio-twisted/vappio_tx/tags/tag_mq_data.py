@@ -95,17 +95,20 @@ def _expandArchive(fname):
     elif fname.endswith('.tar.bz2'):
         return _bunzip2File(fname)
 
-def _generateFileList(files, recursive, expand):
+def _generateFileList(files, recursive, expand, deleteOnExpand):
     @defer.inlineCallbacks
     def _(accum, f):
         if expand and _isArchive(f):
             expandedFiles = yield _expandArchive(f)
+            if deleteOnExpand:
+                os.unlink(f)
             defer.returnValue(accum + [i for i in expandedFiles if os.path.isfile(i)])
         elif recursive and os.path.isdir(f):
             recursedFiles = yield _generateFileList([os.path.join(f, fname)
                                                      for fname in os.listdir(f)],
                                                     recursive,
-                                                    expand)
+                                                    expand,
+                                                    deleteOnExpand)
             defer.returnValue(accum + recursedFiles)
         elif os.path.isfile(f):
             defer.returnValue(accum + [str(f)])
@@ -156,14 +159,14 @@ def _compressFiles(tag, compressDir):
     defer.returnValue(compressedFile)
     
 @defer.inlineCallbacks
-def tagData(state, tagName, taskName, files, metadata, action, recursive, expand, compressDir, filterF=None):
+def tagData(state, tagName, taskName, files, metadata, action, recursive, expand, compressDir, filterF=None, deleteOnExpand=False):
     if not os.path.exists(state.conf('tags.tags_directory')):
         yield commands.runProcess(['mkdir', '-p', state.conf('tags.tags_directory')])
 
     if 'tag_base_dir' not in metadata:
         metadata['tag_base_dir'] = '/'
         
-    files = yield _generateFileList(files, recursive, expand)
+    files = yield _generateFileList(files, recursive, expand, deleteOnExpand)
 
     if action == ACTION_APPEND:
         try:
