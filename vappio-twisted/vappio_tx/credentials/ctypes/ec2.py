@@ -30,6 +30,8 @@ INSTANCE_TYPE_MAPPING = {'default': 'c1.xlarge',
                          'medium': 'm2.xlarge',
                          'large': 'm2.4xlarge',
                          'm1.small': 'm1.small',
+                         'm1.large': 'm1.large',
+                         'm1.xlarge': 'm1.xlarge',
                          }
 
 class InstanceTypeError(Exception):
