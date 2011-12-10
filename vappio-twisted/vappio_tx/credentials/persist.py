@@ -1,12 +1,17 @@
 import pymongo
 
 from twisted.internet import threads
+from twisted.internet import defer
 from twisted.python import reflect
 
 from igs.utils import functional as func
 from igs.utils import config
+from igs.utils import dependency
 
-class CredentialDoesNotExistError(Exception):
+class Error(Exception):
+    pass
+
+class CredentialDoesNotExistError(Error):
     """A task does not exist in the db"""
     pass
 
@@ -76,32 +81,38 @@ def credentialFromDict(d):
                             d['metadata'],
                             config.configFromMap(d['conf']))
 
+class CredentialPersistManager(dependency.Dependable):
+    def __init__(self):
+        dependency.Dependable.__init__(self)
 
-def loadCredential(credentialName):
-    d = threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.find_one(dict(name=credentialName)))
+    @defer.inlineCallbacks
+    def loadCredential(self, credentialName):
+        credential = yield threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.find_one(dict(name=credentialName)))
 
-    def _credExists(credential):
         if credential is None:
             raise CredentialDoesNotExistError(credentialName)
+        
+        self.changed('load', credential)
+        defer.returnValue(credentialFromDict(credential))
 
-        return credential
+    @defer.inlineCallbacks
+    def saveCredential(self, credential):
+        credential = yield threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.save(func.updateDict(dict(_id=credential.name),
+                                                                                                       credentialToDict(credential)),
+                                                                                       safe=True))
+        
+        self.changed('save', credential)
+        defer.returnValue(credential)
 
-    d.addCallback(_credExists)
-    d.addCallback(credentialFromDict)
-    return d
+    @defer.inlineCallbacks
+    def loadAllCredentials(self):
+        credentialsDicts = yield threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.find())
+        credentials = [credentialFromDict(c) for c in credentialsDicts]
+        self.changed('load_all', credentials)
+        defer.returnValue(credentials)
 
-def saveCredential(credential):
-    d = threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.save(func.updateDict(dict(_id=credential.name),
-                                                                                                   credentialToDict(credential)),
-                                                                                   safe=True))
-    return d
-
-def loadAllCredentials():
-    d = threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.find())
-    d.addCallback(lambda cs : [credentialFromDict(c) for c in cs])
-    return d
-
-def deleteCredential(credentialName):
-    d = threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.remove(dict(name=credentialName)))
-    return d
-
+    @defer.inlineCallbacks
+    def deleteCredential(self, credentialName):
+        yield threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.remove(dict(name=credentialName)))
+        
+        self.changed('delete', credentialName)

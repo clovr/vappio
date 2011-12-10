@@ -21,7 +21,6 @@
 # authorizeGroup : req cred name, group name, prootcol, portRange, sourceGroup, sourceGrouPuser, sourceSubnet
 #
 import os
-import time
 
 from twisted.internet import defer
 from twisted.internet import reactor
@@ -30,23 +29,18 @@ from twisted.python import log
 
 from igs.utils import functional as func
 from igs.utils import config
-from igs.utils import core
 
 from igs_tx.utils import global_state
 from igs_tx.utils import defer_pipe
 
 from vappio_tx.utils import queue
 from vappio_tx.mq import client
-from vappio_tx.tasks import tasks as tasks_tx
 
 from vappio_tx.credentials import persist
-
+from vappio_tx.credentials import credentials_mq_listadd
+from vappio_tx.credentials.credentials_cache import CacheEntry
 
 REFRESH_INTERVAL = 30
-
-class CacheEntry(func.Record):
-    def __init__(self, val):
-        func.Record.__init__(self, entryTime=time.time(), value=val)
 
 class State:
     """
@@ -54,6 +48,7 @@ class State:
     and anything else of value
     """
     def __init__(self, conf):
+        self.credentialPersist = persist.CredentialPersistManager()
         self.conf = conf
         self.credInstanceCache = {}
         self.instanceCache = {}
@@ -95,7 +90,7 @@ def loadAndCacheCredential(state, credName):
     if credName in state.credInstanceCache:
         return defer.succeed(state.credInstanceCache[credName].value)
     else:
-        d = persist.loadCredential(credName)
+        d = state.credentialPersist.loadCredential(credName)
 
         def _instantiate(cred):
             instantiateDefer = cred.ctype.instantiateCredential(cred.conf, cred)
@@ -129,7 +124,8 @@ def refreshInstances(state):
             cred = cred.value
 
             d = cred.listInstances()
-
+                
+            ## Use defer utils map here    
             def _cacheInstances(instances):
                 #
                 # Possible race condition here, what if you start some
@@ -338,65 +334,10 @@ def handleAuthorizeGroup(request):
     d.addCallback(lambda _ : request)
     return d
 
-def handleWWWListAddCredentials(request):
-    if 'credential_name' in request.body and core.keysInDict(['credential_name',
-                                                              'description',
-                                                              'ctype',
-                                                              'metadata'],
-                                                            request.body):
-        # Users can provide a file name or the actual contents of the
-        # certificate.
-        if 'cert_file' in request.body:
-            cert = open(request.body['cert_file']).read()
-        else:
-            cert = request.body['cert']
-
-        if 'pkey_file' in request.body:
-            pkey = open(request.body['pkey_file']).read()
-        else:
-            pkey = request.body['pkey']
-            
-        cred = persist.createCredential(name=request.body['credential_name'],
-                                        desc=request.body['description'],
-                                        ctype=request.body['ctype'],
-                                        cert=cert,
-                                        pkey=pkey,
-                                        active=True,
-                                        metadata=request.body['metadata'],
-                                        conf=config.configFromMap(request.body.get('conf', {}),
-                                                                  base=config.configFromEnv()))
-        d = persist.saveCredential(cred)
-        d.addCallback(lambda _ : loadAndCacheCredential(request.state, request.body['credential_name']))
-        d.addCallback(lambda _ : queue.returnQueueSuccess(request.mq,
-                                                          request.body['return_queue'],
-                                                          True))
-        d.addCallback(lambda _ : request)
-        return d
-    elif 'credential_name' not in request.body:
-        d = persist.loadAllCredentials()
-        d.addCallback(lambda cs : queue.returnQueueSuccess(request.mq,
-                                                           request.body['return_queue'],
-                                                           [{'name': c.name,
-                                                             'description': c.desc,
-                                                             'num_instances': len(request.state.instanceCache.get(c.name, CacheEntry([])).value),
-                                                             'ctype': c.getCType()}
-                                                            for c in cs
-                                                            if ('credential_names' in request.body and c.name in request.body['credential_names']) or
-                                                            'credential_names' not in request.body]))
-        d.addCallback(lambda _ : request)
-        return d
-    else:
-        queue.returnQueueError(request.mq,
-                               request.body['return_queue'],
-                               'Unknown credential query')        
-        d = defer.fail(Exception('Unknown request: ' + str(request.body)))
-        return d
-
-
-
-
 def loadCredentials(state):
-    d = persist.loadAllCredentials()
+    d = state.credentialPersist.loadAllCredentials()
+
+    ## map serial here?
     d.addCallback(lambda cs : defer.DeferredList([loadAndCacheCredential(state, c.name)
                                                   for c in cs]))
         
@@ -417,7 +358,12 @@ def loadCredentialForRequest(request):
     d.addCallback(lambda c : request.update(credential=c))
     return d
 
+@defer.inlineCallbacks
 def subscribeToQueues(mq, state):
+    yield loadCredentials(state)
+    
+    yield defer.maybeDeferred(credentials_mq_listadd.subscribe, mq, state)
+
     # Queue frontend
     processGetCType = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['credential_name']),
                                                             loadCredentialForRequest,
@@ -557,20 +503,7 @@ def subscribeToQueues(mq, state):
                     queue.wrapRequestHandler(state, processAuthorizeGroup))
     
 
-    #
-    # WWW Frontend
-    processWWWListAddCredentials = defer_pipe.hookError(defer_pipe.pipe([queue.keysInBody(['cluster']),
-                                                                         queue.forwardRequestToCluster(
-                                                                             state.conf('www.url_prefix') + '/' +
-                                                                             os.path.basename(state.conf('credentials.listaddcredentials_www'))),
-                                                                         handleWWWListAddCredentials]),
-                                                        queue.failureMsg)
-    queue.subscribe(mq,
-                    state.conf('credentials.listaddcredentials_www'),
-                    state.conf('credentials.concurrent_listaddcredentials'),
-                    queue.wrapRequestHandler(state, processWWWListAddCredentials))
 
-    
 def makeService(conf):
     mqService = client.makeService(conf)
 
@@ -578,6 +511,6 @@ def makeService(conf):
 
     d = loadCredentials(state)
     d.addCallback(lambda _ : subscribeToQueues(mqService.mqFactory, state))
-
+    
     return mqService
     
