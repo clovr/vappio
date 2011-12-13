@@ -252,7 +252,7 @@ def handleTaskTagData(request):
     This is a small wrapper around _handleTaskTagData just to serialize access to
     the tag
     """
-    return request.state.tagLocks[request.body['tag_name']].run(_handleTaskTagData, request)
+    return request.state.tagLocks[('local', request.body['tag_name'])].run(_handleTaskTagData, request)
 
 
 def _validateAction(request):
@@ -291,7 +291,8 @@ def _validateAction(request):
             yield request.state.tagPersist.saveTag(tag)
         defer.returnValue(request)
 
-    lock = request.state.tagLocks.setdefault(request.body['tag_name'], defer.DeferredLock())
+    lock = request.state.tagLocks.setdefault(('local', request.body['tag_name']),
+                                             defer.DeferredLock())
     return lock.run(__validateAction)
 
 def _forwardToCluster(conf, queueUrl):

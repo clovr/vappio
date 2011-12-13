@@ -115,13 +115,13 @@ def run(state, pipeline):
     
 
 @defer.inlineCallbacks
-def resume(pipeline):
+def resume(state, pipeline):
     # Restart childen first
     for cl, child in pipeline.children:
         if cl == 'local':
-            childPipeline = yield persist.loadPipelineBy({'pipeline_name': child},
-                                                         pipeline.userName)
-            yield resume(childPipeline)
+            childPipeline = yield state.pipelinePersist.loadPipelineBy({'pipeline_name': child},
+                                                                       pipeline.userName)
+            yield resume(state, childPipeline)
         else:
             try:
                 cluster = yield clusters_www.loadCluster('localhost',
@@ -138,17 +138,19 @@ def resume(pipeline):
     # Reset the pipeline task to IDLE
     yield tasks_tx.updateTask(pipeline.taskName,
                               lambda t : t.setState(tasks_tx.task.TASK_IDLE))
-    cmd = ['resume_pipeline.pl',
-           '--pipeline_id=' + pipeline.pipelineId,
-           '--taskname=' + pipeline.taskName]
 
-    if pipeline.queue:
-        cmd.append('--queue=' + pipeline.queue)
+    if pipeline.pipelineId:
+        cmd = ['resume_pipeline.pl',
+               '--pipeline_id=' + pipeline.pipelineId,
+               '--taskname=' + pipeline.taskName]
 
-    stderr = StringIO.StringIO()
-    def _raiseProgramError(_):
-        raise commands.ProgramRunError(cmd, stderr.getvalue())
-    yield commands.runProcess(cmd,
-                              stderrf=stderr.write).addErrback(_raiseProgramError)
+        if pipeline.queue:
+            cmd.append('--queue=' + pipeline.queue)
+
+        stderr = StringIO.StringIO()
+        def _raiseProgramError(_):
+            raise commands.ProgramRunError(cmd, stderr.getvalue())
+        yield commands.runProcess(cmd,
+                                  stderrf=stderr.write).addErrback(_raiseProgramError)
     defer.returnValue(pipeline)
         

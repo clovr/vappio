@@ -104,7 +104,7 @@ def forwardRequestToCluster(url):
                                          url,
                                          func.updateDict(request.body, {'cluster': 'local'}),
                                          timeout=10,
-                                         tries=1)
+                                         tries=3)
 
             def _setResponse(r):
                 return request.update(response=r)

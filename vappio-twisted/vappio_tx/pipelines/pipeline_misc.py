@@ -287,7 +287,7 @@ def runPipeline(request, pipeline):
 
 @defer.inlineCallbacks
 def resumePipeline(request, pipeline):
-    runningPipeline = yield pipeline_run.resume(pipeline)
+    runningPipeline = yield pipeline_run.resume(request.state, pipeline)
     pipelineMonitor = pipeline_monitor.PipelineMonitor(request.state,
                                                        request.mq,
                                                        runningPipeline,

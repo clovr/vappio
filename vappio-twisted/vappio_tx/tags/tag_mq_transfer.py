@@ -387,7 +387,8 @@ def _handleTransferTag(request):
     defer.returnValue(request)
 
 def handleTransferTag(request):
-    lock = request.state.tagLocks.setdefault(request.body['tag_name'], defer.DeferredLock())    
+    lock = request.state.tagLocks.setdefault((request.body['cluster'], request.body['tag_name']),
+                                             defer.DeferredLock())    
     return lock.run(_handleTransferTag, request)
 
 def _forwardToCluster(conf, queueUrl):

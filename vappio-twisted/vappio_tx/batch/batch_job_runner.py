@@ -15,6 +15,7 @@ from vappio_tx.pipelines import pipeline_misc
 
 # Import wrappers
 from vappio_tx.batch.wrapper import clovr_wrapper
+from vappio_tx.batch.wrapper import lgt_wrapper
 
 class Error(Exception):
     pass
@@ -97,8 +98,10 @@ def _extractInnerPipelineConfig(batchConfig):
     return innerPipelineConfigDict
     
 
-def _validateWrapper(wrapper):
-    if wrapper == 'clovr_wrapper':
+def _validateWrapper(template, wrapper):
+    if template == 'clovr_lgt_bwa':
+        return lgt_wrapper.run
+    elif wrapper == 'clovr_wrapper':
         return clovr_wrapper.run
     else:
         raise InvalidWrapper(wrapper)
@@ -146,7 +149,7 @@ def _queueIncompleteWork(state):
     count = 0
     for idx, batch in enumerate(state.batches):
         if (idx not in state.batchStates or
-            state.batchStates[idx]['state'] != 'completed'):
+            state.batchStates[idx].get('state') != 'completed'):
             state.pipelinesQueue.add(state.wrapper,
                                      state,
                                      state.batchStates.setdefault(idx, {'actions': batch, 'batch_num': idx}))
@@ -164,7 +167,8 @@ def run(options):
     
     state = State(options.workflowConfig,
                   options.batchStatesFile,
-                  _validateWrapper(pipeline_misc.determineWrapper(machineConf,
+                  _validateWrapper(batchConfig('batch_pipeline.pipeline.PIPELINE_TEMPLATE'),
+                                   pipeline_misc.determineWrapper(machineConf,
                                                                   batchConfig('batch_pipeline.pipeline.PIPELINE_TEMPLATE'))),
                   _interpretBatchFile(options.batchFile),
                   _extractInnerPipelineConfig(batchConfig),
@@ -181,6 +185,6 @@ def run(options):
         yield defer_work_queue.waitForCompletion(state.pipelinesQueue)
     
     for batchState in state.batchStates.values():
-        if batchState['state'] == 'failed':
+        if 'state' not in batchState or batchState['state'] == 'failed':
             raise JobFailed()
         

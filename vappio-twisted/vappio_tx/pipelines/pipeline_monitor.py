@@ -249,7 +249,7 @@ class PipelineMonitor(dependency.Dependable):
             self._log('Pipeline waiting to restart')
             if self.pipelineState == tasks_tx.task.TASK_FAILED:
                 self._log('Pipeline waiting to restart in failed state, restarting')
-                yield pipeline_run.resume(self.pipeline)
+                yield pipeline_run.resume(self.requestState, self.pipeline)
                 self.stateF = self.STATE_IDLE
                 self.changed('state', self.state())
                 self._log('Restarted, moving to idle state')

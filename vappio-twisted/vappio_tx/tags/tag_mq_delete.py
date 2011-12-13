@@ -26,7 +26,8 @@ def _forwardToCluster(conf, queueUrl):
     return queue.forwardRequestToCluster(conf('www.url_prefix') + '/' + os.path.basename(queueUrl))
 
 def handleDeleteTag(request):
-    lock = request.state.tagLocks.setdefault(request.body['tag_name'], defer.DeferredLock())    
+    lock = request.state.tagLocks.setdefault(('local', request.body['tag_name']),
+                                             defer.DeferredLock())
     return lock.run(_handleDeleteTag, request)
 
 
