@@ -14,10 +14,14 @@ If an init script is specified, this script is run before bundling the image
 i=0
 while getopts "fh" options; do
   case $options in
-    f ) force="force"
+      f ) force="force"
 	  i=`expr $i + 1`
 	  ;;
-    h ) echo -e $USAGE
+      c ) cert="$OPTARG"
+	  ;;
+      k ) key="$OPTARG"
+	  ;;
+      h ) echo -e $USAGE
 	  exit 1;;
     \? ) echo -e $USAGE
          exit 1;;
@@ -42,10 +46,10 @@ then
     echo "$USAGE"
     exit 1
 fi
-if [ ! -f "/mnt/keys/diagcert" ] || [ ! -f "/mnt/keys/diagkey" ]
+if [ ! -f "$cert" ] || [ ! -f "$key" ]
 then
     echo "Save diag cert and key /mnt/keys"
-    echo "Files: diagcert, diagkey"
+    echo "Can't find files: $cert, $key"
     exit 2
 fi
 
@@ -88,8 +92,8 @@ utildir=/opt/vappio-util
 
 # Setup keys
 mkdir -p ~/.globus
-cp /mnt/keys/diagcert ~/.globus/usercert.pem
-cp /mnt/keys/diagkey ~/.globus/uesrkey.pem
+cp $cert ~/.globus/usercert.pem
+cp $key ~/.globus/uesrkey.pem
 
 set +e
 echo "Checking for image"
@@ -104,19 +108,22 @@ fi
 if [ ! "$IMAGE_EXISTS" = "" ] && [ ! "$force" = "force" ]
 then
     rm -rf ~/.globus || true
-    echo "Image is already on diag"
+    echo "Image is already on the cloud"
     exit 2
 fi
 
 echo "Running cloud client (output is redirected to /dev/null)"
 cloud-client.sh --transfer --sourcefile $image  > /dev/null
 
+#Cleanup
+echo "Zipping image"
+gzip $image
 rm -rf ~/.globus || true
 
 #Set AMI in clovr.conf if this is a clovr image
-if [ -d "$imagedir" ] && [ -f "$imagedir/shared/vappio-conf/clovr_diag.conf" ]
+if [ -d "$imagedir" ] && [ -f "$imagedir/vappio-conf/clovr_diag.conf" ]
 then
-    echo "Writing $imagename.img to $imagedir/shared/vappio-conf/clovr*.conf"
+    echo "Writing $imagename.img to $imagedir/vappio-conf/clovr*.conf"
     perl -pi -e "s/^ami=.*/ami=$imgname.img/" $imagedir/shared/vappio-conf/clovr_diag.conf
 fi
 echo "Bundled and uploaded image"
