@@ -176,6 +176,9 @@ idleshutdown=10
 masteridle=120
 ##Time in minutes to delay before shutdown
 delayshutdown=1
+##Time in seconds to delay master shutdown when checking $vappio_runtime/delayautoshutdown
+delayautoshutdowncutoff=7200
+
 #Number of 10-second intervals to wait for master node to boot
 waitformastertimeout=50
 #Delay boot until configuration is complete
