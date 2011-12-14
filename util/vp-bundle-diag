@@ -12,13 +12,13 @@ If an init script is specified, this script is run before bundling the image
 
 
 i=0
-while getopts "fh" options; do
+while getopts "fhc:k:" options; do
   case $options in
       f ) force="force"
 	  i=`expr $i + 1`
 	  ;;
       c ) cert="$OPTARG"
-	  ;;
+	;;
       k ) key="$OPTARG"
 	  ;;
       h ) echo -e $USAGE
@@ -27,10 +27,12 @@ while getopts "fh" options; do
          exit 1;;
   esac
 done
-for (( c=1; c<=$i; c++ ))
-do
-    shift
-done
+shift `expr $OPTIND - 1`
+
+#for (( c=1; c<=$i; c++ ))
+#do
+#    shift
+#done
 
 if [ -d "$1" ]
 then
