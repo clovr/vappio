@@ -9,7 +9,6 @@ from igs_tx.utils import defer_pipe
 
 from vappio_tx.utils import queue
 from vappio_tx.credentials import persist
-from vappio_tx.credentials import credentials_cache
 
 class Error(Exception):
     pass
@@ -45,8 +44,9 @@ def handleWWWListAddCredentials(request):
                                         metadata=request.body['metadata'],
                                         conf=config.configFromMap(request.body.get('conf', {}),
                                                                   base=config.configFromEnv()))
+
         yield request.state.credentialPersist.saveCredential(cred)
-        #yield loadAndCacheCredential(request.state, requst.body['credential_name'])
+
         queue.returnQueueSuccess(request.mq,
                                  request.body['return_queue'],
                                  True)
@@ -55,7 +55,7 @@ def handleWWWListAddCredentials(request):
         credentials = yield request.state.credentialPersist.loadAllCredentials()
         credentialsDicts = [{'name': c.name,
                              'description': c.desc,
-                             'num_instances': len(request.state.instanceCache.get(c.name, credentials_cache.CacheEntry([])).value),
+                             'num_instances': len(request.state.credentialsCache.getCredential(c.name)['instances']),
                              'ctype': c.getCType()}
                              for c in credentials
                              if ('credential_names' in request.body and c.name in request.body['credential_names']) or

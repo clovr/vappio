@@ -113,7 +113,7 @@ def startMaster(state, credClient, taskName, cl):
                                                           'Starting master for ' + pState.cluster.clusterName).progress())
 
         yield saveCluster(pState.cluster, pState.state)
-        
+
         pState = yield _loadConfig(pState)
         pState = yield _startMaster(pState)
         pState = yield waitForInstances(pState, _updatePState)
@@ -260,7 +260,7 @@ def waitForInstances(pState, updateF):
                                          'Some instances did not boot up')
         
         defer.returnValue(pState)
-
+    
     pState = yield defer_pipe.pipe([_waitForState,
                                     _waitForSSH,
                                     _waitForRemoteBoot])(pState)

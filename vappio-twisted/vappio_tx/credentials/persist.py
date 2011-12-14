@@ -98,8 +98,8 @@ class CredentialPersistManager(dependency.Dependable):
     @defer.inlineCallbacks
     def saveCredential(self, credential):
         credential = yield threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.save(func.updateDict(dict(_id=credential.name),
-                                                                                                       credentialToDict(credential)),
-                                                                                       safe=True))
+                                                                                                                      credentialToDict(credential)),
+                                                                                                      safe=True))
         
         self.changed('save', credential)
         defer.returnValue(credential)
