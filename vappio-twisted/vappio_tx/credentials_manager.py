@@ -39,6 +39,7 @@ from vappio_tx.credentials import credentials_mq_addgroup
 from vappio_tx.credentials import credentials_mq_authorizegroup
 from vappio_tx.credentials import credentials_mq_getctype
 from vappio_tx.credentials import credentials_mq_credentialconfig
+from vappio_tx.credentials import credentials_mq_deletecredential
 
 from vappio_tx.credentials import credentials_cache
 
@@ -70,6 +71,7 @@ def subscribeToQueues(mq, state):
     yield defer.maybeDeferred(credentials_mq_authorizegroup.subscribe, mq, state)
     yield defer.maybeDeferred(credentials_mq_getctype.subscribe, mq, state)
     yield defer.maybeDeferred(credentials_mq_credentialconfig.subscribe, mq, state)
+    yield defer.maybeDeferred(credentials_mq_deletecredential.subscribe, mq, state)
 
 def makeService(conf):
     mqService = client.makeService(conf)

@@ -18,6 +18,7 @@ class UnknownRequestError(Error):
 
 @defer.inlineCallbacks
 def handleWWWListAddCredentials(request):
+
     if 'credential_name' in request.body and core.keysInDict(['credential_name',
                                                               'description',
                                                               'ctype',
@@ -52,13 +53,14 @@ def handleWWWListAddCredentials(request):
                                  True)
         defer.returnValue(request)                                       
     elif 'credential_name' not in request.body:
-        credentials = yield request.state.credentialPersist.loadAllCredentials()
-        credentialsDicts = [{'name': c.name,
-                             'description': c.desc,
-                             'num_instances': len(request.state.credentialsCache.getCredential(c.name)['instances']),
-                             'ctype': c.getCType()}
-                             for c in credentials
-                             if ('credential_names' in request.body and c.name in request.body['credential_names']) or
+        credentials = request.state.credentialsCache.getAllCredentials()
+
+        credentialsDicts = [{'name': name,
+                             'description': c['cred_instance'].credential.desc,
+                             'num_instances': len(c['instances']),
+                             'ctype': c['cred_instance'].credential.getCType()}
+                             for name, c in credentials.iteritems()
+                             if ('credential_names' in request.body and name in request.body['credential_names']) or
                              'credential_names' not in request.body]
 
         

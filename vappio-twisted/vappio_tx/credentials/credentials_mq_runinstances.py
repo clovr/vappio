@@ -28,15 +28,11 @@ def handleRunInstances(request):
                                                       userDataFile=userDataFile,
                                                       log=True)
     
-    print "DEBUG: Stated instance run"
-
     if userDataFile:
         os.remove(userDataFile)
 
     yield request.state.credentialsCache.invalidate(request.credential.name)
     
-    print "DEBUG: cache invalidate request completed"
-
     queue.returnQueueSuccess(request.mq,
                              request.body['return_queue'],
                              [request.credential.instanceToDict(i)

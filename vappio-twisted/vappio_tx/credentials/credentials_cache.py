@@ -79,8 +79,8 @@ class CredentialsCache(dependency.Dependable):
                 pass       
             elif aspect == 'save':
                 self.workQueue.add(self.loadAndCacheCredential, value)
-            elif aspect == 'remove':
-                # TODO: Add support for delete credentials
+            elif aspect == 'delete':
+                self.workQueue.add(self.deleteCredentialFromCache, value)
                 pass
         
     @defer.inlineCallbacks
@@ -105,14 +105,22 @@ class CredentialsCache(dependency.Dependable):
         credentials = yield self.state.credentialPersist.loadAllCredentials()
 
         try: 
-            
-            x = yield defer.DeferredList([self.loadAndCacheCredential(c.name)
+            yield defer.DeferredList([self.loadAndCacheCredential(c.name)
                                       for c in credentials])
 
             self.state.refreshInstancesDelayed = reactor.callLater(0, self.refreshInstances)
         except Exception, err:        
             log.err(err)
             reactor.callLater(10, self.loadCredentials)
+
+    def deleteCredentialFromCache(self, credential):
+        try:
+            self.cache.pop(credential)
+        except Exception, e:
+            log.err(e)            
+
+        return defer.succeed(None)
+
 
     @defer.inlineCallbacks
     def refreshInstances(self):
@@ -133,4 +141,7 @@ class CredentialsCache(dependency.Dependable):
 
     def getCredential(self, credName):
         return self.cache[credName]        
+
+    def getAllCredentials(self):
+        return self.cache
 

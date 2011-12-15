@@ -97,12 +97,12 @@ class CredentialPersistManager(dependency.Dependable):
 
     @defer.inlineCallbacks
     def saveCredential(self, credential):
-        credential = yield threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.save(func.updateDict(dict(_id=credential.name),
-                                                                                                                      credentialToDict(credential)),
-                                                                                                      safe=True))
+        savedCred = yield threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.save(func.updateDict(dict(_id=credential.name),
+                                                                                                                     credentialToDict(credential)),
+                                                                                                     safe=True))
         
-        self.changed('save', credential)
-        defer.returnValue(credential)
+        self.changed('save', savedCred)
+        defer.returnValue(savedCred)
 
     @defer.inlineCallbacks
     def loadAllCredentials(self):
@@ -114,5 +114,4 @@ class CredentialPersistManager(dependency.Dependable):
     @defer.inlineCallbacks
     def deleteCredential(self, credentialName):
         yield threads.deferToThread(lambda : pymongo.Connection().clovr.credentials.remove(dict(name=credentialName)))
-        
         self.changed('delete', credentialName)
