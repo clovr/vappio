@@ -26,20 +26,20 @@ from twisted.internet import defer
 from vappio_tx.mq import client
 
 from vappio_tx.credentials import persist
-from vappio_tx.credentials import credentials_mq_listadd
-from vappio_tx.credentials import credentials_mq_listinstances
-from vappio_tx.credentials import credentials_mq_runinstances
-from vappio_tx.credentials import credentials_mq_runspotinstances
-from vappio_tx.credentials import credentials_mq_updateinstances
-from vappio_tx.credentials import credentials_mq_terminateinstances
-from vappio_tx.credentials import credentials_mq_listkeypairs
-from vappio_tx.credentials import credentials_mq_addkeypair
-from vappio_tx.credentials import credentials_mq_listgroups
-from vappio_tx.credentials import credentials_mq_addgroup
-from vappio_tx.credentials import credentials_mq_authorizegroup
-from vappio_tx.credentials import credentials_mq_getctype
-from vappio_tx.credentials import credentials_mq_credentialconfig
-from vappio_tx.credentials import credentials_mq_deletecredential
+from vappio_tx.credentials import credential_mq_listadd
+from vappio_tx.credentials import credential_mq_listinstances
+from vappio_tx.credentials import credential_mq_runinstances
+from vappio_tx.credentials import credential_mq_runspotinstances
+from vappio_tx.credentials import credential_mq_updateinstances
+from vappio_tx.credentials import credential_mq_terminateinstances
+from vappio_tx.credentials import credential_mq_listkeypairs
+from vappio_tx.credentials import credential_mq_addkeypair
+from vappio_tx.credentials import credential_mq_listgroups
+from vappio_tx.credentials import credential_mq_addgroup
+from vappio_tx.credentials import credential_mq_authorizegroup
+from vappio_tx.credentials import credential_mq_getctype
+from vappio_tx.credentials import credential_mq_config
+from vappio_tx.credentials import credential_mq_delete
 
 from vappio_tx.credentials import credentials_cache
 
@@ -58,20 +58,20 @@ class State:
 def subscribeToQueues(mq, state):
     yield state.credentialsCache.initialize()
     
-    yield defer.maybeDeferred(credentials_mq_listadd.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_listinstances.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_runinstances.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_runspotinstances.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_updateinstances.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_terminateinstances.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_listkeypairs.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_addkeypair.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_listgroups.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_addgroup.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_authorizegroup.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_getctype.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_credentialconfig.subscribe, mq, state)
-    yield defer.maybeDeferred(credentials_mq_deletecredential.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_listadd.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_listinstances.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_runinstances.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_runspotinstances.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_updateinstances.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_terminateinstances.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_listkeypairs.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_addkeypair.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_listgroups.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_addgroup.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_authorizegroup.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_getctype.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_config.subscribe, mq, state)
+    yield defer.maybeDeferred(credential_mq_delete.subscribe, mq, state)
 
 def makeService(conf):
     mqService = client.makeService(conf)
