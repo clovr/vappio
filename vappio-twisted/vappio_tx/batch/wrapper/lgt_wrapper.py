@@ -12,6 +12,7 @@ from igs_tx.utils import global_state
 from igs_tx.utils import defer_utils
 from igs_tx.utils import commands
 from igs_tx.utils import ssh
+from igs_tx.utils import rsync
 
 from vappio_tx.pipelines import pipeline_misc
 
@@ -27,13 +28,15 @@ RSYNC = ['rsync',
          '-e', 'ssh -o PasswordAuthentication=no -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -i /mnt/keys/devel1.pem']
 
 
-RESIZE_REFRESH = 30 * 60 * 60
-CHILDREN_PIPELINE_REFRESH = 30
+AUTOSHUTDOWN_REFRESH = 20 * 60
+RESIZE_REFRESH = 10 * 60
+CHILDREN_PIPELINE_REFRESH = 5 * 60
 RETRIES = 100
 TMP_DIR='/tmp'
 
 STARTCLUSTER_STATE = 'startcluster_state'
 REMOTE_LOCAL_TRANSFER_STATE = 'remote_local_transfer_state'
+DECRYPT_STATE = 'decrypt_state'
 REFERENCE_TRANSFER_STATE = 'reference_transfer_state'
 RUN_PIPELINE_STATE = 'run_pipeline_state'
 RUNNING_PIPELINE_STATE = 'running_pipeline_state'
@@ -191,8 +194,8 @@ def _monitorPipeline(batchState):
     pl = pl[0]
 
 
-    numTasks = 6
-    completedTasks = 4
+    numTasks = 9
+    completedTasks = 6
     for cl, pName in pl['children']:
         try:
             remotePipelines = yield pipelines_client.pipelineList('localhost',
@@ -248,17 +251,6 @@ def _remoteLocalTransfer(batchState):
                          rsyncCmd,
                          log=True)
 
-        decryptCmd = [batchState['pipeline_config']['params.DECRYPT_SCRIPT'],
-                      rsyncOutputFile,
-                      '-out-dir', os.path.join(batchState['pipeline_config']['params.DATA_DIRECTORY'],
-                                               'decrypt'),
-                      '-remove-encrypted']
-
-        yield _getOutput(batchState,
-                         decryptCmd,
-                         expected=[0, 253],
-                         log=True)
-
     tag = yield tags_client.tagData(host='localhost',
                                     clusterName='local',
                                     userName='guest',
@@ -300,6 +292,8 @@ def _remoteLocalTransfer(batchState):
 @defer.inlineCallbacks
 def _harvestTransfer(batchState):
     tagName = '%s_sam_files' % batchState['pipeline_name']
+    outputName = 'lgt_batch_%03d_sam_files' % batchState['batch_num']
+    
     yield _getOutput(batchState,
                      ['vp-transfer-dataset',
                       '--tag-name=' + tagName,
@@ -316,7 +310,7 @@ def _harvestTransfer(batchState):
            '@' +
            batchState['pipeline_config']['params.REMOTE_HOST'] +
            ':' +
-           batchState['pipeline_config']['params.DATA_OUTPUT_DIRECTORY'] + '/' + tagName + '/')
+           batchState['pipeline_config']['params.DATA_OUTPUT_DIRECTORY'] + '/' + outputName + '/')
 
     try:
         for f in tag['files']:
@@ -332,63 +326,98 @@ def _harvestTransfer(batchState):
                    log=True)
         
 
+@defer.inlineCallbacks
+def _delayAutoshutdown(state, batchState):
+    _log(batchState, 'AUTOSHUTDOWN: Trying to touch autoshutdown file')
+    if ('cluster_task' not in batchState or batchState['state'] != RUNNING_STATE) and batchState['state'] != COMPLETED_STATE:
+        _log(batchState, 'AUTOSHUTDOWN: No cluster or not running, calling later')
+        reactor.callLater(AUTOSHUTDOWN_REFRESH, _delayAutoshutdown, state, batchState)
+    elif ('cluster_task' in batchState and
+          batchState['state'] == RUNNING_STATE and
+          batchState['pipeline_state'] != SHUTDOWN_STATE):
+        _log(batchState, 'AUTOSHUTDOWN: Making sure cluster is up')
+        yield _blockOnTask(batchState['cluster_task'])
+
+        try:
+            cluster = yield clusters_client.loadCluster('localhost',
+                                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                                        'guest')
+            
+            # We need the SSH options from the machine.conf, ugh I hate these OOB dependencies
+            conf = config.configFromStream(open('/tmp/machine.conf'))
+            
+            _log(batchState, 'AUTOSHUTDOWN: Touching delayautoshutdown')
+            yield ssh.runProcessSSH(cluster['master']['public_dns'],
+                                    'touch /var/vappio/runtime/delayautoshutdown',
+                                    stdoutf=None,
+                                    stderrf=None,
+                                    sshUser=conf('ssh.user'),
+                                    sshFlags=conf('ssh.options'),
+                                    log=True)
+        except:
+            pass
+
+        _log(batchState, 'AUTOSHUTDOWN: Setting up next call')
+        reactor.callLater(AUTOSHUTDOWN_REFRESH, _delayAutoshutdown, state, batchState)
+    else:
+        _log(batchState, 'AUTOSHUTDOWN: Giving up on this')
+        
     
 @defer.inlineCallbacks
 def _keepClusterResized(state, batchState):
-    if 'cluster_task' in batchState:
-        reactor.callLater(RESIZE_REFRESH, _keepClusterResized, state, batchState)
-    elif batchState['state'] == RUNNING_STATE and batchState['pipeline_state'] != SHUTDOWN_STATE:
-        numExecs = len(batchState['pipeline_config']['input.INPUT_FILES'].split(','))
+    _log(batchState, 'RESIZE: Checking if cluster must be resized')
+    if (batchState.get('pipeline_state', None) != RUNNING_PIPELINE_STATE and
+        batchState.get('state', None) != COMPLETED_STATE):
         
-        yield _blockOnTask(batchState['cluster_task'])
-
-        cluster = yield clusters_client.loadCluster('localhost',
-                                                    batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                    'guest')
-
-        if len(cluster['exec_nodes']) < numExecs:
-            output = yield _getOutput(batchState,
-                                      ['vp-add-instances',
-                                       '--num-exec=' + str(numExecs - len(cluster['exec_nodes'])),
-                                       '--cluster=' + batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                       '-t'],
-                                      log=True)
-            
-            batchState['add_instances_task'] = output['stdout'].strip()
-            state.updateBatchState()
-            yield _blockOnTask(batchState['add_instances_task'],
-                               cluster=batchState['pipeline_config']['cluster.CLUSTER_NAME'])
-                                                
-
+        _log(batchState, 'RESIZE: Cluster not started yet or pipeline not in running state, trying later')
         reactor.callLater(RESIZE_REFRESH, _keepClusterResized, state, batchState)
+    elif batchState.get('pipeline_state', None) == RUNNING_PIPELINE_STATE:
+        try:
+            numExecs = len(batchState['pipeline_config']['input.INPUT_FILES'].split(','))
+
+            yield _blockOnTask(batchState['cluster_task'])
+
+            cluster = yield clusters_client.loadCluster('localhost',
+                                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                                        'guest')
+            
+            if len(cluster['exec_nodes']) < numExecs:
+                _log(batchState, 'RESIZE: Adding more instances')
+                output = yield _getOutput(batchState,
+                                          ['vp-add-instances',
+                                           '--num-exec=' + str(numExecs - len(cluster['exec_nodes'])),
+                                           '--cluster=' + batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                           '-t'],
+                                          log=True)
+
+                batchState['add_instances_task'] = output['stdout'].strip()
+                state.updateBatchState()
+                yield _blockOnTask(batchState['add_instances_task'],
+                                   cluster=batchState['pipeline_config']['cluster.CLUSTER_NAME'])
+        except Exception, err:
+            log.err(err)
+
+        _log(batchState, 'RESIZE: Setting up next call')
+        reactor.callLater(RESIZE_REFRESH, _keepClusterResized, state, batchState)
+    else:
+        _log(batchState, 'RESIZE: Not calling later')
+        
     
 
 @defer.inlineCallbacks
-def _noAutoshutdown(batchState):
+def _setQueue(batchState):
     yield _blockOnTask(batchState['cluster_task'])
 
-
-    
     cluster = yield clusters_client.loadCluster('localhost',
                                                 batchState['pipeline_config']['cluster.CLUSTER_NAME'],
                                                 'guest')
 
-    yield _getOutput(batchState,
-                     ['/opt/clovr_pipelines/workflow/project_saved_templates/clovr_lgt_wrapper/set_queue.sh',
-                      cluster['master']['public_dns']],
-                     log=True)
-                                  
-
-    # We need the SSH options from the machine.conf, ugh I hate these OOB dependencies
-    conf = config.configFromStream(open('/tmp/machine.conf'))
-    
-    yield ssh.runProcessSSH(cluster['master']['public_dns'],
-                            'touch /var/vappio/runtime/noautoshutdown',
-                            stdoutf=None,
-                            stderrf=None,
-                            sshUser=conf('ssh.user'),
-                            sshFlags=conf('ssh.options'),
-                            log=True)
+    yield defer_utils.tryUntil(10,
+                               lambda : _getOutput(batchState,
+                                                   ['/opt/clovr_pipelines/workflow/project_saved_templates/clovr_lgt_wrapper/set_queue.sh',
+                                                    cluster['master']['public_dns']],
+                                                   log=True),
+                               onFailure=defer_utils.sleep(2))
         
 @defer.inlineCallbacks
 def _run(state, batchState):
@@ -416,10 +445,10 @@ def _run(state, batchState):
 
         batchState['lgt_wrapper_task_name'] = pipeline['task_name']
 
-        _log(batchState, 'Setting number of tasks to 7 (number in a standard lgt_wrapper)')
+        _log(batchState, 'Setting number of tasks to 9 (number in a standard lgt_wrapper)')
         yield _updateTask(batchState,
                           lambda t : t.update(completedTasks=0,
-                                              numTasks=7))
+                                              numTasks=9))
         
         state.updateBatchState()
     else:
@@ -443,6 +472,20 @@ def _run(state, batchState):
     if batchState['pipeline_state'] == STARTCLUSTER_STATE:
         _log(batchState, 'Pipeline is in STARTCLUSTER state')
 
+        # First see if the cluster exists but is unresponsive
+        try:
+            cluster = yield clusters_client.loadCluster('localhost',
+                                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                                        'guest')
+            if cluster['state'] == 'unresponsive':
+                _log(batchState, 'Pipeline is unresponsive, terminating')
+                terminateTask = yield clusters_client.terminateCluster('localhost',
+                                                                       batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                                                       'guest')
+                yield _blockOnTask(terminateTask)
+        except:
+            pass
+
         batchState['cluster_task'] = yield clusters_client.startCluster('localhost',
                                                                         batchState['pipeline_config']['cluster.CLUSTER_NAME'],
                                                                         'guest',
@@ -455,12 +498,16 @@ def _run(state, batchState):
                                                                          'cluster.EXEC_BID_PRICE': batchState['pipeline_config']['cluster.EXEC_BID_PRICE']})
 
         yield _updateTask(batchState,
+                          lambda t : t.update(completedTasks=0,
+                                              numTasks=9))
+        
+        yield _updateTask(batchState,
                           lambda t : t.addMessage(tasks.task.MSG_SILENT,
                                                   'Completed startcluster'
                                                   ).progress())
 
         # Make sure autoshutdown is off
-        _noAutoshutdown(batchState)
+        _setQueue(batchState)
         
         batchState['pipeline_state'] = REMOTE_LOCAL_TRANSFER_STATE
         state.updateBatchState()
@@ -475,8 +522,78 @@ def _run(state, batchState):
                                                   'Completed remote_local_transfer'
                                                   ).progress())
 
+        batchState['pipeline_state'] = DECRYPT_STATE
+        state.updateBatchState()
+
+    if batchState['pipeline_state'] == DECRYPT_STATE:
+        _log(batchState, 'Pipeline is in DECRYPT')
+
+        cluster = yield clusters_client.loadCluster('localhost',
+                                                    batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                                    'guest')
+
+        tag = yield tags_client.loadTag('localhost',
+                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                        'guest',
+                                        _decryptTagName(batchState))
+
+        conf = config.configFromStream(open('/tmp/machine.conf'))
+
+        yield ssh.runProcessSSH(cluster['master']['public_dns'],
+                                'mkdir -p /mnt/lgt_decrypt',
+                                stdoutf=None,
+                                stderrf=None,
+                                sshUser=conf('ssh.user'),
+                                sshFlags=conf('ssh.options'),
+                                log=True)
+
+        yield rsync.rsyncTo(cluster['master']['public_dns'],
+                            batchState['pipeline_config']['params.DECRYPT_SCRIPT'],
+                            '/mnt/',
+                            options=conf('rsync.options'),
+                            user=conf('rsync.user'),
+                            log=True)
+        
+        for f in tag['files']:
+            decryptCmd = ' '.join([os.path.join('/mnt', os.path.basename(batchState['pipeline_config']['params.DECRYPT_SCRIPT'])),
+                                   f,
+                                   '-out-dir', '/mnt/lgt_decrypt',
+                                   '-remove-encrypted',
+                                   '-password', batchState['pipeline_config']['params.DECRYPT_PASSWORD']])
+                                       
+            
+            yield ssh.getOutput(cluster['master']['public_dns'],
+                                decryptCmd,
+                                sshUser=conf('ssh.user'),
+                                sshFlags=conf('ssh.options'),
+                                expected=[0, 253],
+                                log=True)
+
+        tag = yield tags_client.tagData(host='localhost',
+                                        clusterName=batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                        userName='guest',
+                                        action='overwrite',
+                                        tagName=_decryptTagName(batchState),
+                                        files=['/mnt/lgt_decrypt'],
+                                        metadata={},
+                                        recursive=True,
+                                        expand=False,
+                                        compressDir=None)
+
+        _log(batchState, 'Waiting for tagging of %s to complete - %s' % (_decryptTagName(batchState),
+                                                                         tag['task_name']))
+
+        yield _blockOnTask(tag['task_name'],
+                           cluster=batchState['pipeline_config']['cluster.CLUSTER_NAME'])
+        
+        yield _updateTask(batchState,
+                          lambda t : t.addMessage(tasks.task.MSG_SILENT,
+                                                  'Completed decrypt'
+                                                  ).progress())
+
         batchState['pipeline_state'] = REFERENCE_TRANSFER_STATE
         state.updateBatchState()
+        
 
     if batchState['pipeline_state'] == REFERENCE_TRANSFER_STATE:
         _log(batchState, 'Pipeline is in REFERENCE_TRANSFER state')
@@ -551,13 +668,18 @@ def _run(state, batchState):
                                                   ).progress())
         
         batchState['pipeline_state'] = SHUTDOWN_STATE
+        state.updateBatchState()
 
     if batchState['pipeline_state'] == SHUTDOWN_STATE:
         _log(batchState, 'Pipeline is in SHUTDOWN state')
 
         if 'add_instances_task' in batchState:
-            yield _blockOnTask(batchState['add_instances_task'],
-                               cluster=batchState['pipeline_config']['cluster.CLUSTER_NAME'])
+            try:
+                yield _blockOnTask(batchState['add_instances_task'],
+                                   cluster=batchState['pipeline_config']['cluster.CLUSTER_NAME'])
+            except Exception, err:
+                logging.errorPrint(str(err))
+                log.err(err)
 
         yield clusters_client.terminateCluster('localhost',
                                                batchState['pipeline_config']['cluster.CLUSTER_NAME'],
@@ -570,6 +692,8 @@ def _run(state, batchState):
                                                   ).progress())
         
         batchState['pipeline_state'] = COMPLETED_STATE
+        batchState['state'] = COMPLETED_STATE
+        state.updateBatchState()
 
         
     yield _updateTask(batchState,
@@ -609,4 +733,5 @@ def _runWrapper(state, batchState):
     
 def run(state, batchState):
     _keepClusterResized(state, batchState)
+    _delayAutoshutdown(state, batchState)
     return _runWrapper(state, batchState)

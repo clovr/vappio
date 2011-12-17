@@ -113,7 +113,7 @@ def _validateAction(action):
         raise InvalidAction(action)
 
 def _interpretBatchFile(batchFile):
-    batches = []
+    batches = {}
     currentBatchNum = None
     currentBatch = []
     for line in open(batchFile):
@@ -135,19 +135,22 @@ def _interpretBatchFile(batchFile):
         if currentBatchNum == batchNum:
             currentBatch.append(entry)
         else:
-            batches.append(currentBatch)
+            batches[currentBatchNum] = currentBatch
             currentBatch = [entry]
             currentBatchNum = batchNum
 
     if currentBatch:
-        batches.append(currentBatch)
+        batches[batchNum] = currentBatch
 
     return batches
 
 
 def _queueIncompleteWork(state):
     count = 0
-    for idx, batch in enumerate(state.batches):
+    indecies = state.batches.keys()
+    indecies.sort()
+    for idx in indecies:
+        batch = state.batches[idx]
         if (idx not in state.batchStates or
             state.batchStates[idx].get('state') != 'completed'):
             state.pipelinesQueue.add(state.wrapper,
