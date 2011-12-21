@@ -329,12 +329,15 @@ def _harvestTransfer(batchState):
 @defer.inlineCallbacks
 def _delayAutoshutdown(state, batchState):
     _log(batchState, 'AUTOSHUTDOWN: Trying to touch autoshutdown file')
-    if ('cluster_task' not in batchState or batchState['state'] != RUNNING_STATE) and batchState['state'] != COMPLETED_STATE:
+    if (('cluster_task' not in batchState or batchState.get('state', None) != RUNNING_STATE) and
+        batchState.get('state', None) != COMPLETED_STATE):
+        # Not ready yet
         _log(batchState, 'AUTOSHUTDOWN: No cluster or not running, calling later')
         reactor.callLater(AUTOSHUTDOWN_REFRESH, _delayAutoshutdown, state, batchState)
     elif ('cluster_task' in batchState and
-          batchState['state'] == RUNNING_STATE and
-          batchState['pipeline_state'] != SHUTDOWN_STATE):
+          batchState.get('state', None) == RUNNING_STATE and
+          batchState.get('pipeline_state', None) != SHUTDOWN_STATE):
+        # Ready to see if resizing
         _log(batchState, 'AUTOSHUTDOWN: Making sure cluster is up')
         yield _blockOnTask(batchState['cluster_task'])
 
