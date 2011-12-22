@@ -15,72 +15,72 @@ do
     bname=`basename $n .runtests`
     echo "Running image $dname/$bname"
     #Modify start up process to install hudson
-    mkdir -p $dname/$bname/shared/user_data/user_scripts || true
-    chmod 777 $dname/$bname/shared/user_data/user_scripts || true
-    #ln -s /opt/vappio-install/recipes/hudson.sh $dname/$bname/shared/user_data/user_scripts/01-installhudson || true
-    echo "#!/bin/bash" > $dname/$bname/shared/user_data/user_scripts/02-starthudson
-    echo "/etc/init.d/hudson start" >> $dname/$bname/shared/user_data/user_scripts/02-starthudson
+    mkdir -p $dname/$bname/user_data/user_scripts || true
+    chmod 777 $dname/$bname/user_data/user_scripts || true
+    #ln -s /opt/vappio-install/recipes/hudson.sh $dname/$bname/user_data/user_scripts/01-installhudson || true
+    echo "#!/bin/bash" > $dname/$bname/user_data/user_scripts/02-starthudson
+    echo "/etc/init.d/hudson start" >> $dname/$bname/user_data/user_scripts/02-starthudson
     
     #Schedule shutdown in 23 hours
-    echo "#!/bin/bash" > $dname/$bname/shared/user_data/user_scripts/03-schedshutdown
+    echo "#!/bin/bash" > $dname/$bname/user_data/user_scripts/03-schedshutdown
     hour=`date -u +"%-H"`
     shutdownhour=$(($hour-1))
     if [ $shutdownhour -lt 0 ]
 	then
 	shutdownmin=$((24 + $shutdownhour));
     fi
-    echo "echo \"0 $shutdownhour * * * root /sbin/shutdown -h +10\" > /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user_data/user_scripts/03-schedshutdown
-    echo "chmod +x /etc/cron.d/autoshutdown" >> $dname/$bname/shared/user_data/user_scripts/03-schedshutdown
+    echo "echo \"0 $shutdownhour * * * root /sbin/shutdown -h +10\" > /etc/cron.d/autoshutdown" >> $dname/$bname/user_data/user_scripts/03-schedshutdown
+    echo "chmod +x /etc/cron.d/autoshutdown" >> $dname/$bname/user_data/user_scripts/03-schedshutdown
 
     #Start VNC for remote access
-    echo "#!/bin/bash" > $dname/$bname/shared/user_data/user_scripts/04-startvnc
-    echo "apt-get -y install x11vnc" >> $dname/$bname/shared/user_data/user_scripts/04-startvnc
-    echo "x11vnc -http -forever -xkb -find &" >> $dname/$bname/shared/user_data/user_scripts/04-startvnc
+    echo "#!/bin/bash" > $dname/$bname/user_data/user_scripts/04-startvnc
+    echo "apt-get -y install x11vnc" >> $dname/$bname/user_data/user_scripts/04-startvnc
+    echo "x11vnc -http -forever -xkb -find &" >> $dname/$bname/user_data/user_scripts/04-startvnc
 
     #Add diag credential
     `cp $buildvm/keys/diagkey $dname/$bname/keys/diagpk.pem`;
     `cp $buildvm/keys/diagcert $dname/$bname/keys/diagcert.pem`;
-    echo "#!/bin/bash" > $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "bgTask()" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "{"  >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "while true"  >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "do"  >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "node_type=\`cat /var/vappio/runtime/node_type\`"  >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "if [ \"\$node_type\" = \"master\" ]" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "then" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "vp-add-credential --cred-name clovr_diag_account --ctype diag -p /mnt/keys/diagpk.pem -c /mnt/keys/diagcert.pem" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "break;" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "fi" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "sleep 10" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "done" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "}" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    echo "(bgTask&)" >> $dname/$bname/shared/user_data/user_scripts/05-diagcredential
+    echo "#!/bin/bash" > $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "bgTask()" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "{"  >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "while true"  >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "do"  >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "node_type=\`cat /var/vappio/runtime/node_type\`"  >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "if [ \"\$node_type\" = \"master\" ]" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "then" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "vp-add-credential --cred-name clovr_diag_account --ctype diag -p /mnt/keys/diagpk.pem -c /mnt/keys/diagcert.pem" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "break;" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "fi" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "sleep 10" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "done" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "}" >> $dname/$bname/user_data/user_scripts/05-diagcredential
+    echo "(bgTask&)" >> $dname/$bname/user_data/user_scripts/05-diagcredential
     
     #Add ec2 credential
     `cp $buildvm/keys/pk-*.pem $dname/$bname/keys/ec2pk.pem`;
     `cp $buildvm/keys/cert-*.pem $dname/$bname/keys/ec2cert.pem`;
-    echo "#!/bin/bash" > $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "bgTask()" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "{"  >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "while true"  >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "do"  >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "node_type=\`cat /var/vappio/runtime/node_type\`"  >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "if [ \"\$node_type\" = \"master\" ]" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "then" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "vp-add-credential --cred-name clovr_ec2_account --ctype ec2 -p /mnt/keys/ec2pk.pem -c /mnt/keys/ec2cert.pem" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "break;" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "fi" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "sleep 10" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "done" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "}" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
-    echo "(bgTask&)" >> $dname/$bname/shared/user_data/user_scripts/06-ec2credential
+    echo "#!/bin/bash" > $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "bgTask()" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "{"  >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "while true"  >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "do"  >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "node_type=\`cat /var/vappio/runtime/node_type\`"  >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "if [ \"\$node_type\" = \"master\" ]" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "then" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "vp-add-credential --cred-name clovr_ec2_account --ctype ec2 -p /mnt/keys/ec2pk.pem -c /mnt/keys/ec2cert.pem" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "break;" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "fi" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "sleep 10" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "done" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "}" >> $dname/$bname/user_data/user_scripts/06-ec2credential
+    echo "(bgTask&)" >> $dname/$bname/user_data/user_scripts/06-ec2credential
 
 
-    chmod a+rx $dname/$bname/shared/user_data/user_scripts/02-starthudson
-    chmod a+rx $dname/$bname/shared/user_data/user_scripts/03-schedshutdown
-    chmod a+rx $dname/$bname/shared/user_data/user_scripts/04-startvnc
-    chmod a+rx $dname/$bname/shared/user_data/user_scripts/05-diagcredential
-    chmod a+rx $dname/$bname/shared/user_data/user_scripts/06-ec2credential
+    chmod a+rx $dname/$bname/user_data/user_scripts/02-starthudson
+    chmod a+rx $dname/$bname/user_data/user_scripts/03-schedshutdown
+    chmod a+rx $dname/$bname/user_data/user_scripts/04-startvnc
+    chmod a+rx $dname/$bname/user_data/user_scripts/05-diagcredential
+    chmod a+rx $dname/$bname/user_data/user_scripts/06-ec2credential
 
     if [ "$vmcheckdir" != "" ] && [ "$force" != "force" ]
     then
