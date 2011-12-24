@@ -3,6 +3,7 @@ import os
 from twisted.internet import defer
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 from vappio_tx.www_client import clusters as clusters_client
@@ -13,6 +14,7 @@ class Error(Exception):
 class CredentialInUseError(Error):
     pass    
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWDeleteCredential(request):
     clusters = yield clusters_client.listClusters('localhost',

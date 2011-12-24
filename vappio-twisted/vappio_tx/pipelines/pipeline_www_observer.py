@@ -3,9 +3,11 @@ import json
 from igs.utils import logging
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
+@defer_utils.timeIt
 def handleWWWObserver(request):
     """
     Input:

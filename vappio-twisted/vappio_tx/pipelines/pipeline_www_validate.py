@@ -1,6 +1,7 @@
 from twisted.internet import defer
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
@@ -13,7 +14,7 @@ def _determineProtocol(request):
         return pipeline_misc.determineWrapper(request.state.machineconf,
                                               request.body['config']['pipeline.PIPELINE_TEMPLATE'])
 
-
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWValidatePipelineConfig(request):
     """

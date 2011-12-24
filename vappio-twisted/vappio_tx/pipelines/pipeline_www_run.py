@@ -1,6 +1,7 @@
 from twisted.internet import defer
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.internal_client import clusters as clusters_client
 
@@ -35,6 +36,7 @@ def _determineProtocol(request):
                                               request.body['config']['pipeline.PIPELINE_TEMPLATE'])
     
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWRunPipeline(request):
     """

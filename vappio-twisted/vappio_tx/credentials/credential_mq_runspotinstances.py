@@ -4,11 +4,14 @@ from twisted.internet import defer
 
 from igs_tx.utils import global_state
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
 from vappio_tx.credentials import credentials_misc
 
+@defer_utils.timeIt
+@defer.inlineCallbacks
 def handleRunSpotInstances(request):
     userDataFile=None
     if 'user_data' in request.body:

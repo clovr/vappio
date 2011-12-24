@@ -1,13 +1,12 @@
 import os
 
-from twisted.python import log
-
 from twisted.internet import defer
 
 from igs.utils import config
 from igs.utils import functional as func
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 from igs_tx.utils import commands
 
 from vappio_tx.utils import queue
@@ -56,6 +55,7 @@ def _realizePhantom(ctype, baseDir, phantom):
         # It's a command:
         return _runCommand(ctype, baseDir, download, phantomConfig)
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleRealizePhantom(request):
     yield tasks_tx.updateTask(request.body['task_name'],

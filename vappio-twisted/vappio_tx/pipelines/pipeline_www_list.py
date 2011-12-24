@@ -18,6 +18,7 @@ def removeDetail(p):
     return p
 
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWPipelineList(request):
     """

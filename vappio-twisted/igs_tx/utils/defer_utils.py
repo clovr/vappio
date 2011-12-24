@@ -1,7 +1,12 @@
+import time
+
 from twisted.internet import defer
 from twisted.internet import reactor
 
 from twisted.python import failure
+from twisted.python import log
+
+from igs.utils import logging
 
 def mapSerial(f, iterable):
     """
@@ -119,3 +124,23 @@ def sleep(seconds):
 
 
 
+def timeIt(f):
+    """Times how long it takes the function returning the deferred to complete and prints it"""
+    
+
+    def _(*args, **kwargs):
+        startTime = time.time()
+        
+        def _timeAndReturn(v):
+            endTime = time.time()
+            if logging.DEBUG:
+                log.msg('TIMEIT: %s.%s %f' % (f.__module__,
+                                              f.__name__,
+                                              endTime - startTime))
+            return v
+        
+        d = f(*args, **kwargs)
+        d.addCallback(_timeAndReturn)
+        return d
+
+    return _

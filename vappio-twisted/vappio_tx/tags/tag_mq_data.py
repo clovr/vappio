@@ -10,7 +10,6 @@ from igs.utils import functional as func
 from igs_tx.utils import defer_utils
 from igs_tx.utils import defer_pipe
 from igs_tx.utils import commands
-from igs_tx.utils import errors
 
 from vappio_tx.utils import queue
 
@@ -221,6 +220,7 @@ def _restrictDirs(f):
 
     return True
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def _handleTaskTagData(request):
     yield tasks_tx.updateTask(request.body['task_name'],
@@ -229,12 +229,14 @@ def _handleTaskTagData(request):
     if 'urls' in request.body and request.body['urls']:
         metadata = func.updateDict(request.body['metadata'],
                                    {'urls': request.body['urls']})
+    else:
+        metadata = request.body['metadata']
     
     yield tagData(request.state,
                   request.body['tag_name'],
                   request.body['task_name'],
                   request.body.get('files', []),
-                  request.body['metadata'],
+                  metadata,
                   request.body['action'],
                   request.body.get('recursive', False),
                   request.body.get('expand', False),

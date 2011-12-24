@@ -1,18 +1,13 @@
-import time
 import os
 
-from twisted.python import log
-
 from twisted.internet import defer
-from twisted.internet import reactor
-
-from igs.utils import functional as func
-from igs.utils import config
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleTagList(request):
     if request.body.get('detail', False):

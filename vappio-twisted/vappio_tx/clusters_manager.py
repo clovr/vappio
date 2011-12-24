@@ -57,7 +57,7 @@ class State:
         self.clustersCache = {}
         self.unresponsiveClusters = {}
     
-
+@defer_utils.timeIt
 def loadRemoteClusterData(cl, mq, state):
     # If there is a master, contact it to get updated exec and datanodes
     # Set the timeout very short (5 seconds) so we can respond to the
@@ -106,7 +106,7 @@ def saveCluster(cl, state=None):
     saved.addCallback(lambda _ : cl)
     return saved
 
-
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def deleteCluster(credClient, clusterName, userName):
     """
@@ -133,6 +133,7 @@ def deleteCluster(credClient, clusterName, userName):
         # Somebody beat us to deleting it, that's ok
         pass
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def terminateCluster(credClient, clusterName, userName):
     """
@@ -151,6 +152,7 @@ def terminateCluster(credClient, clusterName, userName):
 
     defer.returnValue(cluster.setState(cluster.TERMINATED))
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def terminateInstancesByCriteria(credClient, clusterName, userName, byCriteria, criteriaValues):
     """
@@ -176,6 +178,7 @@ def terminateInstancesByCriteria(credClient, clusterName, userName, byCriteria, 
 
 #
 # These callbacks handle things associated with tasks
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleTaskStartCluster(request):
     yield tasks_tx.updateTask(request.body['task_name'],
@@ -224,7 +227,7 @@ def handleTaskStartCluster(request):
 
     defer.returnValue(request)
 
-
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleTaskTerminateCluster(request):
     # Start task running
@@ -272,6 +275,7 @@ def handleTaskTerminateCluster(request):
 
     defer.returnValue(request)
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleTaskTerminateInstances(request):
     # Start task running
@@ -319,6 +323,7 @@ def handleTaskTerminateInstances(request):
 
     defer.returnValue(request)
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleTaskAddInstances(request):
     yield tasks_tx.updateTask(request.body['task_name'],
@@ -343,6 +348,7 @@ def handleTaskAddInstances(request):
 
     defer.returnValue(request)
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def removeDeadClusters(mq, conf):
     clusters = yield persist.loadClustersAdmin()
@@ -387,6 +393,7 @@ def refreshClusters(mq, state):
 
 #
 # These callbacks must return immediatly
+@defer_utils.timeIt
 def handleWWWClusterInfo(request):
     if request.body['cluster'] == 'local' and ('local', None) in request.state.clustersCache:
         return defer_pipe.ret(request.update(response=persist.clusterToDict(request.state.clustersCache[('local', None)])))
@@ -397,19 +404,21 @@ def handleWWWClusterInfo(request):
     else:
         raise Error('Cluster not found - %r' % request.body['cluster'])
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWListClusters(request):
     clusters = yield persist.loadAllClusters(request.body['user_name'])
     clusterDicts = [persist.clusterToDict(c) for c in clusters]
     defer.returnValue(request.update(response=clusterDicts))
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWConfigCluster(request):
     cluster = yield persist.loadCluster(request.body['cluster'], request.body['user_name'])
     js = json.dumps(cluster.config)
     defer.returnValue(request.update(response=js))
 
-
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def loadLocalCluster(mq, state):
     """If local cluster is not present, load it"""

@@ -3,6 +3,7 @@ from twisted.internet import defer
 from igs.utils import config
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
@@ -11,7 +12,7 @@ from vappio_tx.pipelines import pipeline_misc
 class Error(Exception):
     pass
 
-
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWUpdatePipelineConfig(request):
     """

@@ -15,11 +15,13 @@ import os
 from twisted.internet import defer
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
 from vappio_tx.tasks import persist
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleTaskList(request):
     if 'task_name' in request.body:

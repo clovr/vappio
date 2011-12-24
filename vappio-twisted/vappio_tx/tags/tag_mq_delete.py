@@ -3,12 +3,13 @@ import os
 from twisted.internet import defer
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
 from vappio_tx.tasks import tasks as tasks_tx
 
-
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def _handleDeleteTag(request):
     yield tasks_tx.updateTask(request.body['task_name'],

@@ -6,7 +6,6 @@ from twisted.internet import defer
 
 from igs.utils import functional as func
 
-
 from igs_tx.utils import defer_utils
 from igs_tx.utils import defer_pipe
 from igs_tx.utils import ssh
@@ -88,7 +87,6 @@ def _partitionFiles(files, baseDir):
         return (baseDirFiles, downloadFiles)
     else:
         return ([], files)
-
 
 @defer.inlineCallbacks
 def _realizeUrls(request):
@@ -265,7 +263,7 @@ def _downloadTag(request):
                                   phantom=remoteTag['phantom'],
                                   taskName=None))
 
-    
+@defer_utils.timeIt    
 @defer.inlineCallbacks
 def _handleTransferTag(request):
     yield tasks_tx.updateTask(request.body['task_name'],

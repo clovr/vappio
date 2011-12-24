@@ -5,6 +5,7 @@ from twisted.internet import defer
 from igs.utils import functional as func
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
@@ -14,6 +15,7 @@ class Error(Exception):
 class EmptyCriteriaError(Error):
     pass    
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWPipelineDelete(request):
     """

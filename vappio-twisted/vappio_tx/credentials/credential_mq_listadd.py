@@ -6,6 +6,7 @@ from igs.utils import core
 from igs.utils import config
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 from vappio_tx.credentials import persist
@@ -16,6 +17,7 @@ class Error(Exception):
 class UnknownRequestError(Error):
     pass        
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWListAddCredentials(request):
 

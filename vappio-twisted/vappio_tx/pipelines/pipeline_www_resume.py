@@ -1,11 +1,13 @@
 from twisted.internet import defer
 
 from igs_tx.utils import defer_pipe
+from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
 
 from vappio_tx.pipelines import pipeline_misc
 
+@defer_utils.timeIt
 @defer.inlineCallbacks
 def handleWWWResumePipeline(request):
     pipelineMonitor = request.state.pipelinesMonitor.findMonitor(request.body['pipeline_name'],
