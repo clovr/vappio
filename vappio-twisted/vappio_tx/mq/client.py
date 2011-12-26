@@ -7,7 +7,10 @@
 from zope import interface
 
 from twisted.application import internet
+
 from twisted.internet import protocol
+from twisted.internet import reactor
+
 from twisted.python import log
 
 from igs_tx.utils import global_state
@@ -258,5 +261,7 @@ def makeService(conf):
     mqService.mqFactory = mqFactory
     return mqService
 
-    
-
+def connect(conf):
+    mqFactory = MQClientFactory(conf('mq.username', default=''), conf('mq.password', default=''), debug=conf('mq.debug', default=False))
+    reactor.connectTCP(conf('mq.host'), int(conf('mq.port')), mqFactory)
+    return mqFactory
