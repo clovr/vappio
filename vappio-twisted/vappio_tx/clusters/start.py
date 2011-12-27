@@ -176,7 +176,7 @@ def startExecNodes(state, credClient, taskName, numExec, cl):
         t = t.addMessage(task.MSG_SILENT,
                          'Adding %d instances to %s' % (numExec, pState.cluster.clusterName))
         t = t.progress()
-        t = t.update(numTasks=t.numTasks + 4)
+        t = t.update(numTasks=t.numTasks + 5)
         return t
     
     yield tasks_tx.updateTask(taskName,

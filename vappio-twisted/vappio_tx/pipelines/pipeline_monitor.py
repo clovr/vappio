@@ -25,6 +25,7 @@ from vappio_tx.tasks import tasks as tasks_tx
 
 from vappio_tx.www_client import pipelines as pipelines_www
 from vappio_tx.www_client import tasks as tasks_www
+from vappio_tx.www_client import clusters as clusters_client
 
 from vappio_tx.pipelines import pipeline_run
 
@@ -180,24 +181,32 @@ class PipelineMonitor(dependency.Dependable):
         completedSteps = 0
         messages = []
 
+        clusters = yield clusters_client.listClusters('localhost',
+                                                      'local',
+                                                      pl.userName)
+
+        clusterNames = set([c['cluster_name']
+                            for c in clusters])
+        
         for cl, remotePipelineName in pl.children:
             try:
-                remotePipelines = yield pipelines_www.pipelineList('localhost',
-                                                                   cl,
-                                                                   pl.userName,
-                                                                   remotePipelineName,
-                                                                   True)
+                if cl in clusterNames:
+                    remotePipelines = yield pipelines_www.pipelineList('localhost',
+                                                                       cl,
+                                                                       pl.userName,
+                                                                       remotePipelineName,
+                                                                       True)
 
-                remotePipeline = remotePipelines[0]
+                    remotePipeline = remotePipelines[0]
 
-                remoteTask = yield tasks_www.loadTask('localhost',
-                                                      cl,
-                                                      pl.userName,
-                                                      remotePipeline['task_name'])
-
-                numSteps += remoteTask['numTasks']
-                completedSteps += remoteTask['completedTasks']
-                messages += remoteTask['messages']
+                    remoteTask = yield tasks_www.loadTask('localhost',
+                                                          cl,
+                                                          pl.userName,
+                                                          remotePipeline['task_name'])
+                    
+                    numSteps += remoteTask['numTasks']
+                    completedSteps += remoteTask['completedTasks']
+                    messages += remoteTask['messages']
             except Exception, err:
                 log.err(err)
 

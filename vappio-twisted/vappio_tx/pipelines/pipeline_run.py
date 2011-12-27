@@ -147,10 +147,7 @@ def resume(state, pipeline):
         if pipeline.queue:
             cmd.append('--queue=' + pipeline.queue)
 
-        stderr = StringIO.StringIO()
-        def _raiseProgramError(_):
-            raise commands.ProgramRunError(cmd, stderr.getvalue())
-        yield commands.runProcess(cmd,
-                                  stderrf=stderr.write).addErrback(_raiseProgramError)
+        yield commands.getOutput(cmd, log=True)
+                                 
     defer.returnValue(pipeline)
         
