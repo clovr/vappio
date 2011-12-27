@@ -15,24 +15,28 @@ OPTIONS = [
     ('batch_states', '', '--batch-states', 'File to store the states of the batches', cli.notNone),
     ('batch_file', '', '--batch-file', 'Tab delimited file for the batches to run', cli.notNone),
     ('workflow_config', '', '--workflow-config', 'Configuration file to use when running workflow', cli.notNone),
-    ('pipeline_queue', '', '--pipeline-queue', 'Queue to run the inner pipelines in', cli.notNone)
+    ('pipeline_queue', '', '--pipeline-queue', 'Queue to run the inner pipelines in', cli.notNone),
+    ('debug', '', '--debug', 'Turn debug logging on', cli.defaultIfNone(False), cli.BINARY)
     ]
 
 class ExitCode:
     def __init__(self):
-        self.exitCode = 0
+        self.exitCode = 1
 
-def run(batchOptions, exitCode):
+def run(options, batchOptions, exitCode):
+    if options('general.debug'):
+        log.startLogging(sys.stdout)
+        
     d = batch_job_runner.run(batchOptions)
 
     def _callback(_):
+        exitCode.exitCode = 0
         reactor.stop()
 
     d.addCallback(_callback)
 
     def _errback(f):
         log.err(f)
-        exitCode.exitCode = 1
         reactor.stop()
     
     d.addErrback(_errback)
@@ -44,7 +48,7 @@ def main(options, _args):
                                             workflowConfig=options('general.workflow_config'))
 
     exitCode = ExitCode()
-    reactor.callLater(0.0, run, batchOptions, exitCode)
+    reactor.callLater(0.0, run, options, batchOptions, exitCode)
     reactor.run()
     exit(exitCode.exitCode)
 
