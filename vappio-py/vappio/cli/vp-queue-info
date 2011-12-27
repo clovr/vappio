@@ -7,6 +7,7 @@ from twisted.internet import defer
 from twisted.python import log
 
 from igs.utils import config
+from igs.utils import functional as func
 from igs.utils import cli
 
 from igs_tx.utils import defer_utils
@@ -20,14 +21,25 @@ OPTIONS = [
      '--config',
      'Path to vappio apps config, defaults to /opt/vappio-apps/vappio_apps.conf',
      cli.defaultIfNone('/opt/vappio-apps/vappio_apps.conf')),
-    ('output_file', '', '--output', 'File to dump to', cli.notNone)
+    ('output_file', '', '--output', 'File to dump to', cli.defaultIfNone(None)),
+    ('gc_file', '', '--gc-output', 'File to dump gc information to (off by default)', cli.defaultIfNone(None)),
+    ('gc_verbose',
+     '',
+     '--gc-verbose',
+     'Value to set gc verbosity to (see http://caml.inria.fr/pub/docs/manual-ocaml/libref/Gc.html)',
+     func.compose(lambda x : int(x, 16), cli.defaultIfNone('-1')))
     ]
 
 
 @defer.inlineCallbacks
 def _getInfo(options, conf):
     mq = client.connect(conf)
-    mq.send('/control/all-messages', options('general.output_file'))
+    if options('general.output_file'):
+        mq.send('/control/all-messages', options('general.output_file'))
+    if options('general.gc_file'):
+        mq.send('/control/gc-information', options('general.gc_file'))
+    if options('general.gc_verbose') != -1:
+        mq.send('/control/gc-verbose', str(options('general.gc_verbose')))
     yield defer_utils.sleep(3)()
     reactor.stop()
     
