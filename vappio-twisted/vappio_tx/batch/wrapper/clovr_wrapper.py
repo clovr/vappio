@@ -6,11 +6,13 @@ from twisted.internet import defer
 from twisted.internet import reactor
 
 from igs.utils import logging
+from igs.utils import config
 
 from igs_tx import workflow_runner
 
 from igs_tx.utils import global_state
 from igs_tx.utils import defer_utils
+from igs_tx.utils import ssh
 
 from vappio_tx.pipelines import pipeline_misc
 
@@ -21,7 +23,8 @@ from vappio_tx.www_client import tasks as tasks_client
 
 from vappio_tx.tasks import tasks
 
-CHILDREN_PIPELINE_REFRESH = 30
+AUTOSHUTDOWN_REFRESH = 20 * 60
+CHILDREN_PIPELINE_REFRESH = 5 * 60
 RETRIES = 3
 TMP_DIR='/tmp'
 
@@ -193,6 +196,41 @@ def _monitorPipeline(batchState):
     if batchState['pipeline_state'] == RUNNING_PIPELINE_STATE:
         reactor.callLater(CHILDREN_PIPELINE_REFRESH, _monitorPipeline, batchState)
 
+
+@defer.inlineCallbacks
+def _delayAutoshutdown(state, batchState):
+    _log(batchState, 'AUTOSHUTDOWN: Trying to touch autoshutdown file')
+    try:
+        cluster = yield clusters_client.loadCluster('localhost',
+                                                    batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                                    'guest')
+
+        if batchState.get('state', None) == COMPLETED_STATE:
+            _log(batchState, 'AUTOSHUTDOWN: Pipeline complete, done')
+        if batchState.get('state', None) != RUNNING_STATE:
+            _log(batchState, 'AUTOSHUTDOWN: Pipeline not running, calling later')
+            reactor.callLater(AUTOSHUTDOWN_REFRESH, _delayAutoshutdown, state, batchState)
+        elif cluster['state'] == 'running':
+            # We need the SSH options from the machine.conf, ugh I hate these OOB dependencies
+            conf = config.configFromStream(open('/tmp/machine.conf'))
+            
+            _log(batchState, 'AUTOSHUTDOWN: Touching delayautoshutdown')
+            yield ssh.runProcessSSH(cluster['master']['public_dns'],
+                                    'touch /var/vappio/runtime/delayautoshutdown',
+                                    stdoutf=None,
+                                    stderrf=None,
+                                    sshUser=conf('ssh.user'),
+                                    sshFlags=conf('ssh.options'),
+                                    log=True)
+            _log(batchState, 'AUTOSHUTDOWN: Setting up next call')
+            reactor.callLater(AUTOSHUTDOWN_REFRESH, _delayAutoshutdown, state, batchState)
+        else:
+            _log(batchState, 'AUTOSHUTDOWN: Cluster not running, calling later')
+            reactor.callLater(AUTOSHUTDOWN_REFRESH, _delayAutoshutdown, state, batchState)
+
+    except:
+        _log(batchState, 'AUTOSHUTDOWN: Cluster does not exist, calling later')
+        reactor.callLater(AUTOSHUTDOWN_REFRESH, _delayAutoshutdown, state, batchState)
         
 @defer.inlineCallbacks
 def _run(state, batchState):
@@ -359,7 +397,7 @@ def _run(state, batchState):
     _log(batchState, 'Pipeline finished successfully')
     
 
-def run(state, batchState):
+def _runWrapper(state, batchState):
     batchState.setdefault('retry_count', RETRIES)
     d = _run(state, batchState)
 
@@ -384,3 +422,6 @@ def run(state, batchState):
     d.addErrback(_errback)
     return d
     
+def run(state, batchState):
+    _delayAutoshutdown(state, batchState)
+    return _runWrapper(state, batchState)
