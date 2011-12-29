@@ -21,25 +21,31 @@ OPTIONS = [
      '--config',
      'Path to vappio apps config, defaults to /opt/vappio-apps/vappio_apps.conf',
      cli.defaultIfNone('/opt/vappio-apps/vappio_apps.conf')),
-    ('output_file', '', '--output', 'File to dump to', cli.defaultIfNone(None)),
+    ('dump_file', '', '--dump', 'File to do a full dump to', cli.defaultIfNone(None)),
+    ('queue_file', '', '--output', 'File to dump to queue information', cli.defaultIfNone(None)),
     ('gc_file', '', '--gc-output', 'File to dump gc information to (off by default)', cli.defaultIfNone(None)),
     ('gc_verbose',
      '',
      '--gc-verbose',
      'Value to set gc verbosity to (see http://caml.inria.fr/pub/docs/manual-ocaml/libref/Gc.html)',
-     func.compose(lambda x : int(x, 16), cli.defaultIfNone('-1')))
+     func.compose(lambda x : int(x, 16), cli.defaultIfNone('-1'))),
+    ('toggle_debug', '', '--toggle-debug', 'Toggle debug on and off', cli.defaultIfNone(False), cli.BINARY)
     ]
 
 
 @defer.inlineCallbacks
 def _getInfo(options, conf):
     mq = client.connect(conf)
-    if options('general.output_file'):
-        mq.send('/control/all-messages', options('general.output_file'))
+    if options('general.dump_file'):
+        mq.send('/control/dump-report', options('general.dump_file'))
+    if options('general.queue_file'):
+        mq.send('/control/all-messages', options('general.queue_file'))
     if options('general.gc_file'):
         mq.send('/control/gc-information', options('general.gc_file'))
     if options('general.gc_verbose') != -1:
         mq.send('/control/gc-verbose', str(options('general.gc_verbose')))
+    if options('general.toggle_debug'):
+        mq.send('/control/toggle-debug', '')
     yield defer_utils.sleep(3)()
     reactor.stop()
     
