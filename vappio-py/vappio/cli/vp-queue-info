@@ -29,6 +29,16 @@ OPTIONS = [
      '--gc-verbose',
      'Value to set gc verbosity to (see http://caml.inria.fr/pub/docs/manual-ocaml/libref/Gc.html)',
      func.compose(lambda x : int(x, 16), cli.defaultIfNone('-1'))),
+    ('gc_max_overhead',
+     '',
+     '--gc-max-overhead',
+     'Set max-overhead',
+     func.compose(int, cli.defaultIfNone('0'))),
+    ('gc_space_overhead',
+     '',
+     '--gc-space-overhead',
+     'Set space-overhead',
+     func.compose(int, cli.defaultIfNone('0'))),
     ('toggle_debug', '', '--toggle-debug', 'Toggle debug on and off', cli.defaultIfNone(False), cli.BINARY)
     ]
 
@@ -44,6 +54,10 @@ def _getInfo(options, conf):
         mq.send('/control/gc-information', options('general.gc_file'))
     if options('general.gc_verbose') != -1:
         mq.send('/control/gc-verbose', str(options('general.gc_verbose')))
+    if options('general.gc_max_overhead') != 0:
+        mq.send('/control/gc-max-overhead', str(options('general.gc_max_overhead')))
+    if options('general.gc_space_overhead') != 0:
+        mq.send('/control/gc-space-overhead', str(options('general.gc_space_overhead')))
     if options('general.toggle_debug'):
         mq.send('/control/toggle-debug', '')
     yield defer_utils.sleep(3)()
