@@ -13,17 +13,32 @@ from twisted.internet import reactor
 
 from twisted.python import log
 
+from igs.utils import functional as func
+
 from igs_tx.utils import global_state
 
 from vappio_tx import stomper
 
+
+def _iterFuncs(funcs):
+    def _():
+        for f in funcs:
+            f()
+
+    return _
+
+def _updateOrCreateDict(d, updates):
+    if d is None:
+        d = {}
+
+    return func.updateDict(d, updates)
 
 class IMQClientFactory(interface.Interface):
     """
     Factory for MQ client protocol
     """
 
-    def subscribe(handler, destination, headers):
+    def subscribe(handler, destination, headers, receipt):
         """
         Subscribe to a queue or topic and us the list of headers given on it
 
@@ -32,12 +47,12 @@ class IMQClientFactory(interface.Interface):
         handler is a function that is called upon the incoming of a message
         """
 
-    def unsubscribe(destination):
+    def unsubscribe(destination, headers, receipt):
         """
         Unsubscribe form a destination
         """
 
-    def send(destination, body, headers):
+    def send(destination, body, headers, receipt):
         """
         Send a message to the destination with the headers and the body.
 
@@ -111,22 +126,60 @@ class _ConnectedState:
         self.factory = factory
         self.receipts = {}
         
-        for handler, dst, headers in self.factory._subscriptions:
-            self.factory.mqClient.sendMessage(stomper.subscribe(dst, ack='client', headers=headers))
+        for subscription in self.factory._subscriptions:
+            if subscription['receipt']:
+                receiptId = 'subscribe-' + global_state.make_ref()
+                self.receipts[receiptId] = subscription['receipt']
+                headers = _updateOrCreateDict(subscription['headers'],
+                                              {'receipt': receiptId})
 
-        for d, b, h in self.factory._sends:
-            self.send(d, b, h)
+                # We only want to call this the first time it happens, that way reconnects
+                # are invisible to the user
+                subscription['receipt'] = None
+            else:
+                headers = subscription['headers']
+            self.factory.mqClient.sendMessage(stomper.subscribe(subscription['destination'],
+                                                                ack=subscription['ack'],
+                                                                headers=headers))
 
-    def subscribe(self, handler, destination, headers, ack='client'):
-        self.factory._subscriptions.append((handler, destination, headers))
+        for send in self.factory._sends:
+            self.send(send['destination'],
+                      send['body'],
+                      send['headers'],
+                      send['receipt'])
+
+        # Once we have sent these remove them
+        self.factory._sends = []
+
+    def subscribe(self, handler, destination, headers=None, ack='client', receipt=None):
+        # Setting receipt to none here because we know it will be fired when we send it now
+        # unless something goes bad now..but what are the chances of that?
+        self.factory._subscriptions.append({'handler': handler,
+                                            'destination': destination,
+                                            'headers': headers,
+                                            'ack': ack,
+                                            'receipt': None})
+        if receipt:
+            receiptId = receiptId = 'subscribe-' + global_state.make_ref()
+            headers = _updateOrCreateDict(headers,
+                                          {'receipt': receiptId})
+            self.receipts[receiptId] = receipt            
         self.factory.mqClient.sendMessage(stomper.subscribe(destination, ack=ack, headers=headers))
         
-    def unsubscribe(self, destination):
-        receipt = 'unsubscribe-' + global_state.make_ref()
-        self.receipts[receipt] = lambda : self.factory._removeSubscription(destination)
-        self.factory.mqClient.sendMessage(stomper.unsubscribe(destination, receipt=receipt))
+    def unsubscribe(self, destination, headers=None, receipt=None):
+        receiptId = 'unsubscribe-' + global_state.make_ref()
+        if receipt:
+            self.receipts[receiptId] = _iterFuncs([lambda : self.factory._removeSubscription(destination), receipt])
+        else:
+            self.receipts[receiptId] = lambda : self.factory._removeSubscription(destination)
+        self.factory.mqClient.sendMessage(stomper.unsubscribe(destination, headers={'receipt': receiptId}))
 
-    def send(self, destination, body, headers):
+    def send(self, destination, body, headers=None, receipt=None):
+        if receipt:
+            receiptId = receiptId = 'send-' + global_state.make_ref()
+            headers = _updateOrCreateDict(headers,
+                                          {'receipt': receiptId})
+            self.receipts[receiptId] = receipt
         self.factory.mqClient.sendMessage(stomper.send(destination, body, headers))
         
     def ack(self, messageId, headers):
@@ -160,11 +213,19 @@ class _AuthenticatingState:
 
         transition(self.factory, _ConnectedState)
 
-    def subscribe(self, handler, destination, headers, ack='client'):
-        self.factory._subscriptions.append((handler, destination, headers))
+    def subscribe(self, handler, destination, headers=None, ack='client', receipt=None):
+        self.factory._subscriptions.append({'handler': handler,
+                                            'destination': destination,
+                                            'headers': headers,
+                                            'ack': ack,
+                                            'receipt': receipt})
 
-    def send(self, destination, body, headers):
-        self.factory._sends.append((destination, body, headers))
+    def send(self, destination, body, headers=None, receipt=None):
+        self.factory._sends.append({'destination': destination,
+                                    'body': body,
+                                    'headers': headers,
+                                    'receipt': receipt})
+        
 
 class _ConnectingState:
     def __init__(self, factory):
@@ -175,11 +236,18 @@ class _ConnectingState:
                                                           self.factory.password))
         transition(self.factory, _AuthenticatingState)
 
-    def subscribe(self, handler, destination, headers, ack='client'):
-        self.factory._subscriptions.append((handler, destination, headers))
+    def subscribe(self, handler, destination, headers=None, ack='client', receipt=None):
+        self.factory._subscriptions.append({'handler': handler,
+                                            'destination': destination,
+                                            'headers': headers,
+                                            'ack': ack,
+                                            'receipt': receipt})
                                                         
-    def send(self, destination, body, headers):
-        self.factory._sends.append((destination, body, headers))
+    def send(self, destination, body, headers=None, receipt=None):
+        self.factory._sends.append({'destination': destination,
+                                    'body': body,
+                                    'headers': headers,
+                                    'receipt': receipt})
         
 class MQClientFactory(protocol.ReconnectingClientFactory):
     interface.implements(IMQClientFactory)
@@ -212,19 +280,16 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
         transition(self, _ConnectingState)
         connector.connect()
         
-    def subscribe(self, handler, destination, headers=None, ack='client'):
-        if headers is None: headers = {}
-        return self.state.subscribe(handler, destination, headers, ack)
+    def subscribe(self, handler, destination, headers=None, ack='client', receipt=None):
+        return self.state.subscribe(handler, destination, headers, ack, receipt)
 
-    def unsubscribe(self, destination):
-        return self.state.unsubscribe(destination)
+    def unsubscribe(self, destination, headers=None, receipt=None):
+        return self.state.unsubscribe(destination, headers, receipt)
     
-    def send(self, destination, body, headers=None):
-        if headers is None: headers = {}
-        return self.state.send(destination, body, headers)
+    def send(self, destination, body, headers=None, receipt=None):
+        return self.state.send(destination, body, headers, receipt)
     
     def ack(self, messageId, headers=None):
-        if headers is None: headers = {}
         return self.state.ack(messageId, headers)
 
     def connectionMade(self):
@@ -246,12 +311,14 @@ class MQClientFactory(protocol.ReconnectingClientFactory):
 
 
     def _removeSubscription(self, dest):
-        self._subscriptions = [(handler, dst, hd) for handler, dst, hd in self._subscriptions if dst != dest]
+        self._subscriptions = [subscription
+                               for subscription in self._subscriptions
+                               if subscription['destination'] != dest]
 
     def _findSubscription(self, dest):
-        for handler, dst, _hd in self._subscriptions:
-            if dest == dst:
-                return handler
+        for subscription in self._subscriptions:
+            if dest == subscription['destination']:
+                return subscription['handler']
 
         return None
     

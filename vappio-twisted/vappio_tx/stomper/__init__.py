@@ -36,7 +36,7 @@ import types
 import doc
 import utils
 
-from igs.utils import functional
+from igs.utils import functional as func
 
 # This is used as a return from message reponses functions.
 # It is used more for readability more then anything or reason.
@@ -234,11 +234,11 @@ def abort(transactionid, headers=None):
     """
 
     return Frame(cmd='ABORT',
-                 headers=functional.updateDict(noneOrEmptyDict(headers),
-                                               {'transaction': transactionid})).pack()
+                 headers=func.updateDict(noneOrEmptyDict(headers),
+                                         {'transaction': transactionid})).pack()
 
 
-def ack(messageid, transactionid=None, headers=None):
+def ack(messageid, headers=None):
     """STOMP acknowledge command.
     
     Acknowledge receipt of a specific message from the server.
@@ -246,20 +246,10 @@ def ack(messageid, transactionid=None, headers=None):
     messageid:
         This is the id of the message we are acknowledging,
         what else could it be? ;)
-    
-    transactionid:
-        This is the id that all actions in this transaction 
-        will have. If this is not given then a random UUID
-        will be generated for this.
-    
+        
     """
-    headers = functional.updateDict(noneOrEmptyDict(headers),
-                                    {'message-id': messageid})
-    header = 'message-id: %s' % messageid
-
-    if transactionid:
-        headers = functional.updateDict(headers,
-                                        {'transaction': messageid})
+    headers = func.updateDict(noneOrEmptyDict(headers),
+                              {'message-id': messageid})
 
     return Frame(cmd='ACK', headers=headers).pack()
 
@@ -326,7 +316,7 @@ def disconnect():
     return Frame(cmd='DISCONNECT').pack()
 
     
-def send(dest, body, headers=None, transactionid=None):
+def send(dest, body, headers=None):
     """STOMP send command.
     
     dest:
@@ -340,12 +330,9 @@ def send(dest, body, headers=None, transactionid=None):
         by default.
     
     """
-    if transactionid:
-        headers = functional.updateDict(noneOrEmptyDict(headers), {'transaction': transactionid})
-
-    headers = functional.updateDict(noneOrEmptyDict(headers),
-                                    {'content-length': len(body),
-                                     'destination': dest})
+    headers = func.updateDict(noneOrEmptyDict(headers),
+                              {'content-length': len(body),
+                               'destination': dest})
 
     return Frame(cmd='SEND', headers=headers, body=body).pack()
     
@@ -362,10 +349,11 @@ def subscribe(dest, ack='auto', headers=None):
     
     """
     return Frame(cmd='SUBSCRIBE',
-                 headers=functional.updateDict(noneOrEmptyDict(headers), {'ack': ack,
-                                                                          'destination': dest})).pack()
+                 headers=func.updateDict(noneOrEmptyDict(headers),
+                                         {'ack': ack,
+                                          'destination': dest})).pack()
 
-def unsubscribe(dest, receipt=None):
+def unsubscribe(dest, headers=None):
     """STOMP unsubscribe command.
     
     dest:
@@ -375,11 +363,9 @@ def unsubscribe(dest, receipt=None):
     further messages for the given subscription.
     
     """
-    if receipt:
-        headers = {'receipt': receipt,
-                   'destination': dest}
-    else:
-        headers = {'destination': dest}
+    headers = func.updateDict(noneOrEmptyDict(headers),
+                              {'destination': dest})
+
     return Frame(cmd='UNSUBSCRIBE',
                  headers=headers).pack()
 
