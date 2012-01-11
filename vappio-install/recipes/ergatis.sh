@@ -55,6 +55,7 @@ cpan -i MIME::Lite
 # have had to force in the past
 cpan -fi Benchmark::Timer
 cpan -i SVN::Agent
+cpan -i CGI::Session
 
 #Install software.config
 rm -f /tmp/software.config
