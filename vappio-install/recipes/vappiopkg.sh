@@ -4,7 +4,7 @@ apt-get -y install xstow
 
 #Needed for vappio API
 apt-get -y install python-setuptools
-easy_install pymongo
+pip install pymongo==2.0.1
 
 pushd /tmp
 rm -rf vappio-py
