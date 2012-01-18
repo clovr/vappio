@@ -126,7 +126,7 @@ rm -rf ~/.globus || true
 if [ -d "$imagedir" ] && [ -f "$imagedir/vappio-conf/clovr_diag.conf" ]
 then
     echo "Writing $imagename.img to $imagedir/vappio-conf/clovr*.conf"
-    perl -pi -e "s/^ami=.*/ami=$imgname.img/" $imagedir/shared/vappio-conf/clovr_diag.conf
+    perl -pi -e "s/^ami=.*/ami=$imgname.img/" $imagedir/vappio-conf/clovr_diag.conf
 fi
 echo "Bundled and uploaded image"
 
