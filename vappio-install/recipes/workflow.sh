@@ -8,10 +8,12 @@
 #v5 add dir.exists() to handle mkdir bug #655
 #v5.1 adds fix for premature idfile exception
 #v5.2 catches exceptions during monitoring
-wget http://bioifx.org/wf_clovr_3.0vp5.2.tgz
-tar -C / -xvzf wf_clovr_3.0vp5.2.tgz
+wget http://bioifx.org/wf_clovr_3.0vp5.3.tgz
+tar -C / -xvzf wf_clovr_3.0vp5.3.tgz
 chmod 777 /opt/workflow-sforge/idfile
 chown www-data:www-data /opt/workflow-sforge/idfile
+
+#Change queue in SGE_QUEUE_CONFIG
 
 wget http://bioifx.org/drmaa.jar
 SGE_ROOT=/var/lib/gridengine
