@@ -3,8 +3,6 @@ import sys
 
 from vappio.webservice import cluster
 
-from igs.utils import commands
-
 # Ensure we are dealing with kv pairs
 if sys.stdin.readline().strip() != 'kv':
     raise Exception('Header needs to be kv')

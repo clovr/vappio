@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+import sys
+import os
+import time
+import hashlib
+
+from vappio.webservice import tag as tag_client
+
+from igs.utils import commands
+
+CHECKSUM_PROGRAM = 'md5sum'
+
+HASHES = {'md5sum': hashlib.md5}
+
+tags = []
+
+# Ensure we are dealing with kv pairs
+if sys.stdin.readline().strip() != 'kv':
+    raise Exception('Header needs to be kv')
+
+for line in sys.stdin:
+    k, v = line.strip().split('=', 1)
+    tags.append(v)
+
+sys.stdout.write('kv\n')
+
+for tag in tags:
+    tagData = tag_client.listTags('localhost',
+                                  'local',
+                                  {'tag_name': tag},
+                                  True)[0]
+
+    md5Sums = []
+    for f in tagData['files']:
+        stdout = []
+        commands.runSingleProgramEx(CHECKSUM_PROGRAM + ' ' + f, stdoutf=stdout.append, stderrf=sys.stderr.write)
+        checksum = stdout[0].split()[0]
+        md5Sums.append({'checksum': checksum, 'size': os.stat(f).st_size})
+
+        tagChecksum = HASHES[CHECKSUM_PROGRAM](''.join([c['checksum'] for c in md5Sums])).hexdigest()
+        
+    tag_client.tagData('localhost',
+                       'local',
+                       'append',
+                       tag,
+                       files=[],
+                       urls=[],
+                       metadata={'checksum_files': ','.join([c['checksum'] for c in md5Sums]),
+                                 'checksum_sizes': ','.join([str(c['size']) for c in md5Sums]),
+                                 'checksum_tag': tagChecksum,
+                                 'checksum_date': time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()),
+                                 'checksum_type': CHECKSUM_PROGRAM},
+                       recursive=False,
+                       expand=False,
+                       compressDir=None)
+    
+    
