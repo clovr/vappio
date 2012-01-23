@@ -8,8 +8,10 @@
 #v5 add dir.exists() to handle mkdir bug #655
 #v5.1 adds fix for premature idfile exception
 #v5.2 catches exceptions during monitoring
-wget http://bioifx.org/wf_clovr_3.0vp5.3.tgz
-tar -C / -xvzf wf_clovr_3.0vp5.3.tgz
+#v5.3 (broken)
+#v5.4 Fixes event.log monitoring 
+wget http://bioifx.org/wf_clovr_3.0vp5.4.tgz
+tar -C / -xvzf wf_clovr_3.0vp5.4.tgz
 chmod 777 /opt/workflow-sforge/idfile
 chown www-data:www-data /opt/workflow-sforge/idfile
 
