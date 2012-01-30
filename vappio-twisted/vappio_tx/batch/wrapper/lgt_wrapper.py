@@ -29,7 +29,8 @@ RSYNC = ['rsync',
 
 
 AUTOSHUTDOWN_REFRESH = 20 * 60
-RESIZE_REFRESH = 10 * 60
+RESIZE_REFRESH = 5 * 60 * 60
+NO_RESIZE_REFRESH = 10 * 60
 CHILDREN_PIPELINE_REFRESH = 5 * 60
 RETRIES = 100
 TMP_DIR='/tmp'
@@ -373,7 +374,7 @@ def _keepClusterResized(state, batchState):
         batchState.get('state', None) != COMPLETED_STATE):
         
         _log(batchState, 'RESIZE: Cluster not started yet or pipeline not in running state, trying later')
-        reactor.callLater(RESIZE_REFRESH, _keepClusterResized, state, batchState)
+        reactor.callLater(NO_RESIZE_REFRESH, _keepClusterResized, state, batchState)
     elif batchState.get('pipeline_state', None) == RUNNING_PIPELINE_STATE:
         try:
             numExecs = len(batchState['pipeline_config']['input.INPUT_FILES'].split(','))
@@ -401,7 +402,7 @@ def _keepClusterResized(state, batchState):
             log.err(err)
 
         _log(batchState, 'RESIZE: Setting up next call')
-        reactor.callLater(RESIZE_REFRESH, _keepClusterResized, state, batchState)
+        reactor.callLater(NO_RESIZE_REFRESH, _keepClusterResized, state, batchState)
     else:
         _log(batchState, 'RESIZE: Not calling later')
         
