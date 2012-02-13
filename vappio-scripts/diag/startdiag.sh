@@ -25,6 +25,9 @@ then
     run-parts -v "$user_data_scripts"
 fi
 
+#Background this for now
+$vappio_scripts/create_swap_file.sh &
+
 # Enter cloud only mode if not invoked by a clovr client VM
 if [ ! -e "$vappio_runtime/clientmode" ]
 then
