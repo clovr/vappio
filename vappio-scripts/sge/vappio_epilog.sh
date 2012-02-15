@@ -49,6 +49,23 @@ then
     #wfdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1$dir2"'`
     #wfcomponentdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.*\/)/);print "$dir1"'`
     #wfgroupdir=`echo "$wfxml" | perl -ne '($dir1,$dir2) = ($_ =~ /(.*\/)(.*\/.+)\//);print "$dir2"'`
+
+    #Check if this job is identified as us by SGE, otherwise fail silently
+    #We've encountered a race condition where SGE has submitted multiple instances of the same job
+    #See bugzilla
+    qstathost=`qstat -j $JOB_ID | grep sge_o_host`
+    if [ "$qstathost" != "" ]
+    then
+	matchinghost=`echo "$qstathost" | grep $exechost`
+	if [ "$matchinghost" = "" ]
+	then
+	    vlog "ERROR. Epilog running on $exechost,$myhost but qstat returned $qstathost for job $JOB_ID. Erroring silently and $wfdir and $outdir will not be copied."
+	    exit 0; #exit zero to avoid queue state erros
+	fi
+    else
+	vlog "ERROR. No host returned by qstat for job $JOB_ID. Continuing."
+    fi
+
     if [ ! -z "$wfcomponentdir" ]
     then
 	harvestdata=`grep HARVESTDATA $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
@@ -125,9 +142,11 @@ then
 	verror "EPILOG Error during harvesting event.log qsub return code: $ret2"
 	vlog `cat /mnt/scratch/harvestqsub.$$.stdout /mnt/scratch/harvestqsub.$$.stderr`
 	master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
+	#TODO check if F line before copy
 	#Write error line on master to force failure
-	$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$master "echo \"F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1\" >> ${request_cwd}/event.log"
-	#Job error, logging and continuing to avoid "hung jobs" in Eqw state
+	vlog "Attempting to write extra F line to ${request_cwd}/event.log on master"
+	$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$master "fline=`grep "F~~~" ${request_cwd}/event.log`; if [ \"$fline\" = \"\" ]; then echo \"F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1\" >> ${request_cwd}/event.log; fi"	     #Logging and continuing to avoid "hung jobs" in Eqw state
+	fi
     fi
 fi
 
