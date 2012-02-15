@@ -74,13 +74,19 @@ then
 	exit 100
     fi
     
-    vlog "Submitting staging job for $wfxml@$myhost to wf.q" 
+    #GetData
+    vlog "Submitting staging of group input and xml for $wfxml@$myhost to wf.q" 
     #Get iterator input, workflow xml and final.config from the master to the exec host
+    #Note, using -sync y introduces scalability issues, consider removing
     cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $stagingwf_script $myhost $wfxml"
     vlog "CMD: $cmd" 
     $cmd 1> stagingwf.qsub.$$.out 2> stagingwf.qsub.$$.stderr
     ret1=$?
 
+    #TODO, implement prolog commands support
+    #Check if commands need to be run, eg. remote download of urls
+    #run-parts --regex '*.sh$' -v $wfcomponentdir/$wfgroupdir/
+ 
     #Check for more error conditions
     #qsub returns 0 in some failure conditions, including if job is killed with qdel
     eout=`grep "Unable to run job" stagingwf.qsub.$$.out`
@@ -140,17 +146,18 @@ then
     #Copies from submission host (usually master node) to $myhost
     stagedata=`grep STAGEDATA $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
     if [ "$stagedata" != "" ]; then
-	#verror "PROLOG. STAGEDATA configuration option not implemented"
-	vlog "Submitting staging of input from $SGE_O_HOST to $myhost:$stagedata via $stagingq,$stagingsubq"
+	vlog "Submitting staging of STAGEDATA input from $SGE_O_HOST to $myhost:$stagedata via $stagingq,$stagingsubq"
+	#Note, using -sync y introduces scalability issues, consider removing
 	cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -sync y -l hostname=$SGE_O_HOST -q $stagingq,$stagingsubq $staging_script $myhost $stagedata"
 	vlog "CMD: $cmd" 
 	$cmd #1>> $vappio_log 2>> $vappio_log
 	if [ $? -ne 0 ]
 	then
 	    verror "PROLOG. Unable to copy $stagedata to $myhost"
-	    exit 100
+	    #Requeue entire job
+	    exit 99
 	fi 
-	vlog "Finished staging of $f@$myhost"
+	vlog "Finished staging of STAGEDATA on $f@$myhost"
     fi
     
 fi
