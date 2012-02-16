@@ -53,7 +53,7 @@ then
     #Check if this job is identified as us by SGE, otherwise fail silently
     #We've encountered a race condition where SGE has submitted multiple instances of the same job
     #See bugzilla
-    qstathost=`qstat -u '*' -xml | xpath -e '//job_list/JB_job_number[text()=$JOB_ID]/../queue_name'`
+    qstathost=`qstat -u "*" -xml | xpath -e "//job_list/JB_job_number[text()=$JOB_ID]/../queue_name"`
     if [ "$qstathost" != "" ]
     then
 	matchinghost=`echo "$qstathost" | grep $exechost`
