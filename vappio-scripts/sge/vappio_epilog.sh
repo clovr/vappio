@@ -148,6 +148,5 @@ then
 	$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$master "fline=`grep "F~~~" ${request_cwd}/event.log`; if [ \"$fline\" = \"\" ]; then echo \"F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1\" >> ${request_cwd}/event.log; fi"	     #Logging and continuing to avoid "hung jobs" in Eqw state
 	fi
     fi
-fi
 
 exit 0
