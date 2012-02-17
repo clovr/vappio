@@ -285,10 +285,9 @@ def _handleTransferTag(request):
         yield tasks_tx.updateTask(request.body['task_name'],
                                   lambda t : t.progress())
 
-
         if request.body.get('compress', False) or request.body.get('compress_dir', False):
             defaultDir = '/mnt/output' if request.body['dst_cluster'] == 'local' else tag.metadata['tag_base_dir']
-            compressDir = request.body.get('compress_dir', defaultDir)
+            compressDir = request.body.get('compress_dir') if request.body.get('compress_dir', False) else defaultDir 
         else:
             compressDir = None
         
