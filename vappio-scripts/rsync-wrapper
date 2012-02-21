@@ -1,0 +1,9 @@
+#!/bin/bash
+ignoreexit=24
+rsync "$@" 2>&1 
+a=$?
+if [ $a == $ignoreexit ]; then
+	exit 0
+else
+	exit $a
+fi
