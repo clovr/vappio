@@ -5,7 +5,7 @@ source $vappio_scripts/vappio_config.sh
 ##
 
 vlog "###" 
-vlog "### $0 aka harvestingwf.sh (`whoami`) on `hostname`" 
+vlog "### $0 aka harvestingwf.sh (`whoami`) on `hostname` args: $1 $2 $3 sge_job_id:$JOB_ID" 
 vlog "###" 
 
 #exec host is passed in on $1
@@ -24,8 +24,8 @@ if [ "$wfdir" != "" ]
 then
     vlog "Harvesting workflow output from $exechost:$wfdir to $parentdir"
     mkdir -p $parentdir
-    vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" root@$exechost:$wfdir $parentdir"
-    rsync -av -e "$ssh_client -i $ssh_key $ssh_options" root@$exechost:$wfdir $parentdir #1>> $vappio_log 2>> $vappio_log
+    vlog "CMD: $rsynccmd -av -e \"$ssh_client -i $ssh_key $ssh_options\" root@$exechost:$wfdir $parentdir"
+    $rsynccmd -av -e "$ssh_client -i $ssh_key $ssh_options" root@$exechost:$wfdir $parentdir #1>> $vappio_log 2>> $vappio_log
     if [ $? == 0 ]
     then
 	vlog "rsync success. return value: $?"
@@ -47,8 +47,8 @@ fi
 #Workflow uses event.log to store job states
 #This file is critical for announcing job status to Workflow
 vlog "Copying event.log from ${request_cwd}/event.log to ${request_cwd}/"
-vlog "CMD: rsync -rlDvh -e \"$ssh_client -i $ssh_key $ssh_options\" root@$exechost:${request_cwd}/event.log ${request_cwd}/"
-rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" root@$exechost:${request_cwd}/event.log ${request_cwd}/ #1>> $vappio_log 2>> $vappio_log
+vlog "CMD: $rsynccmd -rlDvh -e \"$ssh_client -i $ssh_key $ssh_options\" root@$exechost:${request_cwd}/event.log ${request_cwd}/"
+$rsynccmd -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" root@$exechost:${request_cwd}/event.log ${request_cwd}/ #1>> $vappio_log 2>> $vappio_log
 if [ $? == 0 ]
 then
     vlog "rsync success. return value: $?"

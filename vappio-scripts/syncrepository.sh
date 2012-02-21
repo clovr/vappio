@@ -13,6 +13,6 @@ vlog "###"
 
 remotehost=$1
 vlog "Syncing repository from $remotehost:$harvesting_dir/ to $harvesting_dir" 
-vlog "CMD: rsync -av -e \"$ssh_client -i $ssh_key $ssh_options\" root@$remotehost:$harvesting_dir/ $harvesting_dir"
-rsync -av -e "$ssh_client -i $ssh_key $ssh_options" root@$remotehost:$harvesting_dir/ $harvesting_dir 1>> $vappio_log 2>> $vappio_log
+vlog "CMD: $rsynccmd -av -e \"$ssh_client -i $ssh_key $ssh_options\" root@$remotehost:$harvesting_dir/ $harvesting_dir"
+$rsynccmd -av -e "$ssh_client -i $ssh_key $ssh_options" root@$remotehost:$harvesting_dir/ $harvesting_dir 1>> $vappio_log 2>> $vappio_log
 vlog "rsync return value: $?"

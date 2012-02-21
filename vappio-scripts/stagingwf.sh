@@ -23,7 +23,7 @@ source $vappio_scripts/vappio_config.sh
 ##
 
 vlog "###" 
-vlog "### $0 aka stagingwf.sh (`whoami`) on `hostname`" 
+vlog "### $0 aka stagingwf.sh (`whoami`) on `hostname` args: $1 $2 sge_job_id:$JOB_ID" 
 vlog "###" 
 
 remotehost="$1"
@@ -75,8 +75,22 @@ groupitertype=`cat $wfcomponentdir/$wfgroupdir/$group.iter | grep 'I_FILE_PATH'`
 if [ "$groupitertype" != "" ]
 then
     vlog "Found files in iterator $wfcomponentdir/$wfgroupdir/$group.iter. Parsing..."
+    #The data handlers may overwrite the $group.iter file
     #TODO transfer list of files as a single transfer instead of one at a time using --file-list
     for f in `cat $wfcomponentdir/$wfgroupdir/$group.iter | grep -v '^\\$' | perl -ne 'split(/\t/);print $_[2],"\n"'`; do
+    #inputelts=`cat $wfcomponentdir/$wfgroupdir/$group.iter`
+    #for elt in $inputelts
+	#Check if URL	
+	#getDataURL $elt $remotehost $wfcomponentdir/$wfgroupdir/$group.iter
+	#Write downnload command to $wfcomponentdir/$wfgroupdir/$group.download.sh
+	#Write downnload command to $wfcomponentdir/$wfgroupdir/$group.updateiter.sh
+        #Make sure to chmod +x
+	#output location should be $wfcomponentdir/$wfgroupdir/
+	#run create_file_iterator OR? rewrite new $group.iter file with filename
+
+	#Else if file
+	#getDataFile $elt $remotehost $wfcomponentdir/$wfgroupdir/$group.iter
+	#f=`echo $elt | grep -v '^\\$' | perl -ne 'split(/\t/);print $_[2],"\n"'`
 	vlog "Transfering $f to $remotehost:$f" 
 
 	if [ ! -r "$f" ]
@@ -90,8 +104,8 @@ then
 	# http://www.bash-hackers.org/wiki/doku.php/mirroring/bashfaq/050
 	# -R = recursive.  Needed for getting the entire directory tree up to the target file
 	# -O = omit directories when preserving times (prevents error when trying to change timestamp of / dirs)
-	vlog "CMD: rsync -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" $f root@$remotehost:/"
-	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $f root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
+	vlog "CMD: $rsynccmd -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" $f root@$remotehost:/"
+	$rsynccmd -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $f root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
 	if [ $? == 0 ]
 	then
 	    vlog "rsync success. return value: $?"
@@ -105,14 +119,14 @@ else
 	vlog "No files found for staging in iterator $wfcomponentdir/$wfgroupdir/$group.iter. Skipping group file staging"
 	#Just stage workflow xml
 	vlog "Transfering $wfxml to $remotehost:$wfxml" 
-	vlog "CMD: rsync -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" $wfxml root@$remotehost:/"
+	vlog "CMD: $rsynccmd -av -R -O -e \"$ssh_client -i $ssh_key $ssh_options\" $wfxml root@$remotehost:/"
 	if [ ! -r "$wfxml" ]
 	then
 	    vlog "ERROR: $wfxml does not exist"
 	    verror "STAGING WF FAILURE. WORKFLOW XML FILE DOES NOT EXIST"
 	    exit 1;
 	fi
-	rsync -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $wfxml root@$remotehost:/ 
+	$rsynccmd -av -R -O -e "$ssh_client -i $ssh_key $ssh_options" $wfxml root@$remotehost:/ 
 	if [ $? == 0 ]
 	then
 	    vlog "rsync success. return value: $?"
@@ -139,8 +153,8 @@ fi
 
 cd $wfcomponentdir
 vlog "Start transfer of workflow xml from $wfcomponentdir/$wfgroupdir to $remotehost:$wfcomponentdir" 
-vlog "CMD: rsync -av -R -e \"$ssh_client -i $ssh_key $ssh_options\" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir" 
-rsync -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir 
+vlog "CMD: $rsynccmd -av -R -e \"$ssh_client -i $ssh_key $ssh_options\" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir" 
+$rsynccmd -av -R -e "$ssh_client -i $ssh_key $ssh_options" *.final.config $wfgroupdir root@$remotehost:$wfcomponentdir 
 if [ $? == 0 ]
 then
     vlog "rsync success. return value: $?"

@@ -227,8 +227,7 @@ stagingwf_script=$vappio_scripts/stagingwf.sh
 #Size cutoffs for transfer with fast file transfer method, eg gridftp
 largefilesize=1MB # 1MB
 transfer_method=rsync #gridftp #rsync or gridftp
-alias rsync=/opt/vappio-scripts/rsync-wrapper
-
+rsynccmd=/opt/vappio-scripts/rsync-wrapper
 
 staging_dir=/mnt/staging
 #update grid job status after job starts running

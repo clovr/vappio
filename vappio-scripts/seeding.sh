@@ -15,7 +15,7 @@ source $vappio_scripts/vappio_config.sh
 ##
 
 vlog "###"
-vlog "### $0 aka seeding.sh (`whoami`)"
+vlog "### $0 aka seeding.sh (`whoami`) on `hostname` args: $1 $2 sge_job_id:$JOB_ID"
 vlog "###"
 
 remotehost=$1
@@ -40,12 +40,13 @@ while [ "$changes" != "" ];
       verror "SEEDING FAILURE"
       if [ $i -gt $maxretries ]
       then
-	  exit $ret
+	  #Requeue job
+	  exit 99
       fi
   else
       ret=0
       #Confirm that changes are non-null. List all changes between current host and remote host
-      changes=`rsync -av -n -e "$ssh_client -i $ssh_key $ssh_options" --delete --size-only $staging_dir/ root@$remotehost:$staging_dir | grep -v "sending incremental file list" | grep -v "total size is" | grep -v "bytes/sec" | perl -ne 's/\s+//g;print'`
+      changes=`$rsynccmd -av -n -e "$ssh_client -i $ssh_key $ssh_options" --delete --size-only $staging_dir/ root@$remotehost:$staging_dir | grep -v "sending incremental file list" | grep -v "total size is" | grep -v "bytes/sec" | perl -ne 's/\s+//g;print'`
       vlog "Staging changes $changes"
   fi
   i=`expr $i + 1`
