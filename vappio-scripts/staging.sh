@@ -27,7 +27,7 @@ source $vappio_scripts/vappio_config.sh
 ##
 
 vlog "###" 
-vlog "### $0 (`whoami`) on `hostname`" 
+vlog "### $0 (`whoami`) on `hostname` args: $1 sge_job_id:$JOB_ID" 
 vlog "###" 
 
 #The remotehost has been sucessfully staged 
@@ -62,7 +62,7 @@ then
 	    fi
 	else
 	    vlog "ping $remotehost failed and unable to parse ip address from $remotehost"
-	#fail
+	    #fail
 	    exit 100;
 	fi
     fi
@@ -74,7 +74,8 @@ if [ "$isreachable" = "" ]
 then
     vlog "ERROR: Host $remotehost is not reachable"
     verror "STAGING FAILURE";
-    exit 100
+    #retry
+    exit 99
 fi
 #If argument is specified
 #copy specified files
@@ -158,6 +159,8 @@ else
         #Do gridftp of large files
 	if [ -s "/tmp/$$.gridftp.staging.list" ]
 	    then
+	    #Consider using fdt instead
+	    #java -jar fdt.jar -d / -rCount 4 -wCount 4 -c 10.17.8.28 -f /tmp/$$.gridftp.staging.list
 	    export GLOBUS_LOCATION=/opt/globus-5.0.0
 	    source $GLOBUS_LOCATION/etc/globus-user-env.sh
 	    export LD_LIBRARY_PATH=/opt/globus-5.0.0/lib
