@@ -7,9 +7,10 @@ sudo add-apt-repository "deb-src http://archive.cloudera.com/debian lucid-cdh3 c
 curl -s http://archive.cloudera.com/debian/archive.key | sudo apt-key add -
 sudo add-apt-repository "deb http://archive.canonical.com/ lucid partner"
 sudo apt-get update
-echo sun-java6-jre shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
+#echo sun-java6-jre shared/accepted-sun-dlj-v1-1 select true | /usr/bin/debconf-set-selections
 
-sudo apt-get  --force-yes -y install sun-java6-jdk
+sudo apt-get --force-yes -y install openjdk-6-jre
+#sudo apt-get  --force-yes -y install sun-java6-jdk
 #sudo update-java-alternatives -s java-6-sun
 #apt-get -y install hadoop hadoop-datanode hadoop-jobtracker hadoop-namenode hadoop-native hadoop-tasktracker hadoop-sbin
 wget -P /tmp http://www.carfab.com/apachesoftware//hadoop/core/hadoop-0.20.2/hadoop-0.20.2.tar.gz
