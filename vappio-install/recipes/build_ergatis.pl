@@ -374,7 +374,7 @@ sub svn_checkout {
     my ($path, $repository) = @_;
     mkdir($path) or die "Unable to create svn co " . $path.": $!";
 #    my $svn_cmd = "svn co --trust-server-cert --non-interactive $repository $path";  # reqs SVN >= 1.6
-    my $svn_cmd = "svn export --trust-server-cert --force --non-interactive $repository $path";
+    my $svn_cmd = "echo p | svn export --force $repository $path";
     run_command( $svn_cmd );
 }
 
