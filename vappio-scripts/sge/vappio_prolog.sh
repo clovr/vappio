@@ -96,7 +96,7 @@ then
     fi
    
     job=`grep "Your job" stagingwf.qsub.$$.out | perl -ne '$_ =~ /Your job (\d+)/; print "$1"'`
-    vlog "### qsub loop monitor -> job $job"
+    vlog "Monitoring qsub for job $job"
 
 	#Keep checking over an interval, sleep on each iteration
 	maxwait=1200 #minutes in multiples of 6
@@ -120,7 +120,6 @@ then
 		#Confirm job completed
 		$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$SGE_O_HOST "qacct -j $job"
                 ret_qacct=$?
-                vlog "|====| DEBUG: $ret_qacct"
 		if [ $ret_qacct == 0 ]
 		then
 		    vlog "Staging job $job finished"
@@ -178,20 +177,24 @@ then
 	verror "PROLOG. Unable to save output directory in file $request_cwd/outdir"
 	exit 100
     fi
+
     ##
     #Perform additional data staging if specified in the component configuration file
     #STAGEDATA=file1 file2 dir1 dir2
     #Files and directories should be absolute paths
     #Copies from submission host (usually master node) to $myhost
+    job=""
+    ret_qstat=""
+    ret_qacct=""
+
     stagedata=`grep STAGEDATA $wfcomponentdir/*.final.config | perl -ne 'split(/=/);print $_[1]'`
     if [ "$stagedata" != "" ]; then
 	vlog "Submitting staging of STAGEDATA input from $SGE_O_HOST to $myhost:$stagedata via $stagingq,$stagingsubq"
 	#Note, using -sync y introduces scalability issues, consider removing
 	cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -l hostname=$SGE_O_HOST -q $stagingq,$stagingsubq $staging_script $myhost $stagedata"
 	vlog "CMD: $cmd"
-	qsub_out="`$cmd`" #1>> $vappio_log 2>> $vappio_loga
-        vlog "|===| DEBUG: $qsub_out"
-        job=`echo $qsub_out | grep "Your job" | perl -ne '$_ =~ /Your job (\d+)/; print "$1"'`
+	job="`$cmd | grep "Your job" | perl -ne '$_ =~ /Your job (\d+)/; print "$1"'`" #1>> $vappio_log 2>> $vappio_loga
+        vlog "Monitoring qsub for job $job"
         ret2=$?
 
 	if [ $ret2 -ne 0 ]
@@ -201,7 +204,6 @@ then
 	    exit 99
 	fi
 
-        vlog "### Additional stagedata -> job $job"
 	#Keep checking over an interval, sleep on each iteration
 	maxwait=1200 #minutes in multiples of 6
 	i=0
@@ -224,7 +226,6 @@ then
 		#Confirm job completed
 		$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$SGE_O_HOST "qacct -j $job"
                 ret_qacct=$?
-                vlog "|====| DEBUG: $ret_qacct"
 		if [ $ret_qacct == 0 ]
 		then
 		    vlog "Staging job $job finished"
