@@ -54,7 +54,7 @@ popd
 echo p | svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
 
 sudo apt-get -y install apt-cacher apache2 
-svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher
+echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher
 
 # Install Nimbus stuff
 wget -P /tmp http://www.nimbusproject.org/downloads/nimbus-cloud-client-016.tar.gz

@@ -88,12 +88,12 @@ echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/tr
 chmod a+r /var/www/ergatis/cgi/ergatis.ini
 echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/Config.pm /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
 chmod a+r /var/www/ergatis/cgi/Ergatis/IdGenerator/Config.pm
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/kill_wf.cgi /var/www/ergatis/cgi/kill_wf.cgi
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-install/recipes/kill_wf.cgi /var/www/ergatis/cgi/kill_wf.cgi
 chmod a+rx /var/www/ergatis/cgi/kill_wf.cgi
 
 #Pull old version of pipeline.pm 
 #Latest code changes the environment
-svn export -r r7110 https://ergatis.svn.sourceforge.net/svnroot/ergatis/trunk/lib/Ergatis/Pipeline.pm /opt/ergatis/lib/perl5/Ergatis/Pipeline.pm
+echo p | svn export --force -r r7110 https://ergatis.svn.sourceforge.net/svnroot/ergatis/trunk/lib/Ergatis/Pipeline.pm /opt/ergatis/lib/perl5/Ergatis/Pipeline.pm
 
 #DEPRECATED
 #Update configuration

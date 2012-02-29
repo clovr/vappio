@@ -20,7 +20,7 @@ apt-get -y install python-mysqldb
 
 # Download gbrowse2 to a temporary directory in prep for installation
 mkdir -p /tmp/gbrowse2_install
-wget --tries 20 --retry-connrefused -c -O /tmp/gbrowse2_install/GBrowse-2.03.tar.gz "https://downloads.sourceforge.net/project/gmod/Generic%20Genome%20Browser/GBrowse-2.03/GBrowse-2.03.tar.gz?r=&ts=1288987267&use_mirror=softlayer"
+wget --tries 20 --retry-connrefused -c -O /tmp/gbrowse2_install/GBrowse-2.03.tar.gz "http://downloads.sourceforge.net/project/gmod/Generic%20Genome%20Browser/GBrowse-2.03/GBrowse-2.03.tar.gz?r=&ts=1288987267&use_mirror=softlayer"
 tar xvf /tmp/gbrowse2_install/GBrowse-2.03.tar.gz -C /tmp/gbrowse2_install/
 
 # Start the install process

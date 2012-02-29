@@ -13,7 +13,7 @@ apt-get -y install postgresql-contrib-8.4
 
 # Because we want to have a password-less login we have to export a custom
 # postgres pg_hba.conf file and restart postgres
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/postgresql/8.4/main/pg_hba.conf /etc/postgresql/8.4/main/pg_hba.conf
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/postgresql/8.4/main/pg_hba.conf /etc/postgresql/8.4/main/pg_hba.conf
 /etc/init.d/postgresql-8.4 restart
 
 # Create our user and database
@@ -73,9 +73,9 @@ git clone git://git.mcs.anl.gov/shockandawe.git /opt/opt-packages/shockandawe-${
 psql -h localhost -U clovr awe < /opt/opt-packages/shockandawe-${DATE}/AWE/AWEBackend.sql
 
 # Some of the config files that shockandawe uses must be pulled down froms svn
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/opt/opt-packages/shockandawe/AWE/conf.json /opt/opt-packages/shockandawe-${DATE}/AWE/conf.json
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/opt/opt-packages/shockandawe/AWEClient/AWE.conf /opt/opt-packages/shockandawe-${DATE}/AWEClient/AWE.conf
-svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/opt/opt-packages/shockandawe/Shock/conf.json /opt/opt-packages/shockandawe-${DATE}/Shock/conf.json
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/opt/opt-packages/shockandawe/AWE/conf.json /opt/opt-packages/shockandawe-${DATE}/AWE/conf.json
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/opt/opt-packages/shockandawe/AWEClient/AWE.conf /opt/opt-packages/shockandawe-${DATE}/AWEClient/AWE.conf
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/opt/opt-packages/shockandawe/Shock/conf.json /opt/opt-packages/shockandawe-${DATE}/Shock/conf.json
 
 # Clean everything up once we are done
 rm -rf /tmp/nodejs
