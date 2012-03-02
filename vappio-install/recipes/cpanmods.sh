@@ -9,6 +9,9 @@ echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/tr
 #q
 #.
 
+# Avoid a circular dependency in the new version of DateTime-TimeZone
+cpan -fi D/DR/DROLSKY/DateTime-TimeZone-1.42.tar.gz
+
 apt-get -y install perl-doc
 apt-get -y install gcc
 apt-get -y install libgd2-xpm-dev
