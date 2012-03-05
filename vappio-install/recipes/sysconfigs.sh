@@ -44,6 +44,16 @@ chmod 777 /tmp
 
 echo "ahci" >> /etc/initramfs-tools/modules
 
+#Remove 70-persistent-net.rules on shutdown to prevent networking problems on subsequent boot
+echo "rm -f /etc/udev/rules.d/70-persistent-net.rules" > /etc/init.d/rmudevnet
+chmod +x /etc/init.d/rmudevnet
+update-rc.d -f rmudevnet start 01 0 .
+
+
+#
+#Update to eliminate warnings
+#/etc/udev/rules.d/99-vmware-scsi-udev.rules 
+rm -f /etc/udev/rules.d/99-vmware-scsi-udev.rules*
 
 
 
