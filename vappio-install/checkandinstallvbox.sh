@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ls /etc/vappio/vbox/S05-vboxadd
+ls -L /etc/vappio/vbox/S05-vboxadd
 
 if [ "$?" != 0 ]
 then
