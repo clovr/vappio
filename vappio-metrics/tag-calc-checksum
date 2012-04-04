@@ -26,7 +26,7 @@ do
     if [ "$key" = "tagname" ]
     then
 	tagname=$value
-	md5list=`vp-describe-dataset --tag-name=$tagname | grep FILE | cut -f 2 | tr '\n' ' ' | xargs -n1 md5sum`
+	md5list=`vp-describe-dataset --tag-name=$tagname | grep FILE | cut -f 2 | tr '\n' ' ' | xargs -n1 md5sum | cut -d ' ' -f 1`
 	if [ $? = 0 ] && [ "$md5list" != "" ]
 	then
 	    checksum=`echo "$md5list" | md5sum | cut -d ' ' -f 1`
