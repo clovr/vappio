@@ -29,6 +29,22 @@ print_eventinfo () {
         echo "I~~~`date`~~~This job has restarted for some reason.";
         echo "I~~~`date`~~~Sleeping for 60 seconds to make sure the original job is killed.";
         sleep 60;
+	#TODO, clear workflow on restart
+	#Check if this host has previously run the job
+	#If not, reset the workflow
+	#oldhost=`grep "S~~~" ${request_cwd}/event.log | tail -1 | perl -ne 'split(/~~~~/);print $_[5]`
+	#if [ "$oldhost" != "$hostname" ]
+	#then
+	#    wfxml=`echo -E "$command_args" | perl -ne '$_ =~ s/\s+/ /g;@x=split(/[\s=]/,$_);%args=@x;print $args{"-i"},"\n"'`
+	#    echo "I~~~`date`~~~Resetting workflow~~~~$wfxml";
+	#    if [ "$wfxml" != `basename $wfxml .gz` ]
+	#    then
+	#	gunzip $wfxml
+	#	wfxml=`basename $wfxml .gz`
+	#    fi
+	    #resetworkflow $wfxml
+	#    perl -pi -e 's/\<state\>[^\<]+\<\/state\>/<state>incomplete<\/state>' $wfxml
+	#fi
     fi
 
 
@@ -104,9 +120,8 @@ if [ -n "$request_cwd" ]; then
     fi
     #Optionally, copy event.log back to the master to indicate the job has started
     if [ -n "$vappio_data_placement" ]; then 
-
 	#To update status to running back at master
-	#Triggers a ssh connec        tion to the master
+	#Triggers a ssh connection to the master
 	#consider throttling using transferq
 	if [ "$updatestatus" = "y" ] && [ -f "${request_cwd}/event.log" ]
 	then
@@ -115,13 +130,18 @@ if [ -n "$request_cwd" ]; then
         		master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 		fi
 		vlog "CMD: rsync -rlDvh -e \"$ssh_client -i $ssh_key $ssh_options\" ${request_cwd}/event.log root@$master:${request_cwd}/"
+		
+		vlog "Submitting event.log refresh from prolog"
 		rsync -rlDvh -e "$ssh_client -i $ssh_key $ssh_options" ${request_cwd}/event.log root@$master:${request_cwd}/ #1>> $vappio_log 2>> $vappio_log
 	        ret2=$?
 	  	vlog "rsync return value: $?"
 		if [ $ret2 -ne 0 ]
 		then
-		 echo "I~~~vappio event.log capture failure. See $vappio_log" >> ${request_cwd}/event.log
-		 exit $ret2
+		    echo "I~~~vappio event.log capture failure. See $vappio_log" >> ${request_cwd}/event.log
+		    vlog "Failure to copy ${request_cwd}/event.log. rsync returned $ret2. Ignoring error and continuing"
+		    #alternatively, error with 100 or reschedule job with exit 99
+		else
+		    vlog "event.log refresh to master successful for ${request_cwd}/event.log. return value: $?"
 		fi
 
 	fi
