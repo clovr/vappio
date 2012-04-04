@@ -48,6 +48,9 @@ do_stop() {
 	umount $postgres_data_dir_mp
     fi
     umount $shared_mp
+    #Clear out udev
+    rm -f /etc/udev/rules.d/70-persistent-net.rules
+    rm -f /etc/udev/rules.d/70-persistent-cd.rules
 }
 
 case "$1" in
