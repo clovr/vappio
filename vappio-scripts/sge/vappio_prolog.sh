@@ -18,6 +18,7 @@
 ##Import vappio config
 vappio_scripts=$vappio_root
 source $vappio_scripts/vappio_config.sh
+retries=5
 ##
 ##
 
@@ -90,14 +91,31 @@ then
 
     if [ $ret1 -ne 0 ] || [ "$eout" != "" ]
     then
-	verror "PROLOG. Error during qsub return code: $ret1 [$eout]"
-	#Requeue, entire job
-	exit 99
+	verror "PROLOG. Error during qsub return code: $ret1 [$eout]. Trying again..."
+	#First, try again
+	s=0
+	while [ $ret1 -ne 0 ] && [ "$s" -le "$retries" ]
+	do
+	    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -q $wfq $stagingwf_script $myhost $wfxml"
+	    vlog "CMD retry $s: $cmd" 
+	    $cmd 1> stagingwf.qsub.$$.out 2> stagingwf.qsub.$$.stderr.$s
+	    ret1=$?
+	    #Sleep between 3-12s
+	    r=`expr $RANDOM % 10`
+	    r2=`expr 3 + $r`
+	    sleep $r2
+	    s=`expr $s + 1`
+	done
+	if [ $ret1 -ne 0 ]
+	then
+	    verror "PROLOG. Error during qsub return code: $ret1 [$eout]. Requeuing job..."
+	    #Requeue, entire job
+	    exit 99
+	fi
     fi
    
     job=`grep "Your job" stagingwf.qsub.$$.out | perl -ne '$_ =~ /Your job (\d+)/; print "$1"'`
     vlog "Monitoring qsub for job $job"
-
 	#Keep checking over an interval, sleep on each iteration
 	maxwait=1200 #minutes in multiples of 6
 	i=0
