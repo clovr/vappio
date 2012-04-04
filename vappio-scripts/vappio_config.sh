@@ -175,7 +175,7 @@ idleshutdown=10
 #Additional delay in minutes for master to check for recent tasks
 masteridle=120
 ##Time in minutes to delay before shutdown
-delayshutdown=1
+delayshutdown=20
 ##Time in seconds to delay master shutdown when checking $vappio_runtime/delayautoshutdown
 delayautoshutdowncutoff=7200
 
