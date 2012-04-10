@@ -50,7 +50,7 @@ else
 	then
 	    #TODO, if workflow is complete then must mark incomplete before resume
 	    vlog "No output directory on remote host $exechost: $direxists != $dir " 
-	    exit 0
+	    exit 1
 	else
 	    #job error
 	    vlog "Aborting harvesting job"

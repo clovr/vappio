@@ -130,6 +130,13 @@ fi
 #If this is a job submitted by Workflow, it must have an event.log. Otherwise, do nothing
 if [ -f "${request_cwd}/event.log" ]
 then
+    #Write event.log F line to avoid hung in running state
+    fline=`grep "F~~~" ${request_cwd}/event.log`; 
+    if [ "$fline" = "" ];
+    then 
+	vlog "Missing F line, appending to ${request_cwd}/event.log prior to copy"
+	echo "F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1" >> ${request_cwd}/event.log
+    fi
     #Harvest wf xml
     vlog "Submitting harvesting of workflow xml on $exechost:$wfdir to $wfq" 
     cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $harvestingwf_script $exechost \"$wfdir\" ${request_cwd} > /mnt/scratch/harvestqsub.$$.stdout 2> /mnt/scratch/harvestqsub.$$.stderr"
@@ -142,11 +149,12 @@ then
 	verror "EPILOG Error during harvesting event.log qsub return code: $ret2"
 	vlog `cat /mnt/scratch/harvestqsub.$$.stdout /mnt/scratch/harvestqsub.$$.stderr`
 	master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
-	#TODO check if F line before copy
 	#Write error line on master to force failure
 	vlog "Attempting to write extra F line to ${request_cwd}/event.log on master"
-	$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$master "fline=`grep "F~~~" ${request_cwd}/event.log`; if [ \"$fline\" = \"\" ]; then echo \"F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1\" >> ${request_cwd}/event.log; fi"	     #Logging and continuing to avoid "hung jobs" in Eqw state
-	fi
+	$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$master "fline=`grep "F~~~" ${request_cwd}/event.log`; if [ \"$fline\" = \"\" ]; then echo \"F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1\" >> ${request_cwd}/event.log; fi"	     
+        #Logging and continuing to avoid "hung jobs" in Eqw state
     fi
+
+fi
 
 exit 0
