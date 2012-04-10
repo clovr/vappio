@@ -186,40 +186,6 @@ then
 	    exit 99
 	fi
 
-	#Keep checking over an interval, sleep on each iteration
-	maxwait=1200 #minutes in multiples of 6
-	i=0
-	while [ "$i" -le "$maxwait" ]
-	do
-	    vlog "Waiting for jobs to finish on host $SGE_O_HOST, iteration $i"
-	    isrunning=0
-	    jobstatus=`$SGE_ROOT/bin/$ARCH/qstat -j $job`
-            ret_qstat=$?
-	    if [ $ret_qstat == 0 ]
-		then
-		    vlog "Staging job $job submitted  is still running"
-		    isrunning=1
-		fi
-
-	    if [ $isrunning == 1 ]
-	    then
-		vlog "Staging job $job still running"
-	    else
-		#Confirm job completed
-		$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$SGE_O_HOST "qacct -j $job"
-                ret_qacct=$?
-		if [ $ret_qacct == 0 ]
-		then
-		    vlog "Staging job $job finished"
-		    break
-		else
-		    vlog "Staging job $job not in qstat but not confirmed finished by qacct, waiting."
-		fi
-	    fi
-	    i=`expr $i + 1`
-	    sleep 10
-	done 
-
 	vlog "Finished staging of STAGEDATA on $f@$myhost"
     fi
 
