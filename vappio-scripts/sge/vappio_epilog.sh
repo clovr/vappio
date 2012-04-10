@@ -90,7 +90,13 @@ then
     #$waitonharvest determines whether workflow will wait for harvesting 
     #to complete before marking the command complete
     vlog "Submitting harvesting of output $exechost:$outdir to $harvestingq"
-    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync $waitonharvest -q $harvestingq $harvesting_script $exechost $outdir"
+
+    if [ "$waitonharvest" = "y"]; then
+        cmd="$SGE_ROOT/bin/$ARCH/qrsh -now no -noshell -o /mnt/scratch -e /mnt/scratch -b y -q $harvestingq /bin/bash $harvesting_script $exechost $outdir"
+    else 
+        cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -q $harvestingq $harvesting_script $exechost $outdir"
+    fi  
+    
     vlog "CMD: $cmd"
     $cmd 
     ret1=$?
@@ -109,7 +115,13 @@ then
 	if [ "$iscomplete" = "" ]
 	then
 	    vlog "Submitting harvesting of output $exechost:$outdir to $harvestingq"
-	    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync $waitonharvest -q $harvestingq $harvesting_script $exechost $tmpdir"
+
+        if [ "$waitonharvest" = "y"]; then
+	        cmd="$SGE_ROOT/bin/$ARCH/qrsh -now no -noshell -o /mnt/scratch -e /mnt/scratch -b y -q $harvestingq /bin/bash $harvesting_script $exechost $tmpdir"
+        else            
+	        cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -q $harvestingq $harvesting_script $exechost $tmpdir"
+        fi
+
 	    vlog "CMD: $cmd"
 	    $cmd 
 	    ret1=$?
@@ -139,7 +151,7 @@ then
     fi
     #Harvest wf xml
     vlog "Submitting harvesting of workflow xml on $exechost:$wfdir to $wfq" 
-    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -sync y -q $wfq $harvestingwf_script $exechost \"$wfdir\" ${request_cwd} > /mnt/scratch/harvestqsub.$$.stdout 2> /mnt/scratch/harvestqsub.$$.stderr"
+    cmd="$SGE_ROOT/bin/$ARCH/qrsh -now no -noshell -o /mnt/scratch -e /mnt/scratch -b y -q $wfq /bin/bash $harvestingwf_script $exechost \"$wfdir\" ${request_cwd} > /mnt/scratch/harvestqsub.$$.stdout 2> /mnt/scratch/harvestqsub.$$.stderr"
     vlog "CMD: $cmd" 
     $cmd 
     ret2=$?

@@ -79,7 +79,7 @@ then
     vlog "Submitting staging of group input and xml for $wfxml@$myhost to wf.q"
     #Get iterator input, workflow xml and final.config from the master to the exec host
     #Note, using -sync y introduces scalability issues, consider removing
-    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -q $wfq $stagingwf_script $myhost $wfxml"
+    cmd="$SGE_ROOT/bin/$ARCH/qrsh -now no -noshell -o /mnt/scratch -e /mnt/scratch -b y -q $wfq /bin/bash $stagingwf_script $myhost $wfxml"
     vlog "CMD: $cmd"
     $cmd 1> stagingwf.qsub.$$.out 2> stagingwf.qsub.$$.stderr
     ret1=$?
@@ -96,7 +96,7 @@ then
 	s=0
 	while [ $ret1 -ne 0 ] && [ "$s" -le "$retries" ]
 	do
-	    cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -q $wfq $stagingwf_script $myhost $wfxml"
+        cmd="$SGE_ROOT/bin/$ARCH/qrsh -now no -noshell -o /mnt/scratch -e /mnt/scratch -b y -q $wfq /bin/bash $stagingwf_script $myhost $wfxml"
 	    vlog "CMD retry $s: $cmd" 
 	    $cmd 1> stagingwf.qsub.$$.out 2> stagingwf.qsub.$$.stderr.$s
 	    ret1=$?
@@ -114,42 +114,6 @@ then
 	fi
     fi
    
-    job=`grep "Your job" stagingwf.qsub.$$.out | perl -ne '$_ =~ /Your job (\d+)/; print "$1"'`
-    vlog "Monitoring qsub for job $job"
-	#Keep checking over an interval, sleep on each iteration
-	maxwait=1200 #minutes in multiples of 6
-	i=0
-	while [ "$i" -le "$maxwait" ]
-	do
-	    vlog "Waiting for jobs to finish on host $SGE_O_HOST, iteration $i"
-	    isrunning=0
-	    jobstatus=`$SGE_ROOT/bin/$ARCH/qstat -j $job`
-            ret_qstat=$?
-	    if [ $ret_qstat == 0 ]
-		then
-		    vlog "Staging job $job submitted  is still running"
-		    isrunning=1
-		fi
-
-	    if [ $isrunning == 1 ]
-	    then
-		vlog "Staging job $job still running"
-	    else
-		#Confirm job completed
-		$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$SGE_O_HOST "qacct -j $job"
-                ret_qacct=$?
-		if [ $ret_qacct == 0 ]
-		then
-		    vlog "Staging job $job finished"
-		    break
-		else
-		    vlog "Staging job $job not in qstat but not confirmed finished by qacct, waiting."
-		fi
-	    fi
-	    i=`expr $i + 1`
-	    sleep 10
-	done 
-
     #TODO, implement prolog commands support
     #Check if commands need to be run, eg. remote download of urls
     #run-parts --regex '*.sh$' -v $wfcomponentdir/$wfgroupdir/
@@ -209,7 +173,7 @@ then
     if [ "$stagedata" != "" ]; then
 	vlog "Submitting staging of STAGEDATA input from $SGE_O_HOST to $myhost:$stagedata via $stagingq,$stagingsubq"
 	#Note, using -sync y introduces scalability issues, consider removing
-	cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/sh -b n -l hostname=$SGE_O_HOST -q $stagingq,$stagingsubq $staging_script $myhost $stagedata"
+	cmd="$SGE_ROOT/bin/$ARCH/qrsh -now no -noshell -o /mnt/scratch -e /mnt/scratch -b y -l hostname=$SGE_O_HOST -q $stagingq,$stagingsubq /bin/bash $staging_script $myhost $stagedata"
 	vlog "CMD: $cmd"
 	job="`$cmd | grep "Your job" | perl -ne '$_ =~ /Your job (\d+)/; print "$1"'`" #1>> $vappio_log 2>> $vappio_loga
         vlog "Monitoring qsub for job $job"
