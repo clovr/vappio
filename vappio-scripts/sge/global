@@ -33,13 +33,13 @@ finished_jobs                100
 enable_addgrp_kill           true
 gid_range                    20000-21000
 qlogin_command               builtin
-qlogin_daemon                /usr/bin/sshd -i
-rlogin_daemon                /usr/bin/sshd -i
-qrsh_command                 /usr/bin/ssh -i /mnt/keys/devel1.pem -q -oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null
+qlogin_daemon                /usr/sbin/sshd -i
+rlogin_daemon                /usr/sbin/sshd -i
+qrsh_command                 /usr/bin/ssh
 rsh_command                  /usr/bin/ssh -i /mnt/keys/devel1.pem -q -oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null
 rlogin_command               /usr/bin/ssh -i /mnt/keys/devel1.pem -q -oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null
-rsh_daemon                   /usr/bin/sshd -i
-qrsh_daemon                  /usr/bin/sshd 
+rsh_daemon                   /usr/sbin/sshd -i
+qrsh_daemon                  /usr/sbin/sshd 
 Max_aj_instances             2000
 max_aj_tasks                 75000
 max_u_jobs                   0
