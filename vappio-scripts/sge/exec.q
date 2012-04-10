@@ -19,8 +19,8 @@ prolog                /opt/vappio-scripts/sge/prolog $host $job_owner $job_id $j
 epilog                /opt/vappio-scripts/sge/epilog $host $job_owner $job_id $job_name $queue 
 shell_start_mode      unix_behavior
 starter_method        NONE
-suspend_method        /opt/vappio-scripts/sge/suspend $host $job_owner $job_id $job_name $queue 
-resume_method         /opt/vappio-scripts/sge/resume $host $job_owner $job_id $job_name $queue 
+suspend_method        NONE
+resume_method         NONE
 terminate_method      NONE
 notify                00:00:60
 owner_list            NONE

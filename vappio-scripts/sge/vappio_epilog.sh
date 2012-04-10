@@ -113,7 +113,7 @@ then
 	    vlog "CMD: $cmd"
 	    $cmd 
 	    ret1=$?
-	    vlog "rsync return value: $ret"
+	    vlog "rsync return value: $ret1"
 	    if [ $ret1 -ne 0 ]
 	    then
 		verror "EPILOG Error during harvesting data qsub return code: $ret1"
@@ -130,7 +130,7 @@ fi
 #If this is a job submitted by Workflow, it must have an event.log. Otherwise, do nothing
 if [ -f "${request_cwd}/event.log" ]
 then
-    #Write event.log F line to avoid hung in running state
+    #Write event.log F line to avoid hung in running state on workflow crash
     fline=`grep "F~~~" ${request_cwd}/event.log`; 
     if [ "$fline" = "" ];
     then 
@@ -143,7 +143,7 @@ then
     vlog "CMD: $cmd" 
     $cmd 
     ret2=$?
-    vlog "rsync return value: $ret2"
+    vlog "Harvesting of workflow xml on $exechost:$wfdir to $wfq return value: $ret2"
     if [ $ret2 -ne 0 ]
     then
 	verror "EPILOG Error during harvesting event.log qsub return code: $ret2"

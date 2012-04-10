@@ -30,14 +30,17 @@ execd_params                 none
 reporting_params             accounting=true reporting=false \
                              flush_time=00:00:15 joblog=false sharelog=00:00:00
 finished_jobs                100
-gid_range                    20000-20100
+enable_addgrp_kill           true
+gid_range                    20000-21000
 qlogin_command               builtin
-qlogin_daemon                builtin
-rlogin_command               builtin
-rlogin_daemon                builtin
-rsh_command                  builtin
-rsh_daemon                   builtin
-max_aj_instances             2000
+qlogin_daemon                /usr/bin/sshd -i
+rlogin_daemon                /usr/bin/sshd -i
+qrsh_command                 /usr/bin/ssh -i /mnt/keys/devel1.pem -q -oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null
+rsh_command                  /usr/bin/ssh -i /mnt/keys/devel1.pem -q -oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null
+rlogin_command               /usr/bin/ssh -i /mnt/keys/devel1.pem -q -oNoneSwitch=yes -oNoneEnabled=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null
+rsh_daemon                   /usr/bin/sshd -i
+qrsh_daemon                  /usr/bin/sshd 
+Max_aj_instances             2000
 max_aj_tasks                 75000
 max_u_jobs                   0
 max_jobs                     0
