@@ -24,6 +24,9 @@ chown www-data:www-data $ssh_key
 
 # append the CLUSTER_PUBLIC_KEY to the authorized_keys file
 echo -e '\n<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>' >> /root/.ssh/authorized_keys
+
+mkdir -p "/home/www-data/.ssh"
+chown www-data:www-data /home/www-data/.ssh
 echo -e '\n<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>' >> /home/www-data/.ssh/authorized_keys
 chmod 600  /home/www-data/.ssh/authorized_keys
 chown www-data:www-data /home/www-data/.ssh/authorized_keys
