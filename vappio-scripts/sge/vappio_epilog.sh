@@ -91,7 +91,7 @@ then
     #to complete before marking the command complete
     vlog "Submitting harvesting of output $exechost:$outdir to $harvestingq"
 
-    if [ "$waitonharvest" = "y"]; then
+    if [ "$waitonharvest" == "y" ]; then
         cmd="$SGE_ROOT/bin/$ARCH/qrsh -now no -noshell -o /mnt/scratch -e /mnt/scratch -b y -q $harvestingq /bin/bash $harvesting_script $exechost $outdir"
     else 
         cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -q $harvestingq $harvesting_script $exechost $outdir"
@@ -116,7 +116,7 @@ then
 	then
 	    vlog "Submitting harvesting of output $exechost:$outdir to $harvestingq"
 
-        if [ "$waitonharvest" = "y"]; then
+        if [ "$waitonharvest" == "y" ]; then
 	        cmd="$SGE_ROOT/bin/$ARCH/qrsh -now no -noshell -o /mnt/scratch -e /mnt/scratch -b y -q $harvestingq /bin/bash $harvesting_script $exechost $tmpdir"
         else            
 	        cmd="$SGE_ROOT/bin/$ARCH/qsub -o /mnt/scratch -e /mnt/scratch -S /bin/bash -b n -q $harvestingq $harvesting_script $exechost $tmpdir"
