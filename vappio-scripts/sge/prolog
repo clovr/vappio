@@ -26,8 +26,8 @@ print_eventinfo () {
     # and the rescheduled job
     #
     if [ $RESTARTED -eq 1 ]; then
-        echo "I~~~`date`~~~This job has restarted for some reason.";
-        echo "I~~~`date`~~~Sleeping for 60 seconds to make sure the original job is killed.";
+        echo "I~~~`date`~~~This job has restarted for some reason.~~~x~~~x~~~x";
+        echo "I~~~`date`~~~Sleeping for 60 seconds to make sure the original job is killed.~~~x~~~x~~~x";
         sleep 60;
 	#TODO, clear workflow on restart
 	#Check if this host has previously run the job
@@ -36,7 +36,7 @@ print_eventinfo () {
 	#if [ "$oldhost" != "$hostname" ]
 	#then
 	#    wfxml=`echo -E "$command_args" | perl -ne '$_ =~ s/\s+/ /g;@x=split(/[\s=]/,$_);%args=@x;print $args{"-i"},"\n"'`
-	#    echo "I~~~`date`~~~Resetting workflow~~~~$wfxml";
+	#    echo "I~~~`date`~~~Resetting workflow~~~~$wfxml~~~x~~~x~~~x";
 	#    if [ "$wfxml" != `basename $wfxml .gz` ]
 	#    then
 	#	gunzip $wfxml
@@ -51,17 +51,17 @@ print_eventinfo () {
     # If the environment variable SGE_TASK_ID is defined then it
     # is an array job, so print the task id 
     if [ "$ARRAY" = "0" ]; then
-        header="${htc_id}~~~${sge_id}~~~${start_date}"
+        header="${htc_id}~~~${sge_id}~~~${start_date}~~~x~~~x~~~x"
     else
-        header="${htc_id}~~~${sge_id}.${SGE_TASK_ID}~~~${start_date}"
+        header="${htc_id}~~~${sge_id}.${SGE_TASK_ID}~~~${start_date}~~~x~~~x~~~x"
     fi
 
     message="job started on $queue for $job_owner";
 
-    echo "I~~~prolog starting";
-    echo "I~~~htc id   sge id[.task id]   date   message   hostname"
-    echo "S~~~${header}~~~$message~~~$hostname"
-    echo "I~~~prolog ending";
+    echo "I~~~prolog starting~~~x~~~x~~~x~~~x";
+    echo "I~~~htc id~~~sge id[.task id]~~~date~~~message~~~hostname"
+    echo "S~~~${header}~~~$message~~~$hostname~~~x~~~x"
+    echo "I~~~prolog ending~~~x~~~x~~~x~~~x";
 }
 
 
@@ -95,7 +95,7 @@ if [ "$vappio_data_placement" = 1 ]; then
 	vlog "vappio_prolog return code: $ret1"
 	if [ $ret1 -ne 0 ] 
 	then
-          echo echo "I~~~vappio staging failure. See $vappio_log";
+          echo echo "I~~~vappio staging failure. See $vappio_log~~~x~~~x~~~x~~~x";
 	  exit $ret1
 	fi 
 fi
@@ -137,7 +137,7 @@ if [ -n "$request_cwd" ]; then
 	  	vlog "rsync return value: $?"
 		if [ $ret2 -ne 0 ]
 		then
-		    echo "I~~~vappio event.log capture failure. See $vappio_log" >> ${request_cwd}/event.log
+		    echo "I~~~vappio event.log capture failure. See $vappio_log~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
 		    vlog "Failure to copy ${request_cwd}/event.log. rsync returned $ret2. Ignoring error and continuing"
 		    #alternatively, error with 100 or reschedule job with exit 99
 		else
