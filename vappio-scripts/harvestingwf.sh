@@ -60,15 +60,15 @@ else
     fileexists=`$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$exechost ls ${request_cwd}/event.log`
     if [ -d "${request_cwd}" ] && [ "$isreachable" != "" ] && [ "$fileexists" = "${request_cwd}/event.log" ]
     then
-	echo "I~~~Failed to retrieve event.log from host $exechost" >> ${request_cwd}/event.log
-	echo "I~~~host $exechost isreachable=$isreachable" >> ${request_cwd}/event.log
-	echo "I~~~Rescheduling harvesting" >> ${request_cwd}/event.log
+	echo "I~~~Failed to retrieve event.log from host $exechost~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
+	echo "I~~~host $exechost isreachable=$isreachable~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
+	echo "I~~~Rescheduling harvesting~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
 	exit 99;
     else
 	#Print error to event.log
-	echo "I~~~Failed to retrieve event.log from host $exechost" >> ${request_cwd}/event.log
-	echo "I~~~host $exechost isreachable=$isreachable" >> ${request_cwd}/event.log
-	echo "I~~~host $exechost isreachable=$isreachable" >> ${request_cwd}/event.log
+	echo "I~~~Failed to retrieve event.log from host $exechost~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
+	echo "I~~~host $exechost isreachable=$isreachable~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
+	echo "I~~~host $exechost isreachable=$isreachable~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
 	echo "F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1" >> ${request_cwd}/event.log
 	exit 1;
     fi
