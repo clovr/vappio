@@ -20,6 +20,8 @@ from vappio_tx.clusters import persist
 
 from vappio_tx.tasks import tasks as tasks_tx
 
+from vappio_tx.www_client import clusters as clusters_client_www
+
 RUN_INSTANCE_TRIES = 4
 
 WAIT_FOR_STATE_TRIES = 50
