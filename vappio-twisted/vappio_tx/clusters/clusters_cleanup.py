@@ -48,11 +48,8 @@ def _updateClusterInfoThrow(state):
 
     for c, v in state.unresponsiveClusters.iteritems():
         if v > CLUSTER_TIMEOUT:
-            log.msg('CLEANUP: Postponing termination of cluster - ' + c)
-
-            ## Temporarily disabling termination of unresponsive clusters
-            #log.msg('CLEANUP: Terminating cluster - ' + c)
-            #clusters_client.terminateCluster(c, CLUSTER_USERNAME)
+            log.msg('CLEANUP: Terminating cluster - ' + c)
+            clusters_client.terminateCluster(c, CLUSTER_USERNAME)
     
 
 @defer.inlineCallbacks

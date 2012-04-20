@@ -26,6 +26,8 @@ WAIT_FOR_STATE_TRIES = 50
 
 WAIT_FOR_SSH_TRIES = 10
 
+WAIT_FOR_SERVICE_TRIES = 3
+
 WAIT_FOR_BOOT_TRIES = 120
 
 class Error(Exception):
@@ -55,7 +57,22 @@ def startMaster(state, credClient, taskName, cl):
                 raise MasterError('Could not start master')
             return saveCluster(cl, pState.state).addCallback(_raise)
 
-    
+    @defer.inlineCallbacks
+    def _waitForInstances(pState, tries, f, errMsg):
+        instancesNew = yield retryAndTerminateDeferred(pState.credClient,
+                                                       tries,
+                                                       pState.instances,
+                                                       f)
+
+        yield tasks_tx.updateTask(pState.taskName,
+                                  lambda t : t.progress())
+        
+        if len(instancesNew) != len(pState.instances):
+            yield tasks_tx.updateTask(pState.taskName, lambda t : t.addMessage(task.MSG_ERROR, errMsg))
+
+        #pState = yield updateF(pState, instancesNew)
+        defer.returnValue(pState)
+
     @defer.inlineCallbacks
     def _loadConfig(pState):
         credConfig = yield credClient.credentialConfig()
@@ -65,6 +82,13 @@ def startMaster(state, credClient, taskName, cl):
         pState = pState.update(cluster=cluster)
         defer.returnValue(pState)    
 
+    def _isClusterInfoResponding(instance):
+        clusterInfoDeferred = clusters_client_www.listClusters(instance['public_dns'],
+                                                              'local',
+                                                              'guest')
+
+        clusterInfoDeferred.addCallback(lambda _: True).addErrback(lambda _: False)
+        return clusterInfoDeferred
 
     @defer.inlineCallbacks
     def _startMaster(pState):
@@ -117,6 +141,11 @@ def startMaster(state, credClient, taskName, cl):
         pState = yield _loadConfig(pState)
         pState = yield _startMaster(pState)
         pState = yield waitForInstances(pState, _updatePState)
+
+        pState = yield _waitForInstances(pState, 
+                                         WAIT_FOR_SERVICE_TRIES, 
+                                         _isClusterInfoResponding, 
+                                         "Cluster Info WS not responding.")
 
         pState = pState.update(cluster=pState.cluster.setState(pState.cluster.RUNNING))
         yield saveCluster(pState.cluster, pState.state)
