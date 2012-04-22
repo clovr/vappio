@@ -3,8 +3,10 @@
 import traceback
 from StringIO import StringIO
 
+class Error(Exception):
+    pass
 
-class TryError(Exception):
+class TryError(Error):
     """
     Used when you want to try something but it fails but you want to return
     a partial result.  
@@ -19,7 +21,17 @@ class TryError(Exception):
     def __str__(self):
         return str(self.msg) + '\n' + str(self.result)
 
+class RemoteError(Error):
+    def __init__(self, name, msg, stacktrace):
+        Error.__init__(self):
+        self.name = name
+        self.msg = msg
+        self.stacktrace = stacktrace
 
+    def __str__(self):
+        return 'Name: %s\nMsg: %s\nStacktrace: %s' % (self.name,
+                                                      self.msg,
+                                                      self.stacktrace)
 
 def getStacktrace():
     stream = StringIO()
