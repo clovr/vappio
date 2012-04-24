@@ -23,7 +23,7 @@ class TryError(Error):
 
 class RemoteError(Error):
     def __init__(self, name, msg, stacktrace):
-        Error.__init__(self):
+        Error.__init__(self)
         self.name = name
         self.msg = msg
         self.stacktrace = stacktrace
