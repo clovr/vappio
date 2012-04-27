@@ -269,8 +269,29 @@ def _remoteLocalTransfer(batchState):
     yield _blockOnTask(tag['task_name'])
 
     _log(batchState, 'Making sure cluster is up - ' + batchState['cluster_task'])
-    
-    yield _blockOnTask(batchState['cluster_task'])
+
+    try:
+        yield _blockOnTask(batchState['cluster_task'])
+    except TaskError:
+        _log(batchState, 'Cluster %s did not come up, trying again' % batchState['cluster_task'])
+        ## The task failed, let's try this cluster again
+        batchState['cluster_task'] = yield clusters_client.startCluster(
+            'localhost',
+            batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+            'guest',
+            int(batchState['pipeline_config']['cluster.EXEC_NODES']),
+            0,
+            batchState['pipeline_config']['cluster.CLUSTER_CREDENTIAL'],
+            {'cluster.MASTER_INSTANCE_TYPE':
+                 batchState['pipeline_config']['cluster.MASTER_INSTANCE_TYPE'],
+             'cluster.MASTER_BID_PRICE':
+                 batchState['pipeline_config']['cluster.MASTER_BID_PRICE'],
+             'cluster.EXEC_INSTANCE_TYPE':
+                 batchState['pipeline_config']['cluster.EXEC_INSTANCE_TYPE'],
+             'cluster.EXEC_BID_PRICE':
+                 batchState['pipeline_config']['cluster.EXEC_BID_PRICE']})
+        yield _blockOnTask(batchState['cluster_task'])
+
 
     _log(batchState, 'Uploading query data')
 
@@ -422,6 +443,17 @@ def _setQueue(batchState):
                                                     cluster['master']['public_dns']],
                                                    log=True),
                                onFailure=defer_utils.sleep(2))
+
+    conf = config.configFromStream(open('/tmp/machine.conf'))
+    
+    # Remove autoshutdown, we want no part of that
+    yield ssh.runProcessSSH(cluster['master']['public_dns'],
+                            'rm -v /var/vappio/runtime/noautoshutdown',
+                            stdoutf=None,
+                            stderrf=None,
+                            sshUser=conf('ssh.user'),
+                            sshFlags=conf('ssh.options'),
+                            log=True)
         
 @defer.inlineCallbacks
 def _run(state, batchState):
@@ -465,6 +497,8 @@ def _run(state, batchState):
 
     batchState['state'] = RUNNING_STATE
 
+    _log(batchState, 'Pipeline started in %s state' % batchState['pipeline_state'])
+
     yield _updateTask(batchState,
                       lambda t : t.setState(tasks.task.TASK_RUNNING))
     
@@ -490,16 +524,21 @@ def _run(state, batchState):
         except:
             pass
 
-        batchState['cluster_task'] = yield clusters_client.startCluster('localhost',
-                                                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                                        'guest',
-                                                                        int(batchState['pipeline_config']['cluster.EXEC_NODES']),
-                                                                        0,
-                                                                        batchState['pipeline_config']['cluster.CLUSTER_CREDENTIAL'],
-                                                                        {'cluster.MASTER_INSTANCE_TYPE': batchState['pipeline_config']['cluster.MASTER_INSTANCE_TYPE'],
-                                                                         'cluster.MASTER_BID_PRICE': batchState['pipeline_config']['cluster.MASTER_BID_PRICE'],
-                                                                         'cluster.EXEC_INSTANCE_TYPE': batchState['pipeline_config']['cluster.EXEC_INSTANCE_TYPE'],
-                                                                         'cluster.EXEC_BID_PRICE': batchState['pipeline_config']['cluster.EXEC_BID_PRICE']})
+        batchState['cluster_task'] = yield clusters_client.startCluster(
+            'localhost',
+            batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+            'guest',
+            int(batchState['pipeline_config']['cluster.EXEC_NODES']),
+            0,
+            batchState['pipeline_config']['cluster.CLUSTER_CREDENTIAL'],
+            {'cluster.MASTER_INSTANCE_TYPE':
+                 batchState['pipeline_config']['cluster.MASTER_INSTANCE_TYPE'],
+             'cluster.MASTER_BID_PRICE':
+                 batchState['pipeline_config']['cluster.MASTER_BID_PRICE'],
+             'cluster.EXEC_INSTANCE_TYPE':
+                 batchState['pipeline_config']['cluster.EXEC_INSTANCE_TYPE'],
+             'cluster.EXEC_BID_PRICE':
+                 batchState['pipeline_config']['cluster.EXEC_BID_PRICE']})
 
         yield _updateTask(batchState,
                           lambda t : t.update(completedTasks=0,
@@ -518,6 +557,16 @@ def _run(state, batchState):
 
     if batchState['pipeline_state'] == REMOTE_LOCAL_TRANSFER_STATE:
         _log(batchState, 'Pipeline is in REMOTE_LOCAL_TRANSFER')
+
+        _log(batchState, 'Making sure cluster is exists in some form')
+        cluster = yield clusters_client.loadCluster('localhost',
+                                                    batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                                    'guest')
+
+        if cluster['state'] == 'unresponsive':
+            _log(batchState, 'Pipeline is unresponsive, erroring and restarting')
+            raise Exception('Cluster is not responsive')
+        
         yield state.prerunQueue.addWithDeferred(_remoteLocalTransfer,
                                                 batchState)
 
