@@ -29,8 +29,9 @@ for deadhostname in $deadhosts1
 do
     if [ "$deadhostname" == "$myhostname" ]
     then
-	vlog "ERROR: reaper detected self ($deadhostname) as unresponsive, ignoring"
+	verror "Reaper detected self ($deadhostname) as unresponsive, ignoring"
     else
+	verror "Unresponsive host $deadhostname"
 	vlog "Running remove_sgehost on $deadhostname"
 	echo "Running remove_sgehost on $deadhostname"
 	$vappio_scripts/remove_sgehost.sh $deadhostname
