@@ -78,11 +78,13 @@ def main(options, _args):
     runSingleProgramEx('ssh-keygen -y -f /mnt/keys/devel1.pem', keyData.append, sys.stderr.write)
     keyData = ''.join(keyData)
 
-    authorizedKeys = open('/root/.ssh/authorized_keys').read()
-    if keyData not in authorizedKeys:
-        fout = open('/root/.ssh/authorized_keys', 'a')
-        fout.write('\n' + keyData + '\n')
-        fout.close()
+    for path in ['/root', '/home/www-data']:
+        authorizedKeysPath = os.path.join(path, '.ssh', 'authorized_keys')
+        authorizedKeys = open(authorizedKeysPath).read()
+        if keyData not in authorizedKeys:
+            fout = open(authorizedKeysPath, 'a')
+            fout.write('\n' + keyData + '\n')
+            fout.close()
 
     print
     print
