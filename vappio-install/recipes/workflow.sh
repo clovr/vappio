@@ -10,8 +10,9 @@
 #v5.2 catches exceptions during monitoring
 #v5.3 (broken)
 #v5.4 Fixes event.log monitoring 
-wget http://bioifx.org/wf_clovr_3.0vp5.4.tgz
-tar -C / -xvzf wf_clovr_3.0vp5.4.tgz
+#v5.5 More fixes event.log monitoring 
+wget http://bioifx.org/wf_clovr_3.0vp5.5.tgz
+tar -C / -xvzf wf_clovr_3.0vp5.5.tgz
 chmod 777 /opt/workflow-sforge
 #Set permissions on id file
 chmod 777 /opt/workflow-sforge/idfile
