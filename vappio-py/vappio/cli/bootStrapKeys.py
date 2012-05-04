@@ -13,6 +13,13 @@ OPTIONS = [
     ('devel', '-d', '--devel', 'Path to devel1.pem', identity)
     ]
 
+def writeKeyData(authKeysPath, keyData, user):
+    fout = open(authKeysPath, 'a')
+    fout.write('\n' + keyData + '\n')
+    fout.close()
+    runSingleProgramEx('chown %s:%s %s' % (user, user,authKeysPath), None, None)
+    runSingleProgramEx('chmod 600 ' + authKeysPath, None, None)
+
 def main(options, _args):
     if options('general.devel'):
         if not os.path.exists('/mnt/keys/devel1.pem'):
@@ -27,14 +34,14 @@ def main(options, _args):
 
     for path, user in [('/root', 'root'), ('/home/www-data', 'www-data')]:
         authorizedKeysPath = os.path.join(path, '.ssh', 'authorized_keys')
-        runSingleProgramEx('mkdir -p %s' % os.path.basename(authorizedKeysPath), None, None)
-        authorizedKeys = open(authorizedKeysPath).read()
-        if keyData not in authorizedKeys:
-            fout = open(authorizedKeysPath, 'a')
-            fout.write('\n' + keyData + '\n')
-            fout.close()
-            runSingleProgramEx('chown %s:%s ' + authorizedKeysPath, None, None)
-            runSingleProgramEx('chmod 600 ' + authorizedKeysPath, None, None)
+        runSingleProgramEx('mkdir -p %s' % os.path.dirname(authorizedKeysPath), None, None)
+
+        if os.path.exists(authorizedKeysPath):
+            authorizedKeys = open(authorizedKeysPath).read()
+            if keyData not in authorizedKeys:
+                writeKeyData(authorizedKeysPath, keyData)
+        else:
+            writeKeyData(authorizedKeysPath, keyData, user)
 
     print
     print
