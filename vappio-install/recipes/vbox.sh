@@ -5,7 +5,7 @@ installvboxtools=$1
 
 if [ "$installvboxtools" == "yes" ]
 then
-    wget -c -P /tmp http://cb2.igs.umaryland.edu/vboxtools-install.tgz
+    wget -c -P /tmp http://bioifx.org/vboxtools-install.tgz
     
     tar -C / -xvzf /tmp/vboxtools-install.tgz
     

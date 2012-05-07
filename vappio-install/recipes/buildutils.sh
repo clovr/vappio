@@ -34,12 +34,12 @@ dkms uninstall -m vboxnetadp -v 3.2.8 || true
 dkms uninstall -m vboxdrv -v 3.2.8 || true
 
 #Retrieve grub and boot sector 
-wget -c -P /mnt http://cb2.igs.umaryland.edu/grub-boot.tgz
+wget -c -P /mnt http://bioifx.org/grub-boot.tgz
 #Retrive vmware tools
-wget -c -P /mnt http://cb2.igs.umaryland.edu/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
+wget -c -P /mnt http://bioifx.org/vmware-tools.8.4.2.kernel.2.6.32-21-server.tgz
 #Retrive vmware tools
 #wget -c -P /mnt http://cb2.igs.umaryland.edu/vboxtools-3.2.6.tar.gz
-wget -c -P /mnt http://cb2.igs.umaryland.edu/VBoxLinuxAdditions-amd64.run
+wget -c -P /mnt http://bioifx.org/VBoxLinuxAdditions-amd64.run
 
 #mkdir -p /opt/opt-packages
 echo p | svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
