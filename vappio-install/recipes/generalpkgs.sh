@@ -16,8 +16,6 @@ apt-get -y install libreadline5-dev
 
 apt-get -y install expect
 
-apt-get -y install mysql-server
-
 apt-get -y install python-argparse
 
 apt-get -y install lynx
