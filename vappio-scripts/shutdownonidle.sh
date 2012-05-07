@@ -89,7 +89,8 @@ then
 	/opt/hadoop/bin/hadoop job -list | grep running | /usr/bin/perl -ne '($num) = ($_ =~ /(\d+) jobs /);print $_ if($num>0);' >> $vappio_runtime/sge.running 
 
 	#Check running tasks
-	vp-describe-task | grep -i running >> $vappio_runtime/sge.running 
+        #Commenting so that crashing a crashed workflow does not keep cluster up
+	#vp-describe-task | grep -i running >> $vappio_runtime/sge.running 
 
         #Shortcircuit if any running jobs
 	if [ -s $vappio_runtime/sge.running ]
