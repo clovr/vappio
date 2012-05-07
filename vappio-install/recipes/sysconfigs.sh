@@ -33,7 +33,8 @@ sysctl -p
 
 #Heavy disk IO can trigger hung task warnings in the VM
 echo 0 > /proc/sys/kernel/hung_task_timeout_secs
-echo 0 > /proc/sys/kernel/softlockup_thresh
+#Removed from recent kernels
+#echo 0 > /proc/sys/kernel/softlockup_thresh
 
 #FUTEX_WAIT call possible fix
 #rm /dev/random 
