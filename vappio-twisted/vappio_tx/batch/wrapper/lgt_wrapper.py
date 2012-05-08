@@ -85,6 +85,13 @@ def _blockOnTask(taskName, cluster='local'):
 
 
 @defer.inlineCallbacks
+def startCluster(batchState, *args, **kwargs):
+    taskName = yield clusters_client.startCluster(*args, **kwargs)
+    _setQueue(taskName, batchState)
+    defer.returnValue(taskName)
+    
+
+@defer.inlineCallbacks
 def _updateTask(batchState, f):
     if 'lgt_wrapper_task_name' in batchState:
         task = yield tasks.updateTask(batchState['lgt_wrapper_task_name'], f)
@@ -275,7 +282,8 @@ def _remoteLocalTransfer(batchState):
     except TaskError:
         _log(batchState, 'Cluster %s did not come up, trying again' % batchState['cluster_task'])
         ## The task failed, let's try this cluster again
-        batchState['cluster_task'] = yield clusters_client.startCluster(
+        batchState['cluster_task'] = yield startCluster(
+            batchState,
             'localhost',
             batchState['pipeline_config']['cluster.CLUSTER_NAME'],
             'guest',
@@ -430,8 +438,8 @@ def _keepClusterResized(state, batchState):
     
 
 @defer.inlineCallbacks
-def _setQueue(batchState):
-    yield _blockOnTask(batchState['cluster_task'])
+def _setQueue(taskName, batchState):
+    yield _blockOnTask(taskName)
 
     cluster = yield clusters_client.loadCluster('localhost',
                                                 batchState['pipeline_config']['cluster.CLUSTER_NAME'],
@@ -457,7 +465,16 @@ def _setQueue(batchState):
         
 @defer.inlineCallbacks
 def _run(state, batchState):
-    if 'state' not in batchState:
+    if 'pipeline_name' in batchState:
+        pipelines = yield pipelines_client.pipelineList('localhost',
+                                                        'local',
+                                                        'guest',
+                                                        batchState['pipeline_name'],
+                                                        detail=True)
+    else:
+        pipelines = []
+        
+    if not pipelines:
         _log(batchState, 'First time running, creating pipeline state information')
         batchState['pipeline_config'] = yield _applyActions(state.innerPipelineConfig(),
                                                             batchState['actions'])
@@ -487,13 +504,6 @@ def _run(state, batchState):
                                               numTasks=9))
         
         state.updateBatchState()
-    else:
-        _log(batchState, 'Pipeline run before, loading pipeline information')
-        pipeline = yield pipelines_client.pipelineList('localhost',
-                                                       'local',
-                                                       'guest',
-                                                       batchState['pipeline_name'],
-                                                       detail=True)
 
     batchState['state'] = RUNNING_STATE
 
@@ -524,7 +534,8 @@ def _run(state, batchState):
         except:
             pass
 
-        batchState['cluster_task'] = yield clusters_client.startCluster(
+        batchState['cluster_task'] = yield startCluster(
+            batchState,
             'localhost',
             batchState['pipeline_config']['cluster.CLUSTER_NAME'],
             'guest',
