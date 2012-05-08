@@ -20,7 +20,10 @@ mv /bin/uname.orig /bin/uname
 
 
 #Stop services by default
-/etc/init.d/vmware-tools stop
+/etc/init.d/vmware-tools stop || stop vmware-tools
 update-rc.d -f vmware-tools remove
 
+#Remove init based boot and set with our own custom
+rm /etc/init/vmware-tools.conf
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/vmware-tools /etc/vmware-tools
 

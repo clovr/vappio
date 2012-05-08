@@ -1,0 +1,19 @@
+#!/bin/bash
+
+case "$1" in
+    start)
+	/etc/vmware-tools/services.sh start
+        ;;
+    stop)
+	/etc/vmware-tools/services.sh stop
+        ;;
+    restart)
+	/etc/vmware-tools/services.sh stop
+	/etc/vmware-tools/services.sh start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?
