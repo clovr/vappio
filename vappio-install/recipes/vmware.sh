@@ -25,5 +25,5 @@ update-rc.d -f vmware-tools remove
 
 #Remove init based boot and set with our own custom
 rm /etc/init/vmware-tools.conf
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/vmware-tools /etc/vmware-tools
+echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/vmware-tools /etc/init.d/vmware-tools
 
