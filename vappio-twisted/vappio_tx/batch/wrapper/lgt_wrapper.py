@@ -559,9 +559,6 @@ def _run(state, batchState):
                           lambda t : t.addMessage(tasks.task.MSG_SILENT,
                                                   'Completed startcluster'
                                                   ).progress())
-
-        # Make sure autoshutdown is off
-        _setQueue(batchState)
         
         batchState['pipeline_state'] = REMOTE_LOCAL_TRANSFER_STATE
         state.updateBatchState()
