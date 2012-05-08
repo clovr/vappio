@@ -1,13 +1,13 @@
 #!/bin/sh
 
-
+#Saftey check to avoid accidental reinstall
 installvboxtools=$1
 
 if [ "$installvboxtools" == "yes" ]
 then
-    wget -c -P /tmp http://bioifx.org/vboxtools-install.tgz
+    wget -c -P /tmp http://bioifx.org/vboxtools-install_05082012.tgz
     
-    tar -C / -xvzf /tmp/vboxtools-install.tgz
+    tar -C / -xvzf /tmp/vboxtools-install_05082012.tgz
     
 #Need to fake out uname so we compile for any kernel we want to run in vbox
     mv /bin/uname /bin/uname.orig
@@ -17,13 +17,15 @@ then
     apt-get -y install build-essential
     apt-get -y install linux-headers-`uname -r`
     apt-get -y install linux-image-`uname -r`
-    
+    mv /bin/uname.orig /bin/uname 
+   
 #
 #Originally pulled installer from mount /dev/cdrom1 /mnt
 #MUST USE SUDO or something strange happens
-    sudo bash /tmp/VBoxLinuxAdditions-amd64.run
+    export ARCH=x86_64
+    sudo bash /tmp/VBoxLinuxAdditions.run
     depmod -a
-    mv /bin/uname.orig /bin/uname
+
     update-rc.d -f vboxadd-x11 remove
     update-rc.d -f vboxadd-service remove
     update-rc.d -f vboxadd remove
