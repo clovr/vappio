@@ -21,12 +21,12 @@ chown $sge_exec_user:$sge_exec_user $staging_dir
 chown $sge_exec_user:$sge_exec_user $wfworking_dir 
 chown $sge_exec_user:$sge_exec_user $harvesting_dir 
 
-if [ -f /opt/mnt.tgz ]
-then
+if [ -f /opt/mnt.tgz ] && [ ! -f /mnt/.clovrmntconfig ]
+then 
     tar -C /mnt/ -xkvzf /opt/mnt.tgz
     chown -R www-data.www-data /mnt
+    touch /mnt/.clovrmntconfig
 fi
-
 
 touch /tmp/python-eggs
 chmod 777 /tmp/python-eggs
