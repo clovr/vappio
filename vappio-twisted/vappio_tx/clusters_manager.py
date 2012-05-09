@@ -187,9 +187,8 @@ def handleTaskStartCluster(request):
     cluster = persist.Cluster(request.body['cluster'],
                               request.body['user_name'],
                               request.body['cred_name'],
-                              config.configFromStream(open('/tmp/machine.conf'),
-                                                      base=config.configFromMap(request.body['conf'])))
-                              
+                              config.configFromMap(request.body['conf'],
+                                                   config.configFromStream(open('/tmp/machine.conf'))))
 
     cluster = cluster.update(startTask=request.body['task_name'])
 

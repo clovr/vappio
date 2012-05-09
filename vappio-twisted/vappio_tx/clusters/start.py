@@ -21,6 +21,7 @@ from vappio_tx.clusters import persist
 from vappio_tx.tasks import tasks as tasks_tx
 
 from vappio_tx.www_client import clusters as clusters_client_www
+from vappio_tx.www_client import credentials as credentials_client_www
 
 RUN_INSTANCE_TRIES = 4
 
@@ -72,7 +73,6 @@ def startMaster(state, credClient, taskName, cl):
         if len(instancesNew) != len(pState.instances):
             yield tasks_tx.updateTask(pState.taskName, lambda t : t.addMessage(task.MSG_ERROR, errMsg))
 
-        #pState = yield updateF(pState, instancesNew)
         defer.returnValue(pState)
 
     @defer.inlineCallbacks
@@ -84,13 +84,32 @@ def startMaster(state, credClient, taskName, cl):
         pState = pState.update(cluster=cluster)
         defer.returnValue(pState)    
 
-    def _isClusterInfoResponding(instance):
-        clusterInfoDeferred = clusters_client_www.listClusters(instance['public_dns'],
-                                                              'local',
-                                                              'guest')
+    @defer.inlineCallbacks
+    def _waitForClusterInfo(pState):
+        def _isClusterInfoResponding(instance):
+            return clusters_client_www.listClusters(instance['public_dns'],
+                                                   'local',
+                                                   'guest').addCallback(lambda _: True).addErrback(lambda _: False)
 
-        clusterInfoDeferred.addCallback(lambda _: True).addErrback(lambda _: False)
-        return clusterInfoDeferred
+        pState = yield _waitForInstances(pState, 
+                                         WAIT_FOR_SERVICE_TRIES, 
+                                         _isClusterInfoResponding, 
+                                         "Cluster Info WS not responding.")
+        
+        defer.returnValue(pState)
+
+    @defer.inlineCallbacks
+    def _waitForCredentialsList(pState):
+        def _isCredentialsListResponding(instance):
+            return credentials_client_www.listCredentials(instance['public_dns'],
+                                                         'local').addCallback(lambda _: True).addErrback(lambda _: False)
+
+        pState = yield _waitForInstances(pState, 
+                                         WAIT_FOR_SERVICE_TRIES, 
+                                         _isCredentialsListResponding, 
+                                         "Credentials List WS not responding.")
+        
+        defer.returnValue(pState)
 
     @defer.inlineCallbacks
     def _startMaster(pState):
@@ -130,7 +149,7 @@ def startMaster(state, credClient, taskName, cl):
                          taskName=taskName)
 
     yield tasks_tx.updateTask(taskName,
-                              lambda t : t.update(numTasks=t.numTasks + 6))
+                              lambda t : t.update(numTasks=t.numTasks + 8))
     
 
     try:
@@ -144,10 +163,8 @@ def startMaster(state, credClient, taskName, cl):
         pState = yield _startMaster(pState)
         pState = yield waitForInstances(pState, _updatePState)
 
-        pState = yield _waitForInstances(pState, 
-                                         WAIT_FOR_SERVICE_TRIES, 
-                                         _isClusterInfoResponding, 
-                                         "Cluster Info WS not responding.")
+        pState = yield defer_pipe.pipe([_waitForClusterInfo,
+                                        _waitForCredentialsList])(pState)
 
         pState = pState.update(cluster=pState.cluster.setState(pState.cluster.RUNNING))
         yield saveCluster(pState.cluster, pState.state)
