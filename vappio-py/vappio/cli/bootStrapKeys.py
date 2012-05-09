@@ -39,7 +39,7 @@ def main(options, _args):
         if os.path.exists(authorizedKeysPath):
             authorizedKeys = open(authorizedKeysPath).read()
             if keyData not in authorizedKeys:
-                writeKeyData(authorizedKeysPath, keyData)
+                writeKeyData(authorizedKeysPath, keyData, user)
         else:
             writeKeyData(authorizedKeysPath, keyData, user)
 
