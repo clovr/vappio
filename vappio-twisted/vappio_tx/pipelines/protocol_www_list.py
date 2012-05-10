@@ -54,8 +54,9 @@ def handleWWWListProtocols(request):
         wrapperName = pipeline_misc.determineWrapper(request.state.machineconf, p)
         if wrapperName != p:
             protocolKeys = set([k for k, _ in protocolConfig])
-            wrapperConfig = [(k, v) for (k,v) 
-                             in protocol_format.load(request.state.machineconf, wrapperName) 
+            wrapperConfig = [(k, v) 
+                             for (k,v) in protocol_format.load(request.state.machineconf, 
+                                                               wrapperName) 
                              if k not in protocolKeys]
 
             protocolConfig += wrapperConfig
