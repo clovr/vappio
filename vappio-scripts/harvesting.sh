@@ -47,7 +47,7 @@ else
 	rcount=`expr $RETRY_COUNT + 1` 
 	if [ $rcount -gt $MAX_SGE_RETRIES ]
 	then
-	    vlog "Max retrires $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1"
+	    vlog "Max retries $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1"
 	    exit 1
 	else
 	    vlog "Marking retry $rcount"
