@@ -100,7 +100,7 @@ EOF
     mkfs.ext3 /dev/nbd0p2
     qemu-nbd -d /dev/nbd0
     /opt/vappio-util/vp-runonvdi /mnt/$vdibname.vdi /opt/vappio-scripts/vbox/vboxshared.sh 2
-    /opt/vappio-util/vp-runonvdi /mnt/$vdibname.vdi /opt/vappio-install/recipes/vbox.sh yes
+    /opt/vappio-util/vp-runonvdi /mnt/$vdibname.vdi "/opt/vappio-install/recipes/vbox.sh yes"
 
     #VBoxManage createhd --filename /mnt/$vdibname.copy.vdi --size 500000 --format vdi
     
