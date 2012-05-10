@@ -29,7 +29,7 @@ vlog "Running staging for $remotehost"
 changes="yes"
 maxretries=5
 i=0
-while [ "$changes" != "" ];
+while [ "$changes" != "" ] && [ $i -le $maxretries ];
   do
   $staging_script $remotehost #1>> $vappio_log 2>> $vappio_log  
   ret=$?
@@ -37,10 +37,16 @@ while [ "$changes" != "" ];
   then
       changes="yes"
       vlog "ERROR: $0 staging fail. return value $ret"
-      verror "SEEDING FAILURE"
-      if [ $i -gt $maxretries ]
+      verror "STAGING FAILURE, in seeding loop"
+      #Requeue job, RETRY_COUNT is already incremented by staging_script meaning we will have MAX_SGE_RETRIES/2
+      rcount=`expr $RETRY_COUNT + 1` 
+      if [ $rcount -gt $MAX_SGE_RETRIES ]
       then
-	  #Requeue job
+	  vlog "Max retries $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1 from seeding.sh in loop"
+	  exit 1
+      else
+	  vlog "Marking retry $rcount"
+	  qalter -v RETRY_COUNT=$rcount $JOB_ID
 	  exit 99
       fi
   else
@@ -51,8 +57,6 @@ while [ "$changes" != "" ];
   fi
   i=`expr $i + 1`
 done
-
-#TODO add check to ensure staging success
 
 #At this point the staging directory is synced between remotehost and current host
 #Add host back into the queue
@@ -66,7 +70,17 @@ then
     $SGE_ROOT/bin/$ARCH/qmod -e $queue@$remotehost
 else
     vlog "ERROR: $0 staging fail. return value $ret"
-    verror "SEEDING FAILURE";
-    exit $ret
+    verror "SEEDING FAILURE 2";
+    #Requeue job
+    rcount=`expr $RETRY_COUNT + 1` 
+    if [ $rcount -gt $MAX_SGE_RETRIES ]
+    then
+	vlog "Max retries $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1 from seeding.sh"
+	exit 1
+    else
+	vlog "Marking retry $rcount, returning $ret from seeding.sh"
+	qalter -v RETRY_COUNT=$rcount $JOB_ID
+	exit $ret
+    fi
 fi
 

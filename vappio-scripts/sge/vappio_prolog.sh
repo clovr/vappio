@@ -110,7 +110,16 @@ then
 	then
 	    verror "PROLOG. Error during qsub return code: $ret1 [$eout]. Requeuing job..."
 	    #Requeue, entire job
-	    exit 99
+	    rcount=`expr $RETRY_COUNT + 1` 
+	    if [ $rcount -gt $MAX_SGE_RETRIES ]
+	    then
+		vlog "Max retrires $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1"
+		exit 1
+	    else
+		vlog "Marking retry $rcount"
+		qalter -v RETRY_COUNT=$rcount $JOB_ID
+		exit 99
+	    fi
 	fi
     fi
    
@@ -183,7 +192,16 @@ then
 	then
 	    verror "PROLOG. Unable to copy $stagedata to $myhost"
 	    #Requeue entire job
-	    exit 99
+	    rcount=`expr $RETRY_COUNT + 1` 
+	    if [ $rcount -gt $MAX_SGE_RETRIES ]
+	    then
+		vlog "Max retrires $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1"
+		exit 1
+	    else
+		vlog "Marking retry $rcount"
+		qalter -v RETRY_COUNT=$rcount $JOB_ID
+		exit 99
+	    fi
 	fi
 
 	vlog "Finished staging of STAGEDATA on $f@$myhost"

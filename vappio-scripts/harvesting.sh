@@ -43,7 +43,17 @@ else
     then
 	#retry, directory appears to be online
 	vlog "Attempting rescheduling of harvesting job"
-	exit 99
+	#Requeue entire job
+	rcount=`expr $RETRY_COUNT + 1` 
+	if [ $rcount -gt $MAX_SGE_RETRIES ]
+	then
+	    vlog "Max retrires $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1"
+	    exit 1
+	else
+	    vlog "Marking retry $rcount"
+	    qalter -v RETRY_COUNT=$rcount $JOB_ID
+	    exit 99
+	fi
     else
 	#output directory missing, fail silently allowing resched of workflow job
 	if [ -d "$parentdir" ] && [ "$isreachable" != "" ] && [ "$direxists" != "$dir" ]

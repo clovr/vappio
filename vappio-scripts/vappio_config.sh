@@ -183,6 +183,10 @@ delayautoshutdowncutoff=7200
 waitformastertimeout=50
 #Delay boot until configuration is complete
 waitonboot=y
+#Max retries for SGE jobs, erroring 99
+#Note, some scripts are nested and will each increment retry counter, leading to fewer than the MAX retries
+MAX_SGE_RETRIES=10
+
 
 ##Workflow 
 wfworking_dir=/mnt/wf-working

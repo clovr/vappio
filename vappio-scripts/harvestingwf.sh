@@ -37,7 +37,17 @@ then
 	if [ -d "${request_cwd}" ] && [ "$isreachable" = "" ]
 	then
 	    vlog "Attempting rescheduling of harvesting job"
-	    exit 99;
+	    #Requeue entire job
+	    rcount=`expr $RETRY_COUNT + 1` 
+	    if [ $rcount -gt $MAX_SGE_RETRIES ]
+	    then
+		vlog "Max retrires $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1"
+		exit 1
+	    else
+		vlog "Marking retry $rcount"
+		qalter -v RETRY_COUNT=$rcount $JOB_ID
+		exit 99
+	    fi
 	else
 	    vlog "Unable to harvest workflow XML $wfdir"
 	fi
@@ -63,7 +73,17 @@ else
 	echo "I~~~Failed to retrieve event.log from host $exechost~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
 	echo "I~~~host $exechost isreachable=$isreachable~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
 	echo "I~~~Rescheduling harvesting~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log
-	exit 99;
+        #Requeue entire job
+	rcount=`expr $RETRY_COUNT + 1` 
+	if [ $rcount -gt $MAX_SGE_RETRIES ]
+	then
+	    vlog "Max retrires $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1"
+	    exit 1
+	else
+	    vlog "Marking retry $rcount"
+	    qalter -v RETRY_COUNT=$rcount $JOB_ID
+	    exit 99
+	fi
     else
 	#Print error to event.log
 	echo "I~~~Failed to retrieve event.log from host $exechost~~~x~~~x~~~x~~~x" >> ${request_cwd}/event.log

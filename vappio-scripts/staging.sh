@@ -75,7 +75,18 @@ then
     vlog "ERROR: Host $remotehost is not reachable"
     verror "STAGING FAILURE";
     #retry
-    exit 99
+    #Requeue job
+    rcount=`expr $RETRY_COUNT + 1` 
+    if [ $rcount -gt $MAX_SGE_RETRIES ]
+    then
+	vlog "Max retries $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1 from staging.sh"
+	exit 1
+    else
+	vlog "Marking retry $rcount"
+	qalter -v RETRY_COUNT=$rcount $JOB_ID
+	exit 99
+    fi
+
 fi
 #If argument is specified
 #copy specified files
@@ -208,7 +219,17 @@ else
 	    if [ -d "$staging_dir" ] && [ "$isreachable" != "" ] && [ "$fileexists" != "" ]
 	    then
 		vlog "Retrying staging.sh transfer isreachable=$isreachable fileexists=$fileexists"
-		exit 99
+		#Requeue job
+		rcount=`expr $RETRY_COUNT + 1` 
+		if [ $rcount -gt $MAX_SGE_RETRIES ]
+		then
+		    vlog "Max retries $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1 from staging.sh"
+		    exit 1
+		else
+		    vlog "Marking retry $rcount"
+		    qalter -v RETRY_COUNT=$rcount $JOB_ID
+		    exit 99
+		fi
 	    else
 		exit $ret
 	    fi
