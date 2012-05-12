@@ -99,8 +99,10 @@ EOF
     #Format the new partition as ext3
     mkfs.ext3 /dev/nbd0p2
     qemu-nbd -d /dev/nbd0
+    echo "Bundling virtualbox shared folders"
     /opt/vappio-util/vp-runonvdi /mnt/$vdibname.vdi /opt/vappio-scripts/vbox/vboxshared.sh 2
-    /opt/vappio-util/vp-runonvdi /mnt/$vdibname.vdi "/opt/vappio-install/recipes/vbox.sh yes"
+    echo "Bundling virtualbox guest tools"
+    /opt/vappio-util/vp-runonvdi /mnt/$vdibname.vdi /opt/vappio-install/recipes/vbox.sh
 
     #VBoxManage createhd --filename /mnt/$vdibname.copy.vdi --size 500000 --format vdi
     

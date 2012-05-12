@@ -71,8 +71,8 @@ then
     then
 	echo "Bundling vmware guest tools"
 	$utildir/vp-runonimg $currimg.vmbundle $recipedir/vmware.sh
-	echo "Bundling virtualbox guest tools"
-	$utildir/vp-runonimg $currimg.vmbundle $recipedir/vbox.sh
+	#echo "Bundling virtualbox guest tools"
+	#$utildir/vp-runonimg $currimg.vmbundle $recipedir/vbox.sh
     fi
 
     if [ "$bootloader" = "" ]
