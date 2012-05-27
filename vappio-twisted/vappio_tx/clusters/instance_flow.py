@@ -227,12 +227,13 @@ def wrapEnsureInstances(f, retries):
 def waitForState(credClient, state, retries):
     @defer.inlineCallbacks
     def _waitForState(instance):
-        curInstances = yield credClient.updateInstances([instance])
-        curInstance = curInstances[0]
-        if curInstance['state'] not in ['pending', state]:
+        currInstances = yield credClient.updateInstances([instance])
+        currInstance = currInstances[0]
+        log.msg('INSTANCE: %r' % currInstance)
+        if currInstance['state'] not in ['pending', state]:
             defer.returnValue(FAILED_INSTANCE)
         else:
-            defer.returnValue(curInstance['state'] == state)
+            defer.returnValue(currInstance['state'] == state)
 
     return wrapEnsureInstances(_waitForState, retries)
 
@@ -246,9 +247,10 @@ def waitForSSH(sshUser, sshOptions, retries):
                                     None,
                                     sshUser,
                                     sshOptions)
-            defer.returnValue(True)
         except:
             defer.returnValue(False)
+
+        defer.returnValue(True)            
 
     return wrapEnsureInstances(_waitForSSH, retries)
 
