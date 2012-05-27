@@ -22,8 +22,7 @@ def generateToken(machineConf):
     This returns a sha256 of the private key file, which
     could be a security risk in theory, I guess
     """
-    conf = config.configFromStream(open(machineConf))
-    fin = open(conf('cluster.cluster_private_key'))
+    fin = open(machineConf('cluster.cluster_private_key'))
     data = ''.join([l.strip()
                     for l in fin])
     return hashlib.sha256(data).hexdigest()

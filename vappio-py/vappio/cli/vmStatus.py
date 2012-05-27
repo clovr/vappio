@@ -64,9 +64,10 @@ def listClustersSafe(host):
         else:
             return name
     try:
-        clusters = [cluster.loadCluster(host, c['cluster_name'])
-                    for c in cluster.listClusters(host)]
-        return [(annotateNameWithState(c['cluster_name'], c['state']), len(c['exec_nodes'] + c['data_nodes'])) for c in clusters]
+        clusters = cluster.listClusters(host)
+        return [(annotateNameWithState(c['cluster_name'], c['state']),
+                 len(c['exec_nodes'] + c['data_nodes']))
+                for c in clusters]
     except Exception, err:
         print err
         return []

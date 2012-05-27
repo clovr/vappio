@@ -5,7 +5,7 @@
 from igs.utils import cli
 from igs.utils.functional import identity
 
-from vappio.webservice.cluster import loadCluster, listClusters
+from vappio.webservice.cluster import listClusters
 
 OPTIONS = [
     ('host', '', '--host', 'Host of web services to connect to, defaults to local host', cli.defaultIfNone('localhost')),
@@ -17,7 +17,9 @@ URL = '/vappio/clusterInfo_ws.py'
 
 def instanceToList(i):
     if i:
-        return [i['instance_id'] or i['spot_request_id'] or 'Undefined', i['public_dns'] or 'Undefined', i['state'] or 'Undefined']
+        return [i['instance_id'] or i['spot_request_id'] or 'Undefined',
+                i['public_dns'] or 'Undefined',
+                i['state'] or 'Undefined']
     else:
         return ['None']
 
@@ -29,7 +31,8 @@ def returnEmptyDictIfNone(d, k):
 
 def main(options, _args):
     if not options('general.list'):
-        cluster = loadCluster(options('general.host'), options('general.cluster'))
+        cluster = listClusters(options('general.host'),
+                               {'cluster_name': options('general.cluster')})[0]
 
 
         print '\t'.join(['STATE'] + [cluster['state']])

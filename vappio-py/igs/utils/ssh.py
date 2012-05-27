@@ -132,7 +132,7 @@ def rsyncFrom(host, src, dst, rsyncOptions=None, user=None, log=False):
     try:
         rsyncFromEx(host, src, dst, rsyncOptions, user, log)
         return 0
-    except ProgarmRunError, err:
+    except ProgramRunError, err:
         return err.exitCode
 
            
