@@ -264,12 +264,13 @@ def waitForBoot(fileName, sshUser, sshOptions, retries):
                                     None,
                                     sshUser,
                                     sshOptions)
-            defer.returnValue(True)
         except:
             ## Should differentiate between SSH failing and file not
             ## existings so we can return FAILED_INSTANCE appropriately
             defer.returnValue(False)
 
+        defer.returnValue(True)
+        
     return wrapEnsureInstances(_waitForBoot, retries)
 
 
@@ -280,9 +281,10 @@ def waitForClusterInfo(cluster, userName, retries):
             yield clusters_client_www.listClusters(instance['public_dns'],
                                                    {},
                                                    userName)
-            defer.returnValue(True)
         except:
             defer.returnValue(False)
+
+        defer.returnValue(True)
 
     return wrapEnsureInstances(_waitForClusterInfo, retries)
 
