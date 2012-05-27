@@ -229,7 +229,6 @@ def waitForState(credClient, state, retries):
     def _waitForState(instance):
         currInstances = yield credClient.updateInstances([instance])
         currInstance = currInstances[0]
-        log.msg('INSTANCE: %r' % currInstance)
         if currInstance['state'] not in ['pending', state]:
             defer.returnValue(FAILED_INSTANCE)
         else:
