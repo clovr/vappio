@@ -73,6 +73,14 @@ def _getOutput(batchState, command, *args, **kwargs):
     return commands.getOutput(command, *args, **kwargs)
 
 @defer.inlineCallbacks
+def loadCluster(host, clusterName, userName):
+    clusters = yield clusters_client.listClusters(host,
+                                                  {'cluster_name': clusterName},
+                                                  userName)
+    cluster = clusters[0]
+    defer.returnValue(cluster)
+
+@defer.inlineCallbacks
 def _blockOnTask(taskName, cluster='local'):
     taskState = yield tasks.blockOnTask('localhost',
                                         cluster,
@@ -372,9 +380,9 @@ def _delayAutoshutdown(state, batchState):
         yield _blockOnTask(batchState['cluster_task'])
 
         try:
-            cluster = yield clusters_client.loadCluster('localhost',
-                                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                        'guest')
+            cluster = yield loadCluster('localhost',
+                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                        'guest')
             
             # We need the SSH options from the machine.conf, ugh I hate these OOB dependencies
             conf = config.configFromStream(open('/tmp/machine.conf'))
@@ -410,9 +418,9 @@ def _keepClusterResized(state, batchState):
 
             yield _blockOnTask(batchState['cluster_task'])
 
-            cluster = yield clusters_client.loadCluster('localhost',
-                                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                        'guest')
+            cluster = yield loadCluster('localhost',
+                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                        'guest')
             
             if len(cluster['exec_nodes']) < numExecs:
                 _log(batchState, 'RESIZE: Adding more instances')
@@ -441,9 +449,9 @@ def _keepClusterResized(state, batchState):
 def _setQueue(taskName, batchState):
     yield _blockOnTask(taskName)
 
-    cluster = yield clusters_client.loadCluster('localhost',
-                                                batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                'guest')
+    cluster = yield loadCluster('localhost',
+                                batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                'guest')
 
     yield defer_utils.tryUntil(10,
                                lambda : _getOutput(batchState,
@@ -522,9 +530,9 @@ def _run(state, batchState):
 
         # First see if the cluster exists but is unresponsive
         try:
-            cluster = yield clusters_client.loadCluster('localhost',
-                                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                        'guest')
+            cluster = yield loadCluster('localhost',
+                                        batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                        'guest')
             if cluster['state'] == 'unresponsive':
                 _log(batchState, 'Pipeline is unresponsive, terminating')
                 terminateTask = yield clusters_client.terminateCluster('localhost',
@@ -589,9 +597,9 @@ def _run(state, batchState):
     if batchState['pipeline_state'] == DECRYPT_STATE:
         _log(batchState, 'Pipeline is in DECRYPT')
 
-        cluster = yield clusters_client.loadCluster('localhost',
-                                                    batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                    'guest')
+        cluster = yield loadCluster('localhost',
+                                    batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+                                    'guest')
 
         tag = yield tags_client.loadTag('localhost',
                                         batchState['pipeline_config']['cluster.CLUSTER_NAME'],

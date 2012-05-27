@@ -1,7 +1,5 @@
 #
 # Twisted-ized version of the task functions
-import time
-
 from twisted.internet import threads
 from twisted.internet import defer
 

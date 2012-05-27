@@ -14,8 +14,6 @@ from twisted.python import log
 
 from igs.utils import functional as func
 
-from igs_tx.utils import http
-
 from vappio_tx.mq import client
 from vappio_tx.legacy import cgi as vappio_cgi
 from vappio_tx.utils import queue

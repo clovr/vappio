@@ -1,5 +1,4 @@
 import os
-import StringIO
 
 from twisted.python import log
 
@@ -42,7 +41,8 @@ class MachineInformation:
 
 @defer.inlineCallbacks
 def _loopSupervisorNoThrow(state):
-    localCluster = yield clusters_client.loadCluster('local', None)
+    localClusters = yield clusters_client.listClusters({'cluster_name': 'local'}, None)
+    localCluster = localClusters[0]
                                                      
     loadAverages = os.getloadavg()
 

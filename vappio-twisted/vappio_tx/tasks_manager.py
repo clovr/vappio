@@ -1,5 +1,3 @@
-from twisted.internet import defer
-
 from vappio_tx.mq import client
 
 from vappio_tx.tasks import task_list
@@ -18,7 +16,7 @@ def makeService(conf):
 
     state = State(conf)
 
-    startUpDefer = defer.maybeDeferred(_subscribeToQueues, mqFactory, state)
+    _subscribeToQueues(mqFactory, state)
     
     return mqService
     

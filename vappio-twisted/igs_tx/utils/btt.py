@@ -1,4 +1,4 @@
-import array, struct, signal, traceback, time, StringIO
+import array, signal, traceback, time, StringIO
 
 from twisted.internet import task
 from twisted.python import log

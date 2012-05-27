@@ -1,8 +1,6 @@
 import os
 import StringIO
 
-from twisted.python import log
-
 from twisted.internet import defer
 
 from igs_tx.utils import global_state

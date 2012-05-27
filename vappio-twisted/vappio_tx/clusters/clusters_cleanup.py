@@ -3,8 +3,6 @@ from twisted.internet import defer
 
 from twisted.python import log
 
-from igs_tx.utils import defer_utils
-
 from vappio_tx.internal_client import clusters as clusters_client
 
 # Refresh cluster information every sixty seconds
@@ -13,65 +11,46 @@ REFRESH_FREQUENCY = 60
 # A cluster times out after an hour of unresponsiveness
 CLUSTER_TIMEOUT = 60 * 60
 
-CLUSTER_USERNAME = 'guest'
+def updateUnresponsiveClusters(clusterMap, clusters):
+    ## Find all those clusters that are unresponsive
+    unresponsiveClusters = [(cluster.clusterName, cluster.userName)
+                            for cluster in clusters
+                            if cluster.state == cluster.UNRESPONSIVE]
 
-def _updateUnresponsiveClusters(clusterMap, clusters):
-    unresponsiveClusters = [c['cluster_name']
-                            for c in clusters
-                            if c['state'] == 'unresponsive']
+    ## Take the set of clusters we saw last iteration that were
+    ## unresponsive and subtract from it the current set of
+    ## unresponsive clusters.  The remainder is those clusters which
+    ## either do not exist anymore or are no responsive again
     removeClusters = set(clusterMap.keys()) - set(unresponsiveClusters)
-    
-    for c in removeClusters:
-        clusterMap.pop(c)
 
+    ## Remove the clusters that are no longer unresponsive
+    for c in removeClusters:
+        clusterMap.pop()
+
+    ## Update the amount of time that a cluster has been unresponsive.
+    ## This assumes that this function runs ever REFRESH_FREQUENCY
     for c in unresponsiveClusters:
         v = clusterMap.get(c, 0)
         v += REFRESH_FREQUENCY
         clusterMap[c] = v
 
 @defer.inlineCallbacks
-def _getClusters():
-    clusters = yield defer_utils.tryUntil(10,
-                                          lambda : clusters_client.listClusters(CLUSTER_USERNAME),
-                                          onFailure=defer_utils.sleep(10))
-
-    clustersDetail = yield defer_utils.mapSerial(lambda c : clusters_client.loadCluster(c['cluster_name'], CLUSTER_USERNAME),
-                                                 clusters)
-    defer.returnValue(clustersDetail)
-
-
-@defer.inlineCallbacks
-def _updateClusterInfoThrow(state):
-    clusters = yield _getClusters()
-    
-    _updateUnresponsiveClusters(state.unresponsiveClusters, clusters)
-
-    for c, v in state.unresponsiveClusters.iteritems():
-        if v > CLUSTER_TIMEOUT:
-            log.msg('CLEANUP: Terminating cluster - ' + c)
-            clusters_client.terminateCluster(c, CLUSTER_USERNAME)
-    
-
-@defer.inlineCallbacks
-def _updateClusterInfo(state):
-    log.msg('CLEANUP: Looping')
+def updateClusterInfo(state):
     try:
-        yield _updateClusterInfoThrow(state)
+        clusters = yield state.persistManager.loadClustersByAdmin({})
+        updateUnresponsiveClusters(state.unresponsiveClusters,
+                                   clusters)
+
+        for (clusterName, userName), duration in state.unresponsiveClusters.iteritems():
+            if duration > CLUSTER_TIMEOUT:
+                log.msg('CLEANUP: Terminating cluster - ' + clusterName)
+                authToken = auth_token.generateToken(state.machineConf)
+                yield clusters_client.terminateCluster(clusterName, userName, authToken)
     except Exception, err:
         log.err('CLEANUP: Failed')
         log.err(err)
 
-    reactor.callLater(REFRESH_FREQUENCY, _updateClusterInfo, state)    
-    
-
-@defer.inlineCallbacks
-def _initialClusterInfo(state):
-    clusters = yield _getClusters()
-    log.msg('CLEANUP: Loaded # clusters: %d' % len(clusters))
-
-    _updateUnresponsiveClusters(state.unresponsiveClusters, clusters)
-    
-    reactor.callLater(REFRESH_FREQUENCY, _updateClusterInfo, state)
+    reactor.callLater(REFRESH_FREQUENCY, updateClusterInfo, state)
 
 def subscribe(_mq, state):
-    reactor.callLater(0.0, _initialClusterInfo, state)
+    reactor.callLater(0.0, updateClusterInfo, state)

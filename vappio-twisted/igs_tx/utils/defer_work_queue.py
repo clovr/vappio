@@ -5,7 +5,6 @@ from twisted.internet import defer
 from twisted.python import log
 
 from igs.utils import dependency
-from igs.utils import functional as func
 
 class DeferWorkQueue(dependency.Dependable):
     """

@@ -158,13 +158,17 @@ def _realizeUrls(request):
 def _uploadTag(request):
     localTag = yield request.state.tagPersist.loadTag(request.body['tag_name'])
 
-    srcCluster = yield www_clusters.loadCluster('localhost',
-                                                request.body['src_cluster'],
-                                                request.body['user_name'])
+    srcClusters = yield www_clusters.listClusters('localhost',
+                                                  {'cluster_name': request.body['src_cluster']},
+                                                  request.body['user_name'])
 
-    dstCluster = yield www_clusters.loadCluster('localhost',
-                                                request.body['dst_cluster'],
-                                                request.body['user_name'])
+    srcCluster = srcClusters[0]
+
+    dstClusters = yield www_clusters.listClusters('localhost',
+                                                  {'cluster_name': request.body['dst_cluster']},
+                                                  request.body['user_name'])
+
+    dstCluster = dstClusters[0]
 
     # We want the trailing '/' so everyone knows it's a directory
     dstTagPath = os.path.join(dstCluster['config']['dirs.upload_dir'], localTag.tagName) + '/'
@@ -222,13 +226,17 @@ def _downloadTag(request):
                                        request.body['user_name'],
                                        request.body['tag_name'])
 
-    srcCluster = yield www_clusters.loadCluster('localhost',
-                                                request.body['src_cluster'],
-                                                request.body['user_name'])
+    srcClusters = yield www_clusters.listClusters('localhost',
+                                                  {'cluster_name': request.body['src_cluster']},
+                                                  request.body['user_name'])
 
-    dstCluster = yield www_clusters.loadCluster('localhost',
-                                                request.body['dst_cluster'],
-                                                request.body['user_name'])
+    srcCluster = srcClusters[0]
+    
+    dstClusters = yield www_clusters.listClusters('localhost',
+                                                  {'cluster_name': request.body['dst_cluster']},
+                                                  request.body['user_name'])
+
+    dstCluster = dstClusters[0]
 
     dstTagPath = os.path.join(dstCluster['config']['dirs.upload_dir'], remoteTag['tag_name'])
 
@@ -332,13 +340,17 @@ def _handleTransferTag(request):
                                   lambda t : t.progress(2))
     elif srcTag['phantom']:
         # Upload the depends file
-        srcCluster = yield www_clusters.loadCluster('localhost',
-                                                    request.body['src_cluster'],
-                                                    request.body['user_name'])
+        srcClusters = yield www_clusters.listClusters('localhost',
+                                                      {'cluster_name': request.body['src_cluster']},
+                                                      request.body['user_name'])
+
+        srcCluster = srcClusters[0]
         
-        dstCluster = yield www_clusters.loadCluster('localhost',
-                                                    request.body['dst_cluster'],
-                                                    request.body['user_name'])
+        dstClusters = yield www_clusters.listClusters('localhost',
+                                                      {'cluster_name': request.body['dst_cluster']},
+                                                      request.body['user_name'])
+
+        dstCluster = dstClusters[0]
         
         dependsOn = srcTag['phantom'].get('depends_on', '').split()
         yield rsync.rsyncTo(dstCluster['master']['public_dns'],

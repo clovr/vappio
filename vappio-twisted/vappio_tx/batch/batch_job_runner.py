@@ -1,6 +1,3 @@
-import os
-import json
-
 from twisted.internet import defer
 
 from igs.utils import functional as func

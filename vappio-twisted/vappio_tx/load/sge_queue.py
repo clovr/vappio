@@ -1,8 +1,5 @@
 # Commands:
 # Update - qconf -rattr queue slots "[$HOSTNAME=$SLOTS]" $QUEUE
-
-import StringIO
-
 from twisted.internet import defer
 
 from igs_tx.utils import commands

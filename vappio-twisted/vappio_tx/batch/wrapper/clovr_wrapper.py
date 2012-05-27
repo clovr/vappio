@@ -201,9 +201,11 @@ def _monitorPipeline(batchState):
 def _delayAutoshutdown(state, batchState):
     _log(batchState, 'AUTOSHUTDOWN: Trying to touch autoshutdown file')
     try:
-        cluster = yield clusters_client.loadCluster('localhost',
-                                                    batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                    'guest')
+        clusters = yield clusters_client.listClusters('localhost',
+                                                      {'cluster_name':
+                                                           batchState['pipeline_config']['cluster.CLUSTER_NAME']},
+                                                      'guest')
+        cluster = clusters[0]
 
         if batchState.get('state', None) == COMPLETED_STATE:
             _log(batchState, 'AUTOSHUTDOWN: Pipeline complete, done')
@@ -300,17 +302,18 @@ def _run(state, batchState):
 
     if batchState['pipeline_state'] == STARTING_STATE:
         _log(batchState, 'Pipeline is in STARTING state')
-        clusterTask = yield clusters_client.startCluster('localhost',
-                                                         batchState['pipeline_config']['cluster.CLUSTER_NAME'],
-                                                         'guest',
-                                                         int(batchState['pipeline_config']['cluster.EXEC_NODES']),
-                                                         0,
-                                                         batchState['pipeline_config']['cluster.CLUSTER_CREDENTIAL'],
-                                                         {'cluster.master_type': batchState['pipeline_config']['cluster.MASTER_INSTANCE_TYPE'],
-                                                          'cluster.master_bid_price': batchState['pipeline_config']['cluster.MASTER_BID_PRICE'],
-                                                          'cluster.exec_type': batchState['pipeline_config']['cluster.EXEC_INSTANCE_TYPE'],
-                                                          'cluster.exec_bid_price': batchState['pipeline_config']['cluster.EXEC_BID_PRICE']})
-
+        clusterTask = yield clusters_client.startCluster(
+            'localhost',
+            batchState['pipeline_config']['cluster.CLUSTER_NAME'],
+            'guest',
+            int(batchState['pipeline_config']['cluster.EXEC_NODES']),
+            0,
+            batchState['pipeline_config']['cluster.CLUSTER_CREDENTIAL'],
+            {'cluster.master_type': batchState['pipeline_config']['cluster.MASTER_INSTANCE_TYPE'],
+             'cluster.master_bid_price': batchState['pipeline_config']['cluster.MASTER_BID_PRICE'],
+             'cluster.exec_type': batchState['pipeline_config']['cluster.EXEC_INSTANCE_TYPE'],
+             'cluster.exec_bid_price': batchState['pipeline_config']['cluster.EXEC_BID_PRICE']})
+        
         taskState = yield tasks.blockOnTask('localhost',
                                             'local',
                                             clusterTask)

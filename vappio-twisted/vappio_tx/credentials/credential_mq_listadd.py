@@ -2,6 +2,8 @@ import os
 
 from twisted.internet import defer
 
+from twisted.python import log
+
 from igs.utils import core
 from igs.utils import config
 
@@ -9,13 +11,36 @@ from igs_tx.utils import defer_pipe
 from igs_tx.utils import defer_utils
 
 from vappio_tx.utils import queue
+
+from vappio_tx.tasks import tasks as tasks_tx
+
 from vappio_tx.credentials import persist
+
+
 
 class Error(Exception):
     pass
 
 class UnknownRequestError(Error):
     pass        
+
+
+@defer_utils.timeIt
+@defer.inlineCallbacks
+def instantiateAndSaveCredential(taskName, cred, credentialPersist):
+    """
+    Make sure that the credential can be loaded, otherwise chuck it
+    """
+    try:
+        yield cred.ctype.instantiateCredential(cred.conf, cred)
+        yield credentialPersist.saveCredential(cred)
+        yield tasks_tx.updateTask(taskName,
+                                  lambda t : t.setState(tasks_tx.task.TASK_COMPLETED).progress())
+    except Exception, err:
+        log.err('Error loading credential')
+        log.err(err)
+        yield tasks_tx.updateTask(taskName,
+                                  lambda t : t.setState(tasks_tx.task.TASK_FAILED))
 
 @defer_utils.timeIt
 @defer.inlineCallbacks
@@ -37,7 +62,9 @@ def handleWWWListAddCredentials(request):
             pkey = open(request.body['pkey_file']).read()
         else:
             pkey = request.body['pkey']
-            
+
+        conf = config.configFromMap(request.body.get('conf', {}),
+                                    base=config.configFromEnv())
         cred = persist.createCredential(name=request.body['credential_name'],
                                         desc=request.body['description'],
                                         ctype=request.body['ctype'],
@@ -45,14 +72,15 @@ def handleWWWListAddCredentials(request):
                                         pkey=pkey,
                                         active=True,
                                         metadata=request.body['metadata'],
-                                        conf=config.configFromMap(request.body.get('conf', {}),
-                                                                  base=config.configFromEnv()))
+                                        conf=conf)
 
-        yield request.state.credentialPersist.saveCredential(cred)
+        taskName = yield tasks_tx.createTaskAndSave('addCredential', 1)
+
+        instantiateAndSaveCredential(taskName, cred, request.state.credentialPersist)
 
         queue.returnQueueSuccess(request.mq,
                                  request.body['return_queue'],
-                                 True)
+                                 taskName)
         defer.returnValue(request)                                       
     elif 'credential_name' not in request.body:
         credentials = request.state.credentialsCache.getAllCredentials()

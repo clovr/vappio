@@ -3,7 +3,6 @@
 import pymongo
 
 from twisted.internet import threads
-from twisted.internet import defer
 
 class Cache:
     def __init__(self, name, uniqF=None):

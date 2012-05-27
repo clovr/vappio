@@ -1,6 +1,3 @@
-from twisted.internet import defer
-from twisted.internet import reactor
-
 from igs.utils import config
 
 from vappio_tx.credentials.ctypes import nimbus

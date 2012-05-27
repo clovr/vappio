@@ -88,9 +88,11 @@ def handleWWWRunPipeline(request):
 
     @defer.inlineCallbacks
     def _startRemotePipeline(request):
-        cluster = yield clusters_client.loadCluster(request.body['cluster'],
-                                                    request.body['user_name'])
+        clusters = yield clusters_client.listClusters({'cluster_name': request.body['cluster']},
+                                                      request.body['user_name'])
 
+        cluster = clusters[0]
+        
         # Forward the request on to the remote cluster, set parent_pipeline to None
         ret = yield pipelines_www_client.runPipeline(cluster['master']['public_dns'],
                                                      'local',

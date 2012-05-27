@@ -1,7 +1,6 @@
 import os
 import urlparse
 
-from twisted.internet import reactor
 from twisted.internet import defer
 
 from twisted.python import log

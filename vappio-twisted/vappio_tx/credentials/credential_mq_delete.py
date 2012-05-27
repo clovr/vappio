@@ -18,7 +18,7 @@ class CredentialInUseError(Error):
 @defer.inlineCallbacks
 def handleWWWDeleteCredential(request):
     clusters = yield clusters_client.listClusters('localhost',
-                                                  'local',
+                                                  {},
                                                   'guest')
 
     for cluster in clusters:

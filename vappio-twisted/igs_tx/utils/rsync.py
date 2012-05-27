@@ -1,7 +1,5 @@
 from twisted import python
 
-from igs.utils import core
-
 from igs_tx.utils import commands
 
 

@@ -4,7 +4,6 @@ from igs.utils import dependency
 from igs.utils import functional as func
 from igs.utils import config
 
-from igs_tx.utils import defer_utils
 from igs_tx.utils import defer_work_queue
 
 from vappio_tx.tasks import tasks as tasks_tx

@@ -1,8 +1,9 @@
 import sys
 import json
 
-from twisted.python import reflect
+from twisted.internet import defer
 
+from twisted.python import reflect
 
 from igs.utils import functional as func
 from igs.utils import core
@@ -86,33 +87,31 @@ def createTaskAndForward(dstQueue, tType, numTasks):
     return _
 
 
+
 def forwardRequestToCluster(url):
     """
     If the cluster described in `body` is not `local` then forward the request
     to the provided URL, otherwise return whatever f returns.  f must return
     a deferred
     """
+    @defer.inlineCallbacks
     def _(request):
         if request.body['cluster'] == 'local':
-            return defer_pipe.ret(request)
+            defer.returnValue(request)
         else:
-            clusterDefer = clusters_client.loadCluster(request.body['cluster'],
-                                                       request.body['user_name'])
+            clusters = yield clusters_client.listClusters({'cluster_name': request.body['cluster']},
+                                                          request.body['user_name'])
 
-            def _askRemoteServer(cl):
-                return http.performQuery(cl['master']['public_dns'],
-                                         url,
-                                         func.updateDict(request.body, {'cluster': 'local'}),
-                                         timeout=10,
-                                         tries=3)
-
-            def _setResponse(r):
-                return request.update(response=r)
+            cluster = clusters[0]
             
-            clusterDefer.addCallback(_askRemoteServer)
-            clusterDefer.addCallback(_setResponse)
-            return defer_pipe.emitDeferred(clusterDefer)
+            ret = yield http.performQuery(cluster['master']['public_dns'],
+                                          url,
+                                          func.updateDict(request.body, {'cluster': 'local'}),
+                                          timeout=10,
+                                          tries=3)
 
+            defer_pipe.emit(request.update(response=ret))
+            
     return _
 
 

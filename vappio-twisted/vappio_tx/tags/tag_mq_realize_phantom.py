@@ -61,7 +61,10 @@ def handleRealizePhantom(request):
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.setState(tasks_tx.task.TASK_RUNNING).update(numTasks=1))
     
-    localCluster = yield www_clusters.loadCluster('localhost', 'local', request.body['user_name'])
+    localClusters = yield www_clusters.listClusters('localhost',
+                                                   {'cluster_name': 'local'},
+                                                    request.body['user_name'])
+    localCluster = localClusters[0]
     ctype = localCluster['config']['general.ctype']
 
     dstTagPath = os.path.join(localCluster['config']['dirs.upload_dir'],

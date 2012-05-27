@@ -8,23 +8,9 @@
 # serviceStatus - Information about the service, such as tags currently being executed - sync
 
 from twisted.internet import defer
-from twisted.internet import reactor
 
-from twisted.python import log
-
-from igs.utils import functional as func
-
-from vappio.tasks import task
-
-from igs_tx.utils import defer_pipe
-
-
-from vappio_tx.utils import queue
-from vappio_tx.utils import core as vappio_tx_core
 
 from vappio_tx.mq import client
-
-from vappio_tx.tasks import tasks as tasks_tx
 
 from vappio_tx.tags import persist
 from vappio_tx.tags import tags_cache

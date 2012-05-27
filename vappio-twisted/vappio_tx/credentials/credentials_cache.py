@@ -107,8 +107,6 @@ class CredentialsCache(dependency.Dependable):
         try: 
             yield defer.DeferredList([self.loadAndCacheCredential(c.name)
                                       for c in credentials])
-
-            self.state.refreshInstancesDelayed = reactor.callLater(0, self.refreshInstances)
         except Exception, err:        
             log.err(err)
             reactor.callLater(10, self.loadCredentials)
@@ -122,6 +120,7 @@ class CredentialsCache(dependency.Dependable):
         return defer.succeed(None)
 
 
+    @defer_utils.timeIt
     @defer.inlineCallbacks
     def refreshInstances(self):
 

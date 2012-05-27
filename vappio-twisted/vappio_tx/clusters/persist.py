@@ -2,17 +2,26 @@ import json
 
 import pymongo
 
+from twisted.internet import defer
 from twisted.internet import threads
 
 from igs.utils import functional as func
 from igs.utils import config
+from igs.utils import dependency
 
-class ClusterNotFoundError(Exception):
-    def __init__(self, clusterName):
+class Error(Exception):
+    pass
+
+class ClusterNotFoundError(Error):
+    def __init__(self, clusterName, userName):
         self.clusterName = clusterName
+        self.userName = userName
 
     def __str__(self):
-        return 'Cluster %s was not found' % self.clusterName
+        return '(%s, %s)' % (self.clusterName, self.userName)
+
+class TooManyClustersFoundError(ClusterNotFoundError):
+    pass
 
 class Cluster(func.Record):
     """Simple representation for a cluster"""
@@ -43,94 +52,162 @@ class Cluster(func.Record):
         return self.update(state=state)
 
     def addExecNodes(self, execNodes):
-        return self.update(execNodes=self.execNodes + execNodes)
+        execNodes = list(execNodes)
+        instances = set([self._instanceId(i)
+                         for i in execNodes])
+        for i in self.execNodes:
+            if self._instanceId(i) not in instances:
+                execNodes.append(i)
+
+        return self.update(execNodes=execNodes)
+
+    def removeExecNodes(self, remExecNodes):
+        remExecIds = set([self._instanceId(i)
+                          for i in remExecNodes])
+        
+        execNodes = []
+        
+        for i in self.execNodes:
+            if self._instanceId(i) not in remExecIds:
+                execNodes.append(i)
+
+        return self.update(execNodes=execNodes)
 
     def addDataNodes(self, dataNodes):
         return self.update(dataNodes=self.dataNodes + dataNodes)
 
+    def removeDataNodes(self, remDataNodes):
+        remDataIds = set([self._instanceId(i)
+                          for i in remDataNodes])
+        
+        dataNodes = []
+        
+        for i in self.dataNodes:
+            if self._instanceId(i) not in remDataIds:
+                dataNodes.append(i)
 
-
-def clusterToDict(cluster):
-    return dict(user_name=cluster.userName,
-                cluster_name=cluster.clusterName,
-                state=cluster.state,
-                cred_name=cluster.credName,
-                config=config.configToDict(cluster.config),
-                start_task=cluster.startTask,
-                add_instance_tasks=cluster.addInstanceTasks,
-                exec_nodes=cluster.execNodes,
-                data_nodes=cluster.dataNodes,
-                master=cluster.master)
-
-def clusterFromDict(d):
-    cl = Cluster(clusterName=d['cluster_name'],
-                 userName=d['user_name'],
-                 credName=d['cred_name'],
-                 config=config.configFromMap(d['config']))
-    cl = cl.setMaster(d['master']).setState(d['state']).addExecNodes(d['exec_nodes']).addDataNodes(d['data_nodes'])
-    cl = cl.update(startTask=d['start_task'])
-    return cl
-
-def loadCluster(clusterName, userName):
-    def _loadCluster():
-        conn = pymongo.Connection()
-        if clusterName == 'local':
-            return conn.clovr.clusters.find_one(dict(cluster_name='local'))
-        else:
-            return conn.clovr.clusters.find_one(dict(cluster_name=clusterName, user_name=userName))
-
-    d = threads.deferToThread(_loadCluster)
+        return self.update(dataNodes=dataNodes)
     
-    def _checkForEmptyResponse(r):
-        if r is None:
-            raise ClusterNotFoundError(clusterName)
-        return r
+    def _instanceId(self, instance):
+        return (instance['instance_id'], instance['spot_request_id'])
 
-    d.addCallback(_checkForEmptyResponse)
-    #
-    # Conf needs to be converted to json when stored, so undo that
-    d.addCallback(lambda c : clusterFromDict(func.updateDict(c, dict(config=json.loads(c['config'])))))
-    return d
 
-def loadAllClusters(userName):
-    def _loadAllClusters():
-        conn = pymongo.Connection()
-        return list(conn.clovr.clusters.find(dict(user_name=userName))) + list(conn.clovr.clusters.find(dict(cluster_name='local')))
+class ClusterPersistManager(dependency.Dependable):
+    def __init__(self):
+        dependency.Dependable.__init__(self)
 
-    d = threads.deferToThread(_loadAllClusters)
 
-    def _convertFromDict(cls):
-        return [clusterFromDict(func.updateDict(c, dict(config=json.loads(c['config']))))
-                for c in cls]
+    def clusterToDocument(self, cluster):
+        return dict(user_name=cluster.userName,
+                    cluster_name=cluster.clusterName,
+                    state=cluster.state,
+                    cred_name=cluster.credName,
+                    config=json.dumps(config.configToDict(cluster.config)),
+                    start_task=cluster.startTask,
+                    add_instance_tasks=cluster.addInstanceTasks,
+                    exec_nodes=cluster.execNodes,
+                    data_nodes=cluster.dataNodes,
+                    master=cluster.master)
 
-    d.addCallback(_convertFromDict)
-    return d
+    def clusterToDict(self, cluster):
+        d = self.clusterToDocument(cluster)
+        d['config'] = json.loads(d['config'])
+        return d
+    
+    def clusterFromDocument(self, d):
+        cl = Cluster(clusterName=d['cluster_name'],
+                     userName=d['user_name'],
+                     credName=d['cred_name'],
+                     config=config.configFromMap(json.loads(d['config'])))
+        cl = cl.setMaster(d['master'])
+        cl = cl.setState(d['state'])
+        cl = cl.addExecNodes(d['exec_nodes'])
+        cl = cl.addDataNodes(d['data_nodes'])
+        cl = cl.update(startTask=d['start_task'])
+        return cl
 
-def loadClustersAdmin(clusterName=None):
-    query = dict()
-    if clusterName:
-        query['cluster_name'] = clusterName
+    def clusterFromDict(self, d):
+        d = dict(d)
+        d['config'] = json.dumps(d['config'])
+        return self.clusterFromDocument(d)
 
-    d = threads.deferToThread(lambda : pymongo.Connection().clovr.clusters.find(query))
-    def _convertFromDict(cls):
-        return [clusterFromDict(func.updateDict(c, dict(config=json.loads(c['config']))))
-                for c in cls]
+    @defer.inlineCallbacks
+    def loadClustersByAdmin(self, criteria):
+        def _loadCluster():
+            conn = pymongo.Connection()
+            return conn.clovr.clusters.find(criteria)
 
-    d.addCallback(_convertFromDict)
-    return d
+        clustersDoc = yield _loadCluster()
+        clusters = map(self.clusterFromDocument, clustersDoc)
+        
+        self.changed('load', clusters)
+        
+        defer.returnValue(clusters)
 
-def saveCluster(cluster):
-    if cluster.userName is None:
-        userName = ''
-    else:
-        userName = str(cluster.userName)
-    dc = func.updateDict(clusterToDict(cluster), dict(_id=cluster.clusterName + '-' + userName))
-    dc['config'] = json.dumps(dc['config'])
-    d = threads.deferToThread(lambda : pymongo.Connection().clovr.clusters.save(dc, safe=True))
 
-    return d
+    def loadClustersBy(self, criteria, userName):
+        criteria = func.updateDict(criteria,
+                                   {'user_name': {'$in': [userName, None]}})
+        return self.loadClustersByAdmin(criteria)
+        
 
-def removeCluster(cluster):
-    return threads.deferToThread(lambda : pymongo.Connection().clovr.clusters.remove(dict(cluster_name=cluster.clusterName,
-                                                                                          user_name=cluster.userName)))
+    @defer.inlineCallbacks
+    def loadCluster(self, clusterName, userName):
+        clusters = yield self.loadClustersBy({'cluster_name': clusterName},
+                                             userName)
+
+        if not clusters:
+            raise ClusterNotFoundError(clusterName, userName)
+        elif len(clusters) > 1:
+            raise TooManyClustersFoundError(clusterName, userName)
+        else:
+            defer.returnValue(clusters[0])
+
+    @defer.inlineCallbacks
+    def saveCluster(self, cluster):
+        clusterDoc = self.clusterToDocument(cluster)
+
+        def _saveCluster():
+            clusterDoc['_id'] = (clusterDoc['cluster_name'] +
+                                 '_' +
+                                 str(clusterDoc['user_name']))
+            return pymongo.Connection().clovr.clusters.save(clusterDoc,
+                                                            safe=True)
+
+        yield threads.deferToThread(_saveCluster)
+
+        self.changed('save', cluster)
+
+        defer.returnValue(cluster)
+
+    @defer.inlineCallbacks
+    def removeClustersByAdmin(self, criteria):
+        """
+        Removes a cluster by criteria.  We actually load
+        all clusters that match the criteria prior to
+        deleting so we can notify anyone that cares of
+        which clusters got removed
+        """
+        def _removeCluster():
+            clusters = pymongo.Connection().clovr.clusters
+            return clusters.remove(criteria)
+
+        clusters = yield self.loadClustersByAdmin(criteria)
+        yield threads.deferToThread(_removeCluster)
+
+        self.changed('remove', clusters)
+        
+        yield threads.deferToThread(_removeCluster)
+
+        defer.returnValue(clusters)
+
+    def removeClustersBy(self, criteria, userName):
+        criteria = func.updateDict(criteria,
+                                   {'user_name': userName})
+        return self.removeClustersByAdmin(criteria)
+
+    def removeCluster(self, clusterName, userName):
+        return self.removeClustersBy({'cluster_name': clusterName},
+                                     userName)
+        
 

@@ -1,11 +1,8 @@
 import os
 import hashlib
 
-from twisted.python import log
-
 from twisted.internet import defer
 
-from igs.utils import logging
 from igs.utils import functional as func
 
 from igs_tx.utils import defer_pipe

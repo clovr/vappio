@@ -10,8 +10,6 @@ from igs.utils import config
 
 from igs_tx.utils import commands
 
-from vappio_tx.pipelines import persist
-
 from vappio_tx.www_client import pipelines as pipeline_www
 from vappio_tx.www_client import clusters as clusters_www
 
@@ -117,16 +115,18 @@ def run(state, pipeline):
 @defer.inlineCallbacks
 def resume(state, pipeline):
     # Restart childen first
-    for cl, child in pipeline.children:
-        if cl == 'local':
+    for clusterName, child in pipeline.children:
+        if clusterName == 'local':
             childPipeline = yield state.pipelinePersist.loadPipelineBy({'pipeline_name': child},
                                                                        pipeline.userName)
             yield resume(state, childPipeline)
         else:
             try:
-                cluster = yield clusters_www.loadCluster('localhost',
-                                                         cl,
-                                                         'guest')
+                clusters = yield clusters_www.listClusters('localhost',
+                                                           {'cluster_name': clusterName},
+                                                           'guest')
+
+                cluster = clusters[0]
                                                         
                 yield pipeline_www.resumePipeline(cluster['master']['public_dns'],
                                                   'local',
@@ -134,6 +134,7 @@ def resume(state, pipeline):
                                                   child)
             except Exception, err:
                 log.err('Error trying to resume child')
+                log.err(err)
 
     # Reset the pipeline task to IDLE
     yield tasks_tx.updateTask(pipeline.taskName,

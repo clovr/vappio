@@ -1,3 +1,4 @@
+import os
 import time
 
 import pymongo
@@ -62,6 +63,9 @@ def _pipelineProgress(workflowXML):
     return (complete, total)
 
 def _pipelineState(workflowXML):
+    if not os.path.exists(workflowXML):
+        return tasks_tx.task.TASK_FAILED
+    
     for _ in range(10):
         for line in open(workflowXML):
             if '<state>' in line:
@@ -182,7 +186,7 @@ class PipelineMonitor(dependency.Dependable):
         messages = []
 
         clusters = yield clusters_client.listClusters('localhost',
-                                                      'local',
+                                                      {},
                                                       pl.userName)
 
         clusterNames = set([c['cluster_name']

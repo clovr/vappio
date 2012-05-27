@@ -44,9 +44,9 @@ def tagToDict(t):
 def tagFromDict(d):
     return Tag(tagName=d['tag_name'],
                files=d['files'],
-               metadata=dict(t.metadata),
+               metadata=dict(d['metadata']),
                phantom=config.configFromMap(d['phantom']) if d['phantom'] else None,
-               taskName=t.metadata.get('task_name'))
+               taskName=d['metadata'].get('task_name'))
 
 
 def _createTagPath(conf, tagName):

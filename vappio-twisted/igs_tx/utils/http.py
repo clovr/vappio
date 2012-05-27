@@ -2,7 +2,9 @@ import urllib
 import json
 
 from twisted.python import log
+
 from twisted.internet import reactor
+
 from twisted.web import client
 
 from igs.utils import functional as func
@@ -81,8 +83,9 @@ def performQuery(host, url, var, headers=None, timeout=30, tries=4, debug=False)
         data = result['data']
         if not result['success']:
             log.err(repr(data))
-            raise errors.TryError('Query failed: ' + data['msg'], data)
-
+            raise errors.RemoteError(data['name'],
+                                     data['msg'],
+                                     data['stacktrace'])
         return data
 
     d.addCallback(_parse)
