@@ -48,14 +48,18 @@ def terminateRemoteCluster(request, authToken):
         # In this case another part of the system is in charge
         # of forgetting about the clusters we shouldn't know
         if err.name != 'igs.utils.auth_token.AuthTokenError':
+            log.err(err)
             yield terminateCluster(credClient,
+                                   persistManager,
                                    request.body['cluster_name'],
                                    request.body['user_name'])
         else:
             raise
-    except:
+    except Exception, err:
+        log.err(err)
         # Any other random error means we have to try to kill
         yield terminateCluster(credClient,
+                               persistManager,
                                request.body['cluster_name'],
                                request.body['user_name'])
         

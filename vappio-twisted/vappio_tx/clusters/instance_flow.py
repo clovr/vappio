@@ -45,6 +45,7 @@ WAIT_FOR_SERVICES_TRIES = 3
 def startMaster(state, credClient, taskName, cluster):
     @defer.inlineCallbacks
     def _saveCluster(instances):
+        instances = yield credClient.updateInstances(instances)
         cl = yield state.persistManager.loadCluster(cluster.clusterName,
                                                     cluster.userName)
 
@@ -136,6 +137,7 @@ def startMaster(state, credClient, taskName, cluster):
 def startExecs(state, credClient, taskName, numExec, cluster):
     @defer.inlineCallbacks
     def _saveCluster(instances):
+        instances = yield credClient.updateInstances(instances)
         cl = yield state.persistManager.loadCluster(cluster.clusterName,
                                                     cluster.userName)
         cl = cl.addExecNodes(instances)
