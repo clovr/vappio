@@ -106,6 +106,7 @@ def _handleTerminateCluster(request):
                                                       request.mq,
                                                       request.state.conf)
             yield terminateCluster(credClient,
+                                   persistManager,
                                    'local',
                                    request.body['user_name'])
         else:
