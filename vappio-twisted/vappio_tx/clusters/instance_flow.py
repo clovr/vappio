@@ -126,6 +126,9 @@ def startMaster(state, credClient, taskName, cluster):
     cl = yield state.persistManager.loadCluster(cl.clusterName,
                                                 cl.userName)
 
+    cl = cl.setState(cl.RUNNING)
+    yield state.persistManager.saveCluster(cl)
+    
     defer.returnValue(cl)
 
 
