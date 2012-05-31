@@ -1,5 +1,7 @@
 from twisted.internet import defer
 
+from twisted.python import log
+
 from igs.utils import auth_token
 from igs.utils import errors
 from igs.utils import functional as func
@@ -18,6 +20,19 @@ from vappio_tx.www_client import clusters as clusters_client_www
 REMOVE_CLUSTER_TIMEOUT = 120
 
 @defer.inlineCallbacks
+def terminateCluster(credClient, persistManager, clusterName, userName):
+    cluster = yield persistManager.loadCluster(clusterName, userName)
+
+    yield defer_utils.mapSerial(lambda instances :
+                                    credClient.terminateInstances(instances),
+                                func.chunk(5, cluster.execNodes + cluster.dataNodes))
+
+    if cluster.master:
+        yield credClient.terminateInstances([cluster.master])
+
+    defer.returnValue(cluster.setState(cluster.TERMINATED))
+
+@defer.inlineCallbacks
 def terminateRemoteCluster(request, authToken):
     persistManager = request.state.persistManager
 
@@ -29,11 +44,11 @@ def terminateRemoteCluster(request, authToken):
 
     try:
         if cluster.master:
-            terminateCluster = clusters_client_www.terminateCluster
-            remoteTaskName = yield terminateCluster(cluster.master['public_dns'],
-                                                    'local',
-                                                    None,
-                                                    authToken)
+            wwwTerminateCluster = clusters_client_www.terminateCluster
+            remoteTaskName = yield wwwTerminateCluster(cluster.master['public_dns'],
+                                                       'local',
+                                                       None,
+                                                       authToken)
             localTask = yield tasks_tx.loadTask(request.body['task_name'])
             yield tasks_tx.blockOnTaskAndForward('localhost',
                                                  request.body['cluster_name'],
@@ -63,20 +78,6 @@ def terminateRemoteCluster(request, authToken):
                                request.body['cluster_name'],
                                request.body['user_name'])
         
-    defer.returnValue(cluster.setState(cluster.TERMINATED))
-
-
-@defer.inlineCallbacks
-def terminateCluster(credClient, persistManager, clusterName, userName):
-    cluster = yield persistManager.loadCluster(clusterName, userName)
-
-    yield defer_utils.mapSerial(lambda instances :
-                                    credClient.terminateInstances(instances),
-                                func.chunk(5, cluster.execNodes + cluster.dataNodes))
-
-    if cluster.master:
-        yield credClient.terminateInstances([cluster.master])
-
     defer.returnValue(cluster.setState(cluster.TERMINATED))
 
     

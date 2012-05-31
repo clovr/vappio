@@ -25,7 +25,7 @@ def updateUnresponsiveClusters(clusterMap, clusters):
 
     ## Remove the clusters that are no longer unresponsive
     for c in removeClusters:
-        clusterMap.pop()
+        clusterMap.pop(c)
 
     ## Update the amount of time that a cluster has been unresponsive.
     ## This assumes that this function runs ever REFRESH_FREQUENCY

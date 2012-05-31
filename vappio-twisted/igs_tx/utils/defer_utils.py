@@ -8,32 +8,46 @@ from twisted.python import log
 
 from igs.utils import logging
 
-def mapSerial(f, iterable):
+def mapPar(f, iterable, parallel=1):
     """
-    Take an iterable and a function and iterate over it in serial calling f returning a list
-    of the result of f.  If any call to f throws an exception the entire operation fails.
-
-    This returns a Deferred
+    Takes a function, an iterable, and optional number
+    of parallel tasks to perform.  Returns a list of
+    results of applying f to the iterable.  The results
+    are guaranteed to be in the same order as specified
+    in the iterable
     """
-    d = defer.Deferred()
-
-    i = iter(iterable)
-    res = []
-    def _iterate():
+    @defer.inlineCallbacks
+    def _f(i, res, d, completed, errored):
+        completed['running'] += 1
         try:
-            item = i.next()
-            fDefer = f(item)
-            fDefer.addCallback(lambda r : res.append(r))
-            fDefer.addCallback(lambda _ : reactor.callLater(0, _iterate))
-            fDefer.addErrback(d.errback)
+            if not errored:
+                idx, item = i.next()
+                res.append(None)
+                try:
+                    res[idx] = yield f(item)
+                    completed['running'] -= 1
+                    _f(i, res, d, completed, errored)
+                except Exception, err:
+                    if not errored:
+                        errored.append(True)
+                        d.errback(err)
         except StopIteration:
-            d.callback(res)
-        except:
-            d.errback(failure.Failure())
+            if completed['running'] == 1:
+                d.callback(res)
 
-    _iterate()
+    i = iter(enumerate(iterable))
+    res = []
+    d = defer.Deferred()
+    completed = {'running': 0}
+    errored = []
+
+    for _ in range(parallel):
+        _f(i, res, d, completed, errored)
+
     return d
-    
+
+def mapSerial(f, iterable):
+    return mapPar(f, iterable, parallel=1)
 
 
 def fold(f, init, iterable):

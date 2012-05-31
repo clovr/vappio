@@ -173,3 +173,5 @@ def saveCredential(credName, description, ctype, cert, pkey, metadata, conf):
                                       metadata,
                                       config.configToDict(conf))
 
+def listCredentials():
+    return credentials.listCredentials('localhost', 'local')

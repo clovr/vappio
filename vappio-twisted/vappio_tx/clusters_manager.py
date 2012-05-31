@@ -18,6 +18,7 @@ from vappio_tx.clusters import persist
 
 from vappio_tx.clusters import clusters_cleanup
 from vappio_tx.clusters import cluster_refresh
+from vappio_tx.clusters import clusters_orphans
 
 from vappio_tx.clusters import cluster_mq_addinstances
 from vappio_tx.clusters import cluster_mq_config
@@ -41,8 +42,6 @@ class State:
                                                    base=config.configFromEnv())
         self.clusterLocks = lock_manager.LockManager()
         self.unresponsiveClusters = {}
-    
-        
 
 @defer_utils.timeIt
 @defer.inlineCallbacks
@@ -193,21 +192,30 @@ def runSubscribe(mq, state, modules):
     for f in modules:
         yield defer.maybeDeferred(f, mq, state)
         
-
+@defer.inlineCallbacks
 def subscribeToQueues(mq, state):
-    runSubscribe(mq,
-                 state,
-                 [loadLocalCluster,
-                  removeDeadClusters,
-                  resumePendingClusters,
-                  cluster_mq_startcluster.subscribe,
-                  cluster_mq_terminate.subscribe,
-                  cluster_mq_terminateinstances.subscribe,
-                  cluster_mq_addinstances.subscribe,
-                  cluster_mq_list.subscribe,
-                  cluster_mq_config.subscribe,
-                  clusters_cleanup.subscribe,
-                  cluster_refresh.subscribe])
+    yield runSubscribe(mq,
+                       state,
+                       [loadLocalCluster,
+                        removeDeadClusters,
+                        resumePendingClusters,
+                        cluster_mq_startcluster.subscribe,
+                        cluster_mq_terminate.subscribe,
+                        cluster_mq_terminateinstances.subscribe,
+                        cluster_mq_addinstances.subscribe,
+                        cluster_mq_list.subscribe,
+                        cluster_mq_config.subscribe,
+                        clusters_cleanup.subscribe,
+                        cluster_refresh.subscribe])
+
+    # We only want to run this if we are on a local master
+    # otherwise remote clusters will be terminating a lot
+    # of instances
+    #
+    # Orphans stuff has a few things that need to be
+    # fixed before it can go out
+    #if state.machineConf('general.ctype') == 'UNKNOWN':
+    #    clusters_orphans.subscribe(mq, state)
     
 
 def makeService(conf):

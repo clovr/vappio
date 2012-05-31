@@ -70,13 +70,11 @@ def refreshClusters(mq, state):
                         cluster.master['public_dns']))
                 yield persistManager.removeCluster(cluster.clusterName,
                                                    cluster.userName)
-            except errors.RemoteError:
-                ## The cluster did not respond to us, mark it as unresponsive
+            except Exception, err:
+                log.msg('REFRESH: Error')
+                log.err(err)
                 cluster = cluster.setState(cluster.UNRESPONSIVE)
                 yield persistManager.saveCluster(cluster)
-            except Exception, err:
-                ## In any other case, just log and move on
-                log.err(err)
 
     except Exception, err:
         ## Incase anything goes wrong, try again

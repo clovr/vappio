@@ -12,7 +12,8 @@ from vappio_tx.credentials import credentials_misc
 def handleTerminateInstances(request):
     if request.body['instances']:
         yield request.credential.terminateInstances([request.credential.instanceFromDict(i)
-                                                    for i in request.body['instances']])
+                                                    for i in request.body['instances']],
+                                                    log=True)
 
         request.state.credentialsCache.invalidate(request.credential.name)
 
