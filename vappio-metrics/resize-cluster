@@ -23,7 +23,7 @@ for line in sys.stdin:
 if [v for v in kv.values() if not v]:
     raise Exception('Not all expected values present in config')
 
-cl = cluster.listClusters({'cluster_name': 'localhost'}, kv['cluster.CLUSTER_NAME'])[0]
+cl = cluster.listClusters('localhost', {'cluster_name': kv['cluster.CLUSTER_NAME']})[0]
 
 wantInstances = int(kv['pipeline.EXEC_WANT_INSTANCES'])
 

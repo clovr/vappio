@@ -54,7 +54,7 @@ if set(requiredKeys) - set(kv.keys()):
 # value, but the chances of that are really slim
 computedCPUHours = int(float(kv['pipeline.COMPUTED_CPU_HOURS']) + 1)
 
-cl = cluster.listClusters({'cluster_name': 'localhost'}, kv['cluster.CLUSTER_NAME'])[0]
+cl = cluster.listClusters('localhost', {'cluster_name': kv['cluster.CLUSTER_NAME']})[0]
 #
 # Artificial number here, this will go away at some point
 maxExecNodes = int(kv.get('pipeline.EXEC_MAX_INSTANCES', 0)) or int(cl['config'].get('cluster.exec_max_instances', 10000))
