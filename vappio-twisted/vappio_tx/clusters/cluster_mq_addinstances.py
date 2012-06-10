@@ -30,11 +30,11 @@ def _handleAddInstances(request):
 
     if cType != 'local':
         if request.body['num_exec'] > 0:
-            yield instance_flow.startExec(request.state,
-                                          credClient,
-                                          request.body['task_name'],
-                                          request.body['num_exec'],
-                                          cluster)
+            yield instance_flow.startExecs(request.state,
+                                           credClient,
+                                           request.body['task_name'],
+                                           request.body['num_exec'],
+                                           cluster)
     
     defer.returnValue(request)
 
