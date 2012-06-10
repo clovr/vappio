@@ -152,7 +152,7 @@ def startExecs(state, credClient, taskName, numExec, cluster):
     
 
     groups = [g.strip()
-              for g in cl.config('cluster.exec_groups').split(',')]
+              for g in cluster.config('cluster.exec_groups').split(',')]
     execInstances = yield runInstances(credClient,
                                        cluster.config('cluster.ami'),
                                        cluster.config('cluster.key'),
