@@ -73,8 +73,14 @@ def refreshClusters(mq, state):
             except Exception, err:
                 log.msg('REFRESH: Error')
                 log.err(err)
-                cluster = cluster.setState(cluster.UNRESPONSIVE)
-                yield persistManager.saveCluster(cluster)
+                currCluster = yield persistManager.loadCluster(cluster.clusterName,
+                                                               cluster.uesrName)
+
+                ## The state of the cluster could have changed since
+                ## we tried to access it
+                if currCluster.state in [cluster.RUNNING, cluster.UNRESPONSIVE]:
+                    cluster = cluster.setState(cluster.UNRESPONSIVE)
+                    yield persistManager.saveCluster(cluster)
 
     except Exception, err:
         ## Incase anything goes wrong, try again
