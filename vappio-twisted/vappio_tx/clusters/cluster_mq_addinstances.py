@@ -19,7 +19,7 @@ def _handleAddInstances(request):
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.setState(tasks_tx.task.TASK_RUNNING))
 
-    cluster = yield request.state.persistManager.loadCluster(request.body['cluster_name'],
+    cluster = yield request.state.persistManager.loadCluster(request.body['cluster'],
                                                              request.body['user_name'])
 
     credClient = cred_client.CredentialClient(cluster.credName,
@@ -47,7 +47,7 @@ def forwardOrCreateTask(url, dstQueue, tType, numTasks):
 
 @defer.inlineCallbacks
 def handleAddInstances(request):
-    ret = yield request.state.clusterLocks.run((request.body['cluster_name'],
+    ret = yield request.state.clusterLocks.run((request.body['cluster'],
                                                 request.body['user_name']),
                                                _handleAddInstances,
                                                request)
@@ -63,7 +63,7 @@ def subscribe(mq, state):
                                           'addInstances',
                                           0)
 
-    processAddPipe = defer_pipe.pipe([queue.keysInBody(['cluster_name',
+    processAddPipe = defer_pipe.pipe([queue.keysInBody(['cluster',
                                                         'user_name',
                                                         'num_exec',
                                                         'num_data']),

@@ -3,6 +3,8 @@ from twisted.internet import defer
 
 from twisted.python import log
 
+from igs.utils import auth_token
+
 from vappio_tx.internal_client import clusters as clusters_client
 
 # Refresh cluster information every sixty seconds
