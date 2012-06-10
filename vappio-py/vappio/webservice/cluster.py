@@ -26,7 +26,7 @@ def addInstances(host, name, numExec, numData):
 
     updateDirs is being deprecated
     """
-    return performQuery(host, ADDINSTANCES_URL, dict(cluster_name=name,
+    return performQuery(host, ADDINSTANCES_URL, dict(cluster=name,
                                                      num_exec=numExec,
                                                      num_data=numData))
 
