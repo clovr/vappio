@@ -74,7 +74,7 @@ def refreshClusters(mq, state):
                 log.msg('REFRESH: Error')
                 log.err(err)
                 currCluster = yield persistManager.loadCluster(cluster.clusterName,
-                                                               cluster.uesrName)
+                                                               cluster.userName)
 
                 ## The state of the cluster could have changed since
                 ## we tried to access it
