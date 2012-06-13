@@ -20,7 +20,7 @@ def startCluster(host, cluster, num_exec, num_data, cred, conf):
                                                      cred_name=cred,
                                                      conf=conf))
 
-def addInstances(host, name, numExec, numData):
+def addInstances(host, name, numExec, execType, numData):
     """
     Add instance to a cluster
 
@@ -28,6 +28,7 @@ def addInstances(host, name, numExec, numData):
     """
     return performQuery(host, ADDINSTANCES_URL, dict(cluster=name,
                                                      num_exec=numExec,
+                                                     exec_instance_type=execType,
                                                      num_data=numData))
 
 def terminateCluster(host, cluster):
