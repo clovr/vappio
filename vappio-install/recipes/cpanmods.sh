@@ -9,6 +9,9 @@ echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/tr
 #q
 #.
 
+#Install version of POD::Simple to avoid bug
+cpan -fi D/DW/DWHEELER/Pod-Simple-3.20.tar.gz
+
 # Avoid a circular dependency in the new version of DateTime-TimeZone
 cpan -fi D/DR/DROLSKY/DateTime-TimeZone-1.42.tar.gz
 
