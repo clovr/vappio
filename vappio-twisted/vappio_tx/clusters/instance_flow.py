@@ -134,7 +134,7 @@ def startMaster(state, credClient, taskName, cluster):
 
 
 @defer.inlineCallbacks
-def startExecs(state, credClient, taskName, numExec, cluster):
+def startExecs(state, credClient, taskName, numExec, execType, cluster):
     @defer.inlineCallbacks
     def _saveCluster(instances):
         instances = yield credClient.updateInstances(instances)
@@ -153,10 +153,11 @@ def startExecs(state, credClient, taskName, numExec, cluster):
 
     groups = [g.strip()
               for g in cluster.config('cluster.exec_groups').split(',')]
+    execType = cluster.config('cluster.exec_type') if execType is None else execType
     execInstances = yield runInstances(credClient,
                                        cluster.config('cluster.ami'),
                                        cluster.config('cluster.key'),
-                                       cluster.config('cluster.exec_type'),
+                                       execType,
                                        groups,
                                        cluster.config('cluster.availability_zone',
                                                       default=None),

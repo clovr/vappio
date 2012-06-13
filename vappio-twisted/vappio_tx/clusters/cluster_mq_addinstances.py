@@ -34,6 +34,7 @@ def _handleAddInstances(request):
                                            credClient,
                                            request.body['task_name'],
                                            request.body['num_exec'],
+                                           request.body.get('exec_instance_type', None),
                                            cluster)
     
     defer.returnValue(request)
