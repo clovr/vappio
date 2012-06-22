@@ -20,10 +20,28 @@ from vappio_tx.www_client import clusters as clusters_client_www
 REMOVE_CLUSTER_TIMEOUT = 120
 
 @defer.inlineCallbacks
-def removeTerminatedCluster(clusterName, userName):
+def removeTerminatedCluster(credClient, clusterName, userName):
     yield defer_utils.sleep(REMOVE_CLUSTER_TIMEOUT)()
     cluster = yield persistManager.loadCluster(clusterName, userName)
+        
     if cluster.state == cluster.TERMINATED:
+        # Another check to make sure the instances have
+        # really been terminated
+        instances = [cluster.master +
+                     cluster.execNodes +
+                     cluster.dataNodes]
+
+        instances = yield credClient.updateInstances(instances)
+
+        undeadInstances = [i
+                           for i in instances
+                           if i['state'] != 'terminated']
+        
+        if undeadInstances:
+            yield defer_utils.mapSerial(lambda instances :
+                                            credClient.terminateInstances(instances),
+                                        func.chunk(5, undeadInstances))
+            
         yield persistManager.removeCluster(clusterName, userName)
     
 
@@ -104,7 +122,8 @@ def _handleTerminateCluster(request):
         cluster = yield terminateRemoteCluster(request, authToken)
         yield persistManager.saveCluster(cluster)
 
-        removeTerminatedCluster(request.body['cluster_name'],
+        removeTerminatedCluster(credClient
+                                request.body['cluster_name'],
                                 request.body['user_name'])
 
     else:
@@ -117,6 +136,9 @@ def _handleTerminateCluster(request):
                                    persistManager,
                                    'local',
                                    request.body['user_name'])
+            removeRerminatedCluster(credClient,
+                                    request.body['cluster_name'],
+                                    request.body['user_name']
         else:
             raise auth_token.AuthTokenError()
 
