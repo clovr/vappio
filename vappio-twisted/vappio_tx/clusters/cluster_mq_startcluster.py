@@ -110,7 +110,7 @@ def handleStartCluster(request):
 def subscribe(mq, state):
     createAndForward = queue.createTaskAndForward(state.conf('clusters.startcluster_queue'),
                                                   'startCluster',
-                                                  0)
+                                                  5)
 
     processStartPipe = defer_pipe.pipe([queue.keysInBody(['cluster_name',
                                                           'user_name',

@@ -117,7 +117,9 @@ def _handleTerminateCluster(request):
     persistManager = request.state.persistManager
     
     authToken = auth_token.generateToken(request.state.machineConf)
-    
+    credClient = cred_client.CredentialClient('local',
+                                              request.mq,
+                                              request.state.conf)    
     if request.body['cluster_name'] != 'local':
         cluster = yield terminateRemoteCluster(request, authToken)
         yield persistManager.saveCluster(cluster)
@@ -130,9 +132,6 @@ def _handleTerminateCluster(request):
     else:
         if ('auth_token' in request.body and
             request.body['auth_token'] == authToken):
-            credClient = cred_client.CredentialClient('local',
-                                                      request.mq,
-                                                      request.state.conf)
             yield terminateCluster(credClient,
                                    persistManager,
                                    'local',
