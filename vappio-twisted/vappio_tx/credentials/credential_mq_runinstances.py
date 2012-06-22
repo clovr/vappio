@@ -38,7 +38,7 @@ def handleRunInstances(request):
         os.remove(userDataFile)
 
     for i in instances:
-        log.msg('INSTANCE: instance_id: %s public_dns: %s' % (i['instance_id'], i['public_dns']))
+        log.msg('INSTANCE: instance_id: %s public_dns: %s' % (i.instanceId, i.publicDNS))
         
     yield request.state.credentialsCache.invalidate(credential.name)
     
