@@ -51,11 +51,7 @@ def removeDeadClusters(mq, state):
     clusters = [c for c in clusters if c.state in [c.FAILED, c.TERMINATED]]
 
     for c in clusters:
-        credClient = cred_client.CredentialClient(c.credName,
-                                                  mq,
-                                                  state.conf)
-        yield state.persistManager.deleteCluster(credClient,
-                                                 c.clusterName,
+        yield state.persistManager.removeCluster(c.clusterName,
                                                  c.userName)
 
 @defer_utils.timeIt

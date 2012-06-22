@@ -20,7 +20,7 @@ from vappio_tx.www_client import clusters as clusters_client_www
 REMOVE_CLUSTER_TIMEOUT = 120
 
 @defer.inlineCallbacks
-def removeTerminatedCluster(credClient, clusterName, userName):
+def removeTerminatedCluster(persistManager, credClient, clusterName, userName):
     yield defer_utils.sleep(REMOVE_CLUSTER_TIMEOUT)()
     cluster = yield persistManager.loadCluster(clusterName, userName)
         
@@ -122,7 +122,8 @@ def _handleTerminateCluster(request):
         cluster = yield terminateRemoteCluster(request, authToken)
         yield persistManager.saveCluster(cluster)
 
-        removeTerminatedCluster(credClient
+        removeTerminatedCluster(persistManager,
+                                credClient,
                                 request.body['cluster_name'],
                                 request.body['user_name'])
 
@@ -136,9 +137,10 @@ def _handleTerminateCluster(request):
                                    persistManager,
                                    'local',
                                    request.body['user_name'])
-            removeRerminatedCluster(credClient,
+            removeRerminatedCluster(persistManager,
+                                    credClient,
                                     request.body['cluster_name'],
-                                    request.body['user_name']
+                                    request.body['user_name'])
         else:
             raise auth_token.AuthTokenError()
 
