@@ -1,0 +1,3 @@
+[cluster.ALL]
+command=echo 4a24fd33d82560543761de319fbd73e8 http://clovr-bmtagger-db.s3.amazonaws.com/bmtagger_05142012.tgz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
+tag_options=-e
