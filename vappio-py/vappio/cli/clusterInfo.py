@@ -34,8 +34,8 @@ def main(options, _args):
         cluster = listClusters(options('general.host'),
                                {'cluster_name': options('general.cluster')})[0]
 
-
-        print '\t'.join(['STATE'] + [cluster['state']])
+        print '\t'.join(['STATE', cluster['state']])
+        print '\t'.join(['START_TASK', cluster['start_task']]) 
         print '\t'.join(['MASTER'] + instanceToList(cluster['master']))
         for e in cluster['exec_nodes']:
             print '\t'.join(['EXEC'] + instanceToList(e))
