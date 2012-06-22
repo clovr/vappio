@@ -42,11 +42,17 @@ def main(options, _args):
         for e in cluster['data_nodes']:
             print '\t'.join(['DATA'] + instanceToList(e))
 
-        print '\t'.join(['GANGLIA', 'http://%s/ganglia' % returnEmptyDictIfNone(cluster, 'master').get('public_dns', '')])
-        print '\t'.join(['ERGATIS', 'http://%s/ergatis' % returnEmptyDictIfNone(cluster, 'master').get('public_dns', '')])
-        print '\t'.join(['SSH', 'ssh %s %s@%s' % (cluster.get('config', {}).get('ssh.options', ''),
-                                                  cluster.get('config', {}).get('ssh.user', ''),
-                                                  returnEmptyDictIfNone(cluster, 'master').get('public_dns', ''))])
+        print '\t'.join(['GANGLIA',
+                         'http://%s/ganglia' % returnEmptyDictIfNone(cluster, 'master'
+                                                                     ).get('public_dns', '')])
+        print '\t'.join(['ERGATIS',
+                         'http://%s/ergatis' % returnEmptyDictIfNone(cluster, 'master'
+                                                                     ).get('public_dns', '')])
+        print '\t'.join(['SSH',
+                         'ssh %s %s@%s' % (cluster.get('config', {}).get('ssh.options', ''),
+                                           cluster.get('config', {}).get('ssh.user', ''),
+                                           returnEmptyDictIfNone(cluster, 'master'
+                                                                 ).get('public_dns', ''))])
 
     else:
         for c in listClusters(options('general.host')):
