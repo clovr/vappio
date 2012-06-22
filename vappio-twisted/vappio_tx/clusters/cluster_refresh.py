@@ -7,6 +7,8 @@ from igs.utils import errors
 from igs.utils import auth_token
 
 from igs_tx.utils import defer_utils
+from igs_tx.utils import ssh
+from igs_tx.utils import commands
 
 from vappio_tx.www_client import clusters as clusters_www_client
 
@@ -24,6 +26,9 @@ def loadRemoteCluster(state, cl):
 
     If it's unresponsive throws
     errors.RemoteError
+
+    We also check for SSH being up and throw a RemotError
+    if it is not responsive
     """
     if cl.master:
         authToken = auth_token.generateToken(state.machineConf)
@@ -37,13 +42,23 @@ def loadRemoteCluster(state, cl):
                                                               tries=3)
 
             cluster = clusters[0]
-            
+
+            yield ssh.runProcessSSH(cl.master['public_dns'],
+                                    'echo hello',
+                                    stdoutf=None,
+                                    stderrf=None,
+                                    sshUser=state.machineConf('ssh.user'),
+                                    sshFlags=state.machineConf('ssh.options'))
+
             defer.returnValue(cluster)
         except errors.RemoteError, err:
             if err.name == 'igs.utils.auth_token.AuthTokenError':
                 raise auth_token.AuthTokenError()
             else:
                 raise
+        except commands.ProgramRunError:
+            raise errors.RemoteError('SSH failed')
+        
 
 @defer.inlineCallbacks
 def refreshClusters(mq, state):
