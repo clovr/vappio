@@ -46,8 +46,8 @@ def main(options, _args):
     taskName = addInstances(options('general.host'),
                             options('general.cluster'),
                             options('general.num_exec'),
-                            options('general.exec_type'),
-                            0)
+                            0,
+                            options('general.exec_type'))
     
     if options('general.print_task_name'):
         print taskName

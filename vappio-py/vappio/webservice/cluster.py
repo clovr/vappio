@@ -20,7 +20,7 @@ def startCluster(host, cluster, num_exec, num_data, cred, conf):
                                                      cred_name=cred,
                                                      conf=conf))
 
-def addInstances(host, name, numExec, execType, numData):
+def addInstances(host, name, numExec, numData, execType=None):
     """
     Add instance to a cluster
 
