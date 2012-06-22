@@ -5,7 +5,6 @@ from twisted.python import log
 
 from igs.utils import errors
 from igs.utils import auth_token
-from igs.utils import logging
 
 from igs_tx.utils import defer_utils
 
@@ -59,13 +58,14 @@ def refreshClusters(mq, state):
                     remoteCluster = yield loadRemoteCluster(state, cluster)
                     cluster = cluster.addExecNodes(remoteCluster['exec_nodes'])
                     cluster = cluster.addDataNodes(remoteCluster['data_nodes'])
+                    cluster = cluster.setState(cluster.RUNNING)
                     yield persistManager.saveCluster(cluster)
             except auth_token.AuthTokenError:
                 ## If we got an auth token error it means that
                 ## a cluster we thought we owned isn't actually
                 ## owned by us.  Let's log this information out
                 ## and then remove it from our list.
-                logging.errorPrint('AUTH_TOKEN_ERROR: Cluster: %s Master: %s' % (
+                log.msg('AUTH_TOKEN_ERROR: Cluster: %s Master: %s' % (
                         cluster.clusterName,
                         cluster.master['public_dns']))
                 yield persistManager.removeCluster(cluster.clusterName,
@@ -84,6 +84,7 @@ def refreshClusters(mq, state):
 
     except Exception, err:
         ## Incase anything goes wrong, try again
+        log.msg('REFRESH: Error')
         log.err(err)
         
     reactor.callLater(CLUSTER_REFRESH_FREQUENCY, refreshClusters, mq, state)

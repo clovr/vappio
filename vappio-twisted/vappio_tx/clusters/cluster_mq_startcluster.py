@@ -34,12 +34,9 @@ def returnClusterStartTaskIfExists(request):
     except persist.ClusterNotFoundError:
         defer.returnValue(request)
 
-
-@defer_utils.timeIt
 @defer.inlineCallbacks
-def _handleStartCluster(request):
-    yield tasks_tx.updateTask(request.body['task_name'],
-                              lambda t : t.setState(tasks_tx.task.TASK_RUNNING))
+def createCluster(request):
+    persistManager = request.state.persistManager
 
     baseConf = config.configFromStream(open('/tmp/machine.conf'))
     cluster = persist.Cluster(request.body['cluster_name'],
@@ -48,20 +45,34 @@ def _handleStartCluster(request):
                               config.configFromMap(request.body['conf'],
                                                    base=baseConf))
 
+    yield persistManager.saveCluster(cluster)
+    defer.returnValue(request)
+
+        
+@defer_utils.timeIt
+@defer.inlineCallbacks
+def _handleStartCluster(request):
+    persistManager = request.state.persistManager
+    
+    yield tasks_tx.updateTask(request.body['task_name'],
+                              lambda t : t.setState(tasks_tx.task.TASK_RUNNING))
+
+    cluster = yield persistManager.loadCluster(request.body['cluster_name'],
+                                               request.body['user_name'])
+    
     cluster = cluster.update(startTask=request.body['task_name'])
 
     credClient = cred_client.CredentialClient(cluster.credName,
                                               request.mq,
                                               request.state.conf)
 
-    
     try:
         cluster = yield instance_flow.startMaster(request.state,
                                                   credClient,
                                                   request.body['task_name'],
                                                   cluster)
     except Exception, err:
-        log.err('Start cluster failed')
+        log.err('STARTCLUSETER: Failed')
         log.err(err)
         cluster = yield request.state.persistManager.loadCluster(request.body['cluster_name'],
                                                                  request.body['user_name'])
@@ -108,6 +119,7 @@ def subscribe(mq, state):
                                                           'cred_name',
                                                           'conf']),
                                         returnClusterStartTaskIfExists,
+                                        createCluster,
                                         createAndForward])
     
     processStartCluster = queue.returnResponse(processStartPipe)
