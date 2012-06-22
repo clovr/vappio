@@ -1,5 +1,7 @@
 import os 
 
+from twisted.python import log
+
 from twisted.internet import defer
 
 from igs_tx.utils import global_state
@@ -13,31 +15,36 @@ from vappio_tx.credentials import credentials_misc
 @defer_utils.timeIt
 @defer.inlineCallbacks
 def handleRunInstances(request):
+    credential = request.credential
+    
     userDataFile=None
     if 'user_data' in request.body:
-        userData = credentials_misc.replaceUserDataVariables(request.credential, request.body['user_data'])
+        userData = credentials_misc.replaceUserDataVariables(credential, request.body['user_data'])
         userDataFile = '/tmp/' + global_state.make_ref() + '.conf'
         fout = open(userDataFile, 'w')
         fout.write(userData + '\n')
         fout.close()
     
-    instances = yield request.credential.runInstances(amiId=request.body['ami'],
-                                                      key=request.body['key'],
-                                                      instanceType=request.body['instance_type'],
-                                                      groups=request.body['groups'],
-                                                      availabilityZone=request.body.get('availability_zone', None),
-                                                      number=request.body.get('num_instances', 1),
-                                                      userDataFile=userDataFile,
-                                                      log=True)
-    
+    instances = yield credential.runInstances(amiId=request.body['ami'],
+                                              key=request.body['key'],
+                                              instanceType=request.body['instance_type'],
+                                              groups=request.body['groups'],
+                                              availabilityZone=request.body.get('availability_zone', None),
+                                              number=request.body.get('num_instances', 1),
+                                              userDataFile=userDataFile,
+                                              log=True)
+        
     if userDataFile:
         os.remove(userDataFile)
 
-    yield request.state.credentialsCache.invalidate(request.credential.name)
+    for i in instances:
+        log.msg('INSTANCE: instance_id: %s public_dns: %s' % (i['instance_id'], i['public_dns']))
+        
+    yield request.state.credentialsCache.invalidate(credential.name)
     
     queue.returnQueueSuccess(request.mq,
                              request.body['return_queue'],
-                             [request.credential.instanceToDict(i)
+                             [credential.instanceToDict(i)
                               for i in instances])
     defer.returnValue(request)                                  
 
