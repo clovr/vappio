@@ -1,5 +1,6 @@
 from twisted.internet import defer
 from twisted.internet import reactor
+from twisted.internet import error
 
 from twisted.python import log
 
@@ -58,6 +59,8 @@ def loadRemoteCluster(state, cl):
                 raise
         except commands.ProgramRunError:
             raise errors.RemoteError('SSH failed')
+        except error.TimeoutError:
+            raise errors.RemoteError('Timeout')
         
 
 @defer.inlineCallbacks

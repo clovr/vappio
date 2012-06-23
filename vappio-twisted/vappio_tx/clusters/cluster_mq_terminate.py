@@ -27,9 +27,9 @@ def removeTerminatedCluster(persistManager, credClient, clusterName, userName):
     if cluster.state == cluster.TERMINATED:
         # Another check to make sure the instances have
         # really been terminated
-        instances = [cluster.master +
+        instances = ([cluster.master] +
                      cluster.execNodes +
-                     cluster.dataNodes]
+                     cluster.dataNodes)
 
         instances = yield credClient.updateInstances(instances)
 
