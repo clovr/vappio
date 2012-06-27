@@ -56,7 +56,7 @@ def main(options, _args):
 
     else:
         for c in listClusters(options('general.host')):
-            print '\t'.join(['CLUSTER', c['cluster_name']])
+            print '\t'.join(['CLUSTER', c['cluster_name'], c['state']])
 
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS))
