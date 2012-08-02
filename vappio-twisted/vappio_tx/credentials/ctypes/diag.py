@@ -15,6 +15,7 @@ INSTANCE_TYPE_MAPPING = {'default': 'm1.small',
                          'small': 'm1.small',
                          'medium': 'm1.large',
                          'large': 'm1.xlarge',
+                         'xlarge': 'm1.xlarge',
                          }
 
 
