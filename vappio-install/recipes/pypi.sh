@@ -6,3 +6,5 @@
 
 ## Install python modules
 pip install HTSeq
+pip install biopython
+pip install bx-python
