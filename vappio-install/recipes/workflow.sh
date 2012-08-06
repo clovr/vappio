@@ -10,12 +10,14 @@
 #v5.2 catches exceptions during monitoring
 #v5.3 (broken)
 #v5.4 Fixes event.log monitoring 
-#v5.5 More fixes event.log monitoring 
-wget http://bioifx.org/wf_clovr_3.0vp5.5.tgz
-tar -C / -xvzf wf_clovr_3.0vp5.5.tgz
+#v5.5 More fixes event.log monitoring using events hash 
+#v5.6 Adds ThreadPool fix from workflow SVN
+wget http://bioifx.org/wf_clovr_3.0vp5.6.tgz
+tar -C / -xvzf wf_clovr_3.0vp5.6.tgz
 chmod 777 /opt/workflow-sforge
 #Set permissions on id file
 chmod 777 /opt/workflow-sforge/idfile
+chmod a+r /opt/workflow-sforge/jars/wf.jar
 chown www-data:www-data /opt/workflow-sforge/idfile
 
 #Change queue in SGE_QUEUE_CONFIG
