@@ -162,8 +162,15 @@ then
 	vlog `cat /mnt/scratch/harvestqsub.$$.stdout /mnt/scratch/harvestqsub.$$.stderr`
 	master=`cat $SGE_ROOT/$SGE_CELL/common/act_qmaster`
 	#Write error line on master to force failure
-	vlog "Attempting to write extra F line to ${request_cwd}/event.log on master"
-	$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$master "fline=`grep "F~~~" ${request_cwd}/event.log`; if [ \"$fline\" = \"\" ]; then echo \"F~~~000~~~1~~~Mon Jan 1 00:00:00 UTC 1970~~~command finished~~~1\" >> ${request_cwd}/event.log; fi"	     
+	vlog "Attempting to write extra F line to ${request_cwd}/event.log on master for $JOB_ID"
+	$ssh_client -o BatchMode=yes -i $ssh_key $ssh_options root@$master $vappio_scripts/write_eventlog_finish.sh ${request_cwd}
+	if [ $? -ne 0 ]
+	then
+	    verror "FATAL. Unable to write finish line to ${request_cwd} on $master for $JOB_ID. ssh exit code $?"
+	    #Force reschedule?
+	    vlog "Forcing reschedule of job $JOB_ID"
+	    $SGE_ROOT/bin/$ARCH/qmod -rj $JOB_ID
+	fi
         #Logging and continuing to avoid "hung jobs" in Eqw state
     fi
 
