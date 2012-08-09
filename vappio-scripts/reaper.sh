@@ -17,7 +17,7 @@ echo -n "REAPER "
 date
 myhostname=`hostname -f`
 echo "Checking for dead hosts"
-deadhosts1=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][contains(text(),'u')]/../../@name" | perl -ne '($host) = ($_ =~ /name="(.*)"/);print $host," " if ($host)'`
+deadhosts1=`$SGE_ROOT/bin/$ARCH/qhost -q -j -xml | xpath -e "//queue/queuevalue[@name='state_string'][contains(text(),'u')]/../../@name" | perl -ne '($host) = ($_ =~ /name="(.*)"/);print $host," " if ($host)' | sort -u`
 if [ "$deadhosts1" != "" ]
 then
     echo "Found dead host(s)..."
