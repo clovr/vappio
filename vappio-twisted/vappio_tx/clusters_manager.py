@@ -26,7 +26,7 @@ from vappio_tx.clusters import cluster_mq_list
 from vappio_tx.clusters import cluster_mq_startcluster
 from vappio_tx.clusters import cluster_mq_terminateinstances
 from vappio_tx.clusters import cluster_mq_terminate
-
+from vappio_tx.clusters import cluster_mq_importcluster
 
 
 class State:
@@ -200,6 +200,7 @@ def subscribeToQueues(mq, state):
                         cluster_mq_terminateinstances.subscribe,
                         cluster_mq_addinstances.subscribe,
                         cluster_mq_list.subscribe,
+                        cluster_mq_importcluster.subscribe,
                         cluster_mq_config.subscribe,
                         clusters_cleanup.subscribe,
                         cluster_refresh.subscribe])

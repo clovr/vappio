@@ -5,10 +5,10 @@ from igs.cgi.request import performQuery
 
 ADDINSTANCES_URL = '/vappio/cluster_addinstances'
 STARTCLUSTER_URL = '/vappio/cluster_start'
+IMPORTCLUSTER_URL = '/vappio/cluster_import'
 TERMINATECLUSTER_URL = '/vappio/cluster_terminate'
 TERMINATEINSTANCES_URL = '/vappio/cluster_terminateinstances'
 LISTCLUSTERS_URL = '/vappio/cluster_list'
-
 
 def startCluster(host, cluster, num_exec, num_data, cred, conf):
     """
@@ -39,6 +39,23 @@ def terminateInstances(host, cluster, byCriteria, criteriaValues):
                                                            by_criteria=byCriteria,
                                                            criteria_values=criteriaValues))
 
+def importCluster(host, srcCluster, dstCluster, cred):
+    """
+    Import a cluster from another CloVR  VM.
+
+    """
+    # This is a super shitty hack her
+    if srcCluster == 'local':
+        userName = ""
+    else:
+        userName = 'guest'
+
+    # Do we want to have this hardcoded just to localhost?
+    return performQuery('localhost', IMPORTCLUSTER_URL, dict(host=host,
+                                                             src_cluster=srcCluster,
+                                                             dst_cluster=dstCluster,
+                                                             cred_name=cred,
+                                                             user_name=userName))
 
 def listClusters(host, criteria={}):
     """

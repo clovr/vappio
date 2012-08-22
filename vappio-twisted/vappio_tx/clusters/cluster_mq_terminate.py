@@ -136,7 +136,7 @@ def _handleTerminateCluster(request):
                                    persistManager,
                                    'local',
                                    request.body['user_name'])
-            removeRerminatedCluster(persistManager,
+            removeTerminatedCluster(persistManager,
                                     credClient,
                                     request.body['cluster_name'],
                                     request.body['user_name'])

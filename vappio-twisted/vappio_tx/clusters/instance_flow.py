@@ -132,7 +132,6 @@ def startMaster(state, credClient, taskName, cluster):
     
     defer.returnValue(cl)
 
-
 @defer.inlineCallbacks
 def startExecs(state, credClient, taskName, numExec, execType, cluster):
     @defer.inlineCallbacks
@@ -204,6 +203,76 @@ def startExecs(state, credClient, taskName, numExec, execType, cluster):
 
     defer.returnValue(cl)
     
+@defer.inlineCallbacks
+def importCluster(state, credClient, taskName, remoteHost, srcCluster, cluster):
+    """Handles retrieving metadata from the remote host and running through
+    a battery of tests to ensure that the VM being imported is in a running 
+    state and reachable.
+    
+    """
+    @defer.inlineCallbacks
+    def _saveCluster(instances):
+        instances = yield credClient.updateInstances(instances)
+        cl = yield state.persistManager.loadCluster(cluster.clusterName,
+                                                    cluster.userName)
+
+        cl = cl.setMaster(instances[0])
+        yield state.persistManager.saveCluster(cl)
+        defer.returnValue(func.Record(succeeded=instances,
+                                      failed=[]))
+
+    remoteClusters = yield clusters_client_www.listClusters(remoteHost,
+                                                            {'cluster_name': srcCluster},
+                                                            cluster.userName)
+    remoteCluster = remoteClusters[0]
+
+    if remoteCluster.get('state') in ['terminated', 'failed']:
+        raise Error('Imported cluster in TERMINATED or FAILED state')
+
+    # This is going to be pretty hacky, might want to find a better way to do 
+    # this...
+    _instances = yield ensureInstances(waitForPopulatedMasterNode,
+                                       [remoteCluster],
+                                       WAIT_FOR_STATE_TRIES)
+
+    if not _instances.succeeded:
+        raise Error('Could not retrieve master node from imported cluster.')
+
+    remoteClusterConf = config.configFromMap(remoteCluster.get('config'))
+    cl = cluster.update(config=remoteClusterConf)
+    cl = cl.setMaster(_instances.succeeded[0].get('master')) # This is pretty ugly...
+    yield state.persistManager.saveCluster(cl)
+
+    _instances = yield waitForInstances([remoteCluster.get('master')],
+                                       [updateTask(taskName,
+                                                   'Waiting for master'),
+                                        waitForState(credClient,
+                                                     'running',
+                                                     WAIT_FOR_STATE_TRIES),
+                                        _saveCluster,
+                                        waitForSSH(cluster.config('ssh.user'),
+                                                   cluster.config('ssh.options'),
+                                                   WAIT_FOR_SSH_TRIES),
+                                        _saveCluster,
+                                        updateTask(taskName,
+                                                   'SSH up'),
+                                        updateTask(taskName,
+                                                   'Master in running state')])
+
+    if not _instances.succeeded:
+        raise Error('Failed to import cluster')
+
+    # Ok to do this here?
+    if remoteCluster.get('exec_nodes'):
+        cl = cl.addExecNodes(remoteCluster.get('exec_nodes'))
+        yield state.persistManager.saveCluster(cl)
+
+    cl = yield state.persistManager.loadCluster(cl.clusterName,
+                                                cl.userName)
+    cl = cl.setState(cl.RUNNING)
+    yield state.persistManager.saveCluster(cl)
+    
+    defer.returnValue(cl)
 
 def updateTask(taskName, msg):
     @defer.inlineCallbacks
@@ -294,6 +363,32 @@ def waitForClusterInfo(cluster, userName, retries):
     return wrapEnsureInstances(_waitForClusterInfo, retries)
 
 @defer.inlineCallbacks
+def waitForPopulatedMasterNode(cluster):
+    """Verifies whether or not the master node attribute has been 
+    populated for a imported cluster. This attribute is required to proceed
+    with a successful import.
+
+    """
+    retVal = False
+
+    try:
+        if cluster.get('master'):
+            retVal = True
+        else:
+            # TODO: We need a way to obtain the name of our source cluster. 
+            #       this call to cluster.get('cluster_name') will return the 
+            #       name of the cluster on the VM doing the import.
+            cluster = yield clusters_client_www.listClusters(cluster.get('public_dns'),
+                                                             {'cluster_name': cluster.get('cluster_name')},
+                                                             cluster.get('user_name'))
+            
+            retVal = cluster.get('master') != None
+    except:
+        defer.returnValue(retVal)
+
+    defer.returnValue(retVal)
+
+@defer.inlineCallbacks
 def waitForInstances(instances, workflow):
     """
     Takes instances and a workflow.
@@ -322,7 +417,6 @@ def waitForInstances(instances, workflow):
     defer.returnValue(func.Record(succeeded=retInstances.succeeded,
                                   failed=failedInstances))
     
-
 @defer.inlineCallbacks
 def runInstances(credClient,
                  ami,
