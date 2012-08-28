@@ -1,6 +1,5 @@
 """
 Handles importing clusters from a remote VM with proper authorization
-
 """
 
 from twisted.internet import defer
@@ -23,38 +22,41 @@ from vappio_tx.internal_client import credentials as cred_client
 
 @defer.inlineCallbacks
 def returnClusterImportTaskIfExists(request):
-    """
-    Returns the task name of the import cluster operation if it exists 
+    """Returns the task name of the import cluster operation if it exists 
     already.
 
     """
-    ## TODO: Hook this into the main import pipeline.
     persistManager = request.state.persistManager
     
     try:
-        # Going to be injecting values into the request body instead of just
-        # directly specifying 'None' for our user name here
         cluster = yield persistManager.loadCluster(request.body['dst_cluster'],
                                                    request.body['user_name'])
 
         if cluster.state in [cluster.TERMINATED, cluster.FAILED]:
             defer.returnValue(request)
         else:
-            # Do we want to lump this into the startTask or create a new
-            # importTask attribute?
-            request.body['task_name'] = cluster.importTask
-            defer_pipe.emit(request.update(response=cluster.importTask))
+            # We won't really have an importTask attribute here but will 
+            # instead lump the task name under the startTask attribute
+            request.body['task_name'] = cluster.startTask
+            defer_pipe.emit(request.update(response=cluster.startTask))
     except persist.ClusterNotFoundError:
         defer.returnValue(request)
 
 @defer.inlineCallbacks
 def createCluster(request):
-    persistManager = request.state.persistManager
+    """Instantiates a skeleton of the cluster that will be imported. This 
+    cluster will later have the proper attributes and values populated from
+    the source cluster.
     
+    """
+    persistManager = request.state.persistManager
+ 
+    baseConf = config.configFromStream(open('/tmp/machine.conf'))
     cluster = persist.Cluster(request.body['dst_cluster'],
                               request.body['user_name'],
                               request.body['cred_name'],
-                              config.configFromStream(open('/tmp/machine.conf')))
+                              config.configFromMap({'cluster.cluster_public_key': '/home/www-data/.ssh/id_rsa.pub'},
+                                                   base=baseConf))
 
     yield persistManager.saveCluster(cluster)
     defer.returnValue(request)
@@ -86,14 +88,11 @@ def _handleImportCluster(request):
                                                     cluster)
 
     except Exception, err:
-        # If we have an authentication error we want to indicate that and 
-        # die immediately
-        #if err.name == 'igs.utils.auth_token.AuthTokenError': 
-        #    log.err('IMPORTCLUSTER: Authorization failed')
-        #else:
-        log.err('IMPORTCLUSTER: Failed')                                
-
-        log.err(err)
+        if err.name == 'igs.utils.auth_token.AuthTokenError': 
+            log.err('IMPORTCLUSTER: Authorization failed')
+        else:
+            log.err('IMPORTCLUSTER: Failed')                                
+            log.err(err)
 
         cluster = yield request.state.persistManager.loadCluster(request.body['dst_cluster'],
                                                                  request.body['user_name'])
@@ -106,8 +105,8 @@ def _handleImportCluster(request):
 
 @defer.inlineCallbacks
 def handleImportCluster(request):
-    """
-    Kicks off the import cluster workflow via the cluster locking mechanism
+    """Kicks off the import cluster workflow using the cluster locking 
+    mechanism.
     
     """
     ret = yield request.state.clusterLocks.run((request.body['dst_cluster'],
@@ -117,22 +116,20 @@ def handleImportCluster(request):
     defer.returnValue(ret)
 
 def subscribe(mq, state):
-    """
-    Subscribes to the queues needed to handle any incoming import cluster 
+    """Subscribes to the queues needed to handle any incoming import cluster 
     requests.
 
     """
-    # How many steps do we need for this task?
     createAndForward = queue.createTaskAndForward(state.conf('clusters.importcluster_queue'),
                                                   'importCluster',
-                                                  3)
+                                                  4)
 
     processImportPipe = defer_pipe.pipe([queue.keysInBody(['host',
                                                            'cred_name',
                                                            'user_name',
                                                            'src_cluster',
                                                            'dst_cluster']),
-                                        #returnClusterImportTaskIfExists,
+                                        returnClusterImportTaskIfExists,
                                         createCluster,
                                         createAndForward])
 
@@ -147,5 +144,3 @@ def subscribe(mq, state):
                     state.conf('clusters.importcluster_queue'),
                     state.conf('clusters.concurrent_importcluster'),
                     queue.wrapRequestHandlerTask(state, handleImportCluster))
-
-

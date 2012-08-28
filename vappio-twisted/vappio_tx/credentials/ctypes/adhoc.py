@@ -1,5 +1,8 @@
-import os
-import sys
+"""
+Control module for imported clusters
+"""
+
+import json
 
 import pymongo
 
@@ -12,8 +15,6 @@ from igs.utils import config
 from vappio_tx.credentials.ctypes import ec2 as ec2control
 
 from vappio_tx.www_client import clusters as clusters_www
-
-"""Control module for imported clusters"""
 
 ##
 # This module wants to go by
@@ -60,27 +61,21 @@ def listInstances(cred, log=False):
         """Parses out all instances associated with this cluster."""
         instances = []
         
-        # List of things to do here to make this work
-        #
-        #   1.) Pull down all the clusters associated with this cred
-        #   2.) Check if each cred has a master, if it doesn't we don't care
-        #   3.) If a master exists check its state, needs to be in running state
-        #   4.) For each running master retrieve the public DNS and shoot off 
-        #       a request to its list clusters WWW
-        #   5.) Parse returned instances for those in running state
-
-        # TODO: Put in place all our authorization junk
         for cluster in importedClusters:
             master = cluster.get('master')
 
             if master and master.get('state') == 'running':
-                # TODO: We have no guarantee that the imported cluster name 
-                #       will be the same as the remote cluster name. Need to 
-                #       have some other attribute that contains this information
+                config = json.loads(cluster.get('config'))
+                srcCluster = config.get('general.src_cluster')
+
+                clusterKey = config.get('cluster.cluster_public_key')
+                authToken = auth_token.generateToken(clusterKey)
+
                 remoteClusters = yield clusters_www.listClusters(master.get('public_dns'),
-                                                                 #{'cluster_name': cluster.get('cluster_name')},
-                                                                 {'cluster_name': 'local'},
-                                                                 cluster.get('user_name'))
+                                                                 {'cluster_name':  srcCluster},
+                                                                 cluster.get('user_name'),
+                                                                 authToken)
+
                 remoteCluster = remoteClusters[0]
                 instances.extend([instanceFromDict(x) for x 
                                   in [remoteCluster.get('master'), remoteCluster.get('exec_nodes')] 
@@ -106,36 +101,28 @@ def updateInstances(cred, instances, log=False):
     instances - List of instances that should be updated.
 
     """
-
     retInst = []
 
     @defer.inlineCallbacks
     def _parseInstances(importedClusters):
         """Parses out all instances associated with this cluster."""
- 
-        # List of things to do here to make this work
-        #
-        #   1.) Pull down all the clusters associated with this cred
-        #   2.) Check if each cred has a master, if it doesn't we don't care
-        #   3.) If a master exists check its state, needs to be in running state
-        #   4.) For each running master retrieve the public DNS and shoot off 
-        #       a request to its list clusters WWW
-        #   5.) Parse returned instances for those in running state
 
-        # TODO: Put in place all our authorization junk
         for cluster in importedClusters:
             master = cluster.get('master')
 
             if master and cluster.get('state') == 'running':
-                # TODO: We have no guarantee that the imported cluster name 
-                #       will be the same as the remote cluster name. Need to 
-                #       have some other attribute that contains this information
+                config = json.loads(cluster.get('config'))
+                srcCluster = config.get('general.src_cluster')
+
+                clusterKey = config.get('cluster.cluster_public_key')
+                authToken = auth_token.generateToken(cluster_key)
+
+                srcCluster = getSourceClusterName(cluster)
                 remoteClusters = yield clusters_www.listClusters(master.get('public_dns'),
-                                                                {'cluster_name': cluster.get('cluster_name')},
+                                                                {'cluster_name': srcCluster},
                                                                 cluster.get('user_name'),
-                                                                None,
-                                                                timeout=10,
-                                                                tries=3)
+                                                                authToken)
+
                 remoteCluster = remoteClusters[0]
                 retInst.extend([instanceFromDict(x) for x 
                                 in [remoteCluster.get('master'), remoteCluster.get('exec_nodes')] 
@@ -150,11 +137,12 @@ def updateInstances(cred, instances, log=False):
 def terminateInstances(cred, instances, log=False):
     """Attempts to terminate the provided instances. 
     
-    In the case of an adhoc
-    cluster termination will only remove the provided instances from use on 
-    the VM initiating the terminate instances calls.
+    In the case of an adhoc cluster termination will only remove the 
+    provided instances from use on the VM initiating the terminate 
+    instances calls.
     
     """
+    # TODO: Just need to return all the instances here
     return defer.succeed([])
 
 def listKeypairs(cred, log=False):

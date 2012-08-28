@@ -28,11 +28,11 @@ def loadRemoteCluster(state, cl):
     If it's unresponsive throws
     errors.RemoteError
 
-    We also check for SSH being up and throw a RemotError
+    We also check for SSH being up and throw a RemoteError
     if it is not responsive
     """
     if cl.master:
-        authToken = auth_token.generateToken(state.machineConf)
+        authToken = auth_token.generateToken(cl.config('cluster.cluster_public_key'))
 
         try:
             clusters = yield clusters_www_client.listClusters(cl.master['public_dns'],
@@ -86,8 +86,8 @@ def refreshClusters(mq, state):
                 log.msg('AUTH_TOKEN_ERROR: Cluster: %s Master: %s' % (
                         cluster.clusterName,
                         cluster.master['public_dns']))
-                yield persistManager.removeCluster(cluster.clusterName,
-                                                   cluster.userName)
+                #yield persistManager.removeCluster(cluster.clusterName,
+                #                                   cluster.userName)
             except Exception, err:
                 log.msg('REFRESH: Error')
                 log.err(err)

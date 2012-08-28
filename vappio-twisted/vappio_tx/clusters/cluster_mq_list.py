@@ -32,7 +32,7 @@ def handleList(request):
     """
     if 'auth_token' in request.body.get('options', {}):
         authToken = request.body['options']['auth_token']
-        if authToken != auth_token.generateToken(request.state.machineConf):
+        if not auth_token.validateToken(authToken):
             raise auth_token.AuthTokenError()
         
     persistManager = request.state.persistManager
