@@ -44,9 +44,9 @@ def importCluster(host, srcCluster, dstCluster, cred):
     Import a cluster from another CloVR  VM.
 
     """
-    # This is a super shitty hack her
+    # Pretty terrible hack we got going here...
     if srcCluster == 'local':
-        userName = ""
+        userName = None
     else:
         userName = 'guest'
 
