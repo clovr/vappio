@@ -27,7 +27,7 @@ then
     tar -C /mnt/buildmnt/ -xvzf /opt/mnt.tgz
     pushd /mnt/buildmnt
     tar --owner=www-data --group=www-data -czvf /tmp/buildmnt.tgz .
-    tar -C /mnt/ --same-owner -xzvf /tmp/buildmnt.tgz
+    tar -C /mnt/ --same-owner -xkzvf /tmp/buildmnt.tgz
     rm -r /mnt/buildmnt
 #    chown -R www-data.www-data /mnt
     touch /mnt/.clovrmntconfig
