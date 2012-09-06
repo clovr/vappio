@@ -23,8 +23,8 @@ chown $sge_exec_user:$sge_exec_user $harvesting_dir
 
 if [ -f /opt/mnt.tgz ] && [ ! -f /mnt/.clovrmntconfig ]
 then 
-    tar -C /mnt/ -xkvzf /opt/mnt.tgz
-    chown -R www-data.www-data /mnt
+    tar -C /mnt/ --owner=www-data --group=www-data -xkvzf /opt/mnt.tgz
+#    chown -R www-data.www-data /mnt
     touch /mnt/.clovrmntconfig
 fi
 
