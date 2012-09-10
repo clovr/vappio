@@ -1,10 +1,11 @@
 #!/bin/bash -e
 
-USAGE="vp-bundle-diag [-f] image.img|imagedir [init script]\n
+USAGE="vp-bundle-diag [-f] [-p] image.img|imagedir [init script]\n
 Bundles and uploads an AMI of image.img\n
 Requires authentication information in the following files\n
 /mnt/keys/diagcert /mnt/keys/diagkey
 Use -f to force rebundle and upload even if the bucket already exists\n
+Use -p to make this image public\n
 If a directory imagedir is specified, looks for imagedir.img and attempts to write AMI to imagedir/clovr.conf
 Will tar imagedir upon successful completion
 If an init script is specified, this script is run before bundling the image
@@ -12,11 +13,13 @@ If an init script is specified, this script is run before bundling the image
 
 
 i=0
-while getopts "fhc:k:" options; do
+while getopts "fphc:k:" options; do
   case $options in
       f ) force="force"
 	  i=`expr $i + 1`
 	  ;;
+      p ) public="--common"
+      ;;
       c ) cert="$OPTARG"
 	;;
       k ) key="$OPTARG"
@@ -115,7 +118,7 @@ then
 fi
 
 echo "Running cloud client (output is redirected to /dev/null)"
-cloud-client.sh --transfer --sourcefile $image  > /dev/null
+cloud-client.sh $public --transfer --sourcefile $image  > /dev/null
 
 #Cleanup
 echo "Zipping image"
