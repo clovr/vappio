@@ -47,16 +47,13 @@ def updateClusterInfo(state):
         clustersMap = dict([((cluster.clusterName, cluster.userName), cluster) 
                        for cluster in clusters])
 
-        log.msg('DEBUG clusters_cleanup:', state.unresponsiveClusters)
-        log.msg('DEBUG clusters_cleanup:', clustersMap)
-
         for (clusterName, userName), duration in state.unresponsiveClusters.iteritems():
             if duration > CLUSTER_TIMEOUT:
                 cluster = clustersMap.get((clusterName, userName))
 
                 log.msg('CLEANUP: Terminating cluster - ' + clusterName)
                 authToken = auth_token.generateToken(cluster.config('cluster.cluster_public_key'))
-                #yield clusters_client.terminateCluster(clusterName, userName, authToken)
+                yield clusters_client.terminateCluster(clusterName, userName, authToken)
     except Exception, err:
         log.err('CLEANUP: Failed')
         log.err(err)

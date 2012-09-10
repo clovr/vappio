@@ -7,6 +7,7 @@ from twisted.internet import defer
 from twisted.python import log
 
 from igs.utils import config
+from igs.utils import auth_token
 
 from igs_tx.utils import defer_pipe
 from igs_tx.utils import defer_utils
@@ -55,7 +56,7 @@ def createCluster(request):
     cluster = persist.Cluster(request.body['dst_cluster'],
                               request.body['user_name'],
                               request.body['cred_name'],
-                              config.configFromMap({'cluster.cluster_public_key': '/home/www-data/.ssh/id_rsa.pub'},
+                              config.configFromMap({'cluster.cluster_public_key': '/mnt/keys/devel1.pem.pub'},
                                                    base=baseConf))
 
     yield persistManager.saveCluster(cluster)
@@ -88,7 +89,8 @@ def _handleImportCluster(request):
                                                     cluster)
 
     except Exception, err:
-        if err.name == 'igs.utils.auth_token.AuthTokenError': 
+        if isinstance(err, auth_token.AuthTokenError):
+        #if err.name == 'igs.utils.auth_token.AuthTokenError': 
             log.err('IMPORTCLUSTER: Authorization failed')
         else:
             log.err('IMPORTCLUSTER: Failed')                                
@@ -96,10 +98,17 @@ def _handleImportCluster(request):
 
         cluster = yield request.state.persistManager.loadCluster(request.body['dst_cluster'],
                                                                  request.body['user_name'])
+        log.msg('DEBUG importcluster.py: cluster -', cluster)
+
         cluster = cluster.setState(cluster.FAILED)
         yield defer_utils.sleep(120)()
+        
+        log.msg('DEBUG importcluster.py: About to remove cluster')
+
         yield request.state.persistManager.removeCluster(request.body['dst_cluster'],
                                                          request.body['user_name'])
+        raise err
+
 
     defer.returnValue(request)
 

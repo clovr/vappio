@@ -50,7 +50,7 @@ def startMaster(state, credClient, taskName, cluster):
         cl = yield state.persistManager.loadCluster(cluster.clusterName,
                                                     cluster.userName)
 
-        cl = cl.setMaster(instances[0])
+        cl = cl.setMaster(instances[1])
         yield state.persistManager.saveCluster(cl)
         defer.returnValue(func.Record(succeeded=instances,
                                       failed=[]))
@@ -224,7 +224,6 @@ def importCluster(state, credClient, taskName, remoteHost, srcCluster, cluster):
                                       failed=[]))
     
     authToken = auth_token.generateToken(cluster.config('cluster.cluster_public_key'))
-
     remoteClusters = yield clusters_client_www.listClusters(remoteHost,
                                                             {'cluster_name': srcCluster},
                                                             cluster.userName,
@@ -233,6 +232,13 @@ def importCluster(state, credClient, taskName, remoteHost, srcCluster, cluster):
 
     if remoteCluster.get('state') in ['terminated', 'failed']:
         raise Error('Imported cluster in TERMINATED or FAILED state')
+
+    # If we are importing a local cluster the public and private DNS will 
+    # not be valid hostnames that we can query. Need to set them to the 
+    # remote host provided in the import-clusters call
+    if 'clovr-' in remoteCluster['master']['public_dns']:
+        remoteCluster['master']['public_dns'] = remoteHost
+        remoteCluster['master']['private_dns'] = remoteHost
 
     # Sorta hacky but we need to check whether or not a master node is 
     # associated with the cluster being imported before proceeding
@@ -246,12 +252,15 @@ def importCluster(state, credClient, taskName, remoteHost, srcCluster, cluster):
     if not _instances.succeeded:
         raise Error('Could not retrieve master node from imported cluster.')
 
-    baseConf = config.configFromMap(remoteCluster.get('config'))
+    baseConf = config.configFromMap(cluster.config.conf)
     remoteClusterConf = config.configFromMap({'general.src_cluster': srcCluster},
                                              base=baseConf)
     cl = cluster.update(config=remoteClusterConf)
-    cl = cl.setMaster(_instances.succeeded[0].get('master')) 
+
+    cl = cl.setMaster(remoteCluster.get('master')) 
     yield state.persistManager.saveCluster(cl)
+
+    log.msg('DEBUG importCluster: About to run tests on master node')
 
     _instances = yield waitForInstances([remoteCluster.get('master')],
                                        [updateTask(taskName,
@@ -302,7 +311,6 @@ def updateTask(taskName, msg):
 
     return _updateTask
 
-    
 def wrapEnsureInstances(f, retries):
     def _wrapEnsureInstances(instances):
         return ensureInstances(f, instances, retries)

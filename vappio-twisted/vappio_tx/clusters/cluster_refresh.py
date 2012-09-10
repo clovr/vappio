@@ -86,8 +86,8 @@ def refreshClusters(mq, state):
                 log.msg('AUTH_TOKEN_ERROR: Cluster: %s Master: %s' % (
                         cluster.clusterName,
                         cluster.master['public_dns']))
-                #yield persistManager.removeCluster(cluster.clusterName,
-                #                                   cluster.userName)
+                yield persistManager.removeCluster(cluster.clusterName,
+                                                   cluster.userName)
             except Exception, err:
                 log.msg('REFRESH: Error')
                 log.err(err)

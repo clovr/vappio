@@ -11,6 +11,7 @@ from twisted.internet import threads
 
 from igs.utils import functional as func
 from igs.utils import config
+from igs.utils import auth_token
 
 from vappio_tx.credentials.ctypes import ec2 as ec2control
 
@@ -28,6 +29,22 @@ DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr.conf'
 Instance = ec2control.Instance
 instanceToDict = ec2control.instanceToDict
 instanceFromDict = ec2control.instanceFromDict
+
+def _formatLocalHostname(cluster):
+    """Returns a valid local hostname. When importing a local cluster the 
+    hostname provided will be in format clovr-xxx-xx-xx and the proper hostname
+    will need to be parsed out to avoid errors when making remote calls to the 
+    cluster.
+
+    """
+    master = cluster.get('master')
+
+    if master and 'clovr-' in master['public_dns']:
+        master['public_dns'] = master['public_dns'].replace('clovr-', '').replace('-', '.')
+        master['private_dns'] = master['private_dns'].replace('clovr-', '').replace('-', '.')
+
+    cluster['master'] = master
+    return cluster
 
 def instantiateCredential(conf, cred):
     """Instantiates a credential based off the configuration provided."""
@@ -75,8 +92,8 @@ def listInstances(cred, log=False):
                                                                  {'cluster_name':  srcCluster},
                                                                  cluster.get('user_name'),
                                                                  authToken)
+                remoteCluster = _formatLocalHostname(remoteClusters[0])
 
-                remoteCluster = remoteClusters[0]
                 instances.extend([instanceFromDict(x) for x 
                                   in [remoteCluster.get('master'), remoteCluster.get('exec_nodes')] 
                                   if x and x.get('state') == 'running'])
@@ -122,8 +139,8 @@ def updateInstances(cred, instances, log=False):
                                                                 {'cluster_name': srcCluster},
                                                                 cluster.get('user_name'),
                                                                 authToken)
-
-                remoteCluster = remoteClusters[0]
+                remoteCluster = _formatLocalHostname(remoteClusters[0])
+                
                 retInst.extend([instanceFromDict(x) for x 
                                 in [remoteCluster.get('master'), remoteCluster.get('exec_nodes')] 
                                 if x and x.get('instance_id') in instances])

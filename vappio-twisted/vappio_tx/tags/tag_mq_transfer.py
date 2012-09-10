@@ -203,13 +203,18 @@ def _uploadTag(request):
         metadata = func.updateDict(metadata,
                                    {'urls_realized': True})
 
-    yield ssh.runProcessSSH(dstCluster['master']['public_dns'],
-                            'chown -R %s %s' % (dstCluster['config']['vappio.user'],
-                                                dstTagPath),
-                            None,
-                            log.err,
-                            srcCluster['config']['ssh.user'],
-                            srcCluster['config']['ssh.options'])
+
+    # If we are dealing with an adhoc cluster here there is a chance that
+    # we are attempting to transfer to a local VM's shared folder which does 
+    # support chown/chmod so we will skip this step
+    if dstCluster['master']['instance_type'] is not None:
+        yield ssh.runProcessSSH(dstCluster['master']['public_dns'],
+                                'chown -R %s %s' % (dstCluster['config']['vappio.user'],
+                                                    dstTagPath),
+                                None,
+                                log.err,
+                                srcCluster['config']['ssh.user'],
+                                srcCluster['config']['ssh.options'])
         
     defer.returnValue(persist.Tag(tagName=localTag.tagName,
                                   files=remoteFiles,

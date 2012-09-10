@@ -86,7 +86,8 @@ def loadLocalCluster(mq, state):
         baseConf = config.configFromStream(open('/tmp/machine.conf'),
                                            base=config.configFromEnv())
         
-        conf = config.configFromMap({'config_loaded': True},
+        conf = config.configFromMap({'config_loaded': True, 
+                                     'cluster.cluster_public_key': '/mnt/keys/devel1.pem.pub'},
                                     base=baseConf)
 
         if (cluster.credName == 'local' and
@@ -139,7 +140,8 @@ def loadLocalCluster(mq, state):
 
         baseConf = config.configFromStream(open('/tmp/machine.conf'),
                                            base=config.configFromEnv())
-        conf = config.configFromMap({'config_loaded': True},
+        conf = config.configFromMap({'config_loaded': True,
+                                     'cluster.cluster_public_key': '/mnt/keys/devel1.pem.pub'},
                                     base=baseConf)
         cluster = persist.Cluster('local',
                                   None,
