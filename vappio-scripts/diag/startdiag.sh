@@ -11,7 +11,7 @@ chmod 777 /mnt
 
 # Download scripts
 #export vappio_url_user_data=`cat /var/nimbus-metadata-server-url/*`/latest/user-data
-export vappio_url_user_data=`cat /var/nimbus-metadata-server-url/`/latest/user-data #Nimbus 2.10
+export vappio_url_user_data=`cat /var/nimbus-metadata-server-url`/latest/user-data #Nimbus 2.10
 mkdir -p $user_data_scripts
 curl --retry 3 --silent --show-error --fail -o $user_data_scripts/metadata $vappio_url_user_data
 
