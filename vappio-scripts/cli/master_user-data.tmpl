@@ -31,6 +31,8 @@ echo -e '\n<TMPL_VAR NAME=CLUSTER_PUBLIC_KEY>' >> /home/www-data/.ssh/authorized
 chmod 600  /home/www-data/.ssh/authorized_keys
 chown www-data:www-data /home/www-data/.ssh/authorized_keys
 
+/usr/bin/ssh-keygen -y -f $ssh_key > ${ssh_key}.pub
+
 cat > /tmp/machine.conf <<EOF
 <TMPL_VAR NAME=MACHINE_CONF>
 MASTER_IP=`hostname -f`
