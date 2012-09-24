@@ -90,7 +90,6 @@ def _handleImportCluster(request):
 
     except Exception, err:
         if isinstance(err, auth_token.AuthTokenError):
-        #if err.name == 'igs.utils.auth_token.AuthTokenError': 
             log.err('IMPORTCLUSTER: Authorization failed')
         else:
             log.err('IMPORTCLUSTER: Failed')                                

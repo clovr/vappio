@@ -168,9 +168,11 @@ class ClusterPersistManager(dependency.Dependable):
         clusterDoc = self.clusterToDocument(cluster)
 
         def _saveCluster():
+            userName = str(clusterDoc['user_name']) if clusterDoc['user_name'] else ''
+
             clusterDoc['_id'] = (clusterDoc['cluster_name'] +
                                  '_' +
-                                 str(clusterDoc['user_name']))
+                                 userName)
             return pymongo.Connection().clovr.clusters.save(clusterDoc,
                                                             safe=True)
 
