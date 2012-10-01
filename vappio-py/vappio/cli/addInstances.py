@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from igs.utils import cli
-from igs.utils.functional as func
+from igs.utils import functional as func
 
 from vappio.webservice.cluster import addInstances
 
@@ -22,12 +22,12 @@ OPTIONS = [
      '',
      '--num-exec',
      'Number of exec nodes to create',
-     func.compose(int, notNone)),
+     func.compose(int, cli.notNone)),
     ('exec_type',
      '',
      '--type',
      'Specify a type for exec if you want',
-     func.identity)
+     func.identity),
     ('block',
      '-b',
      '--block',
@@ -57,4 +57,4 @@ def main(options, _args):
 
         
 if __name__ == '__main__':
-    main(*buildConfigN(OPTIONS))
+    main(*cli.buildConfigN(OPTIONS))
