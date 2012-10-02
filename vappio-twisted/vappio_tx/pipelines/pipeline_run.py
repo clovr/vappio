@@ -51,12 +51,7 @@ def run(state, pipeline):
     if not os.path.exists(state.conf('config.pipeline_configs')):
         os.mkdir(state.conf('config.pipeline_configs'))
 
-    #yield _createErgatisConfig(state, pipeline.protocol)
-    #if :
-    #    yield _createErgatisConfigs(state, protocol)
-    
-        
-    tmpConfigName = os.path.join('/tmp', 'pipeline_configs', str(time.time()) + '.config')
+    tmpConfigName = os.path.join(state.conf('config.pipeline_configs'), str(time.time()) + '.config')
 
     pipeline.config = config.configFromMap({'CONFIG_FILE': tmpConfigName},
                                            base=pipeline.config)
