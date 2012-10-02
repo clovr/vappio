@@ -77,7 +77,7 @@ def run(state, pipeline):
     templateConfig = os.path.join(templateDir, 'pipeline_tmpl.config')
     templateLayout = os.path.join(templateDir, 'pipeline.layout')
 
-    tmpPipelineConfig = os.path.join('/tmp', 'pipeline_configs', str(time.time()) + '.pipeline.config')
+    tmpPipelineConfig = os.path.join(state.conf('config.pipeline_configs'), str(time.time()) + '.pipeline.config')
     fout = open(tmpPipelineConfig, 'w')
     for line in handleIncludes(open(templateConfig)):
         fout.write(config.replaceStr(line, pipeline.config) + '\n')
