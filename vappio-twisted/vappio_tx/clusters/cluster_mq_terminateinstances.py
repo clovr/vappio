@@ -1,5 +1,7 @@
 from twisted.internet import defer
 
+from twisted.python import log
+
 from igs.utils import functional as func
 
 from igs_tx.utils import defer_pipe
@@ -40,7 +42,8 @@ def _handleTerminateInstances(request):
     yield tasks_tx.updateTask(request.body['task_name'],
                               lambda t : t.setState(tasks_tx.task.TASK_RUNNING))
 
-    cluster = request.state.persistManager.loadCluster(request.body['cluster_name'],
+    persistManager = request.state.persistManager
+    cluster = yield persistManager.loadCluster(request.body['cluster_name'],
                                                        request.body['user_name'])
     credClient = cred_client.CredentialClient(cluster.credName,
                                               request.mq,
@@ -60,21 +63,25 @@ def _handleTerminateInstances(request):
                                                  remoteTaskName,
                                                  localTask)
         except:
-            yield terminateInstancesByAttribute(credClient,
+            yield terminateInstancesByAttribute(persistManager,
+                                                credClient,
                                                 request.body['cluster_name'],
                                                 request.body['user_name'],
                                                 request.body['by_attribute'],
                                                 request.body['attribute_values'])
             
     else:
-        yield terminateInstancesByAttribute(credClient,
-                                            'local',
-                                            None,
-                                            request.body['by_attribute'],
-                                            request.body['attributes_values'])
+        cl = yield terminateInstancesByAttribute(persistManager,
+                                                 credClient,
+                                                 'local',
+                                                 None,
+                                                 request.body['by_attribute'],
+                                                 request.body['attribute_values'])
+
+    yield tasks_tx.updateTask(request.body['task_name'],
+                              lambda t : t.progress())
 
     defer.returnValue(request)
-
 
 @defer.inlineCallbacks
 def handleTerminateInstances(request):
@@ -91,7 +98,7 @@ def subscribe(mq, state):
                                                   1)
     processTerminateInstancesPipe = defer_pipe.pipe([queue.keysInBody(['cluster_name',
                                                                        'user_name',
-                                                                       'by_attribute'
+                                                                       'by_attribute',
                                                                        'attribute_values']),
                                                      createAndForward])
     

@@ -62,7 +62,7 @@ def subscribe(mq, state):
     forwardOrCreate = forwardOrCreateTask(url,
                                           state.conf('clusters.addinstances_queue'),
                                           'addInstances',
-                                          0)
+                                          4)
 
     processAddPipe = defer_pipe.pipe([queue.keysInBody(['cluster',
                                                         'user_name',
