@@ -16,8 +16,8 @@ xprojects                    none
 enforce_project              false
 enforce_user                 auto
 load_report_time             00:02:00
-max_unheard                  00:05:00
-reschedule_unknown           00:05:00
+max_unheard                  00:15:00
+reschedule_unknown           00:15:00
 loglevel                     log_warning
 administrator_mail           none
 set_token_cmd                none
