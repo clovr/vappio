@@ -1,0 +1,2 @@
+# Need to run this every 5 minutes
+*/5 * * * * /etc/init.d/ntpdate.sh
