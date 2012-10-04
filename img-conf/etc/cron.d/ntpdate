@@ -1,2 +1,1 @@
-# Need to run this every 5 minutes
-*/5 * * * * /etc/init.d/ntpdate.sh
+*/5 * * * * root bash /etc/init.d/ntpdate.sh
