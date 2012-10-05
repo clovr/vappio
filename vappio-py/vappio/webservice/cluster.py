@@ -36,8 +36,8 @@ def terminateCluster(host, cluster):
     
 def terminateInstances(host, cluster, byCriteria, criteriaValues):
     return performQuery(host, TERMINATEINSTANCES_URL, dict(cluster_name=cluster,
-                                                           by_criteria=byCriteria,
-                                                           criteria_values=criteriaValues))
+                                                           by_attribute=byCriteria,
+                                                           attribute_values=criteriaValues))
 
 def importCluster(host, srcCluster, dstCluster, cred):
     """
