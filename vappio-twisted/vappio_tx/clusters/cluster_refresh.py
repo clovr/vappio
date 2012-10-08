@@ -74,9 +74,13 @@ def refreshClusters(mq, state):
             try:
                 if cluster.state in [cluster.RUNNING, cluster.UNRESPONSIVE]:
                     remoteCluster = yield loadRemoteCluster(state, cluster)
+
                     cluster = cluster.addExecNodes(remoteCluster['exec_nodes'])
                     cluster = cluster.addDataNodes(remoteCluster['data_nodes'])
+                    cluster = cluster.updateExecNodes(remoteCluster['exec_nodes'])
+                    cluster = cluster.updateDataNodes(remoteCluster['data_nodes'])
                     cluster = cluster.setState(cluster.RUNNING)
+
                     yield persistManager.saveCluster(cluster)
             except auth_token.AuthTokenError:
                 ## If we got an auth token error it means that

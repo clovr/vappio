@@ -5,6 +5,8 @@ import pymongo
 from twisted.internet import defer
 from twisted.internet import threads
 
+from twisted.python import log
+
 from igs.utils import functional as func
 from igs.utils import config
 from igs.utils import dependency
@@ -61,6 +63,18 @@ class Cluster(func.Record):
 
         return self.update(execNodes=execNodes)
 
+    def updateExecNodes(self, execNodes):
+        instances = set([self._instanceId(i) 
+                         for i in execNodes])
+
+        remExecNodes = []
+
+        for i in self.execNodes:
+            if self._instanceId(i) not in instances:
+                remExecNodes.append(i)
+
+        return self.removeExecNodes(remExecNodes)
+
     def removeExecNodes(self, remExecNodes):
         remExecIds = set([self._instanceId(i)
                           for i in remExecNodes])
@@ -75,6 +89,18 @@ class Cluster(func.Record):
 
     def addDataNodes(self, dataNodes):
         return self.update(dataNodes=self.dataNodes + dataNodes)
+
+    def updateDataNodes(self, dataNodes):
+        instances = set([self._instanceId(i) 
+                         for i in dataNodes])
+
+        remDataNodes = []
+
+        for i in self.dataNodes:
+            if self._instanceId(i) not in instances:
+                remDataNodes.append(i)
+
+        return self.removeDataNodes(remDataNodes)
 
     def removeDataNodes(self, remDataNodes):
         remDataIds = set([self._instanceId(i)
