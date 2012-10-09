@@ -231,7 +231,7 @@ class ClusterPersistManager(dependency.Dependable):
 
     def removeClustersBy(self, criteria, userName):
         criteria = func.updateDict(criteria,
-                                   {'user_name': userName})
+                                   {'user_name': {'$in': [userName, None]}})
         return self.removeClustersByAdmin(criteria)
 
     def removeCluster(self, clusterName, userName):
