@@ -50,7 +50,7 @@ def startMaster(state, credClient, taskName, cluster):
         cl = yield state.persistManager.loadCluster(cluster.clusterName,
                                                     cluster.userName)
 
-        cl = cl.setMaster(instances[1])
+        cl = cl.setMaster(instances[0])
         yield state.persistManager.saveCluster(cl)
         defer.returnValue(func.Record(succeeded=instances,
                                       failed=[]))
