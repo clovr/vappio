@@ -17,8 +17,8 @@ from vappio_tx.tasks import tasks as tasks_tx
 from vappio_tx.clusters import persist
 
 from vappio_tx.clusters import clusters_cleanup
-from vappio_tx.clusters import clusters_refresh_local
 from vappio_tx.clusters import cluster_refresh
+from vappio_tx.clusters import cluster_refresh_local
 from vappio_tx.clusters import clusters_orphans
 
 from vappio_tx.clusters import cluster_mq_addinstances
