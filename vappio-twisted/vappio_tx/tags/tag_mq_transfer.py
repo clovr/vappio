@@ -48,13 +48,14 @@ def _makeDirsOnCluster(cluster, dirNames):
                                 cluster['config']['ssh.user'],
                                 cluster['config']['ssh.options'])
         try:
-            yield ssh.runProcessSSH(cluster['master']['public_dns'],
-                                    'chown -R %s %s' % (cluster['config']['vappio.user'],
-                                                        d),
-                                    None,
-                                    log.err,
-                                    cluster['config']['ssh.user'],
-                                    cluster['config']['ssh.options'])
+            if cluster['master']['instance_type'] is not None:
+                yield ssh.runProcessSSH(cluster['master']['public_dns'],
+                                        'chown -R %s %s' % (cluster['config']['vappio.user'],
+                                                            d),
+                                        None,
+                                        log.err,
+                                        cluster['config']['ssh.user'],
+                                        cluster['config']['ssh.options'])
         except commands.Error:
             pass
         

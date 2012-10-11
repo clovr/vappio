@@ -17,6 +17,7 @@ from vappio_tx.tasks import tasks as tasks_tx
 from vappio_tx.clusters import persist
 
 from vappio_tx.clusters import clusters_cleanup
+from vappio_tx.clusters import clusters_refresh_local
 from vappio_tx.clusters import cluster_refresh
 from vappio_tx.clusters import clusters_orphans
 
@@ -205,6 +206,7 @@ def subscribeToQueues(mq, state):
                         cluster_mq_importcluster.subscribe,
                         cluster_mq_config.subscribe,
                         clusters_cleanup.subscribe,
+                        cluster_refresh_local.subscribe,
                         cluster_refresh.subscribe])
 
     # We only want to run this if we are on a local master
