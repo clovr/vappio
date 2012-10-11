@@ -11,7 +11,7 @@ DESC = """Control module for DIAG users"""
 DEFAULT_CONFIG_FILE = '/mnt/vappio-conf/clovr_diag.conf'
 DIAG_EC2_URL = 'https://nimbus.diagcomputing.org:8443/wsrf/services/ElasticNimbusService'
 
-INSTANCE_TYPE_MAPPING = {'default': 'm1.small',
+INSTANCE_TYPE_MAPPING = {'default': 'm1.large',
                          'small': 'm1.small',
                          'medium': 'm1.large',
                          'large': 'm1.xlarge',
