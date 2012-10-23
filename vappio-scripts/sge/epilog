@@ -66,7 +66,7 @@ if [ -n "$request_cwd" ]; then
 	vlog "vappio_epilog return code: $ret1"
 	if [ $ret1 -ne 0 ] 
 	    then
-	    echo echo "I~~~vappio harvesting failure. See logs~~~x~~~x~~~x~~~x" >> $EVENT_LOG;
+	    echo "I~~~vappio harvesting failure. See logs~~~x~~~x~~~x~~~x" >> $EVENT_LOG;
 	    exit $ret1
 	fi 
     fi
