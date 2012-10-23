@@ -12,8 +12,9 @@
 #v5.4 Fixes event.log monitoring 
 #v5.5 More fixes event.log monitoring using events hash 
 #v5.6 Adds ThreadPool fix from workflow SVN
-wget http://bioifx.org/wf_clovr_3.0vp5.6.tgz
-tar -C / -xvzf wf_clovr_3.0vp5.6.tgz
+#v5.7 Adds monitor respawn on exception and qsub retry
+wget http://bioifx.org/wf_clovr_3.0vp5.7.tgz
+tar -C / -xvzf wf_clovr_3.0vp5.7.tgz
 chmod 777 /opt/workflow-sforge
 #Set permissions on id file
 chmod 777 /opt/workflow-sforge/idfile
