@@ -23,7 +23,9 @@ cpan -i MLDBM
 cpan -i Tree::DAG_Node
 cpan -i XML::Simple
 
-cpan -i Date::Manip
+#Date::Manip version 6.36 seems to be broken; reverting to 6.34
+#cpan -i Date::Manip
+cpan -i SBECK/Date-Manip-6.34.tar.gz
 cpan -i XML::Writer
 cpan -i CDB_File
 cpan -i Class::Struct
