@@ -10,6 +10,7 @@ apt-get -y install libxml-libxml-perl
 apt-get -y install libmldbm-perl
 apt-get -y install libjson-perl
 apt-get -y install lib32stdc++6
+apt-get -y install libyaml-syck-perl
 
 #Need to to automate, is interactive
 export PERL_MM_USE_DEFAULT=1
@@ -25,7 +26,11 @@ cpan -i XML::Simple
 
 #Date::Manip version 6.36 seems to be broken; reverting to 6.34
 #cpan -i Date::Manip
-cpan -i SBECK/Date-Manip-6.34.tar.gz
+#Date::Manip versions aside from 6.36 and 5.x have been removed from CPAN
+#cpan -i SBECK/Date-Manip-5.34.tar.gz
+wget http://debian.lcs.mit.edu/debian/pool/main/libd/libdate-manip-perl/libdate-manip-perl_6.34-1_all.deb
+dpkg -i libdate-manip-perl_6.34-1_all.deb
+
 cpan -i XML::Writer
 cpan -i CDB_File
 cpan -i Class::Struct
