@@ -21,6 +21,7 @@ do_start() {
     then
 	#Try alternative
 	mount $vdishared_dir $shared_mp 
+    chown www-data.www-data $shared_mp
     fi
 
     mkdir -p $conf_mp
