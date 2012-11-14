@@ -31,8 +31,9 @@ def addInstances(host, name, numExec, numData, execType=None):
                                                      exec_instance_type=execType,
                                                      num_data=numData))
 
-def terminateCluster(host, cluster):
-    return performQuery(host, TERMINATECLUSTER_URL, dict(cluster_name=cluster))
+def terminateCluster(host, cluster, authToken=None):
+    return performQuery(host, TERMINATECLUSTER_URL, dict(cluster_name=cluster, 
+                                                         auth_token=authToken))
     
 def terminateInstances(host, cluster, byCriteria, criteriaValues):
     return performQuery(host, TERMINATEINSTANCES_URL, dict(cluster_name=cluster,

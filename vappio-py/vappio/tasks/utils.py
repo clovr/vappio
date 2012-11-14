@@ -97,7 +97,7 @@ def runTaskMain(func, options, args, optionsTaskName='general.task_name'):
     """
     return runTask(options(optionsTaskName), lambda : func(options, args))
 
-def runTaskStatus(taskName, clusterName=None):
+def runTaskStatus(taskName, clusterName=None, hostName='localhost'):
     """
     This is a simple function that takes a taskname and simply runs vp-describe-task
     on it.  It is meant to be used in specific situations in front ends.  It is not
@@ -112,7 +112,8 @@ def runTaskStatus(taskName, clusterName=None):
            '--no-print-polling']
     if clusterName:
         cmd.append('--name=' + clusterName)
-        
+
+    cmd.append('--host=' + hostName)
     cmd.append(taskName)
     
     commands.runSystemEx(' '.join(cmd))

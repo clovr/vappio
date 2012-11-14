@@ -2,8 +2,12 @@
 
 #USAGE: vp-checkandterminate-cluster true mycluster
 #Terminate cluster
-
 if [ "$1" == "1" ] || [ "$1" == "true" ]
 then
-	vp-terminate-cluster --cluster=$2
+    if [ "$2" == "local" ]
+    then
+        vp-terminate-cluster --cluster=$2 --auth-token=`generateAuthToken.py /mnt/keys/devel1.pem.pub`
+    else:
+    	vp-terminate-cluster --cluster=$2
+    fi        
 fi

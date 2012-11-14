@@ -131,15 +131,7 @@ def _handleTerminateCluster(request):
                                 request.body['user_name'])
 
     else:
-        ctype = yield credClient.getCType()
-
-        if ctype == "local":
-            ## Push through terminate (should be a NOOP)
-            yield terminateCluster(credClient,
-                                   persistManager,
-                                   'local',
-                                   request.body['user_name'])
-        elif ('auth_token' in request.body and 
+        if ('auth_token' in request.body and 
              auth_token.validateToken(request.body['auth_token'])):
             yield terminateCluster(credClient,
                                    persistManager,
