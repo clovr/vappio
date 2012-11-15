@@ -7,7 +7,7 @@ then
     if [ "$2" == "local" ]
     then
         vp-terminate-cluster --cluster=$2 --auth-token=`generateAuthToken.py /mnt/keys/devel1.pem.pub`
-    else:
+    else
     	vp-terminate-cluster --cluster=$2
     fi        
 fi
