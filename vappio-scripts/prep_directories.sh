@@ -29,7 +29,9 @@ then
     tar --owner=www-data --group=www-data -czvf /tmp/buildmnt.tgz .
     tar -C /mnt/ --same-owner -xkzvf /tmp/buildmnt.tgz
     rm -r /mnt/buildmnt
-#    chown -R www-data.www-data /mnt
+
+    chown -R www-data.www-data /mnt/clovr
+    chown -R www-data.www-data /mnt/projects
     touch /mnt/.clovrmntconfig
 fi
 
