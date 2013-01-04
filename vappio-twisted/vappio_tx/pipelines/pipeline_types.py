@@ -147,7 +147,7 @@ def t_organism(_state, value, params):
     """
     Organism simply must be 2 words
     """
-    if len(value.split()) == 2:
+    if len(value.split()) >= 2:
         return defer.succeed(value)
     else:
         return defer.fail(InvalidPipelineValue('"%s" must be two words' % str(value)))
