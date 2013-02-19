@@ -149,7 +149,7 @@ def _compressFiles(tag, compressDir):
 
     cmd = ['tar',
            '-C', tag.metadata['tag_base_dir'],
-           '-czf', compressedFile,
+           '-czfh', compressedFile,
            '--files-from=-']
 
     yield commands.runProcess(cmd,
