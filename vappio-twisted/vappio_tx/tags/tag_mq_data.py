@@ -149,7 +149,7 @@ def _compressFiles(tag, compressDir):
 
     cmd = ['tar',
            '-C', tag.metadata['tag_base_dir'],
-           '-czfh', compressedFile,
+           '-czhf', compressedFile,
            '--files-from=-']
 
     yield commands.runProcess(cmd,
@@ -162,9 +162,6 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
     if not os.path.exists(state.conf('tags.tags_directory')):
         yield commands.runProcess(['mkdir', '-p', state.conf('tags.tags_directory')])
 
-    if 'tag_base_dir' not in metadata:
-        metadata['tag_base_dir'] = '/'
-        
     files = yield _generateFileList(files, recursive, expand, deleteOnExpand)
 
     if action == ACTION_APPEND:
@@ -177,7 +174,8 @@ def tagData(state, tagName, taskName, files, metadata, action, recursive, expand
     else:
         oldFiles = set()
 
-
+    if 'tag_base_dir' not in metadata:
+        metadata['tag_base_dir'] = '/'
     files = [f
              for f in files
              if f not in oldFiles and (not filterF or filterF and filterF(f))]
