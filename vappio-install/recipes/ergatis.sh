@@ -28,7 +28,8 @@ cpan -i XML::Simple
 #cpan -i Date::Manip
 #Date::Manip versions aside from 6.36 and 5.x have been removed from CPAN
 #cpan -i SBECK/Date-Manip-5.34.tar.gz
-wget http://debian.lcs.mit.edu/debian/pool/main/libd/libdate-manip-perl/libdate-manip-perl_6.34-1_all.deb
+#6.34 appears to have disappeared from the internet. Keeping this in-house for now.
+wget http://cb2.igs.umaryland.edu/libdate-manip-perl_6.34-1_all.deb
 dpkg -i libdate-manip-perl_6.34-1_all.deb
 
 cpan -i XML::Writer
