@@ -19,3 +19,5 @@ perl -pi -e 's/^TGICLASSDIR := .*/TGICLASSDIR := \.\/tgi_cl/' Makefile
 make
 cp /tmp/cdbfasta/cdbfasta /usr/local/bin/
 cp /tmp/cdbfasta/cdbyank /usr/local/bin/
+
+cpan -i Math::Round
