@@ -17,6 +17,7 @@ do
   chmod 777 $i
 done;
 
+chown -R www-data.root /mnt/keys
 chown $sge_exec_user:$sge_exec_user $staging_dir 
 chown $sge_exec_user:$sge_exec_user $wfworking_dir 
 chown $sge_exec_user:$sge_exec_user $harvesting_dir 
