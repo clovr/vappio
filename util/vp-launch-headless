@@ -28,10 +28,12 @@ then
     VBoxManage sharedfolder remove $bname --name keys || true
     VBoxManage sharedfolder remove $bname --name user_data || true
     VBoxManage sharedfolder remove $bname --name pg_data || true
+    VBoxManage sharedfolder remove $bname --name vappio-conf || true
     VBoxManage sharedfolder add $bname --name shared --hostpath $1/shared/ 
     VBoxManage sharedfolder add $bname --name keys --hostpath $1/keys/ 
     VBoxManage sharedfolder add $bname --name user_data --hostpath $1/user_data/
     VBoxManage sharedfolder add $bname --name pg_data --hostpath $1/pg_data/
+    VBoxManage sharedfolder add $bname --name vappio-conf --hostpath $1/vappio-conf/
 	#Update shared folders
     VBoxHeadless -s $bname
 else

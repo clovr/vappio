@@ -61,6 +61,7 @@ then
     VBoxManage sharedfolder add $2 --name keys --hostpath $4/keys/ 
     VBoxManage sharedfolder add $2 --name user_data --hostpath $4/user_data/
     #VBoxManage sharedfolder add $2 --name pg_data --hostpath $4/pg_data/
+    VBoxManage sharedfolder add $2 --name vappio-conf --hostpath $4/vappio-conf/
 fi
 
 echo "Creating ovf"

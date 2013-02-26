@@ -9,7 +9,7 @@ touch $vappio_log
 chmod 666 $vappio_log
 
 #create critical directories
-for i in $vappio_runtime /mnt/keys /mnt/user_data; 
+for i in $vappio_runtime /mnt/keys /mnt/user_data /mnt/vappio-conf; 
 do
   mkdir -p $i
   chmod 777 $i
