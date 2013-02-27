@@ -105,6 +105,10 @@ bash $VAPPIO_RECIPES/extjs.sh
 #BWA
 bash $VAPPIO_RECIPES/bwa.sh
 
+# clovr microbe
+bash $VAPPIO_RECIPES/circleator.sh
+bash $VAPPIO_RECIPES/batik.sh
+
 #TODO
 #updating clovr SVN filesystem packages/packages.list cpan.packages
 #making svn tags
