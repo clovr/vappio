@@ -52,3 +52,4 @@ wget -c -O /var/lib/hudson/plugins/build-timeout.hpi http://cb2.igs.umaryland.ed
 find /var/lib/hudson -type d -exec chmod 777 {} \;
 find /var/lib/hudson -type f -exec chmod 666 {} \;
 chmod 666 /var/lib/hudson/config.xml
+rm /etc/apt/sources.list.d/hudson.list*
