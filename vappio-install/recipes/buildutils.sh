@@ -42,7 +42,7 @@ wget -c -P /mnt http://bioifx.org/grub-boot.tgz
 #wget -c -P /mnt http://bioifx.org/VBoxLinuxAdditions-amd64.run
 
 #mkdir -p /opt/opt-packages
-echo p | svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
+echo p | svn export --force https://svn.code.sf.net/p/clovr/code/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
 
 apt-get install -y ruby
 apt-get install -y libruby1.8-extras
@@ -50,8 +50,6 @@ pushd /opt
 wget http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.zip
 unzip -o ec2-ami-tools.zip
 popd
-
-echo p | svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/opt-packages/ec2-api-tools-1.3-53907/ /opt/opt-packages/ec2-api-tools-1.3-53907/
 
 sudo apt-get -y install apt-cacher apache2 
 echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher

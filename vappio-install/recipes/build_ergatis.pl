@@ -94,13 +94,13 @@ my $install_base=$opts{install_base};
 # using http instead of https
 my %SVN_CO_PATH = (
 		   ergatis => 'http://ergatis.svn.sourceforge.net/svnroot/ergatis/release/trunk',
-		   bsml => 'http://bsml.svn.sourceforge.net/svnroot/bsml/release',
-		   coati_install => 'http://coati-api.svn.sourceforge.net/svnroot/coati-api/release/coati_install',
-		   shared_prism => 'http://prism-api.svn.sourceforge.net/svnroot/prism-api/release/shared_prism',
-		   chado_prism => 'http://prism-api.svn.sourceforge.net/svnroot/prism-api/release/chado_prism',
-		   prok_prism => 'http://prism-api.svn.sourceforge.net/svnroot/prism-api/release/prok_prism',
-		   euk_prism => 'http://prism-api.svn.sourceforge.net/svnroot/prism-api/release/euk_prism',
-		   chado_schema => 'http://prism-api.svn.sourceforge.net/svnroot/prism-api/release/chado',
+		   bsml => 'http://svn.code.sf.net/p/bsml/code/release',
+		   coati_install => 'http://svn.code.sf.net/p/coati-api/code/release/coati_install',
+		   shared_prism => 'http://svn.code.sf.net/p/prism-api/code/release/shared_prism',
+		   chado_prism => 'http://svn.code.sf.net/p/prism-api/code/release/chado_prism',
+		   prok_prism => 'http://svn.code.sf.net/p/prism-api/code/release/prok_prism',
+		   euk_prism => 'http://svn.code.sf.net/p/prism-api/code/release/euk_prism',
+		   chado_schema => 'http://svn.code.sf.net/p/prism-api/code/release/chado',
 #		   igs_idgenerator => 'http://vader.igs.umaryland.edu/svnroot/ENGR/IGS-UIDGenerator/trunk/perl/lib/IGS',
 		   );
 
