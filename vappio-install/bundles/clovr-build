@@ -30,4 +30,4 @@ bash -e $VAPPIO_RECIPES/hudson.sh
 sudo bash -e $VAPPIO_RECIPES/buildutils.sh
 
 #Additional hudson configuration for the build box only
-svn export --force https://clovr.svn.sourceforge.net/svnroot/clovr/trunk/hudson/hudson-config/config.xml.clovr-build /var/lib/hudson/config.xml
+svn export --force http://svn.code.sf.net/p/clovr/code/trunk/hudson/hudson-config/config.xml.clovr-build /var/lib/hudson/config.xml
