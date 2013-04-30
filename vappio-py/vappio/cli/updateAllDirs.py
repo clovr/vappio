@@ -65,11 +65,11 @@ def main(options, _args):
 
     try:
         if options('general.stow') or updateAll:
-            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'stow', '/usr/local/stow')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'stow', '/usr/local/stow')
         if options('general.opt_packages') or updateAll:
-            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'opt-packages', '/opt/opt-packages')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'opt-packages', '/opt/opt-packages')
         if options('general.config_policies') or updateAll:
-            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'config_policies', '/opt/config_policies')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'config_policies', '/opt/config_policies')
         if options('general.vappio_py') or updateAll:
             grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-py', '/opt/vappio-py')
             runSystemEx("""chmod +x /opt/vappio-py/vappio/cli/*.py""")
@@ -85,7 +85,7 @@ def main(options, _args):
             runSystemEx("""cp -f /opt/vappio-scripts/rc.local /etc/init.d/rc.local""", log=True)
             runSystemEx("""cp -f /opt/vappio-scripts/screenrc /root/.screenrc""", log=True)
         if options('general.clovr_pipelines') or updateAll:
-            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'clovr_pipelines', '/opt/clovr_pipelines')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'clovr_pipelines', '/opt/clovr_pipelines')
         if options('general.vappio_py_www') or updateAll:
             grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-www/py-www', '/var/www/vappio')
         ##    
@@ -94,12 +94,12 @@ def main(options, _args):
         #     grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-conf', '/mnt/vappio-conf')
 
         if options('general.hudson') or updateAll:
-            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'hudson/hudson-config/jobs', '/var/lib/hudson/jobs')
-            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'hudson/hudson-scripts', '/opt/hudson')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'hudson/hudson-config/jobs', '/var/lib/hudson/jobs')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'hudson/hudson-scripts', '/opt/hudson')
             runSystemEx("""chown -R hudson.nogroup /var/lib/hudson/jobs""", log=True)
 
         if options('general.clovr_www') or updateAll:
-            grabFromSVN(options, 'https://clovr.svn.sourceforge.net/svnroot/clovr', clovrBranch, 'clovr-www', '/var/www/clovr')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'clovr-www', '/var/www/clovr')
             
     except CheckoutModifiedError, err:
         errorPrint(str(err))
