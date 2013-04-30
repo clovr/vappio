@@ -21,3 +21,5 @@ apt-get -y install python-argparse
 apt-get -y install lynx
 
 apt-get -y install tofrodos
+
+apt-get -y install git-core
