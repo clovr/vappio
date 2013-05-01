@@ -5,6 +5,7 @@ apt-get -y --force-yes install python-software-properties
 add-apt-repository ppa:fkrull/deadsnakes
 apt-get -y --force-yes update
 apt-get -y --force-yes install python2.7
+apt-get -y --force-yes install python2.7-dev
 
 # Install python modules
 git clone https://github.com/ged-lab/screed.git /tmp/
