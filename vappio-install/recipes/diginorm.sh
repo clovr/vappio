@@ -8,8 +8,9 @@ apt-get -y --force-yes install python2.7
 apt-get -y --force-yes install python2.7-dev
 
 # Install python modules
-git clone https://github.com/ged-lab/screed.git /tmp/
-git clone https://github.com/ged-lab/khmer.git /tmp/
+cd /tmp
+git clone https://github.com/ged-lab/screed.git
+git clone https://github.com/ged-lab/khmer.git
 
 cd /tmp/khmer
 make
