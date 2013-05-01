@@ -22,9 +22,6 @@ bash -e $VAPPIO_RECIPES/disablesplash.sh
 bash -e $VAPPIO_RECIPES/hpnssh.sh
 bash -e $VAPPIO_RECIPES/allowrootssh.sh
 
-# Pypi and any python modules
-bash $VAPPIO_RECIPES/pypi.sh
-
 #Vappio appliance utils
 bash -e $VAPPIO_RECIPES/vappioutil.sh
 bash -e $VAPPIO_RECIPES/vappiopkg.sh
@@ -32,6 +29,8 @@ bash -e $VAPPIO_RECIPES/sethostname.sh
 bash -e $VAPPIO_RECIPES/autologin.sh
 bash -e $VAPPIO_RECIPES/dhcp.sh
 
+# Pypi and any python modules
+bash $VAPPIO_RECIPES/pypi.sh
 
 bash -e $VAPPIO_RECIPES/vappiocustoms.sh
 bash -e $VAPPIO_RECIPES/vappio-tasklets.sh
