@@ -112,6 +112,10 @@ bash $VAPPIO_RECIPES/batik.sh
 # diginorm
 bash $VAPPIO_RECIPES/diginorm.sh
 
+# clovr comparative
+bash $VAPPIO_RECIPES/sybil.sh
+bash $VAPPIO_RECIPES/newick-utils.sh
+
 #TODO
 #updating clovr SVN filesystem packages/packages.list cpan.packages
 #making svn tags
