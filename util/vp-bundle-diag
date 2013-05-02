@@ -91,7 +91,8 @@ fi
 echo "Uploading $imgname"
 #Assumes running on a clovr build image
 source /opt/vappio-scripts/clovrEnv.sh
-export PATH=$PATH:/opt/opt-packages/nimbus-cloud-client-016/bin
+#export PATH=$PATH:/opt/opt-packages/nimbus-cloud-client-016/bin
+export PATH=$PATH:/opt/opt-packages/nimbus-cloud-client-021/bin
 
 utildir=/opt/vappio-util
 
