@@ -5,6 +5,6 @@
 apt-get -y install python-pip
 
 ## Install python modules
+apt-get -y install python-biopython
 pip install HTSeq
-pip install biopython
 pip install bx-python
