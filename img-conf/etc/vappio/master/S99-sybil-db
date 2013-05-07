@@ -1,0 +1,3 @@
+#!/bin/bash
+
+/opt/ergatis/bin/configure_sybil --start_mongo --start_postgres --root_dir=/mnt/ &> /mnt/configure_sybil.log
