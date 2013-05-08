@@ -6,7 +6,10 @@ sudo add-apt-repository "deb http://nebc.nerc.ac.uk/bio-linux/ unstable bio-linu
 
 # This is a hack to keep things working. It looks like the biolinux people are abandoning
 # these older versions.
-sudo add-apt-repository "deb http://packages.sgn.cornell.edu/apt/ sgn main"
+wget -P /tmp http://cb2.igs.umaryland.edu/trnascan-se_1.23-2_amd64.deb
+dpkg --install /tmp/trnascan-se_1.23-2_amd64.deb
+
+#sudo add-apt-repository "deb http://packages.sgn.cornell.edu/apt/ sgn main"
 apt-get update
 apt-get --force-yes -y install bio-linux-keyring
 apt-get update
