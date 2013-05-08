@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # Pull the configure script down
-wget -N -P /mnt/ http://sybil.igs.umaryland.edu/configure_sybil.pl
+echo p | svn export --force https://ergatis.svn.sf.net/svnroot/ergatis/trunk/src/perl/configure_sybil.pl /mnt/configure_sybil.pl
+#wget -N -P /mnt/ http://sybil.igs.umaryland.edu/configure_sybil.pl
 
 # Pull the new prep_directories to avoid doing the bad chmod
 #svn export http://vappio.svn.sf.net/svnroot/vappio/trunk/vappio-scripts/prep_directories.sh /opt/vappio-scripts/prep_directories.sh
