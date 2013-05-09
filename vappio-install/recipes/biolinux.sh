@@ -17,3 +17,4 @@ apt-get update
 #TODO, consider merging with Ubuntu repository, see recipe ubuntuifxpkgs
 apt-get -y --force-yes install bio-linux-shared bio-linux-bldp-files bio-linux-glimmer3 bio-linux-hmmer bio-linux-trnascan 
 
+wget -P /usr/bin http://cb2.igs.umaryland.edu/tbl2asn
