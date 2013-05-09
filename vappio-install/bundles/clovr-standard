@@ -15,7 +15,6 @@ bash -e $VAPPIO_RECIPES/sysconfigs.sh
 bash -e $VAPPIO_RECIPES/disablesplash.sh
 #Requires clovrsplash.sh is passed to vp-bundle-release
 
-
 #bash -e $VAPPIO_RECIPES/useradd.sh
 
 #High performance SSH
@@ -28,6 +27,9 @@ bash -e $VAPPIO_RECIPES/vappiopkg.sh
 bash -e $VAPPIO_RECIPES/sethostname.sh
 bash -e $VAPPIO_RECIPES/autologin.sh
 bash -e $VAPPIO_RECIPES/dhcp.sh
+
+#catch all for apt pkgs
+bash -e $VAPPIO_RECIPES/generalpkgs.sh
 
 # Pypi and any python modules
 bash $VAPPIO_RECIPES/pypi.sh
@@ -50,8 +52,6 @@ bash -e $VAPPIO_RECIPES/vappiosite.sh
 
 bash -e $VAPPIO_RECIPES/clovrsetup.sh
 
-#catch all for apt pkgs
-bash -e $VAPPIO_RECIPES/generalpkgs.sh
 
 #R
 bash -e $VAPPIO_RECIPES/rpkg.sh
