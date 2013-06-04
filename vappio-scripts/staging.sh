@@ -90,47 +90,66 @@ then
 fi
 #If argument is specified
 #copy specified files
-if [ "$1" != "" ]
-then
-    while (( "$#" )); do
-	if [ -d "$1" ]
+#if [ 1 ]
+#if [ "$1" != "" ]
+#then
+
+    nostaging=0
+    files=$(cat /var/vappio/runtime/sync_dirs)
+    if [ "$1" == "nostaging" ]
+    then
+        nostaging=1
+        shift
+    #    newfiles=$@
+    #    files=( "${files[@]}" "${newfiles[@]}" )
+    fi
+    
+    if [ "$1" != "" ]
+    then
+        newfiles=$@
+        files=( "${files[@]}" "${newfiles[@]}" )
+    fi
+    for f in ${files[@]}; do
+    #while (( "$#" )); do
+        echo $f 
+	if [ -d "$f" ]
 	then
-	    vlog "Start staging of directory $1 to $remotehost:$1"
-	    if [ ! -r "$1" ]
+	    vlog "Start staging of directory $f to $remotehost:$f"
+	    if [ ! -r "$f" ]
 	    then
-		vlog "ERROR: $1 does not exist"
+		vlog "ERROR: $f does not exist"
 		verror "STAGING FAILURE. FILE DOES NOT EXIST"
 		exit 100;
 	    fi
 	    #Must remove trailing slash if specified
-	    dname=`echo "$1" | perl -ne 's/\/\s*$//g;print'`
+	    dname=`echo "$f" | perl -ne 's/\/\s*$//g;print'`
 	    vlog "CMD: $rsynccmd -R --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" $dname root@$remotehost:/"
-	    $rsynccmd -R --filter '- .*' -av -e "$ssh_client -i $ssh_key $ssh_options" $dname root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
+	    $rsynccmd -R --filter '- .*' -av -e "$ssh_client -i $ssh_key $ssh_options" --delete $dname root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
 	    ret=$?
 	else
-	    vlog "Start staging of file $1 to $remotehost:$1"
-	    vlog "CMD: $rsynccmd --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" $1 root@$remotehost:$1"
-	    dname=`dirname $1`
+	    vlog "Start staging of file $f to $remotehost:$f"
+	    vlog "CMD: $rsynccmd --filter '- .*' -av -e \"$ssh_client -i $ssh_key $ssh_options\" $f root@$remotehost:$f"
+	    dname=`dirname $f`
 	    if [ ! -r "$dname" ]
 	    then
 		vlog "ERROR: $dname does not exist"
 		verror "STAGING FAILURE. DIRECTORY DOES NOT EXIST"
 		exit 100;
 	    fi
-	    if [ ! -r "$1" ]
+	    if [ ! -r "$f" ]
 	    then
-		vlog "ERROR: $1 does not exist"
+		vlog "ERROR: $f does not exist"
 		verror "STAGING FAILURE. FILE DOES NOT EXIST"
 		exit 100;
 	    fi
-	    $rsynccmd --filter '- .*' --rsync-path "mkdir -p $dname && $rsynccmd" -av -e "$ssh_client -i $ssh_key $ssh_options" $1 root@$remotehost:$1 #1>> $vappio_log 2>> $vappio_log
+	    $rsynccmd --filter '- .*' --rsync-path "mkdir -p $dname && $rsynccmd" -av -e "$ssh_client -i $ssh_key $ssh_options" $f root@$remotehost:$f #1>> $vappio_log 2>> $vappio_log
 	    ret=$?
-	    case $1 in 
+	    case $f in 
 		*.list) 
 		    if [ $ret == 0 ]
 		    then
 			vlog "Handling as list file";
-			$rsynccmd --files-from=$1 -av -e "$ssh_client -i $ssh_key $ssh_options" / root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
+			$rsynccmd --files-from=$f -av -e "$ssh_client -i $ssh_key $ssh_options" / root@$remotehost:/ #1>> $vappio_log 2>> $vappio_log
 		    fi
 		    ;;
 	    esac
@@ -145,7 +164,10 @@ then
 	fi
 	shift
     done
-else
+#else
+echo $1
+if [ $nostaging == 0 ]
+then
 #copy staging area
     vlog "Start staging from $staging_dir/ to $remotehost:$staging_dir"
     if [ "$transfer_method" == "gridftp" ]
@@ -217,21 +239,21 @@ else
 	    isreachable=`printf "kv\nhostname=$remotehost\n" | /opt/vappio-metrics/host-is-reachable | grep "reachable=yes"`
 	    fileexists=`ls -d $staging_dir`
 	    if [ -d "$staging_dir" ] && [ "$isreachable" != "" ] && [ "$fileexists" != "" ]
-	    then
-		vlog "Retrying staging.sh transfer isreachable=$isreachable fileexists=$fileexists"
-		#Requeue job
-		rcount=`expr $RETRY_COUNT + 1` 
-		if [ $rcount -gt $MAX_SGE_RETRIES ]
-		then
-		    vlog "Max retries $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1 from staging.sh"
-		    exit 1
-		else
-		    vlog "Marking retry $rcount"
-		    qalter -v RETRY_COUNT=$rcount $JOB_ID
-		    exit 99
-		fi
+	        then
+		    vlog "Retrying staging.sh transfer isreachable=$isreachable fileexists=$fileexists"
+    		#Requeue job
+    		rcount=`expr $RETRY_COUNT + 1` 
+    		if [ $rcount -gt $MAX_SGE_RETRIES ]
+    		    then
+    		    vlog "Max retries $rcount > $MAX_SGE_RETRIES exceeded for $JOB_ID. Exit 1 from staging.sh"
+    		    exit 1
+    		else
+    		    vlog "Marking retry $rcount"
+    		    qalter -v RETRY_COUNT=$rcount $JOB_ID
+    		    exit 99
+    		fi
 	    else
-		exit $ret
+    		exit $ret
 	    fi
 
 	fi
