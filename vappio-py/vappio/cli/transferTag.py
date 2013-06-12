@@ -21,6 +21,7 @@ OPTIONS = [
     ('transfer_type', '', '--transfer-type', 'Type of transfer to do (cluster, s3) default is cluster',
      func.compose(cli.restrictValues(['cluster', 's3']), cli.defaultIfNone('cluster'))),
     ('block', '-b', '--block', 'Block until cluster is up (no longer used)', func.identity, cli.BINARY),
+    ('dst_type', '', '--dst-type', 'Set type of destination. (stage,local) default is stage', cli.defaultIfNone('stage')),
     ('compress', '', '--compress', 'Compress files', func.identity, cli.BINARY),
     ('compress_dir', '', '--compress-dir', 'Compress files into the specified directory', cli.defaultIfNone(None)),
     ('expand', '', '--expand', 'Expand files (always on regardless of this right now )', func.identity, cli.BINARY),
@@ -35,7 +36,8 @@ def transferBetweenClusters(options):
                            options('general.src_cluster'),
                            options('general.dst_cluster'),
                            options('general.compress'),
-                           options('general.compress_dir'))
+                           options('general.compress_dir'),
+                           options('general.dst_type'))
                            
 
 def transferToS3(options):

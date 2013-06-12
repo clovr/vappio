@@ -30,13 +30,14 @@ def tagData(host,
                                                      compress_dir=compressDir))
 
 
-def transferTag(host, cluster, tagName, srcCluster, dstCluster, compress=False, compressDir=None):
+def transferTag(host, cluster, tagName, srcCluster, dstCluster, compress=False, compressDir=None,dstType=None):
     return performQuery(host, TRANSFER_URL, dict(cluster=cluster,
                                                  tag_name=tagName,
                                                  src_cluster=srcCluster,
                                                  dst_cluster=dstCluster,
                                                  compress=compress,
-                                                 compress_dir=compressDir))
+                                                 compress_dir=compressDir,
+                                                 dst_type=dstType))
     
 
 def listTags(host, cluster, criteria, detail):

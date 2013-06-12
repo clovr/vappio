@@ -174,6 +174,17 @@ def _uploadTag(request):
     # We want the trailing '/' so everyone knows it's a directory
     dstTagPath = os.path.join(dstCluster['config']['dirs.upload_dir'], localTag.tagName) + '/'
 
+    # Change dstTagPath to use /mnt/nostaging instead of mnt/staging as the destination if the 
+    # tag has a nostaging metadata value
+    #if localTag.metadata['nostaging']:
+    #    dstTagPath = os.path.join(dstCluster['config']['dirs.nostaging_upload_dir'], localTag.tagName) + '/'
+    if request.body['dst_type'] == 'local' :
+        upload_dir = '/mnt/nostaging/'
+        if 'dirs.nostaging_upload_dir' in dstCluster['config']:
+            upload_dir = dstCluster['config']['dirs.nostaging_upload_dir']
+        yield _makeDirsOnCluster(dstCluster, [upload_dir])
+        dstTagPath = os.path.join(upload_dir, localTag.tagName) + '/'
+
     baseDirFiles, nonBaseDirFiles = _partitionFiles(localTag.files, localTag.metadata['tag_base_dir'])
 
     if baseDirFiles:
@@ -414,7 +425,8 @@ def subscribe(mq, state):
                                                                                  'user_name',
                                                                                  'tag_name',
                                                                                  'src_cluster',
-                                                                                 'dst_cluster']),
+                                                                                 'dst_cluster',
+                                                                                 'dst_type']),
                                                                _forwardToCluster(state.conf,
                                                                                  state.conf('tags.transfer_www')),
                                                                queue.createTaskAndForward(state.conf('tags.transfer_queue'),
