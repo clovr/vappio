@@ -93,7 +93,7 @@ if (defined $opts{log}) {
 my $install_base=$opts{install_base};
 # using http instead of https
 my %SVN_CO_PATH = (
-		   ergatis => 'http://ergatis.svn.sourceforge.net/svnroot/ergatis/release/trunk',
+		   ergatis => 'http://svn.code.sf.net/p/ergatis/code/release/trunk',
 		   bsml => 'http://svn.code.sf.net/p/bsml/code/release',
 		   coati_install => 'http://svn.code.sf.net/p/coati-api/code/release/coati_install',
 		   shared_prism => 'http://svn.code.sf.net/p/prism-api/code/release/shared_prism',
