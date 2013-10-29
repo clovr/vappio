@@ -47,8 +47,8 @@ B<--help,-h>
 
 There's a good chance the script will not run automatically on your system the first time you try to use it.  This is because SVN requires
 you to manually accept the server certificates from the SVN repositories.  If you run
- $ svn co SVN_CO_PATH
-for each of the paths in the the SVN_CO_PATH hash and permanently accept the 
+ $ svn co REPO_CO_PATH
+for each of the paths in the the REPO_CO_PATH hash and permanently accept the 
 security certificate, then the script will run as normal
 =cut
 
@@ -71,7 +71,7 @@ umask(0022);
 my %ID_GENERATORS = (
 		     igs => "IGSIdGenerator",
 		     default => "DefaultIdGenerator",
-                     cloud => "CloudIdGenerator"
+             cloud => "CloudIdGenerator"
 		    );
 
 my %opts = &parse_options();
@@ -92,16 +92,16 @@ if (defined $opts{log}) {
 #my $install_base='/usr/local/projects/ergatis/package-nightly';
 my $install_base=$opts{install_base};
 # using http instead of https
-my %SVN_CO_PATH = (
-		   ergatis => 'http://svn.code.sf.net/p/ergatis/code/release/trunk',
-		   bsml => 'http://svn.code.sf.net/p/bsml/code/release',
-		   coati_install => 'http://svn.code.sf.net/p/coati-api/code/release/coati_install',
-		   shared_prism => 'http://svn.code.sf.net/p/prism-api/code/release/shared_prism',
-		   chado_prism => 'http://svn.code.sf.net/p/prism-api/code/release/chado_prism',
-		   prok_prism => 'http://svn.code.sf.net/p/prism-api/code/release/prok_prism',
-		   euk_prism => 'http://svn.code.sf.net/p/prism-api/code/release/euk_prism',
-		   chado_schema => 'http://svn.code.sf.net/p/prism-api/code/release/chado',
-#		   igs_idgenerator => 'http://vader.igs.umaryland.edu/svnroot/ENGR/IGS-UIDGenerator/trunk/perl/lib/IGS',
+my %REPO_CO_PATH = (
+		   ergatis => ['https://github.com/jorvis/ergatis.git', 'git'],
+		   bsml => ['http://svn.code.sf.net/p/bsml/code/release', 'svn'],
+		   coati_install => ['http://svn.code.sf.net/p/coati-api/code/release/coati_install', 'svn'],
+		   shared_prism => ['http://svn.code.sf.net/p/prism-api/code/release/shared_prism', 'svn'],
+		   chado_prism => ['http://svn.code.sf.net/p/prism-api/code/release/chado_prism', 'svn'],
+		   prok_prism => ['http://svn.code.sf.net/p/prism-api/code/release/prok_prism', 'svn'],
+		   euk_prism => ['http://svn.code.sf.net/p/prism-api/code/release/euk_prism', 'svn'],
+		   chado_schema => ['http://svn.code.sf.net/p/prism-api/code/release/chado', 'svn'],
+#		   igs_idgenerator => ['http://vader.igs.umaryland.edu/svnroot/ENGR/IGS-UIDGenerator/trunk/perl/lib/IGS', 'svn'],
 		   );
 
 ## this directory will be created.  If it exists already, it and everything under it
@@ -293,8 +293,8 @@ sub install_chado_schema {
     my $tmp_build_area = "$tmp_area/chado_schema";
 
     _log( "checking out Chado schema");    
-    svn_checkout( $tmp_build_area, $SVN_CO_PATH{chado_schema} );
-    
+    svn_checkout( $tmp_build_area, "", "", $REPO_CO_PATH{chado_schema} );
+ 
     _log( "installing Chado schema");
     chdir("$tmp_build_area/chado-vNrNbN/") || die "couldn't cd into $tmp_build_area/chado-vNrNbN";
     run_command( "perl install.pl INSTALL_BASE=$base" );
@@ -307,7 +307,7 @@ sub install_igs_idgenerator {
     my $tmp_build_area = "$tmp_area/igs_idgenerator";
     
     _log( "checking out igs_idgenerator");
-    svn_checkout( $tmp_build_area, $SVN_CO_PATH{igs_idgenerator} );
+    svn_checkout( $tmp_build_area, $REPO_CO_PATH{igs_idgenerator} );
 
     my $cmd = "cp -r $tmp_area/igs_idgenerator/ENGR/IGS-UIDGenerator/trunk/perl/lib/IGS $install_base/lib/perl5";
     run_command( $cmd );
@@ -359,10 +359,19 @@ sub install_perl {
     my $tmp_build_area = "$tmp_area/$package";
 
     _log( "checking out $package-$version");
-    svn_checkout( $tmp_build_area, $SVN_CO_PATH{$package} );
+    svn_checkout( $tmp_build_area, $package, $version, $REPO_CO_PATH{$package} );
 
     _log( "installing $package-$version");
+
     chdir("$tmp_build_area/$package-$version/") || die "couldn't cd into $tmp_build_area/$package-$version";
+
+    # If we are pulling Ergatis from github we are going to need to move some directories around in order
+    # to replace what svn:externals did for us
+    # TODO: Figure out a better way to achieve this without the special case just for Ergatis
+    if ($package eq "ergatis") {
+        run_command("mv install/* .; mv src/R .; mv src/python .; mv templates/pipelines global_pipeline_templates; mv src/perl bin; mv src/shell .; mv src/c .; rm -rf src; mv c src;")
+    }
+
     run_command( "perl $opt_lib Makefile.PL INSTALL_BASE=$base $other_opts" );
     run_command( "make" );
     run_command( "make install" );
@@ -371,11 +380,19 @@ sub install_perl {
 
 # ripped from SVN::Agent
 sub svn_checkout {
-    my ($path, $repository) = @_;
+    my ($path, $package, $version, $repo_array) = @_;
     mkdir($path) or die "Unable to create svn co " . $path.": $!";
+    my $cmd;
+
+    my ($repository, $co_type) = @$repo_array;
+    if ($co_type eq "git") {
+        $cmd = "git clone $repository $path/$package-$version;";
+    } elsif ($co_type eq "svn") {
+        $cmd = "echo p | svn export --force $repository $path";
+    }
+
 #    my $svn_cmd = "svn co --trust-server-cert --non-interactive $repository $path";  # reqs SVN >= 1.6
-    my $svn_cmd = "echo p | svn export --force $repository $path";
-    run_command( $svn_cmd );
+    run_command( $cmd );
 }
 
 sub run_command {
