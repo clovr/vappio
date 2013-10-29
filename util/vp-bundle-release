@@ -38,8 +38,8 @@ sarray=("$@")
 
 recipedir=/opt/vappio-install/recipes
 utildir=/opt/vappio-util
-vmxtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/start_clovr.vmx
-sharedtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared
+vmxtemplate=https://svn.code.sf.net/p/vappio/code/trunk/util/start_clovr.vmx
+sharedtemplate=https://svn.code.sf.net/p/vappio/code/trunk/img-conf/mnt/shared
 
 if [ ! -f "$currimg" ]
 then

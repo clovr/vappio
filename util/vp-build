@@ -41,7 +41,7 @@ handlekill() {
 }
 
 #Default bootstrap script
-bootstrapscript=http://vappio.svn.sourceforge.net/viewvc/vappio/trunk/vappio-install/vp-bootstrap-install
+bootstrapscript=https://svn.code.sf.net/p/vappio/code/trunk/vappio-install/vp-bootstrap-install
 #Default build scripts directory
 bundledir=/opt/vappio-install/bundles
 
@@ -202,7 +202,7 @@ else
     curl http://localhost:3142 > /dev/null
     if [ $? = 0 ]
     then
-	echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apt/apt.conf.d/01proxy $builddir.live/etc/apt/apt.conf.d/01proxy
+	echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/apt/apt.conf.d/01proxy $builddir.live/etc/apt/apt.conf.d/01proxy
     fi
     set -e 
     

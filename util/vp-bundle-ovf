@@ -8,7 +8,7 @@ A VDI file with outputprefix.vdi\n
 -z compress vdi
 "
 
-sharedtemplate=https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/mnt/shared
+sharedtemplate=https://svn.code.sf.net/p/vappio/code/trunk/img-conf/mnt/shared
 
 while getopts "hzs" options; do
   case $options in
