@@ -71,14 +71,14 @@ def main(options, _args):
         if options('general.config_policies') or updateAll:
             grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'config_policies', '/opt/config_policies')
         if options('general.vappio_py') or updateAll:
-            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-py', '/opt/vappio-py')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/vappio/code', vappioBranch, 'vappio-py', '/opt/vappio-py')
             runSystemEx("""chmod +x /opt/vappio-py/vappio/cli/*.py""")
         if options('general.vappio_apps') or updateAll:
-            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-apps', '/opt/vappio-apps')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/vappio/code', vappioBranch, 'vappio-apps', '/opt/vappio-apps')
         if options('general.vappio_twisted') or updateAll:
-            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-twisted', '/opt/vappio-twisted')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/vappio/code', vappioBranch, 'vappio-twisted', '/opt/vappio-twisted')
         if options('general.vappio_scripts') or updateAll:
-            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-scripts', '/opt/vappio-scripts')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/vappio/code', vappioBranch, 'vappio-scripts', '/opt/vappio-scripts')
             runSystemEx("""chmod -R +x /opt/vappio-scripts""", log=True)
             runSystemEx("""cp -f /opt/vappio-scripts/clovrEnv.sh /root""", log=True)
             runSystemEx("""cp -f /opt/vappio-scripts/local /etc/init.d/local""", log=True)
@@ -87,11 +87,11 @@ def main(options, _args):
         if options('general.clovr_pipelines') or updateAll:
             grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'clovr_pipelines', '/opt/clovr_pipelines')
         if options('general.vappio_py_www') or updateAll:
-            grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-www/py-www', '/var/www/vappio')
+            grabFromSVN(options, 'https://svn.code.sf.net/p/vappio/code', vappioBranch, 'vappio-www/py-www', '/var/www/vappio')
         ##    
         # Only want to do this one when specified
         # if options('general.vappio_conf'):
-        #     grabFromSVN(options, 'https://vappio.svn.sourceforge.net/svnroot/vappio', vappioBranch, 'vappio-conf', '/mnt/vappio-conf')
+        #     grabFromSVN(options, 'https://svn.code.sf.net/p/vappio/code', vappioBranch, 'vappio-conf', '/mnt/vappio-conf')
 
         if options('general.hudson') or updateAll:
             grabFromSVN(options, 'https://svn.code.sf.net/p/clovr/code', clovrBranch, 'hudson/hudson-config/jobs', '/var/lib/hudson/jobs')
