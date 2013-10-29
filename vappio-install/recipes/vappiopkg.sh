@@ -9,7 +9,7 @@ pip install http://pypi.python.org/packages/source/p/pymongo/pymongo-2.0.1.tar.g
 
 pushd /tmp
 rm -rf vappio-py
-echo p | svn export https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/vappio-py
+echo p | svn export https://svn.code.sf.net/p/vappio/code/trunk/vappio-py
 export PYTHONPATH=$PYTHONPATH:/tmp/vappio-py
 /tmp/vappio-py/vappio/cli/updateAllDirs.py --vappio-scripts --vappio-py --vappio-py-www --vappio-twisted --vappio-apps --config_policies
 popd
@@ -19,12 +19,12 @@ rm -rf /tmp/vappio-py
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init $tmpdir/etc/init
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/rsyslog.d $tmpdir/etc/rsyslog.d
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/logrotate.d $tmpdir/etc/logrotate.d
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/vappio $tmpdir/etc/vappio
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/init $tmpdir/etc/init
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/rsyslog.d $tmpdir/etc/rsyslog.d
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/logrotate.d $tmpdir/etc/logrotate.d
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/vappio $tmpdir/etc/vappio
 
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sudoers $tmpdir/etc/sudoers
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/sudoers $tmpdir/etc/sudoers
 pushd $tmpdir
 echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .
@@ -38,5 +38,5 @@ chmod 0440 /etc/sudoers
 
 
 #Add basic help
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/update-motd.d/10-help-text /etc/update-motd.d/10-help-text
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/update-motd.d/10-help-text /etc/update-motd.d/10-help-text
 

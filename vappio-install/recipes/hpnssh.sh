@@ -17,7 +17,7 @@ cd ../
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir -p $tmpdir $tmpdir/usr/etc
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/usr/etc $tmpdir/usr/etc
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/usr/etc $tmpdir/usr/etc
 pushd $tmpdir
 echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .

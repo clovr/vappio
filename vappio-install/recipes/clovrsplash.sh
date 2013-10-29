@@ -8,7 +8,7 @@ apt-get -y install linux-image-`uname -r`
 #Not being used?
 rename -f 's/plymouth(\S*)\.conf\.disabled/plymouth$1.conf/' /etc/init/plymouth*.conf.disabled
 
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot /boot/
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/boot /boot/
 
 #Get base theme
 apt-get -y install plymouth-theme-ubuntu-logo
@@ -22,7 +22,7 @@ apt-get -y install plymouth-theme-ubuntu-logo
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir -p $tmpdir /lib/plymouth/themes/clovr
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/lib/plymouth/themes/clovr $tmpdir/lib/plymouth/themes/clovr
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/lib/plymouth/themes/clovr $tmpdir/lib/plymouth/themes/clovr
 pushd $tmpdir
 echo "Creating install$$.tgz"
 tar cvzf ../install$$.tgz .
@@ -44,7 +44,7 @@ echo "FRAMEBUFFER=y" > /etc/initramfs-tools/conf.d/splash
 
 #Update menu.1st
 #Need to reset menu.1st vga=0x0314 800x600, vga=0x0311 640x480
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/boot/grub/menu.lst.clovr /boot/grub/menu.lst
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/boot/grub/menu.lst.clovr /boot/grub/menu.lst
 sudo update-initramfs -u -k `uname -r`
 
 #Add xwindows system support

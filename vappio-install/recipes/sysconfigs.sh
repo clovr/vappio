@@ -6,16 +6,16 @@
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc $tmpdir/root
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/cloud $tmpdir/etc/cloud
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/cloud $tmpdir/etc/cloud
 
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.conf $tmpdir/etc/sysctl.conf
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/sysctl.d $tmpdir/etc/sysctl.d
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/profile $tmpdir/etc/profile
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/profile.d $tmpdir/etc/profile.d
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/sysctl.conf $tmpdir/etc/sysctl.conf
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/sysctl.d $tmpdir/etc/sysctl.d
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/profile $tmpdir/etc/profile
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/profile.d $tmpdir/etc/profile.d
 
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/pam.d $tmpdir/etc/pam.d
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/security $tmpdir/etc/security
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/perl $tmpdir/etc/perl
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/pam.d $tmpdir/etc/pam.d
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/security $tmpdir/etc/security
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/perl $tmpdir/etc/perl
 
 pushd $tmpdir
 tar cvzf ../install$$.tgz .

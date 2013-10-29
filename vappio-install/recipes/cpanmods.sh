@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/perl /etc/perl
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/perl /etc/perl
 
 #svn export
 #cpan

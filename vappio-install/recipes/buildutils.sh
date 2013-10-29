@@ -52,7 +52,7 @@ unzip -o ec2-ami-tools.zip
 popd
 
 sudo apt-get -y install apt-cacher apache2 
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/default/apt-cacher /etc/default/apt-cacher
 
 # Install Nimbus stuff
 wget -P /tmp http://www.nimbusproject.org/downloads/nimbus-cloud-client-016.tar.gz

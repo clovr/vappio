@@ -2,7 +2,7 @@
 
 export ARCH=x86_64
 mv /bin/uname /bin/uname.orig
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/util/fakeuname.sh /tmp/fakeuname.sh
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/util/fakeuname.sh /tmp/fakeuname.sh
 cp /tmp/fakeuname.sh /bin/uname
 
 #vmwaretools=VMwareTools-8.4.2-261058.tar.gz
@@ -25,5 +25,5 @@ update-rc.d -f vmware-tools remove
 
 #Remove init based boot and set with our own custom
 rm /etc/init/vmware-tools.conf
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/vmware-tools /etc/init.d/vmware-tools
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/init.d/vmware-tools /etc/init.d/vmware-tools
 

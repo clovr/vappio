@@ -4,7 +4,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get -y --force-yes install apache2
 
-echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/init.d/apache2 /etc/init.d/apache2
+echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/init.d/apache2 /etc/init.d/apache2
 
 /etc/init.d/apache2 stop
 
@@ -12,7 +12,7 @@ echo p | svn export --force https://vappio.svn.sourceforge.net/svnroot/vappio/tr
 tmpdir=/tmp/$$
 rm -rf $tmpdir
 mkdir $tmpdir $tmpdir/etc
-echo p | svn export --force  https://vappio.svn.sourceforge.net/svnroot/vappio/trunk/img-conf/etc/apache2 $tmpdir/etc/apache2
+echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/apache2 $tmpdir/etc/apache2
 pushd $tmpdir
 tar cvzf ../install$$.tgz .
 tar -C / -xvzf ../install$$.tgz
