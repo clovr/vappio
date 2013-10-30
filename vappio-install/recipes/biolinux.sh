@@ -15,6 +15,6 @@ apt-get --force-yes -y install bio-linux-keyring
 apt-get update
 
 #TODO, consider merging with Ubuntu repository, see recipe ubuntuifxpkgs
-apt-get -y --force-yes install bio-linux-shared bio-linux-bldp-files bio-linux-glimmer3 bio-linux-hmmer bio-linux-trnascan 
+apt-get -y --force-yes install bio-linux-shared bio-linux-bldp-files bio-linux-hmmer bio-linux-trnascan 
 
 wget -O /usr/bin/tbl2asn http://cb2.igs.umaryland.edu/tbl2asn
