@@ -369,7 +369,7 @@ sub install_perl {
     # to replace what svn:externals did for us
     # TODO: Figure out a better way to achieve this without the special case just for Ergatis
     if ($package eq "ergatis") {
-        run_command("mv install/* .; mv src/R .; mv src/python .; mv templates/pipelines global_pipeline_templates; mv src/perl bin; mv src/shell .; mv src/c .; rm -rf src; mv c src;")
+        run_command("mv install/* .; mv src/R .; mv src/python .; mv templates/pipelines global_pipeline_templates; mv src/perl bin; mv src/shell .; mv src/c .; rm -rf src; mv c src; cp -R lib/Ergatis htdocs/cgi/")
     }
 
     run_command( "perl $opt_lib Makefile.PL INSTALL_BASE=$base $other_opts" );
