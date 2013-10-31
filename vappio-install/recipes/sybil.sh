@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Pull the configure script down
-echo p | svn export --force https://ergatis.svn.sf.net/svnroot/ergatis/trunk/src/perl/configure_sybil.pl /mnt/configure_sybil.pl
+echo p | svn export --force https://svn.code.sf.net/p/ergatis/code/trunk/src/perl/configure_sybil.pl /mnt/configure_sybil.pl
 #wget -N -P /mnt/ http://sybil.igs.umaryland.edu/configure_sybil.pl
 
 # Pull the new prep_directories to avoid doing the bad chmod
