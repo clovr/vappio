@@ -64,7 +64,7 @@ curl http://npmjs.org/install.sh | sh
 #######################
 # shockandawe
 #######################
-apt-get -y install python-biopython
+#apt-get -y install python-biopython
 apt-get -y install python-psycopg2
 
 git clone git://git.mcs.anl.gov/shockandawe.git /opt/opt-packages/shockandawe-${DATE}

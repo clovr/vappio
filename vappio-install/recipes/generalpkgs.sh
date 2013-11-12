@@ -22,7 +22,7 @@ apt-get -y install python-argparse
 
 apt-get -y install python-numpy
 
-apt-get -y install python-biopython
+#apt-get -y install python-biopython
 
 apt-get -y install lynx
 
