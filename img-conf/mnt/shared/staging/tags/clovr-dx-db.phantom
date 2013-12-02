@@ -1,0 +1,3 @@
+[cluster.ALL]
+command=echo 6bf77aa930087a8e5205a71a70acb98a http://clovr-dx-db.s3.amazonaws.com/clovr-dx-db.tgz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
+tag_options=-e
