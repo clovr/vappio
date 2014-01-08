@@ -1,3 +1,3 @@
 [cluster.ALL]
-command=echo 4533f953fd4c494a98af51f48ccfc238 http://clovr-dx-db.s3.amazonaws.com/clovr-dx-db.tgz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
+command=echo 539064e4d2b52713b79e8fbdefcf3fd0 http://clovr-dx-db.s3.amazonaws.com/clovr-dx-db.tgz | reliableDownloader.py -m 300 -t 20 -b ${base_dir}
 tag_options=-e
