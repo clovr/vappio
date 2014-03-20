@@ -9,6 +9,11 @@ useradd -g ftp -d /dev/null -s /etc ftpuser
 
 apt-get -y install pure-ftpd
 
+# Create a temporary user to instantiate pure-ftp'd virtual user DB
+PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+(echo ${PASSWORD}; echo ${PASSWORD}) | pure-pw useradd test -d /mnt/user_data/ -u ftpuser
+pure-pw mkdb /etc/pure-ftpd/pureftpd.pdb
+
 # Configure pure-ftpd to use virtual users
 cd /etc/pure-ftpd/conf
 echo 'no' > PAMAuthentication

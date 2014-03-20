@@ -54,5 +54,8 @@ chmod a+r /tmp/*.pem
 
 touch $vappio_runtime/clientmode
 
+# Setup our FTP user on our remote master
+$vappio_scripts/setup_ftp_user.sh
+
 vlog "Done w/ master_user-data.sh"
 
