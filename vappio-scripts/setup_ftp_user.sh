@@ -11,7 +11,7 @@ vlog "###"
 vlog "### $0 (`whoami`)"
 vlog "###"
 
-if [ -e "/mnt/clovr/runtime/ftp_passwd" ]
+if [ -e "/etc/pure-ftpd/ftp_passwd" ]
 then
     verror "FTP password file already exists. Perhaps FTP has already been configured?"
     echo "FTP password file already exists. Perhaps FTP has already been configured?"
@@ -19,9 +19,9 @@ then
 fi
 
 PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 7 | head -n 1)
-echo -e "${PASSWORD}\n${PASSWORD}" > /mnt/clovr/runtime/ftp_passwd
+echo -e "${PASSWORD}\n${PASSWORD}" > /etc/pure-ftpd/ftp_passwd
 
-pure-pw useradd clovr -u ftpuser -d /mnt/user_data -m < /mnt/clovr/runtime/ftp_passwd
+pure-pw useradd clovr -u ftpuser -d /mnt/user_data -m < /etc/pure-ftpd/ftp_passwd
 
 # We'll need to restart pureftpd to get the changes to stick
 /etc/init.d/pure-ftpd restart
