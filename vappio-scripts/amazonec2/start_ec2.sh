@@ -51,6 +51,9 @@ then
     sed -i -e "s/cluster\.ami=.*/cluster\.ami=$AMI_ID/" $vappio_runtime/cloudonly_metadata
     chmod +x $vappio_runtime/cloudonly_metadata
     $vappio_runtime/cloudonly_metadata
+
+    # Setup FTP user and start up pure-ftpd
+    $vappio_scripts/setup_ftp_user.sh
 fi
 
 
