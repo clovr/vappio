@@ -118,6 +118,9 @@ bash $VAPPIO_RECIPES/scons.sh
 bash $VAPPIO_RECIPES/sybil.sh
 bash $VAPPIO_RECIPES/newick-utils.sh
 
+# FTP server
+bash $VAPPIO_RECIPES/ftp.sh
+
 #TODO
 #updating clovr SVN filesystem packages/packages.list cpan.packages
 #making svn tags
