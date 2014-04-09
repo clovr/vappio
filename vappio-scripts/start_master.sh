@@ -83,6 +83,15 @@ numcpus=`cat /proc/cpuinfo | grep -c '^processor'`
 if [ "$cloud_type" == "vbox" ] || [ "$cloud_type" == "vmware" ] || [ -e /var/vappio/runtime/cloudonlymode ]
 then
     $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $numcpus $execq@$myhostname
+
+    # If we are running cloud-only mode we will also want to bump up the number of concurrent pipelines 
+    # that we can run
+    if [ -e /var/vappio/runtime/cloudonlymode ]
+    then
+        pipelineslots=`python -c "print '%d' % round($numcpus / 2.0)"`
+	    $SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $pipelineslots $pipelineq@$myhostname
+    fi
+
 else
     if [ "$cloud_type" == "diag" ]
     then
@@ -91,6 +100,7 @@ else
     else
 	$SGE_ROOT/bin/$ARCH/qconf -rattr queue slots $masterslots $execq@$myhostname
     fi
+
 fi
 
 $SGE_ROOT/bin/$ARCH/qconf -aattr queue hostlist $myhostname $pipelineq
