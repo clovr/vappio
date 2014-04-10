@@ -12,10 +12,10 @@ apt-get -y install pure-ftpd
 # Create a temporary user to instantiate pure-ftp'd virtual user DB
 echo "Generating random password..."
 PASSWORD=`python -c "import uuid; id = uuid.uuid4(); print str(id).upper().replace('-', '')[0:10]"`
-echo -e "${PASSWORD}\n${PASSWORD}" >> /mnt/clovr/runtime/ftp_passwd
+echo -e "${PASSWORD}\n${PASSWORD}" >> /etc/ftp_passwd
 
 echo "Creating pure-ftpd virtual user..."
-pure-pw useradd clovr -d /mnt/user_data/ -u ftpuser -m < /mnt/clovr/runtime/ftp_passwd
+pure-pw useradd clovr -d /mnt/user_data/ -u ftpuser -m < /etc/ftp_passwd
 
 echo "Writing pure-ftpd database..."
 pure-pw mkdb /etc/pure-ftpd/pureftpd.pdb
