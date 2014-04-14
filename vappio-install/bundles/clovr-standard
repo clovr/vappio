@@ -17,9 +17,6 @@ bash -e $VAPPIO_RECIPES/disablesplash.sh
 
 #bash -e $VAPPIO_RECIPES/useradd.sh
 
-# FTP server
-bash -e $VAPPIO_RECIPES/ftp.sh
-
 #High performance SSH
 bash -e $VAPPIO_RECIPES/hpnssh.sh
 bash -e $VAPPIO_RECIPES/allowrootssh.sh
@@ -121,6 +118,8 @@ bash $VAPPIO_RECIPES/scons.sh
 bash $VAPPIO_RECIPES/sybil.sh
 bash $VAPPIO_RECIPES/newick-utils.sh
 
+# FTP server
+bash -e $VAPPIO_RECIPES/ftp.sh
 
 #TODO
 #updating clovr SVN filesystem packages/packages.list cpan.packages
