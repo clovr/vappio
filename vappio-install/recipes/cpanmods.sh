@@ -15,6 +15,9 @@ cpan -fi D/DW/DWHEELER/Pod-Simple-3.20.tar.gz
 # Avoid a circular dependency in the new version of DateTime-TimeZone
 cpan -fi D/DR/DROLSKY/DateTime-TimeZone-1.42.tar.gz
 
+# Inline 0.54 refuses to compile as of recent, use 0.53 instead
+echo "y" | cpan -fi SISYPHUS/Inline-0.53.tar.gz
+
 apt-get -y install perl-doc
 apt-get -y install gcc
 apt-get -y install libgd2-xpm-dev
