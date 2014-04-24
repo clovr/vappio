@@ -18,11 +18,11 @@ export PERL_AUTOINSTALL=1
 
 # installing a specific version of the module
 
-cpan -i "GAAS/URI-1.40.tar.gz"
+cpanm --sudo "GAAS/URI-1.40.tar.gz"
 # otherwise, just
-cpan -i MLDBM
-cpan -i Tree::DAG_Node
-cpan -i XML::Simple
+cpanm --sudo MLDBM
+cpanm --sudo Tree::DAG_Node
+cpanm --sudo XML::Simple
 
 #Date::Manip version 6.36 seems to be broken; reverting to 6.34
 #cpan -i Date::Manip
@@ -32,9 +32,9 @@ cpan -i XML::Simple
 wget http://cb2.igs.umaryland.edu/libdate-manip-perl_6.34-1_all.deb
 dpkg -i libdate-manip-perl_6.34-1_all.deb
 
-cpan -i XML::Writer
-cpan -i CDB_File
-cpan -i Class::Struct
+cpanm --sudo XML::Writer
+cpanm --sudo CDB_File
+cpanm --sudo Class::Struct
 #There is a bug in 2.63,2.64 that misparses our config files
 #http://search.cpan.org/diff?from=Config-IniFiles-2.63&to=Config-IniFiles-2.62
 #This commit http://config-inifiles.svn.sourceforge.net/viewvc/config-inifiles/trunk/config-inifiles/lib/Config/IniFiles.pm?r1=198&r2=200
@@ -45,25 +45,25 @@ cpan -i Class::Struct
 #Pull from bioifx.org
 wget http://bioifx.org/configinifiles.tgz
 tar -C / -xvzf configinifiles.tgz
-cpan -i Data::Dumper
-cpan -i Date::Manip
-cpan -i ExtUtils::MakeMaker
-cpan -i File::Mirror
-cpan -i HTML::Template
-cpan -i IO::Tee
-cpan -i Log::Cabin
-cpan -i Log::Log4perl
-cpan -i Math::Combinatorics
-cpan -i PerlIO::gzip
-cpan -i XML::RSS
-cpan -i XML::Writer
-cpan -i "C/CJ/CJFIELDS/BioPerl-1.6.1.tar.gz"
-cpan -i Aspect
-cpan -i MIME::Lite
+cpanm --sudo Data::Dumper
+cpanm --sudo Date::Manip
+cpanm --sudo ExtUtils::MakeMaker
+cpanm --sudo File::Mirror
+cpanm --sudo HTML::Template
+cpanm --sudo IO::Tee
+cpanm --sudo Log::Cabin
+cpanm --sudo Log::Log4perl
+cpanm --sudo Math::Combinatorics
+cpanm --sudo PerlIO::gzip
+cpanm --sudo XML::RSS
+cpanm --sudo XML::Writer
+cpanm --sudo "C/CJ/CJFIELDS/BioPerl-1.6.1.tar.gz"
+cpanm --sudo Aspect
+cpanm --sudo MIME::Lite
 # have had to force in the past
-cpan -fi Benchmark::Timer
-cpan -i SVN::Agent
-cpan -i CGI::Session
+cpanm --sudo Benchmark::Timer
+cpanm --sudo SVN::Agent
+cpanm --sudo CGI::Session
 
 #Install software.config
 rm -f /tmp/software.config

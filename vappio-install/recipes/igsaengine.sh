@@ -20,4 +20,4 @@ make
 cp /tmp/cdbfasta/cdbfasta /usr/local/bin/
 cp /tmp/cdbfasta/cdbyank /usr/local/bin/
 
-cpan -i Math::Round
+cpanm --sudo Math::Round
