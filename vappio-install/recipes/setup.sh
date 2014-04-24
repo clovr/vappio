@@ -5,6 +5,9 @@ export DEBIAN_FRONTEND=noninteractive
 # Need to delete /etc/hostname to work in diag
 rm -f /etc/hostname
 
+# More tinkering needed for packer
+apt-get -y install python-software-properties
+
 #Get clean apt.sources
 tmpdir=/tmp/
 echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/apt $tmpdir/etc/apt
@@ -16,9 +19,6 @@ echo -n > /etc/hostname
 
 #Get SVN
 apt-get -y install subversion
-
-# More tinkering needed for packer
-apt-get -y install python-software-properties
 
 #Set some defaults
 echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/default/rcS /etc/default/rcS
