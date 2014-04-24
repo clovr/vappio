@@ -6,9 +6,10 @@ export DEBIAN_FRONTEND=noninteractive
 rm -f /etc/hostname
 
 #Get clean apt.sources
+tmpdir=/tmp/
 echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/apt $tmpdir/etc/apt
 #Make non-EC apt the default
-cp /etc/apt/sources.list.orig /etc/apt/sources.list
+cp $tmpdir/etc/apt/sources.list.orig /etc/apt/sources.list
 
 #Reset hostname
 echo -n > /etc/hostname
