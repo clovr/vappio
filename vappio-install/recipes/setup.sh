@@ -18,7 +18,6 @@ echo -n > /etc/hostname
 apt-get -y install subversion
 
 # More tinkering needed for packer
-apt-get -y install software-properties-common
 apt-get -y install python-software-properties
 
 #Set some defaults
