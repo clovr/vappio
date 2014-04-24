@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # Pull the configure script down
-echo p | svn export --force https://svn.code.sf.net/p/ergatis/code/trunk/src/perl/configure_sybil.pl /mnt/configure_sybil.pl
+#echo p | svn export --force https://svn.code.sf.net/p/ergatis/code/trunk/src/perl/configure_sybil.pl /mnt/configure_sybil.pl
+wget -N -P /mnt/ https://dl.dropboxusercontent.com/u/15490934/configure_sybil.pl
 #wget -N -P /mnt/ http://sybil.igs.umaryland.edu/configure_sybil.pl
 
 # Pull the new prep_directories to avoid doing the bad chmod
@@ -11,13 +12,11 @@ echo p | svn export --force https://svn.code.sf.net/p/ergatis/code/trunk/src/per
 
 perl /mnt/configure_sybil.pl --install_mongo --install_sybil --install_postgres --root_dir=/mnt/ &> /mnt/configure_sybil.log
 
-# Grab the selfsim software which is needed to generate atypical nucleotide composition graphs
-wget -O /tmp/selfsim.tgz https://dl.dropboxusercontent.com/u/15490934/selfsim.tgz
-
+# Grab the selfsim software which is needed to generate atypical nucleotide composition graphs                                                                                                                                                                                   
+wget -O /tmp/selfsim.tgz https://dl.dropboxusercontent.com/u/15490934/selfsim.tgz                                                                                                                                                                                                
 cd /tmp/
-tar xfv /tmp/selfsim.tgz
-mv /tmp/selfsim /opt/opt-packages/selfsim-0.1
+tar xfv /tmp/selfsim.tgz 
+mv /tmp/selfsim /opt/opt-packages/selfsim-0.1 
 ln -s /opt/opt-packages/selfsim-0.1/selfsim.bin /usr/local/bin/selfsim
 
 rm /tmp/selfsim.tgz
-
