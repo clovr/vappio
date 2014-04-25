@@ -9,7 +9,10 @@ echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf
 #q
 #.
 
-#Install version of POD::Simple to avoid bug
+curl -L http://cpanmin.us | perl - --sudo App::cpanminus
+export PERL_CPANM_OPT="--skip-installed --notest --auto-cleanup=0"
+
+Install version of POD::Simple to avoid bug
 cpanm --sudo D/DW/DWHEELER/Pod-Simple-3.20.tar.gz
 
 # Avoid a circular dependency in the new version of DateTime-TimeZone
