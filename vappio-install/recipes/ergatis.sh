@@ -57,7 +57,8 @@ cpanm --sudo Math::Combinatorics
 cpanm --sudo PerlIO::gzip
 cpanm --sudo XML::RSS
 cpanm --sudo XML::Writer
-cpanm --sudo "C/CJ/CJFIELDS/BioPerl-1.6.1.tar.gz"
+#cpanm --sudo "C/CJ/CJFIELDS/BioPerl-1.6.1.tar.gz"
+cpanm --sudo BioPerl
 cpanm --sudo Aspect
 cpanm --sudo MIME::Lite
 # have had to force in the past
