@@ -27,5 +27,7 @@ apt-get -y install python-numpy
 apt-get -y install lynx
 
 apt-get -y install tofrodos
+## Also drop a symlink in /usr/local/bin to dos2unix so older scripts work
+ln -s /usr/bin/fromdos /usr/bin/dos2unix
 
 apt-get -y install git-core
