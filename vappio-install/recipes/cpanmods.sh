@@ -19,7 +19,7 @@ cpanm --sudo D/DW/DWHEELER/Pod-Simple-3.20.tar.gz
 cpanm --sudo D/DR/DROLSKY/DateTime-TimeZone-1.42.tar.gz
 
 # Inline 0.54 refuses to compile as of recent, use 0.53 instead
-echo "y" | cpan -fi SISYPHUS/Inline-0.53.tar.gz
+cpanm --sudo SISYPHUS/Inline-0.53.tar.gz
 
 apt-get -y install perl-doc
 apt-get -y install gcc
@@ -33,7 +33,7 @@ cpanm --sudo YAML
 #Consider using a caching server to speed up installs
 #http://search.cpan.org/~jettero/CPAN-CachingProxy-1.4002/
 
-cat /tmp/cpan.packages | grep -v "libxml-perl" | perl -ne 'chomp;split(/\s+/);print "cpan -i \"$_[0]\"\n"' | bash -e
+cat /tmp/cpan.packages | grep -v "libxml-perl" | perl -ne 'chomp;split(/\s+/);print "cpanm --sudo \"$_[0]\"\n"' | bash -e
 
 #Some modules fail tests and won't install without force
 cpanm --sudo Grid::Request
