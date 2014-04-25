@@ -64,6 +64,7 @@ cpanm --sudo MIME::Lite
 cpanm --sudo Benchmark::Timer
 cpanm --sudo SVN::Agent
 cpanm --sudo CGI::Session
+cpanm --sudo Grid::Request
 
 #Install software.config
 rm -f /tmp/software.config

@@ -36,7 +36,7 @@ cpanm --sudo YAML
 cat /tmp/cpan.packages | grep -v "libxml-perl" | perl -ne 'chomp;split(/\s+/);print "cpanm --sudo \"$_[0]\"\n"' | bash -e
 
 #Some modules fail tests and won't install without force
-cpanm --sudo Grid::Request
+#cpanm --sudo Grid::Request
 cpanm --sudo Text::Editor::Easy
 cpanm --sudo JSON::PP       ### used for JSON converts in clovr_comparative ws
 cpanm --sudo File::Binary   ### used in tag-is-sff metric
