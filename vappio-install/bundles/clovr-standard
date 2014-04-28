@@ -44,7 +44,7 @@ bash -e $VAPPIO_RECIPES/hudson.sh
 #Grid utils
 bash -e $VAPPIO_RECIPES/ganglia.sh
 bash -e $VAPPIO_RECIPES/sge.sh
-bash -e $VAPPIO_RECIPES/hadoop.sh
+#bash -e $VAPPIO_RECIPES/hadoop.sh
 
 #catch all for cpanmod
 bash -e $VAPPIO_RECIPES/cpanmods.sh
@@ -96,7 +96,7 @@ bash -e $VAPPIO_RECIPES/clovrcomparative.sh
 
 #Gbrowse2
 #Skip errors for now
-bash $VAPPIO_RECIPES/gbrowse2.sh
+#bash $VAPPIO_RECIPES/gbrowse2.sh
 
 #ExtJS
 bash $VAPPIO_RECIPES/extjs.sh
