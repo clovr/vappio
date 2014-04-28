@@ -65,7 +65,8 @@ cpanm --sudo MIME::Lite
 cpanm --sudo Benchmark::Timer
 cpanm --sudo SVN::Agent
 cpanm --sudo CGI::Session
-cpanm --sudo Grid::Request
+# Can't get Grid::Request to install via cpanm, just using cpan for now
+cpan -fi Grid::Request
 
 #Install software.config
 rm -f /tmp/software.config
