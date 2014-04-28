@@ -9,7 +9,7 @@ echo p | svn export --force https://svn.code.sf.net/p/vappio/code/trunk/img-conf
 #q
 #.
 
-curl -L http://cpanmin.us | perl - --sudo App::cpanminus
+curl -L http://cpanmin.us | perl - --sudo --force App::cpanminus
 export PERL_CPANM_OPT="--skip-installed --notest --auto-cleanup=0"
 
 # Install version of POD::Simple to avoid bug
