@@ -13,6 +13,7 @@ git clone https://github.com/ged-lab/screed.git
 git clone https://github.com/ged-lab/khmer.git
 
 cd /tmp/khmer
+git checkout tags/v0.8
 make
 cd python
 python2.7 setup.py install
