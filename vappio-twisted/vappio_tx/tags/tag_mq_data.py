@@ -51,6 +51,14 @@ class UnknownActionError(Error):
     pass
 
 @defer.inlineCallbacks
+def _untarFile(fname):
+    stdout = StringIO.StringIO()
+    yield commands.runProcess(['tar', '-C', os.path.dirname(fname), '-xvf', fname],
+                              stdoutf=stdout.write,
+                              stderrf=log.err)
+    defer.returnValue([str(os.path.join(os.path.dirname(fname), i.strip())) for i in stdout.getvalue().split('\n')])
+
+@defer.inlineCallbacks
 def _untargzFile(fname):
     stdout = StringIO.StringIO()
     yield commands.runProcess(['tar', '-C', os.path.dirname(fname), '-zxvf', fname],
@@ -72,15 +80,28 @@ def _ungzFile(fname):
                               stderrf=log.err)
     defer.returnValue(str(fname[:-3]))
 
+@defer.inlineCallbacks
+def _unzipFile(fname):
+    stdout = StringIO.StringIO()
+    yield commands.runProcess(commands.shell('mkdir -p %s && unzip -o -d %s %s' % (os.path.splitext(fname)[0],
+                                                                                   os.path.splitext(fname)[0],
+                                                                                   fname)),
+                              stdoutf=stdout.write,
+                              stderrf=log.err)
+    log.msg(stdout.getvalue())
+    defer.returnValue([str(i.strip().replace('extracting: ', '').replace('inflating: ', '')) for i in stdout.getvalue().split('\n') if ('extracting' in i or 'inflating' in i)])
+
 def _isArchive(fname):
     """
     Returns true if fname ends in:
+    .tar
     .tar.bz2
     .tar.gz
     .tgz
     .gz
+    .zip
     """
-    return any([fname.endswith(i) for i in ['.tar.bz2', '.tar.gz', '.tgz', '.gz']])
+    return any([fname.endswith(i) for i in ['.tar.bz2', '.tar.gz', '.tgz', '.gz', '.tar', '.zip']])
 
 
 def _expandArchive(fname):
@@ -93,6 +114,10 @@ def _expandArchive(fname):
         return _ungzFile(fname)
     elif fname.endswith('.tar.bz2'):
         return _bunzip2File(fname)
+    elif fname.endswith('.tar'):
+        return _untarFile(fname)
+    elif fname.endswith('.zip'):
+        return _unzipFile(fname)
 
 def _generateFileList(files, recursive, expand, deleteOnExpand):
     @defer.inlineCallbacks
