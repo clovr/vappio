@@ -60,7 +60,7 @@ cluster.master_user_data_tmpl=/opt/vappio-scripts/cli/master_user-data.tmpl
 rsync.user=root
 dirs.staging_dir=/mnt/staging
 cluster.exec_user_data_tmpl=/opt/vappio-scripts/cli/exec_user-data.tmpl
-rsync.options=-zlptgoD -e "ssh -oNoneSwitch=yes -oNoneEnabled=yes -o PasswordAuthentication=no -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -q -i /mnt/keys/devel1.pem"
+rsync.options=-zlptgoDL -e "ssh -oNoneSwitch=yes -oNoneEnabled=yes -o PasswordAuthentication=no -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o UserKnownHostsFile=/dev/null -q -i /mnt/keys/devel1.pem"
 env.BLASTMAT=/usr/share/ncbi/data/
 env.PREVLEVEL=N
 env.JAVA_HOME=/usr/lib/jvm/java-6-openjdk/
