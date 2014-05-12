@@ -34,7 +34,8 @@ ln -f -s /usr/lib $SGE_ROOT/lib/lx26-ia64
 
 mkdir /tmp/$$
 pushd /tmp/$$
-wget http://search.cpan.org/CPAN/authors/id/T/TH/THARSCH/Schedule-DRMAAc-0.81.tar.gz
+#wget http://search.cpan.org/CPAN/authors/id/T/TH/THARSCH/Schedule-DRMAAc-0.81.tar.gz
+wget http://cpan.metacpan.org/authors/id/T/TH/THARSCH/Schedule-DRMAAc-0.81.tar.gz
 tar xvzf Schedule-DRMAAc-0.81.tar.gz 
 cd Schedule-DRMAAc-0.81
 export SGE_ROOT=/var/lib/gridengine
