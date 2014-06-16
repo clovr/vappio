@@ -21,6 +21,14 @@
 		Allow from all
 	</Directory>
 
+	<Directory "/var/www/clovr/util/">
+		AllowOverride None
+		Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+                AddHandler cgi-script .cgi .py
+		Order allow,deny
+		Allow from all
+	</Directory>
+
 	 ###################       NCBI Taxa Tree Wiget (clovr_comparative pipeline)    ###############
          <Directory "/var/www/clovr/clovr_comparative/cgi-bin/">
             # Do not mix +/- with absolute options
