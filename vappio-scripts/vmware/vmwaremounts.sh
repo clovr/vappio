@@ -37,9 +37,12 @@ do_start() {
     grep "^postgres" /etc/passwd
     if [ $? = 0 ]
     then
-# Postgres specific shared area
+	# Postgres specific shared area
 	mkdir -p $postgres_data_dir_mp
-	mount -o ttl=3 -t vmhgfs .host:$postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid
+	chmod 700 $postgres_data_dir_mp
+	mount -o ttl=3 -t vmhgfs .host:$postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid -o gid=$postgres_guid -o fmask=077 -o dmask=077
+	
+	chmod 700 $postgres_data_dir_mp
     fi
 }
 
