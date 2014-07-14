@@ -126,7 +126,7 @@ def _generateFileList(files, recursive, expand, deleteOnExpand):
             expandedFiles = yield _expandArchive(f)
             if deleteOnExpand:
                 os.unlink(f)
-            defer.returnValue(accum + [i for i in expandedFiles if os.path.isfile(i)])
+            defer.returnValue(accum + [i for i in expandedFiles if os.path.isfile(i) and not os.path.basename(i).startswith('.')])
         elif recursive and os.path.isdir(f):
             recursedFiles = yield _generateFileList([os.path.join(f, fname)
                                                      for fname in os.listdir(f)],
@@ -135,7 +135,11 @@ def _generateFileList(files, recursive, expand, deleteOnExpand):
                                                     deleteOnExpand)
             defer.returnValue(accum + recursedFiles)
         elif os.path.isfile(f):
-            defer.returnValue(accum + [str(f)])
+            ## Hacky fix for Mac OSX-created archives that will have dot files in them
+            if os.path.basename(str(f)).startswith('.'):
+                defer.returnValue(accum)
+            else:
+                defer.returnValue(accum + [str(f)])
         else:
             raise IOError('%s does not exist' % f)
 
