@@ -40,7 +40,6 @@ RESTRICTED_DIRS = ['/bin/',
                    '/var/',
                    ]
 
-
 class Error(Exception):
     pass
 
@@ -126,7 +125,7 @@ def _generateFileList(files, recursive, expand, deleteOnExpand):
             expandedFiles = yield _expandArchive(f)
             if deleteOnExpand:
                 os.unlink(f)
-            defer.returnValue(accum + [i for i in expandedFiles if os.path.isfile(i) and not os.path.basename(i).startswith('.')])
+            defer.returnValue(accum + [i for i in expandedFiles if os.path.isfile(i) and not '__MACOSX' in i])
         elif recursive and os.path.isdir(f):
             recursedFiles = yield _generateFileList([os.path.join(f, fname)
                                                      for fname in os.listdir(f)],
@@ -136,7 +135,7 @@ def _generateFileList(files, recursive, expand, deleteOnExpand):
             defer.returnValue(accum + recursedFiles)
         elif os.path.isfile(f):
             ## Hacky fix for Mac OSX-created archives that will have dot files in them
-            if os.path.basename(str(f)).startswith('.'):
+            if '__MACOSX' in str(f):
                 defer.returnValue(accum)
             else:
                 defer.returnValue(accum + [str(f)])
