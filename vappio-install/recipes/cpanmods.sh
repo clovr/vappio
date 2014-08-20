@@ -19,7 +19,7 @@ cpanm --sudo /tmp/Pod-Simple-3.20.tar.gz
 #cpanm -sudo D/DW/DWHEELER/Pod-Simple-3.20.tar.gz
 
 # Avoid a circular dependency in the new version of DateTime-TimeZone
-cpanm --sudo D/DR/DROLSKY/DateTime-TimeZone-1.42.tar.gz
+cpanm --sudo https://cpan.metacpan.org/authors/id/D/DR/DROLSKY/DateTime-TimeZone-1.42.tar.gz
 
 # Inline 0.54 refuses to compile as of recent, use 0.53 instead
 cpanm --sudo SISYPHUS/Inline-0.53.tar.gz
