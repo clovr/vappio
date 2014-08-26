@@ -8,19 +8,4 @@ vlog "###"
 vlog "### $0 (`whoami`)"
 vlog "###"
 
-platform=`vp-detect-platform`
-if [ $platform = "vmware" ]
-then
-    ## Installing postgres under a vmhgfs file system as of builds after 06-2014 seems to cause issues.
-    ## We'll need to install to a non-vmhgfs file system, move files around and then create a symlink to the old location
-    /opt/ergatis/bin/configure_sybil --start_mongo --start_postgres --root_dir=/tmp/ &> /mnt/configure_sybil.log
-    /usr/bin/pg_ctlcluster 8.4 main stop
-
-    mv /tmp/pg_data/* /mnt/pg_data/
-    rm -rf /tmp/pg_data/
-    ln -s /mnt/pg_data/ /tmp/
-
-    /usr/bin/pg_ctlcluster 8.4 main start
-else
-    /opt/ergatis/bin/configure_sybil --start_mongo --start_postgres --root_dir=/mnt/ &> /mnt/configure_sybil.log
-fi
+/opt/ergatis/bin/configure_sybil --start_mongo --start_postgres --root_dir=/mnt/ &> /var/log/configure_sybil.build.log
