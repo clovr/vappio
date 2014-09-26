@@ -11,6 +11,7 @@ apt-get -y install libmldbm-perl
 apt-get -y install libjson-perl
 apt-get -y install lib32stdc++6
 apt-get -y install libyaml-syck-perl
+apt-get -y install bioperl
 
 #Need to to automate, is interactive
 export PERL_MM_USE_DEFAULT=1
