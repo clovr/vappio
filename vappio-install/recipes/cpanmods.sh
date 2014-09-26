@@ -14,7 +14,7 @@ export PERL_CPANM_OPT="--skip-installed --notest --auto-cleanup=0"
 
 # Install version of POD::Simple to avoid bug
 # Need to install POD::Simple from source since 3.20 is gone from CPAN
-wget ftp://olymp.rbi.informatik.uni-frankfurt.de/pub/Mirrors2/CPAN/modules/by-module/Pod/Pod-Simple-3.20.tar.gz -O /tmp/Pod-Simple-3.20.tar.gz
+wget https://dl.dropboxusercontent.com/u/15490934/Pod-Simple-3.20.tar.gz -O /tmp/Pod-Simple-3.20.tar.gz
 cpanm --sudo --notest /tmp/Pod-Simple-3.20.tar.gz
 #cpanm -sudo D/DW/DWHEELER/Pod-Simple-3.20.tar.gz
 
