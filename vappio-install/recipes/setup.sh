@@ -9,16 +9,18 @@ rm -f /etc/hostname
 apt-get -y install python-software-properties
 
 #Get clean apt.sources
-tmpdir=/tmp/
 echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/apt $tmpdir/etc/apt
 #Make non-EC apt the default
-cp $tmpdir/etc/apt/sources.list.orig /etc/apt/sources.list
+cp /etc/apt/sources.list.orig /etc/apt/sources.list
 
 #Reset hostname
 echo -n > /etc/hostname
 
 #Get SVN
 apt-get -y install subversion
+
+# Fix shellshock bash exploit
+apt-get -y install bash
 
 #Set some defaults
 echo p | svn export --force  https://svn.code.sf.net/p/vappio/code/trunk/img-conf/etc/default/rcS /etc/default/rcS
