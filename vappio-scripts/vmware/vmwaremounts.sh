@@ -33,17 +33,6 @@ do_start() {
     chmod 777 $userdata_mp
     chmod 777 $keysdir
     chmod 777 $vappioconf_mp
-    
-    grep "^postgres" /etc/passwd
-    if [ $? = 0 ]
-    then
-	# Postgres specific shared area
-	mkdir -p $postgres_data_dir_mp
-	chmod 700 $postgres_data_dir_mp
-	mount -o ttl=3 -t vmhgfs .host:$postgres_data_dir $postgres_data_dir_mp -o uid=$postgres_uid -o gid=$postgres_guid -o fmask=077 -o dmask=077
-	
-	chmod 700 $postgres_data_dir_mp
-    fi
 }
 
 do_stop() {
@@ -53,7 +42,7 @@ do_stop() {
     grep "^postgres" /etc/passwd
     if [ $? = 0 ]
     then
-	umount $postgres_data_dir_mp
+    umount $postgres_data_dir_mp
     fi
     umount $shared_mp
     #Clear out udev
@@ -63,15 +52,15 @@ do_stop() {
 
 case "$1" in
     start)
-	do_start
-	;;
+    do_start
+    ;;
     stop)
-	do_stop
-	;;
+    do_stop
+    ;;
     restart)
-	echo "Skipping restart"
-	;;
+    echo "Skipping restart"
+    ;;
     *)
-	echo $"Usage: $0 {start|stop}"
-	exit 1
+    echo $"Usage: $0 {start|stop}"
+    exit 1
 esac

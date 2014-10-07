@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Import vappio config
+vappio_scripts=/opt/vappio-scripts
+source $vappio_scripts/vappio_config.sh
+
+vlog "###"
+vlog "### $0 (`whoami`)"
+vlog "###"
+
+## Because of ongoing issues dealing with postgres and vmware we're trying to hack out a weird solution here
+platform=`vp-detect-platform`
+if [ $platform = "vmware" ]
+    /opt/ergatis/bin/configure_sybil --start_mongo --start_postgres --root_dir=/var/lib/postgresql/ &> /var/log/configure_sybil.build.log
+else 
+    /opt/ergatis/bin/configure_sybil --start_mongo --start_postgres --root_dir=/mnt/ &> /var/log/configure_sybil.build.log
+fi
