@@ -53,7 +53,7 @@
       "headless": true,
       "http_directory": "http",
       "iso_urls": [
-        "iso/ubuntu-14.04-server-amd64.iso",
+        "/Users/carze/Documents/work/clovr/isos/ubuntu-14.04-server-amd64.iso",
         "http://releases.ubuntu.com/14.04/ubuntu-14.04-server-amd64.iso"
       ],
       "iso_checksum_type": "md5",
@@ -65,7 +65,8 @@
       "shutdown_command": "echo 'clovr!23'|sudo -S shutdown -P now",
       "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
       "virtualbox_version_file": ".vbox_version",
-      "vm_name": "clovr-standard-{{isotime "2006-01-02"}}",
+      "output_directory": "builds",
+      "vm_name": "clovr-standard-{{isotime \"2006-01-02-03-04-05\"}}",
       "vboxmanage": [
         [
           "modifyvm",
@@ -81,7 +82,7 @@
         ]
       ]
     }
-  ],
+  ]
 }
 
 
