@@ -1,0 +1,24 @@
+---
+- name: Install apache2 
+  shell: "apt-get -y install apache2"
+
+- name: Stop apache2 to update config and sites-enabled
+  shell: "/etc/init.d/apache2 stop"
+
+- name: Copy apache2 config and sites to respective directories
+  copy: >
+      src=apache2/
+      dest=/etc/apache2/
+      owner=root group=root mode=755
+
+- name: Copy apache2 initd script
+  copy: >
+      src=apache2.initd
+      dest=/etc/init.d/apache2
+
+#- name: Add proxy modules
+#  shell: "ln -f -s /etc/apache2/mods-available/proxy.load /etc/apache2/mods-enabled/; ln -f -s /etc/apache2/mods-available/proxy_http.load /etc/apache2/mods-enabled/"  
+
+#- name: Start apache2 back up
+#  shell: "/etc/init.d/apache2 start"
+

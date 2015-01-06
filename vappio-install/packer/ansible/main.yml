@@ -3,6 +3,9 @@
   sudo: yes
   gather_facts: yes
 
+  roles:
+    - clovr.apache2
+
   tasks:
     - name: Ensure apt cache is updated.
       apt: >
